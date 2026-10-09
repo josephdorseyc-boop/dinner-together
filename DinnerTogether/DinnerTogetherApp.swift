@@ -41,7 +41,11 @@ enum LaunchOptions {
     static var inertReminders: Bool { false }
     #endif
 
-    /// nil means "the real NotificationManager".
+    /// nil means "the real NotificationManager". Main-actor isolated because
+    /// `InertNotificationService` is; the only caller is `DinnerTogetherApp`'s
+    /// stored-property initializer, which runs on the main actor (CI run 3:
+    /// Xcode 16.4 rejected the nonisolated call).
+    @MainActor
     static func notificationService() -> NotificationService? {
         #if DEBUG
         return inertReminders ? InertNotificationService() : nil

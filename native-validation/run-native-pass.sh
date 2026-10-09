@@ -118,7 +118,14 @@ if [ -n "$IPHONE_UDID" ]; then
     note '```'
   fi
   APP_PATH="$(find "$DERIVED/Build/Products" -maxdepth 2 -name 'DinnerTogether.app' -path '*iphonesimulator*' 2>/dev/null | head -1 || true)"
-  if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then pass "simulator app present: \`${APP_PATH#$RESULTS/}\`"; else fail "simulator app not found after build"; fi
+  # A failed build can still leave a partial .app directory behind (CI run 3):
+  # require a successful build AND the executable inside the bundle.
+  if [ $rc -eq 0 ] && [ -n "$APP_PATH" ] && [ -x "$APP_PATH/DinnerTogether" ]; then
+    pass "simulator app present with executable: \`${APP_PATH#$RESULTS/}\`"
+  else
+    fail "no complete simulator app after build (build exit $rc; executable $([ -n "$APP_PATH" ] && [ -x "$APP_PATH/DinnerTogether" ] && echo present || echo missing))"
+    APP_PATH=""
+  fi
   # Confirm DEBUG reached the Swift compiler (needed by the screenshot launch flags).
   if grep -q -- '-D DEBUG' "$LOG" 2>/dev/null; then pass "Swift compiled with -D DEBUG (launch flags active)"; else fail "no '-D DEBUG' in the build log: #if DEBUG launch flags are compiled out"; fi
 else

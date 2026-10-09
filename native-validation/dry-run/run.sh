@@ -5,7 +5,7 @@
 # Swift and proves nothing about the app; it exists so the harness itself
 # can't silently report success when something could not run.
 #
-#   bash native-validation/dry-run/run.sh          # expect: all 10 scenarios OK
+#   bash native-validation/dry-run/run.sh          # expect: all 11 scenarios OK
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
@@ -39,5 +39,6 @@ run_case swift-test-short    1    0     1    28   FAKE_SWIFT_EXECUTED=12
 run_case no-content-size     0    0     0    24   FAKE_CONTENT_SIZE_RC=1
 run_case screenshot-fails    0    1     1    0    FAKE_SHOT_FAIL=1
 run_case appearance-fails    0    1     1    4    FAKE_APPEARANCE_RC=1   # A2-3: required light/dark not set → fail; 4 bonus shots only
+run_case build-fails-partial 1    1     4    0    FAKE_BUILD_RC=65       # CI run 3: failed build leaves a partial .app → must not count as present
 rm -rf "$WORK"
-if [ "$bad" -eq 0 ]; then echo "PASS: 10 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
+if [ "$bad" -eq 0 ]; then echo "PASS: 11 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
