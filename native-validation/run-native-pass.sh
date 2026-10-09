@@ -127,7 +127,8 @@ if [ -n "$IPHONE_UDID" ]; then
     APP_PATH=""
   fi
   # Confirm DEBUG reached the Swift compiler (needed by the screenshot launch flags).
-  if grep -q -- '-D DEBUG' "$LOG" 2>/dev/null; then pass "Swift compiled with -D DEBUG (launch flags active)"; else fail "no '-D DEBUG' in the build log: #if DEBUG launch flags are compiled out"; fi
+  # Xcode 16 prints the condition as `-DDEBUG` (no space); older logs used `-D DEBUG`.
+  if grep -qE -- '-D ?DEBUG' "$LOG" 2>/dev/null; then pass "Swift compiled with -DDEBUG (launch flags active)"; else fail "no '-DDEBUG' in the build log: #if DEBUG launch flags are compiled out"; fi
 else
   fail "build skipped: no iPhone simulator"
 fi

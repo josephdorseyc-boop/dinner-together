@@ -380,6 +380,13 @@ struct CookingView: View {
             let detail = report.estimateIsLowerBound
                 ? "Dinner is set for \(chosen). Unfinished steps can't finish before \(ready)."
                 : "Dinner is set for \(chosen). Unfinished steps are estimated to finish around \(ready)."
+            // At accessibility text sizes the full notice filled the first
+            // screen and pushed RIGHT NOW below the fold (CI run 4 screenshots).
+            // Show the headline, one compact times line and the button; the
+            // reason stays in the review sheet. VoiceOver still gets the full
+            // label below.
+            let compact = dynamicTypeSize.isAccessibilitySize
+            let compactLine = "Dinner \(chosen) · \(report.estimateIsLowerBound ? "earliest" : "estimated") \(ready)"
             let readinessLabel = report.estimateIsLowerBound ? "Earliest readiness" : "Estimated readiness"
             let laterPhrase = report.estimateIsLowerBound
                 ? "at least \(report.lowerBoundMinutes) minutes later"
@@ -394,10 +401,15 @@ struct CookingView: View {
                         Text(headline)
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(emphasized ? Theme.warning : Theme.ink)
-                        Text(detail)
-                            .font(.caption).monospacedDigit().foregroundStyle(Theme.muted)
-                        Text(report.reason)
-                            .font(.caption).foregroundStyle(Theme.muted)
+                        if compact {
+                            Text(compactLine)
+                                .font(.caption).monospacedDigit().foregroundStyle(Theme.muted)
+                        } else {
+                            Text(detail)
+                                .font(.caption).monospacedDigit().foregroundStyle(Theme.muted)
+                            Text(report.reason)
+                                .font(.caption).foregroundStyle(Theme.muted)
+                        }
                     }
                 }
                 .accessibilityElement(children: .combine)
@@ -406,7 +418,7 @@ struct CookingView: View {
                     .buttonStyle(QuietButtonStyle())
                     .accessibilityHint("Shows the estimate and lets you move dinner to it. Nothing changes until you choose.")
             }
-            .padding(16)
+            .padding(compact ? 12 : 16)
             .background(Theme.paper, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
