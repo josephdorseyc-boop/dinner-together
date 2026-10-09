@@ -1,0 +1,704 @@
+diff -ruN -x '*.patch' -x .build -x results a/.github/workflows/native-validation.yml b/.github/workflows/native-validation.yml
+--- a/.github/workflows/native-validation.yml	1969-12-31 17:00:00.000000000 -0700
++++ b/.github/workflows/native-validation.yml	2026-10-09 15:26:56.012998229 -0600
+@@ -0,0 +1,84 @@
++# Dinner, Together — native validation without owning a Mac.
++#
++# Two jobs:
++#   engine-linux  (free, fast)  — runs the JS model and `swift test` on Linux via
++#                                 the Package.swift harness (engine + store tests).
++#   native-ios    (macOS runner) — builds the Xcode project, runs XCTest on an
++#                                 iPhone and an iPad simulator, and screenshots
++#                                 the seeded recovery states. Uploads everything
++#                                 as the "native-validation-results" artifact,
++#                                 whether or not the steps pass.
++#
++# Triggers on every push and manually (Actions tab → "Run workflow").
++name: native-validation
++
++on:
++  push:
++  workflow_dispatch:
++
++permissions:
++  contents: read
++
++jobs:
++  engine-linux:
++    name: Engine model + swift test (Linux)
++    runs-on: ubuntu-latest
++    container: swift:6.0
++    steps:
++      - uses: actions/checkout@v4
++      - name: Toolchain
++        run: swift --version
++      - name: swift test (Package.swift harness)
++        run: swift test 2>&1 | tee swift-test-linux.log
++      - name: Upload Linux log
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: engine-linux-log
++          path: swift-test-linux.log
++          if-no-files-found: ignore
++
++  js-model:
++    name: Supplemental JS model
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v4
++      - uses: actions/setup-node@v4
++        with:
++          node-version: 22
++      - run: node logic-checks/mirror-test.cjs
++      - run: node logic-checks/reconciliation-test.cjs
++
++  native-ios:
++    name: Xcode build, XCTest, simulator screenshots
++    runs-on: macos-15
++    timeout-minutes: 60
++    steps:
++      - uses: actions/checkout@v4
++      - name: Xcode in use
++        run: |
++          xcodebuild -version
++          xcrun simctl list runtimes available | tail -n +1
++      - name: Build + XCTest (iPhone and iPad simulators) + swift test
++        run: bash native-validation/run-native-pass.sh "$GITHUB_WORKSPACE/native-validation/results"
++      - name: Screenshots of seeded recovery states
++        if: always()
++        run: bash native-validation/screenshots.sh "$GITHUB_WORKSPACE/native-validation/results"
++      - name: Show summary
++        if: always()
++        run: cat native-validation/results/SUMMARY.md || true
++      - name: Upload results
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: native-validation-results
++          path: |
++            native-validation/results/**
++            !native-validation/results/build/**
++          if-no-files-found: warn
++      - name: Fail the job if a test step failed
++        if: always()
++        run: |
++          if grep -q '❌' native-validation/results/SUMMARY.md 2>/dev/null; then
++            echo "One or more steps failed — see SUMMARY.md in the artifact."; exit 1
++          fi
+diff -ruN -x '*.patch' -x .build -x results a/CI_SETUP.md b/CI_SETUP.md
+--- a/CI_SETUP.md	1969-12-31 17:00:00.000000000 -0700
++++ b/CI_SETUP.md	2026-10-09 15:27:33.597000463 -0600
+@@ -0,0 +1,83 @@
++# Native validation without a Mac — GitHub Actions setup
++
++GitHub Actions provides macOS machines with Xcode and iOS simulators. This
++project ships a workflow (`.github/workflows/native-validation.yml`) that
++builds the app, runs the XCTest suite on an iPhone and an iPad simulator,
++runs the `swift test` harness on Linux and macOS, and photographs the cooking
++screen in six seeded recovery states. Everything comes back as a downloadable
++artifact you can hand to whoever is reviewing — no Mac involved at any point.
++
++## One-time setup (about 15 minutes)
++
++1. **GitHub account and repository.** Create a repository, e.g.
++   `dinner-together`. A **public** repo gets unlimited free Actions minutes.
++   A **private** repo also works: the free plan includes 2,000 minutes/month
++   and macOS counts 10×, so a ~15-minute run costs ~150 — roughly a dozen
++   runs a month. (The source has placeholder bundle IDs and no secrets; the
++   choice is about how visible you want the code to be, not safety.)
++
++2. **Put the project at the repository root.** The repo root must contain
++   `DinnerTogether.xcodeproj`, `DinnerTogether/`, `DinnerTogetherTests/`,
++   `native-validation/`, `Package.swift` and `.github/`. Two ways:
++   - **GitHub Desktop (Windows/Mac/Linux):** File → New repository, point it
++     at the unzipped `DinnerTogether-RecoveryCandidate-v028` folder, commit,
++     Publish. Simplest; it includes the hidden `.github` folder.
++   - **Web upload:** "Add file → Upload files" and drag the *contents* of the
++     folder in. Check afterwards that `.github/workflows/native-validation.yml`
++     made it — some browsers skip dot-folders; if so, create that file via
++     "Add file → Create new file" and paste its contents.
++
++3. **Run it.** Every push runs the workflow automatically. To run it by hand:
++   Actions tab → *native-validation* → *Run workflow*.
++
++## Each run (20–30 minutes of waiting, 2 minutes of your time)
++
++1. Actions tab → the latest *native-validation* run.
++2. Three jobs: *Engine model + swift test (Linux)* (fast), *Supplemental JS
++   model* (seconds), *Xcode build, XCTest, simulator screenshots* (the long
++   one, ~15–25 min).
++3. When the macOS job finishes — green or red — scroll to **Artifacts** and
++   download `native-validation-results.zip` (and `engine-linux-log`).
++4. Upload the zip(s) back into this conversation. The important files:
++   - `SUMMARY.md` — pass/fail per step, Xcode version, simulators used.
++   - `20-test-iphone-cases.txt` / `20-test-ipad-cases.txt` — every XCTest
++     method with passed/failed.
++   - `10-build-for-testing-iphone.log` — the compiler's words if the build
++     failed (first errors are also echoed into `SUMMARY.md`).
++   - `screenshots/iphone/*.png`, `screenshots/ipad/*.png` — the cooking
++     screen in each seeded state, light and dark, plus two large-text shots;
++     `screenshots/EXPECTATIONS.tsv` says what each one should show.
++   - `*.xcresult.zip` — the full Xcode result bundle, for anyone with Xcode.
++
++I read the summary, the logs and the screenshots, fix what they show, and
++return a new patch/ZIP; you replace the files in the repo (GitHub Desktop
++makes that a commit) and the next run starts on its own.
++
++## What to expect on the very first run
++
++The Xcode project file in this package was written by hand and has never
++been opened by Xcode. The first run is therefore likely to stop early with a
++project, scheme, or SDK complaint rather than a test result. That is the
++purpose of the run: the log tells me exactly what Xcode wants, which nothing
++on the Linux side can tell us. Two or three cycles is a reasonable
++expectation before the full suite and screenshots come back clean.
++
++## What this does and does not prove
++
++Proves, once green: the Swift compiles for iOS 17+; the 60 XCTest methods
++pass under Xcode; the seeded recovery states render as designed on an iPhone
++and an iPad simulator in light, dark, and accessibility text size.
++
++Does not prove: notification delivery on a real device, VoiceOver reading
++order (needs a person or an accessibility audit test), haptics, battery/
++background behavior, App Store readiness. Those stay on the device checklist
++in `README.md`.
++
++## Later additions this path supports
++
++- A UI test target so the run can also tap "Review dinner time" and capture
++  the sheet (XCUITest; I'd add it once the first clean run confirms the
++  project structure).
++- TestFlight builds from CI (requires an Apple Developer Program membership
++  and signing secrets in the repo). That is how an iPhone in your hand runs
++  the app without a Mac.
+diff -ruN -x '*.patch' -x .build -x results a/DinnerTogether/ContentView.swift b/DinnerTogether/ContentView.swift
+--- a/DinnerTogether/ContentView.swift	2026-10-09 14:29:08.000000000 -0600
++++ b/DinnerTogether/ContentView.swift	2026-10-09 15:22:23.928982055 -0600
+@@ -5,8 +5,10 @@
+ struct ContentView: View {
+     @EnvironmentObject private var store: SessionStore
+     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+-    @State private var tab = 0
+-    @State private var sidebarSelection: String? = "tonight"
++    // Debug launch option `-dt-open-cooking` starts on the Cooking screen
++    // (simulator screenshots). Release builds always start on Tonight.
++    @State private var tab = LaunchOptions.openCooking ? 1 : 0
++    @State private var sidebarSelection: String? = LaunchOptions.openCooking ? "cooking" : "tonight"
+ 
+     var body: some View {
+         Group {
+diff -ruN -x '*.patch' -x .build -x results a/DinnerTogether/DinnerTogetherApp.swift b/DinnerTogether/DinnerTogetherApp.swift
+--- a/DinnerTogether/DinnerTogetherApp.swift	2026-10-09 14:29:08.000000000 -0600
++++ b/DinnerTogether/DinnerTogetherApp.swift	2026-10-09 15:22:16.740981628 -0600
+@@ -3,7 +3,7 @@
+ @main
+ struct DinnerTogetherApp: App {
+     @Environment(\.scenePhase) private var scenePhase
+-    @StateObject private var store = SessionStore()
++    @StateObject private var store = SessionStore(notifications: LaunchOptions.notificationService())
+     @StateObject private var timers = TimerCenter()
+ 
+     var body: some Scene {
+@@ -18,3 +18,49 @@
+         }
+     }
+ }
++
++// MARK: - Debug launch options (simulator screenshots, UI tests)
++
++/// Launch arguments honored only in DEBUG builds. Release builds ignore
++/// them entirely: every accessor below is a constant `false`/`nil` there.
++///
++///   -dt-open-cooking      open on the Cooking screen instead of Tonight
++///   -dt-inert-reminders   use a reminder service that never prompts or
++///                         schedules, so no system alert covers the screen
++///
++/// Used by native-validation/screenshots.sh. Nothing here changes cooking
++/// behavior: the inert service only replaces the permission/scheduling
++/// layer, and the store's timers still run from their absolute deadlines.
++enum LaunchOptions {
++    #if DEBUG
++    private static let arguments = Set(ProcessInfo.processInfo.arguments)
++    static var openCooking: Bool { arguments.contains("-dt-open-cooking") }
++    static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
++    #else
++    static var openCooking: Bool { false }
++    static var inertReminders: Bool { false }
++    #endif
++
++    /// nil means "the real NotificationManager".
++    static func notificationService() -> NotificationService? {
++        #if DEBUG
++        return inertReminders ? InertNotificationService() : nil
++        #else
++        return nil
++        #endif
++    }
++}
++
++#if DEBUG
++/// Grants nothing, schedules nothing, never prompts. Debug only.
++@MainActor
++final class InertNotificationService: NotificationService {
++    private(set) var denied = false
++    var onStatusChange: ((Bool, String?) -> Void)?
++    func ensureAuthorization() async -> Bool { false }
++    func refreshAuthorization() async { }
++    func schedule(stepID: String, title: String, deadline: Date) { }
++    func cancel(stepID: String) { }
++    func cancelAll() { }
++}
++#endif
+diff -ruN -x '*.patch' -x .build -x results a/RECOVERY_HANDOFF.md b/RECOVERY_HANDOFF.md
+--- a/RECOVERY_HANDOFF.md	2026-10-09 15:10:50.000000000 -0600
++++ b/RECOVERY_HANDOFF.md	2026-10-09 15:28:22.093003346 -0600
+@@ -1,4 +1,15 @@
+-# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r2**
++# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r3**
++
++> **r3 (same cooking behavior as r2) adds the no-Mac validation path.**
++> Joe has no Mac, so native validation runs on GitHub's macOS machines:
++> `.github/workflows/native-validation.yml` + `native-validation/` (build,
++> XCTest on iPhone and iPad simulators, `swift test` on Linux and macOS,
++> seeded simulator screenshots), with `CI_SETUP.md` as the step-by-step.
++> The only Swift changes since r2 are two DEBUG-only launch options
++> (`LaunchOptions` in `DinnerTogetherApp.swift`; initial tab in
++> `ContentView.swift`) used by the screenshot script; release builds ignore
++> them. `recovery-candidate-r2-to-r3.patch` is that delta. Everything else
++> in this document describes r2's behavior and is unchanged.
+ 
+ Candidate for routine-lateness recovery, built on the unmodified v0.2.8
+ package. **Not a release.** Marketing version and build number are left at
+@@ -46,11 +57,13 @@
+ | `DinnerTogetherTests/DinnerTogetherTests.swift` | 3 tests rewritten to the new API with their regression intent kept; 18 added (`RecoveryNoticeTests` 11, `RecoveryStoreTests` 7). 42 → 60 methods, 12 classes. All other tests unchanged. |
+ | `logic-checks/mirror-test.cjs` | Mirror of the readiness functions and the mini-store move/preview; scenarios R1–R19. 65 → 120 assertions. |
+ | `Package.swift`, `DinnerTogether/EngineTestSupport.swift`, `EngineSupport/SwiftUIShim/SwiftUI.swift`, `ENGINE_TESTS.md` | **New** `swift test` harness. `EngineTestSupport.swift` is deliberately not referenced by the Xcode project. |
++| `DinnerTogether/DinnerTogetherApp.swift`, `DinnerTogether/ContentView.swift` | **r3:** DEBUG-only `LaunchOptions` (`-dt-open-cooking`, `-dt-inert-reminders`) and `InertNotificationService`; `ContentView` starts on Cooking when asked. Release builds: constant false, real `NotificationManager`, Tonight tab — unchanged. |
++| `.github/workflows/native-validation.yml`, `native-validation/*`, `CI_SETUP.md` | **r3:** GitHub Actions validation (Linux `swift test` + JS model; macOS Xcode build, XCTest on iPhone/iPad simulators, seeded screenshots; artifact upload). |
+ | `START_HERE.md` | Pointer lines. |
+ | `RECOVERY_*.md`, `recovery-candidate-v028.patch`, `recovery-candidate-r1-to-r2.patch`, `optional-expired-timer-copy.patch` | New / refreshed. |
+ 
+ Untouched: `Models.swift` (persistence schema), `Notifications.swift`,
+-`TimerCenter.swift`, `ContentView.swift`, `Theme.swift`,
++`TimerCenter.swift`, `Theme.swift`,
+ `DinnerCatalog.swift`, `project.pbxproj`, the scheme. No files were added to
+ the Xcode targets, so the project file needs no edit.
+ 
+diff -ruN -x '*.patch' -x .build -x results a/START_HERE.md b/START_HERE.md
+--- a/START_HERE.md	2026-10-09 15:10:54.000000000 -0600
++++ b/START_HERE.md	2026-10-09 15:28:38.285763691 -0600
+@@ -1,10 +1,11 @@
+ # Dinner, Together v0.2.8
+ 
+-> **Recovery candidate r2 (not a release):** this copy carries the routine-lateness
++> **Recovery candidate r3 (not a release):** this copy carries the routine-lateness
+ > recovery changes, revised after review. Read `RECOVERY_HANDOFF.md` first; the patch
+ > against pristine v0.2.8 is `recovery-candidate-v028.patch`. Version/build
+ > intentionally unchanged. To run the engine/store tests without Xcode:
+-> `swift test` (see `ENGINE_TESTS.md`).
++> `swift test` (see `ENGINE_TESTS.md`). No Mac at all? `CI_SETUP.md` runs the
++> whole native pass on GitHub's macOS machines.
+ 
+ Open DinnerTogether.xcodeproj on a Mac with Xcode. The shared DinnerTogether scheme includes native tests.
+ 
+diff -ruN -x '*.patch' -x .build -x results a/native-validation/README.md b/native-validation/README.md
+--- a/native-validation/README.md	1969-12-31 17:00:00.000000000 -0700
++++ b/native-validation/README.md	2026-10-09 15:27:45.437001167 -0600
+@@ -0,0 +1,22 @@
++# native-validation/
++
++Scripts the CI workflow runs on a macOS machine. They also run on any Mac
++with Xcode (`bash native-validation/run-native-pass.sh` then
++`bash native-validation/screenshots.sh`). Written on Linux; first executed by
++the workflow — see `../CI_SETUP.md`.
++
++| File | What it does |
++|---|---|
++| `run-native-pass.sh` | Records the environment; `xcodebuild -list`; `build-for-testing` on the newest available iPhone simulator; `test-without-building` on that iPhone and on an iPad, each with an `.xcresult` bundle and a per-test-case text file; `swift test` for the Package.swift harness. Writes `results/SUMMARY.md`. Never aborts early — every step's exit code is recorded. |
++| `seed-sessions.py` | Writes six `dinner-together-v2.json` session files (the app's own save format) with times relative to now: `late-prep`, `late-to-start`, `expired-timer`, `way-behind`, `all-done-late`, `on-schedule`. Prints the expected screen state for each. |
++| `screenshots.sh` | Boots the simulators, installs the built app, copies each seed into the app's Documents, launches with `-dt-open-cooking -dt-inert-reminders`, and captures PNGs in light and dark, plus two accessibility-large-text shots. |
++| `results/` | Created at run time; uploaded as the CI artifact (minus the DerivedData build folder). |
++
++The two launch options are DEBUG-only (`LaunchOptions` in
++`DinnerTogetherApp.swift`): one opens the Cooking screen directly, the other
++substitutes an inert reminder service so the notification permission alert
++never covers a screenshot. Release builds ignore both.
++
++Static states only: nothing taps buttons, so the review sheet and the
++confirmation dialogs are not photographed. That needs an XCUITest target,
++planned once the project builds cleanly on CI.
+diff -ruN -x '*.patch' -x .build -x results a/native-validation/run-native-pass.sh b/native-validation/run-native-pass.sh
+--- a/native-validation/run-native-pass.sh	1969-12-31 17:00:00.000000000 -0700
++++ b/native-validation/run-native-pass.sh	2026-10-09 15:25:52.564994457 -0600
+@@ -0,0 +1,151 @@
++#!/usr/bin/env bash
++# Native build + test pass for Dinner, Together. Runs on a GitHub macOS runner
++# or any Mac with Xcode. Never stops at the first failure: every step records
++# its exit code so the artifact tells the whole story.
++#
++#   bash native-validation/run-native-pass.sh [results-dir]
++#
++# Produces: <results>/SUMMARY.md, environment.txt, *.log, *.xcresult (zipped),
++# and the simulator app build for screenshots.sh under <results>/build.
++set -uo pipefail
++
++ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++RESULTS="${1:-$ROOT/native-validation/results}"
++mkdir -p "$RESULTS"
++cd "$ROOT"
++
++SUMMARY="$RESULTS/SUMMARY.md"
++: > "$SUMMARY"
++note() { printf '%s\n' "$*" | tee -a "$SUMMARY"; }
++step_result() { # name exit_code logfile
++  if [ "$2" -eq 0 ]; then note "- ✅ $1 (exit 0) — \`$(basename "$3")\`"; else note "- ❌ $1 (exit $2) — \`$(basename "$3")\`"; fi
++}
++
++note "# Native validation — $(date -u '+%Y-%m-%d %H:%M UTC')"
++note ""
++note "Project: $(basename "$ROOT") · bundle com.example.dinnertogether · scheme DinnerTogether"
++note ""
++
++# ---------------------------------------------------------------- environment
++{
++  echo "== sw_vers";        sw_vers
++  echo "== xcode-select";   xcode-select -p
++  echo "== xcodebuild";     xcodebuild -version
++  echo "== swift";          swift --version 2>&1
++  echo "== simulators";     xcrun simctl list devices available
++  echo "== runtimes";       xcrun simctl list runtimes available
++} > "$RESULTS/environment.txt" 2>&1
++note "## Environment"
++note '```'
++{ sw_vers | head -2; xcodebuild -version; } | tee -a "$SUMMARY"
++note '```'
++note ""
++
++# ------------------------------------------------------------ pick simulators
++pick_device() { # family regex → "NAME|UDID"
++  xcrun simctl list devices available -j | python3 -c '
++import json,sys,re
++fam=sys.argv[1]
++d=json.load(sys.stdin)["devices"]
++cands=[]
++for runtime,devs in d.items():
++    if "iOS" not in runtime: continue
++    for dev in devs:
++        if dev.get("isAvailable") and re.search(fam, dev["name"]):
++            cands.append((runtime, dev["name"], dev["udid"]))
++# newest runtime first, then prefer plain models (e.g. "iPhone 16" over "iPhone 16 Pro Max")
++cands.sort(key=lambda c:(c[0], -len(c[1])), reverse=True)
++if cands: print(cands[0][1]+"|"+cands[0][2])
++' "$1"
++}
++IPHONE="$(pick_device '^iPhone 1[5-9]$|^iPhone [0-9]+$' || true)"
++IPAD="$(pick_device '^iPad Pro 13|^iPad Pro|^iPad Air|^iPad' || true)"
++[ -n "$IPHONE" ] || IPHONE="$(pick_device 'iPhone' || true)"
++IPHONE_NAME="${IPHONE%%|*}"; IPHONE_UDID="${IPHONE##*|}"
++IPAD_NAME="${IPAD%%|*}";     IPAD_UDID="${IPAD##*|}"
++note "Simulators: iPhone → ${IPHONE_NAME:-none} · iPad → ${IPAD_NAME:-none}"
++note ""
++printf 'IPHONE_NAME=%s\nIPHONE_UDID=%s\nIPAD_NAME=%s\nIPAD_UDID=%s\n' \
++  "$IPHONE_NAME" "$IPHONE_UDID" "$IPAD_NAME" "$IPAD_UDID" > "$RESULTS/devices.env"
++
++# ----------------------------------------------------------------- project
++note "## Project"
++LOG="$RESULTS/00-xcodebuild-list.log"
++xcodebuild -list -project DinnerTogether.xcodeproj > "$LOG" 2>&1; rc=$?
++step_result "xcodebuild -list (project parses, scheme visible)" $rc "$LOG"
++
++# -------------------------------------------------------------------- build
++DERIVED="$RESULTS/build"
++COMMON=(-project DinnerTogether.xcodeproj -scheme DinnerTogether -derivedDataPath "$DERIVED"
++        CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="")
++
++note ""
++note "## Build"
++if [ -n "$IPHONE_UDID" ]; then
++  LOG="$RESULTS/10-build-for-testing-iphone.log"
++  xcodebuild build-for-testing "${COMMON[@]}" -destination "id=$IPHONE_UDID" > "$LOG" 2>&1; rc=$?
++  step_result "build-for-testing app + test targets (iPhone simulator)" $rc "$LOG"
++  if [ $rc -ne 0 ]; then
++    note ""; note "First errors:"; note '```'
++    grep -E 'error:|\*\* BUILD FAILED' "$LOG" | head -30 | tee -a "$SUMMARY"
++    note '```'
++  fi
++else
++  note "- ⚠️ no iPhone simulator available; skipped build"
++fi
++
++APP_PATH="$(find "$DERIVED/Build/Products" -maxdepth 2 -name 'DinnerTogether.app' -path '*iphonesimulator*' 2>/dev/null | head -1 || true)"
++printf 'APP_PATH=%s\n' "$APP_PATH" >> "$RESULTS/devices.env"
++note ""
++note "Simulator app: ${APP_PATH:-not built}"
++
++# -------------------------------------------------------------------- tests
++run_tests() { # label udid
++  local label="$1" udid="$2"
++  local bundle="$RESULTS/$label.xcresult"
++  local log="$RESULTS/20-test-$label.log"
++  rm -rf "$bundle"
++  xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
++    -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
++  step_result "XCTest on $label" $rc "$log"
++  # Human-readable per-test lines straight from xcodebuild
++  grep -E "Test Case '.*' (passed|failed)|Executed [0-9]+ tests" "$log" > "$RESULTS/20-test-$label-cases.txt" 2>/dev/null || true
++  local passed failed
++  passed=$(grep -c "' passed" "$RESULTS/20-test-$label-cases.txt" 2>/dev/null || echo 0)
++  failed=$(grep -c "' failed" "$RESULTS/20-test-$label-cases.txt" 2>/dev/null || echo 0)
++  note "  - cases: $passed passed, $failed failed (see \`20-test-$label-cases.txt\`)"
++  if [ "$failed" != "0" ]; then
++    note '```'; grep "' failed" "$RESULTS/20-test-$label-cases.txt" | tee -a "$SUMMARY"; note '```'
++    grep -E 'error:' "$log" | head -40 > "$RESULTS/20-test-$label-failures.txt" || true
++  fi
++  # Xcode 16 structured summary, best effort
++  if [ -d "$bundle" ]; then
++    xcrun xcresulttool get test-results summary --path "$bundle" > "$RESULTS/20-test-$label-summary.json" 2>/dev/null || true
++    (cd "$RESULTS" && zip -q -r "$label.xcresult.zip" "$(basename "$bundle")" && rm -rf "$bundle") || true
++  fi
++}
++
++note ""
++note "## XCTest"
++if [ -n "$APP_PATH" ]; then
++  [ -n "$IPHONE_UDID" ] && run_tests "iphone" "$IPHONE_UDID"
++  [ -n "$IPAD_UDID" ]   && run_tests "ipad"   "$IPAD_UDID"
++else
++  note "- ⚠️ tests skipped: app did not build"
++fi
++
++# ------------------------------------------------- swift test (engine harness)
++note ""
++note "## swift test (Package.swift engine/store harness, macOS)"
++LOG="$RESULTS/30-swift-test-macos.log"
++swift test > "$LOG" 2>&1; rc=$?
++step_result "swift test" $rc "$LOG"
++grep -E "Executed [0-9]+ tests|error:|failed" "$LOG" | head -20 | sed 's/^/    /' | tee -a "$SUMMARY" >/dev/null || true
++
++note ""
++note "## Not covered by this script"
++note "- Real notification delivery, device behavior, VoiceOver reading order, haptics."
++note "- Interactive flows (tapping Review dinner time); screenshots.sh covers static states only."
++note ""
++note "_Generated by native-validation/run-native-pass.sh_"
++exit 0
+diff -ruN -x '*.patch' -x .build -x results a/native-validation/screenshots.sh b/native-validation/screenshots.sh
+--- a/native-validation/screenshots.sh	1969-12-31 17:00:00.000000000 -0700
++++ b/native-validation/screenshots.sh	2026-10-09 15:26:34.372996943 -0600
+@@ -0,0 +1,99 @@
++#!/usr/bin/env bash
++# Simulator screenshots of the cooking screen in seeded recovery states.
++# Needs the app built by run-native-pass.sh (reads <results>/devices.env).
++#
++#   bash native-validation/screenshots.sh [results-dir]
++#
++# For each scenario × device × appearance it: writes the seeded session into
++# the app's Documents, launches with the DEBUG launch options
++# (-dt-open-cooking -dt-inert-reminders), waits, and captures a PNG into
++# <results>/screenshots/<device>/<scenario>-<appearance>.png. Static states
++# only — no taps (the review sheet needs a UI test; see README).
++set -uo pipefail
++
++ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
++RESULTS="${1:-$ROOT/native-validation/results}"
++BUNDLE="com.example.dinnertogether"
++SHOTS="$RESULTS/screenshots"
++SEEDS="$RESULTS/seeds"
++LOG="$RESULTS/40-screenshots.log"
++SUMMARY="$RESULTS/SUMMARY.md"
++mkdir -p "$SHOTS" "$SEEDS"
++: > "$LOG"
++say() { printf '%s\n' "$*" | tee -a "$LOG"; }
++
++# shellcheck disable=SC1091
++[ -f "$RESULTS/devices.env" ] && source "$RESULTS/devices.env"
++if [ -z "${APP_PATH:-}" ] || [ ! -d "${APP_PATH:-/nonexistent}" ]; then
++  say "No simulator app build found (APP_PATH). Run run-native-pass.sh first."
++  printf '\n## Screenshots\n- ⚠️ skipped: no app build\n' >> "$SUMMARY"
++  exit 0
++fi
++
++# Seeds are regenerated right before each launch so relative times hold.
++seed_names() { python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" | cut -f1; }
++SCENARIOS=()   # bash 3.2-compatible (macOS /bin/bash): no mapfile
++while IFS= read -r line; do SCENARIOS+=("$line"); done < <(seed_names)
++python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" > "$SHOTS/EXPECTATIONS.tsv"
++
++shoot_device() { # label udid
++  local label="$1" udid="$2"
++  [ -n "$udid" ] || { say "skip $label: no simulator"; return; }
++  local dir="$SHOTS/$label"; mkdir -p "$dir"
++  say "== $label ($udid)"
++  xcrun simctl boot "$udid" >> "$LOG" 2>&1 || true
++  xcrun simctl bootstatus "$udid" -b >> "$LOG" 2>&1 || true
++  xcrun simctl install "$udid" "$APP_PATH" >> "$LOG" 2>&1 || { say "install failed on $label"; return; }
++  # Launch once so the data container exists, then stop it.
++  xcrun simctl launch "$udid" "$BUNDLE" -dt-inert-reminders >> "$LOG" 2>&1 || true
++  sleep 2
++  xcrun simctl terminate "$udid" "$BUNDLE" >> "$LOG" 2>&1 || true
++  local container
++  container="$(xcrun simctl get_app_container "$udid" "$BUNDLE" data 2>>"$LOG" || true)"
++  [ -n "$container" ] || { say "no data container on $label"; return; }
++  mkdir -p "$container/Documents"
++
++  for appearance in light dark; do
++    xcrun simctl ui "$udid" appearance "$appearance" >> "$LOG" 2>&1 || true
++    for scenario in "${SCENARIOS[@]}"; do
++      python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" > /dev/null   # fresh "now"
++      cp "$SEEDS/$scenario.json" "$container/Documents/dinner-together-v2.json"
++      xcrun simctl launch "$udid" "$BUNDLE" -dt-open-cooking -dt-inert-reminders >> "$LOG" 2>&1
++      sleep 4
++      xcrun simctl io "$udid" screenshot "$dir/$scenario-$appearance.png" >> "$LOG" 2>&1 \
++        && say "shot $label/$scenario-$appearance.png" || say "FAILED $label/$scenario-$appearance"
++      xcrun simctl terminate "$udid" "$BUNDLE" >> "$LOG" 2>&1 || true
++    done
++  done
++
++  # One large-text pass in light mode (Dynamic Type accessibility size), best effort.
++  if xcrun simctl ui "$udid" content_size accessibility-large >> "$LOG" 2>&1; then
++    xcrun simctl ui "$udid" appearance light >> "$LOG" 2>&1 || true
++    for scenario in late-prep expired-timer; do
++      python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" > /dev/null
++      cp "$SEEDS/$scenario.json" "$container/Documents/dinner-together-v2.json"
++      xcrun simctl launch "$udid" "$BUNDLE" -dt-open-cooking -dt-inert-reminders >> "$LOG" 2>&1
++      sleep 4
++      xcrun simctl io "$udid" screenshot "$dir/$scenario-ax-large-text.png" >> "$LOG" 2>&1 \
++        && say "shot $label/$scenario-ax-large-text.png" || say "FAILED $label/$scenario-ax-large-text"
++      xcrun simctl terminate "$udid" "$BUNDLE" >> "$LOG" 2>&1 || true
++    done
++    xcrun simctl ui "$udid" content_size large >> "$LOG" 2>&1 || true
++  else
++    say "content_size not supported by this simctl; skipped large-text pass"
++  fi
++  xcrun simctl shutdown "$udid" >> "$LOG" 2>&1 || true
++}
++
++shoot_device iphone "${IPHONE_UDID:-}"
++shoot_device ipad   "${IPAD_UDID:-}"
++
++{
++  echo ""
++  echo "## Screenshots"
++  count=$(find "$SHOTS" -name '*.png' | wc -l | tr -d ' ')
++  echo "- $count PNG(s) under \`screenshots/\` — expectations per scenario in \`screenshots/EXPECTATIONS.tsv\`"
++  find "$SHOTS" -name '*.png' | sed "s|$SHOTS/|  - |" | sort
++} >> "$SUMMARY"
++say "done"
++exit 0
+diff -ruN -x '*.patch' -x .build -x results a/native-validation/seed-sessions.py b/native-validation/seed-sessions.py
+--- a/native-validation/seed-sessions.py	1969-12-31 17:00:00.000000000 -0700
++++ b/native-validation/seed-sessions.py	2026-10-09 15:24:49.636990717 -0600
+@@ -0,0 +1,111 @@
++#!/usr/bin/env python3
++"""Write seeded Dinner, Together session files for simulator screenshots.
++
++Each scenario is a `dinner-together-v2.json` in the exact shape SessionStore
++decodes (DinnerSession via Swift's synthesized Codable + JSONEncoder defaults:
++Dates are seconds since 2001-01-01 UTC, optionals omitted when nil, every
++non-optional key present). Times are relative to --now so a launch a few
++seconds later lands in the intended state. Steak night menu throughout:
++
++  Steak:       s1 10 min, s2 20 min, s3 10 min
++  Mash:        p1 10 min, p2 20 min (hands-off), p3 5 min
++  Green beans: b1  5 min, b2 10 min
++
++Usage: seed-sessions.py OUT_DIR [--now UNIX_SECONDS] [--list]
++Writes OUT_DIR/<scenario>.json and prints one "scenario<TAB>expectation" line
++per file so the screenshot script can caption them.
++"""
++import json, sys, time, uuid, pathlib
++
++REFERENCE_EPOCH = 978307200  # 2001-01-01T00:00:00Z, Swift Date reference
++MIN = 60
++
++def swift_date(unix_seconds):
++    return float(unix_seconds - REFERENCE_EPOCH)
++
++def done(start, end):
++    rec = {"state": "done", "actualEnd": swift_date(end)}
++    if start is not None:
++        rec["actualStart"] = swift_date(start)
++    return rec
++
++def cooking(start, minutes, deadline):
++    return {"runID": str(uuid.uuid4()).upper(), "state": "cooking",
++            "actualStart": swift_date(start), "confirmedMinutes": minutes,
++            "timerDeadline": swift_date(deadline)}
++
++def session(now, serve_at, records, history=None):
++    return {
++        "menuID": "steak",
++        "serveAt": swift_date(serve_at),
++        "durationOverrides": {},
++        "records": records,
++        "history": history or [],
++        "createdAt": swift_date(now - 60 * MIN),
++        "lastOpenedAt": swift_date(now),   # today → never the stale-plan sheet
++    }
++
++def scenarios(now):
++    n = lambda m: now + m * MIN
++    out = {}
++
++    # a) Routine late finish: steak prep done 7 min late; mash on schedule
++    #    (p1 done on time, p2 cooking to its planned deadline); beans pending.
++    #    Expect: notice "Running about 7 min behind", dinner 23 min from now,
++    #    estimated +30; reason names the late prep; RIGHT NOW offers "Cook the steak".
++    out["late-prep"] = (session(now, n(23), {
++        "s1": done(n(-17), n(0)),
++        "p1": done(n(-12), n(-2)),
++        "p2": cooking(n(-2), 20, n(18)),
++    }), "Running about 7 min behind; dinner +23, estimate +30; reason: prep finished 7 min late")
++
++    # b) Nothing started, steak prep 8 min late to start.
++    #    Expect: "Running about 8 min behind"; reason "late to start … about 40 min of Steak steps remain";
++    #    RIGHT NOW card shows "About 8 min late to start".
++    out["late-to-start"] = (session(now, n(32), {}),
++        "Running about 8 min behind; reason: prep 8 min late to start")
++
++    # c) Expired timer still cooking (lower bound). Steak cook timer ended 5 min ago,
++    #    rest pending; mash and beans finished. Expect: "At least 5 min behind",
++    #    "can't finish before"; reason "timer ended … check the food"; featured card Overdue 05:00.
++    out["expired-timer"] = (session(now, n(5), {
++        "s1": done(n(-35), n(-25)),
++        "s2": cooking(n(-25), 20, n(-5)),
++        "p1": done(n(-40), n(-30)), "p2": done(n(-30), n(-10)), "p3": done(n(-10), n(-5)),
++        "b1": done(n(-20), n(-15)), "b2": done(n(-15), n(-5)),
++    }), "At least 5 min behind (lower bound); featured expired timer; reason: check the food")
++
++    # d) Far behind: nothing started, 15 min late → amber tone.
++    out["way-behind"] = (session(now, n(25), {}),
++        "Running about 15 min behind in amber; reason: prep 15 min late to start")
++
++    # e) Everything finished, last step 9 min after dinner time. Expect NO notice,
++    #    "Time to enjoy dinner."
++    out["all-done-late"] = (session(now, n(-9), {
++        "s1": done(n(-60), n(-50)), "s2": done(n(-50), n(-30)), "s3": done(n(-30), n(0)),
++        "p1": done(n(-45), n(-35)), "p2": done(n(-35), n(-15)), "p3": done(n(-15), n(-10)),
++        "b1": done(n(-25), n(-20)), "b2": done(n(-20), n(-10)),
++    }), "No notice; 'Time to enjoy dinner.'")
++
++    # f) Control: on schedule. Steak prep started 2 min ago exactly on plan.
++    out["on-schedule"] = (session(now, n(38), {
++        "s1": cooking(n(-2), 10, n(8)),
++    }), "No notice; running timer 08:00 left; nothing late")
++
++    return out
++
++def main(argv):
++    if len(argv) < 2 or argv[1] in ("-h", "--help"):
++        print(__doc__); return 2
++    out_dir = pathlib.Path(argv[1]); out_dir.mkdir(parents=True, exist_ok=True)
++    now = int(time.time())
++    if "--now" in argv:
++        now = int(argv[argv.index("--now") + 1])
++    for name, (payload, expectation) in scenarios(now).items():
++        path = out_dir / f"{name}.json"
++        path.write_text(json.dumps(payload, indent=2))
++        print(f"{name}\t{expectation}")
++    return 0
++
++if __name__ == "__main__":
++    sys.exit(main(sys.argv))

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+default_tests() { local f="DinnerTogetherTests/DinnerTogetherTests.swift"; [ -f "$f" ] && grep -c "func test" "$f" || echo 60; }
+args=("$@")
+case "$1" in
+  -version) echo "Xcode 16.0 (fake)"; echo "Build version 16A000"; exit 0;;
+  -list) echo "Information about project \"DinnerTogether\":"; echo "    Schemes:"; echo "        DinnerTogether"; exit 0;;
+esac
+derived=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-derivedDataPath" ] && derived="${args[$((i+1))]}"; done
+case "$1" in
+  build-for-testing)
+    mkdir -p "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app"
+    echo "SwiftCompile normal arm64 Compiling CookingView.swift"
+    if [ -z "${FAKE_NO_DEBUG:-}" ]; then echo "    /usr/bin/swiftc -Onone -D DEBUG -enable-testing ..."; else echo "    /usr/bin/swiftc -Onone -enable-testing ..."; fi
+    echo "** TEST BUILD SUCCEEDED **"; exit 0;;
+  test-without-building)
+    bundle=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; done
+    mkdir -p "$bundle"; n=${FAKE_EXECUTED:-$(default_tests)}; f=${FAKE_FAIL_CASES:-0}
+    for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' passed (0.1 seconds)"; fi; done
+    echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+    [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0;;
+esac
+echo "fake xcodebuild: unhandled $*" >&2; exit 2

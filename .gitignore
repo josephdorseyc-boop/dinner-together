@@ -1,0 +1,3 @@
+.build/
+native-validation/results/
+.DS_Store

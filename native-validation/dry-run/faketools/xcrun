@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+if [ "$1" = "xcresulttool" ]; then echo '{"fake":true}'; exit 0; fi
+[ "$1" = "simctl" ] || { echo "fake xcrun: $*" >&2; exit 2; }
+shift
+case "$1 $2 $3" in
+  "list devices available")
+    if [ "$4" = "-j" ]; then
+      ipad='{"name":"iPad Pro 13-inch (M4)","udid":"IPAD-UDID","isAvailable":true}'; [ -n "${FAKE_NO_IPAD:-}" ] && ipad=""
+      echo "{\"devices\":{\"com.apple.CoreSimulator.SimRuntime.iOS-18-0\":[{\"name\":\"iPhone 16\",\"udid\":\"IPHONE-UDID\",\"isAvailable\":true},{\"name\":\"iPhone 16 Pro Max\",\"udid\":\"X\",\"isAvailable\":true}${ipad:+,$ipad}]}}"
+    else echo "iPhone 16 (IPHONE-UDID) (Shutdown)"; fi; exit 0;;
+  "list runtimes available") echo "iOS 18.0 (fake)"; exit 0;;
+esac
+case "$1" in
+  boot|bootstatus|install|terminate|shutdown) exit 0;;
+  launch) echo "com.example.dinnertogether: 1234"; exit 0;;
+  get_app_container) d="${FAKE_CONTAINER:-/tmp/fake-container}-$2"; mkdir -p "$d/Documents"; echo "$d"; exit 0;;
+  ui) [ "$3" = "content_size" ] && exit ${FAKE_CONTENT_SIZE_RC:-0}; [ "$3" = "appearance" ] && exit ${FAKE_APPEARANCE_RC:-0}; exit 0;;
+  io) # io <udid> screenshot <path>
+    [ -n "${FAKE_SHOT_FAIL:-}" ] && exit 1; printf 'PNGFAKE' > "$4"; exit 0;;
+  spawn) echo "PID Status Label"; if [ -n "${FAKE_APP_DEAD:-}" ]; then echo "999 0 UIKitApplication:other.app[0][9]"; else echo "1234 0 UIKitApplication:com.example.dinnertogether[0x1][1234]"; fi; exit 0;;
+esac
+exit 0

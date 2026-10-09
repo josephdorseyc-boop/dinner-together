@@ -1,0 +1,1456 @@
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/CookingView.swift b/DinnerTogether/CookingView.swift
+--- a/DinnerTogether/CookingView.swift	2026-10-09 15:00:56.986705993 -0600
++++ b/DinnerTogether/CookingView.swift	2026-10-09 15:02:46.516912067 -0600
+@@ -75,8 +75,10 @@
+     /// Live drift between the chosen dinner time and the estimated readiness
+     /// of unfinished work. Recomputed every tick and after every action, so
+     /// the notice can never show an estimate from an earlier session state.
++    /// Nil when on schedule or when every step is done (guarded in
++    /// `Scheduling.readinessReport`, not here, so the sheet and store agree).
+     private var readiness: ReadinessReport? {
+-        allDone ? nil : store.readinessReport(now: now)
++        store.readinessReport(now: now)
+     }
+     /// Drift at or above this many minutes uses the warning tone. Below it,
+     /// the notice stays quiet. An initial UX choice, not a correctness rule.
+@@ -366,6 +368,17 @@
+         if let report = readiness {
+             let emphasized = report.driftMinutes >= Self.readinessEmphasisMinutes
+             let tone = emphasized ? Theme.warning : Theme.muted
++            let chosen = Scheduling.formatTime(report.serveAt)
++            let ready = Scheduling.formatTime(report.estimatedReadyAt)
++            // A floored estimate (expired timer still cooking) is a lower
++            // bound; say so instead of predicting.
++            let headline = report.estimateIsLowerBound
++                ? "At least \(report.driftMinutes) min behind"
++                : "Running about \(report.driftMinutes) min behind"
++            let detail = report.estimateIsLowerBound
++                ? "Dinner is set for \(chosen). Unfinished steps can't finish before \(ready)."
++                : "Dinner is set for \(chosen). Unfinished steps are estimated to finish around \(ready)."
++            let readinessLabel = report.estimateIsLowerBound ? "Earliest readiness" : "Estimated readiness"
+             VStack(alignment: .leading, spacing: 12) {
+                 HStack(alignment: .firstTextBaseline, spacing: 10) {
+                     Image(systemName: "clock.badge.exclamationmark")
+@@ -373,17 +386,17 @@
+                         .foregroundStyle(tone)
+                         .accessibilityHidden(true)
+                     VStack(alignment: .leading, spacing: 4) {
+-                        Text("Running about \(report.driftMinutes) min behind")
++                        Text(headline)
+                             .font(.subheadline.weight(.semibold))
+                             .foregroundStyle(emphasized ? Theme.warning : Theme.ink)
+-                        Text("Dinner is set for \(Scheduling.formatTime(report.serveAt)). Unfinished steps are estimated to finish around \(Scheduling.formatTime(report.estimatedReadyAt)).")
++                        Text(detail)
+                             .font(.caption).monospacedDigit().foregroundStyle(Theme.muted)
+                         Text(report.reason)
+                             .font(.caption).foregroundStyle(Theme.muted)
+                     }
+                 }
+                 .accessibilityElement(children: .combine)
+-                .accessibilityLabel("Timing update. Chosen dinner time \(Scheduling.formatTime(report.serveAt)). Estimated readiness \(Scheduling.formatTime(report.estimatedReadyAt)), about \(report.driftMinutes) minutes later. \(report.reason)")
++                .accessibilityLabel("Timing update. Chosen dinner time \(chosen). \(readinessLabel) \(ready), about \(report.driftMinutes) minutes later. \(report.reason)")
+                 Button("Review dinner time") { showReadinessReview = true }
+                     .buttonStyle(QuietButtonStyle())
+                     .accessibilityHint("Shows the estimate and lets you move dinner to it. Nothing changes until you choose.")
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/EngineTestSupport.swift b/DinnerTogether/EngineTestSupport.swift
+--- a/DinnerTogether/EngineTestSupport.swift	1969-12-31 17:00:00.000000000 -0700
++++ b/DinnerTogether/EngineTestSupport.swift	2026-10-09 15:07:38.608929429 -0600
+@@ -0,0 +1,47 @@
++// EngineTestSupport.swift — NOT part of the Xcode app target.
++//
++// Compiled only by Package.swift (the `swift test` harness) in place of
++// Notifications.swift, so SessionStore can be exercised without the
++// UserNotifications framework. The protocol below is a verbatim copy of the
++// one in Notifications.swift; keep them identical. NotificationManager here
++// is inert — every test injects MockNotifications, so the real manager is
++// never constructed in tests on any platform.
++//
++// If you add this file to the Xcode target by mistake it will collide with
++// Notifications.swift. Leave it out of the project.
++
++import Foundation
++
++/// Injected service: tests never need to show a real permission prompt.
++@MainActor
++protocol NotificationService: AnyObject {
++    var denied: Bool { get }
++    var onStatusChange: ((Bool, String?) -> Void)? { get set }
++    func ensureAuthorization() async -> Bool
++    func refreshAuthorization() async
++    func schedule(stepID: String, title: String, deadline: Date)
++    func cancel(stepID: String)
++    func cancelAll()
++}
++
++extension NotificationService {
++    // Lightweight mocks may omit status observation/settings refresh.
++    var onStatusChange: ((Bool, String?) -> Void)? {
++        get { nil }
++        set { }
++    }
++    func refreshAuthorization() async { }
++}
++
++/// Inert stand-in used only when SessionStore is built by the harness and
++/// no service is injected. Grants nothing, schedules nothing.
++@MainActor
++final class NotificationManager: NotificationService {
++    private(set) var denied = false
++    var onStatusChange: ((Bool, String?) -> Void)?
++    func ensureAuthorization() async -> Bool { false }
++    func refreshAuthorization() async { }
++    func schedule(stepID: String, title: String, deadline: Date) { }
++    func cancel(stepID: String) { }
++    func cancelAll() { }
++}
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/PlanView.swift b/DinnerTogether/PlanView.swift
+--- a/DinnerTogether/PlanView.swift	2026-10-09 15:00:56.987019132 -0600
++++ b/DinnerTogether/PlanView.swift	2026-10-09 15:03:03.200913058 -0600
+@@ -102,7 +102,7 @@
+             )
+             .disabled(hasProgress)
+             if hasProgress {
+-                Text("Use “Running late” while cooking, or reset progress to choose a new time.")
++                Text("Use “Adjust time” or “Review dinner time” while cooking, or reset progress to choose a new time.")
+                     .font(.caption)
+                     .foregroundStyle(Theme.muted)
+             }
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/Scheduling.swift b/DinnerTogether/Scheduling.swift
+--- a/DinnerTogether/Scheduling.swift	2026-10-09 15:00:56.986646092 -0600
++++ b/DinnerTogether/Scheduling.swift	2026-10-09 15:01:52.000908826 -0600
+@@ -87,8 +87,17 @@
+     /// Earliest the whole meal is estimated to be ready, as of `now`.
+     /// An estimate for unfinished cooking, not a guarantee.
+     let estimatedReadyAt: Date
+-    /// Whole minutes between the two, rounded. Always ≥ 1 for a report.
++    /// Whole minutes between the two, rounded to the nearest minute — for
++    /// display ("about N min behind"). Always ≥ 1 for a report.
+     let driftMinutes: Int
++    /// Whole minutes to add to `serveAt` so the new dinner time is never
++    /// before `estimatedReadyAt` (rounded UP). This is what an explicit move
++    /// applies; preview and apply share it. Always ≥ `driftMinutes`.
++    let moveMinutes: Int
++    /// True when an expired, still-cooking timer sits on the critical path:
++    /// its deadline was floored at `now`, so the estimate is a lower bound
++    /// ("no earlier than"), not a prediction.
++    let estimateIsLowerBound: Bool
+     /// The step whose expected end sets the estimate.
+     let criticalStepID: String
+     /// One short, derived sentence about what is holding things up.
+@@ -220,7 +229,13 @@
+     ///  - cooking steps use their pinned deadline, floored at `now` — an
+     ///    expired timer means "check the food", not "finished";
+     ///  - pending steps keep their derived planned start but cannot start
+-    ///    before `now` or before their predecessor's projected end.
++    ///    before `now` or before every earlier step in the dish is projected
++    ///    to finish.
++    /// The dependency carry is a running maximum over the dish, so a step
++    /// completed out of order (its actual end earlier than an unfinished
++    /// prerequisite's projection) cannot pull a later step forward — the
++    /// same rule `startStep` applies when it checks every earlier
++    /// prerequisite. A done step's own entry keeps its actual end.
+     /// `expectedMealEnd` remains the plan-anchored readiness used by
+     /// completion effects; this is the now-anchored estimate the cooking
+     /// screen shows while work is late to start or still running.
+@@ -228,7 +243,7 @@
+         let byID = Dictionary(uniqueKeysWithValues: plan(menu: menu, session: session).map { ($0.id, $0) })
+         var ends: [String: Date] = [:]
+         for dish in menu.dishes {
+-            var prevEnd: Date? = nil
++            var dependencyFloor: Date? = nil
+             for step in dish {
+                 guard let p = byID[step.id] else { continue }
+                 let rec = session.records[step.id]
+@@ -239,12 +254,12 @@
+                 case .cooking:
+                     end = max(rec?.timerDeadline ?? p.end, now)
+                 case .notStarted:
+-                    let earliest = max(prevEnd ?? now, now)
++                    let earliest = max(dependencyFloor ?? now, now)
+                     let start = max(p.plannedStart, earliest)
+                     end = start.addingTimeInterval(Double(p.minutes) * 60)
+                 }
+                 ends[step.id] = end
+-                prevEnd = end
++                dependencyFloor = max(dependencyFloor ?? end, end)
+             }
+         }
+         return ends
+@@ -257,8 +272,16 @@
+ 
+     /// The live drift report for the cooking screen, or nil when the meal is
+     /// estimated to be ready within `readinessNoticeThreshold` of the chosen
+-    /// dinner time. Pure: callers recompute it whenever state or time moves.
++    /// dinner time, or when nothing is left to cook. Pure: callers recompute
++    /// it whenever state or time moves.
+     static func readinessReport(menu: DinnerMenu, session: DinnerSession, now: Date) -> ReadinessReport? {
++        // A finished dinner has no unfinished work to report on, however late
++        // it finished. Guarded here so every caller (screen, sheet, store)
++        // shares the rule.
++        guard menu.steps.contains(where: {
++            (session.records[$0.id]?.state ?? .notStarted) != .done
++        }) else { return nil }
++
+         let ends = projectedEnds(menu: menu, session: session, now: now)
+         func rank(_ id: String) -> Int {
+             // Ties prefer the most actionable step: running, then pending, then done.
+@@ -278,11 +301,24 @@
+         let drift = readyAt.timeIntervalSince(session.serveAt)
+         guard drift >= readinessNoticeThreshold else { return nil }
+ 
++        // Lower bound when an expired timer in the critical step's dish is
++        // still cooking: its end is unknown, floored at `now`.
++        let lowerBound: Bool = {
++            guard let dish = menu.dishes.first(where: { $0.contains(where: { $0.id == critical.key }) })
++            else { return false }
++            return dish.contains { s in
++                guard let r = session.records[s.id], r.state == .cooking else { return false }
++                return (r.timerDeadline ?? now) <= now
++            }
++        }()
++
+         let reason = holdUpReason(menu: menu, session: session, now: now,
+                                   criticalStepID: critical.key, readyAt: readyAt)
+         return ReadinessReport(serveAt: session.serveAt,
+                                estimatedReadyAt: readyAt,
+                                driftMinutes: max(1, Int((drift / 60).rounded())),
++                               moveMinutes: max(1, Int((drift / 60).rounded(.up))),
++                               estimateIsLowerBound: lowerBound,
+                                criticalStepID: critical.key,
+                                reason: reason)
+     }
+@@ -305,7 +341,8 @@
+         case .cooking:
+             let deadline = rec?.timerDeadline ?? readyAt
+             if deadline <= now {
+-                return "The “\(step.title)” timer ended at \(formatTime(deadline)) — check it and mark it done."
++                // Expiry is not readiness: say what to do, not what to record.
++                return "The “\(step.title)” timer ended at \(formatTime(deadline)) — check the food; mark this step done when it's ready."
+             }
+             return "The “\(step.title)” timer ends at \(formatTime(deadline))."
+         case .notStarted:
+@@ -327,7 +364,7 @@
+         case .cooking:
+             let deadline = firstRec?.timerDeadline ?? now
+             if deadline <= now {
+-                return "The “\(first.title)” timer ended at \(formatTime(deadline)) — check it and mark it done; \(remaining)."
++                return "The “\(first.title)” timer ended at \(formatTime(deadline)) — check the food; mark that step done when it's ready. After it, \(remaining)."
+             }
+             return "The “\(first.title)” timer ends at \(formatTime(deadline)), then \(remaining)."
+         case .notStarted:
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/SessionStore.swift b/DinnerTogether/SessionStore.swift
+--- a/DinnerTogether/SessionStore.swift	2026-10-09 15:00:56.987217612 -0600
++++ b/DinnerTogether/SessionStore.swift	2026-10-09 15:02:05.524909630 -0600
+@@ -229,22 +229,32 @@
+     // MARK: Readiness (derived, never cached)
+ 
+     /// Live timing drift for the cooking screen, or nil when unfinished work
+-    /// is estimated to finish within a minute of the chosen dinner time.
+-    /// Pure and cheap; the UI recomputes it as time and state move.
++    /// is estimated to finish within a minute of the chosen dinner time, or
++    /// when every step is done. Pure and cheap; the UI recomputes it as time
++    /// and state move.
+     func readinessReport(now: Date = Date()) -> ReadinessReport? {
+         Scheduling.readinessReport(menu: menu, session: session, now: now)
+     }
+ 
++    /// The proposal an explicit move would apply right now, built from the
++    /// report's rounded-up minutes so the new dinner time is never before
++    /// the estimate. The review sheet previews exactly this.
++    func readinessMoveProposal(now: Date = Date()) -> DelayProposal? {
++        guard let report = readinessReport(now: now) else { return nil }
++        return Scheduling.proposeDelay(session: session, menu: menu, minutes: report.moveMinutes)
++    }
++
+     /// Explicit decision from the review sheet: moves the chosen dinner time
+     /// by the drift measured at THIS instant, through the same reviewed delay
+     /// path as "Adjust time". Applies once — the next report derives from
+     /// the new time — is undoable, and never touches actual timestamps or
+     /// timer deadlines. Returns the applied proposal, or nil when there was
+-    /// nothing to move.
++    /// nothing to move (on schedule, or every step already done).
+     @discardableResult
+     func moveDinnerToEstimatedReadiness(now: Date = Date()) -> DelayProposal? {
+-        guard let report = readinessReport(now: now), report.driftMinutes >= 1 else { return nil }
+-        let proposal = Scheduling.proposeDelay(session: session, menu: menu, minutes: report.driftMinutes)
++        guard let report = readinessReport(now: now),
++              let proposal = readinessMoveProposal(now: now)
++        else { return nil }
+         pushUndo("Moved dinner to \(Scheduling.formatTime(proposal.newServeAt))")
+         session = Scheduling.applyDelay(session: session, proposal: proposal)
+         session.history.append(HistoryEvent(at: now, text:
+diff -ruN -x '*.patch' -x .build a/DinnerTogether/Sheets.swift b/DinnerTogether/Sheets.swift
+--- a/DinnerTogether/Sheets.swift	2026-10-09 15:00:56.986554138 -0600
++++ b/DinnerTogether/Sheets.swift	2026-10-09 15:02:58.560912782 -0600
+@@ -103,23 +103,32 @@
+         NavigationStack {
+             ScrollView {
+                 VStack(alignment: .leading, spacing: 16) {
+-                    if let report = store.readinessReport(now: timers.now) {
+-                        let proposal = store.proposeDelay(minutes: report.driftMinutes)
++                    if let report = store.readinessReport(now: timers.now),
++                       let proposal = store.readinessMoveProposal(now: timers.now) {
++                        let readinessLabel = report.estimateIsLowerBound ? "Earliest readiness" : "Estimated readiness"
+                         Text("Move dinner to \(Scheduling.formatTime(proposal.newServeAt))?")
+                             .font(.largeTitle.weight(.semibold))
+                         ViewThatFits(in: .horizontal) {
+                             HStack(alignment: .top, spacing: 28) {
+                                 timeColumn("Chosen dinner time", report.serveAt)
+-                                timeColumn("Estimated readiness", report.estimatedReadyAt, emphasized: true)
++                                timeColumn(readinessLabel, report.estimatedReadyAt, emphasized: true)
+                             }
+                             VStack(alignment: .leading, spacing: 12) {
+                                 timeColumn("Chosen dinner time", report.serveAt)
+-                                timeColumn("Estimated readiness", report.estimatedReadyAt, emphasized: true)
++                                timeColumn(readinessLabel, report.estimatedReadyAt, emphasized: true)
+                             }
+                         }
+                         Text(report.reason)
+                             .font(.subheadline)
+                             .foregroundStyle(Theme.ink)
++                        if report.estimateIsLowerBound {
++                            Text("A timer has ended but its step isn't marked done, so this is the earliest the meal could be ready — not a prediction.")
++                                .font(.caption)
++                                .foregroundStyle(Theme.warning)
++                        }
++                        Text("Dinner moves in whole minutes, so the new time is never earlier than the estimate.")
++                            .font(.caption)
++                            .foregroundStyle(Theme.muted)
+                         ForEach(proposal.explanation, id: \.self) { line in
+                             Label(line, systemImage: "info.circle")
+                                 .font(.subheadline)
+diff -ruN -x '*.patch' -x .build a/DinnerTogetherTests/DinnerTogetherTests.swift b/DinnerTogetherTests/DinnerTogetherTests.swift
+--- a/DinnerTogetherTests/DinnerTogetherTests.swift	2026-10-09 15:00:56.987677770 -0600
++++ b/DinnerTogetherTests/DinnerTogetherTests.swift	2026-10-09 15:04:41.584918907 -0600
+@@ -810,6 +810,8 @@
+         XCTAssertEqual(report?.serveAt, serveAt)
+         XCTAssertEqual(report?.estimatedReadyAt, serveAt.addingTimeInterval(7 * 60))
+         XCTAssertEqual(report?.driftMinutes, 7)
++        XCTAssertEqual(report?.moveMinutes, 7)
++        XCTAssertEqual(report?.estimateIsLowerBound, false)
+         XCTAssertEqual(report?.criticalStepID, "a3")
+         XCTAssertTrue(report?.reason.contains("Prep A") == true, "reason names the late finish")
+         XCTAssertEqual(session.serveAt, serveAt)
+@@ -887,8 +889,10 @@
+                        now.addingTimeInterval(10 * 60), "rest can start no earlier than now")
+         let report = Scheduling.readinessReport(menu: menu, session: session, now: now)
+         XCTAssertEqual(report?.driftMinutes, 5)
++        XCTAssertEqual(report?.estimateIsLowerBound, true, "floored at now: a lower bound, not a prediction")
+         XCTAssertTrue(report?.reason.contains("timer ended") == true)
+-        XCTAssertTrue(report?.reason.contains("check it") == true)
++        XCTAssertTrue(report?.reason.contains("check the food") == true)
++        XCTAssertFalse(report?.reason.contains("mark it done") == true, "expiry must not imply readiness")
+     }
+ 
+     /// Scenario 5: a final step confirmed done early while a middle step is
+@@ -931,9 +935,10 @@
+         XCTAssertGreaterThanOrEqual(report?.estimatedReadyAt ?? .distantPast, now.addingTimeInterval(90 * 60))
+     }
+ 
+-    /// A step that finished late on its own (nothing left to do in that dish)
+-    /// still reports the drift honestly, naming the finished step.
+-    func testLateFinishedDishIsReported() {
++    /// Review finding 2: a finished dinner has no unfinished work to report,
++    /// however late it finished. The guard lives in the pure function so the
++    /// screen, the sheet, and the store cannot disagree.
++    func testFinishedDinnerReportsNothingEvenIfLate() {
+         let menu = testMenu()
+         let serveAt = t0.addingTimeInterval(3600)
+         var s = sessionFor(serveAt: serveAt)
+@@ -945,10 +950,87 @@
+         s.records["b2"] = b2
+         var a3 = StepRecord(); a3.state = .done; a3.actualEnd = serveAt.addingTimeInterval(6 * 60)
+         s.records["a3"] = a3
+-        let report = Scheduling.readinessReport(menu: menu, session: s, now: serveAt.addingTimeInterval(6 * 60))
++        let now = serveAt.addingTimeInterval(6 * 60)
++        XCTAssertEqual(Scheduling.projectedReadiness(menu: menu, session: s, now: now),
++                       a3.actualEnd, "history is still honest about when it finished")
++        XCTAssertNil(Scheduling.readinessReport(menu: menu, session: s, now: now))
++    }
++
++    /// Review finding 1: a step completed out of order must not pull a later
++    /// step ahead of an earlier, still-unfinished prerequisite. a1 pending,
++    /// a2 done at +40, a3 pending, now +55: a1 can't end before +65, so a3
++    /// can't end before +75 — not +65.
++    func testOutOfOrderCompletionKeepsDependencyCarry() {
++        let menu = testMenu()
++        let serveAt = t0.addingTimeInterval(3600)
++        var s = sessionFor(serveAt: serveAt)
++        var a2 = StepRecord(); a2.state = .done
++        a2.actualStart = t0.addingTimeInterval(20 * 60); a2.actualEnd = t0.addingTimeInterval(40 * 60)
++        s.records["a2"] = a2
++        var b1 = StepRecord(); b1.state = .done; b1.actualEnd = t0.addingTimeInterval(45 * 60)
++        var b2 = StepRecord(); b2.state = .cooking
++        b2.actualStart = t0.addingTimeInterval(45 * 60); b2.timerDeadline = t0.addingTimeInterval(60 * 60)
++        s.records["b1"] = b1; s.records["b2"] = b2
++        let now = t0.addingTimeInterval(55 * 60)
++
++        let ends = Scheduling.projectedEnds(menu: menu, session: s, now: now)
++        XCTAssertEqual(ends["a1"], t0.addingTimeInterval(65 * 60), "late to start: now + 10")
++        XCTAssertEqual(ends["a2"], a2.actualEnd, "a done step keeps its own actual end")
++        XCTAssertEqual(ends["a3"], t0.addingTimeInterval(75 * 60), "waits for a1, not for a2's earlier end")
++        XCTAssertEqual(Scheduling.projectedReadiness(menu: menu, session: s, now: now),
++                       t0.addingTimeInterval(75 * 60))
++        let report = Scheduling.readinessReport(menu: menu, session: s, now: now)
+         XCTAssertEqual(report?.criticalStepID, "a3")
+-        XCTAssertEqual(report?.driftMinutes, 6)
+-        XCTAssertTrue(report?.reason.contains("Rest A") == true)
++        XCTAssertEqual(report?.driftMinutes, 15)
++        // Consistent with start eligibility: a3 is still blocked by a1.
++        XCTAssertEqual(Scheduling.dependencyInfo(plan: Scheduling.plan(menu: menu, session: s),
++                                                 menu: menu, session: s, stepID: "a3")?.predecessorTitle, "Prep A")
++    }
++
++    /// Review finding 1, running variant: a1 running late to +62, a2 done
++    /// early at +40, a3 pending. a3 ends no earlier than +62 + 10.
++    func testRunningFirstStepCarriesPastCompletedMiddleStep() {
++        let menu = testMenu()
++        let serveAt = t0.addingTimeInterval(3600)
++        var s = sessionFor(serveAt: serveAt)
++        var a1 = StepRecord(); a1.state = .cooking
++        a1.actualStart = t0.addingTimeInterval(52 * 60); a1.timerDeadline = t0.addingTimeInterval(62 * 60)
++        var a2 = StepRecord(); a2.state = .done
++        a2.actualStart = t0.addingTimeInterval(20 * 60); a2.actualEnd = t0.addingTimeInterval(40 * 60)
++        s.records["a1"] = a1; s.records["a2"] = a2
++        var b1 = StepRecord(); b1.state = .done; b1.actualEnd = t0.addingTimeInterval(45 * 60)
++        var b2 = StepRecord(); b2.state = .done; b2.actualEnd = t0.addingTimeInterval(60 * 60)
++        s.records["b1"] = b1; s.records["b2"] = b2
++        let now = t0.addingTimeInterval(55 * 60)
++
++        let ends = Scheduling.projectedEnds(menu: menu, session: s, now: now)
++        XCTAssertEqual(ends["a1"], a1.timerDeadline)
++        XCTAssertEqual(ends["a2"], a2.actualEnd)
++        XCTAssertEqual(ends["a3"], t0.addingTimeInterval(72 * 60))
++        XCTAssertGreaterThanOrEqual(ends["a3"] ?? .distantPast, a1.timerDeadline!.addingTimeInterval(10 * 60))
++    }
++
++    /// Review finding 4: the explicit move rounds UP, so the new dinner time
++    /// is never before the estimate; the headline still rounds to nearest.
++    func testMoveMinutesRoundUpWhileDriftDisplaysNearest() {
++        let menu = testMenu()
++        let serveAt = t0.addingTimeInterval(3600)
++        var session = sessionFor(serveAt: serveAt)
++        var done = StepRecord(); done.state = .done
++        done.actualStart = t0.addingTimeInterval(20 * 60)
++        done.actualEnd = t0.addingTimeInterval(37 * 60 + 20)            // 7 m 20 s late
++        session.records["a1"] = done
++        let report = Scheduling.readinessReport(menu: menu, session: session, now: done.actualEnd!)
++        XCTAssertEqual(report?.estimatedReadyAt, serveAt.addingTimeInterval(7 * 60 + 20))
++        XCTAssertEqual(report?.driftMinutes, 7, "display: nearest minute")
++        XCTAssertEqual(report?.moveMinutes, 8, "move: rounded up")
++        XCTAssertGreaterThanOrEqual(serveAt.addingTimeInterval(Double(report?.moveMinutes ?? 0) * 60),
++                                    report?.estimatedReadyAt ?? .distantFuture)
++        // Exact whole minutes don't over-shoot.
++        var exact = session
++        exact.records["a1"]?.actualEnd = t0.addingTimeInterval(37 * 60)
++        let exactReport = Scheduling.readinessReport(menu: menu, session: exact, now: t0.addingTimeInterval(37 * 60))
++        XCTAssertEqual(exactReport?.moveMinutes, 7)
+     }
+ }
+ 
+@@ -1062,4 +1144,59 @@
+         XCTAssertEqual(store.session.serveAt, serveAt)
+         XCTAssertTrue(store.session.history.contains { $0.text.contains("no longer feasible") })
+     }
++
++    /// Review finding 2 at the store boundary: a finished dinner reports
++    /// nothing and cannot be moved — no undo frame, no history, no change.
++    func testFinishedDinnerCannotBeMoved() {
++        let store = makeStore()
++        let serveAt = t0.addingTimeInterval(3600)
++        store.session.serveAt = serveAt
++        for step in store.menu.steps {
++            var r = StepRecord(); r.state = .done
++            r.actualStart = t0.addingTimeInterval(1800); r.actualEnd = t0.addingTimeInterval(3600)
++            store.session.records[step.id] = r
++        }
++        let lastID = store.menu.dishes[0][2].id
++        store.session.records[lastID]?.actualEnd = serveAt.addingTimeInterval(9 * 60)   // finished late
++        let now = serveAt.addingTimeInterval(9 * 60)
++        let undoDepth = store.undoStack.count, historyCount = store.session.history.count
++
++        XCTAssertNil(store.readinessReport(now: now))
++        XCTAssertNil(store.readinessMoveProposal(now: now))
++        XCTAssertNil(store.moveDinnerToEstimatedReadiness(now: now))
++        XCTAssertEqual(store.session.serveAt, serveAt)
++        XCTAssertEqual(store.undoStack.count, undoDepth)
++        XCTAssertEqual(store.session.history.count, historyCount)
++    }
++
++    /// Review finding 4 at the store boundary: the preview the sheet shows
++    /// and the move the store applies use the same rounded-up minutes, so
++    /// the applied dinner time is never before the estimate.
++    func testPreviewAndMoveAgreeAndNeverUndershootEstimate() async {
++        let store = makeStore()
++        let serveAt = t0.addingTimeInterval(3600)
++        store.session.serveAt = serveAt
++        let steak = DinnerCatalog.menus[0]
++        let s1 = steak.dishes[0][0].id, p1 = steak.dishes[1][0].id, p2 = steak.dishes[1][1].id
++        let p1Plan = store.plan.first(where: { $0.id == p1 })!
++        _ = await store.startStep(p1, now: p1Plan.plannedStart)
++        _ = await store.completeStep(p1, now: p1Plan.plannedEnd)
++        _ = await store.startStep(p2, now: p1Plan.plannedEnd)
++        let s1Plan = store.plan.first(where: { $0.id == s1 })!
++        _ = await store.startStep(s1, now: s1Plan.plannedStart)
++        let lateEnd = s1Plan.plannedEnd.addingTimeInterval(7 * 60 + 20)           // 7 m 20 s late
++        _ = await store.completeStep(s1, now: lateEnd)
++
++        guard let report = store.readinessReport(now: lateEnd),
++              let preview = store.readinessMoveProposal(now: lateEnd)
++        else { return XCTFail("expected a report and a preview") }
++        XCTAssertEqual(report.driftMinutes, 7)
++        XCTAssertEqual(report.moveMinutes, 8)
++        XCTAssertEqual(preview.newServeAt, serveAt.addingTimeInterval(8 * 60))
++        let applied = store.moveDinnerToEstimatedReadiness(now: lateEnd)
++        XCTAssertEqual(applied?.newServeAt, preview.newServeAt, "apply matches preview")
++        XCTAssertEqual(store.session.serveAt, serveAt.addingTimeInterval(8 * 60))
++        XCTAssertGreaterThanOrEqual(store.session.serveAt, report.estimatedReadyAt)
++        XCTAssertNil(store.readinessReport(now: lateEnd), "applied once; no residual drift")
++    }
+ }
+diff -ruN -x '*.patch' -x .build a/ENGINE_TESTS.md b/ENGINE_TESTS.md
+--- a/ENGINE_TESTS.md	1969-12-31 17:00:00.000000000 -0700
++++ b/ENGINE_TESTS.md	2026-10-09 15:08:15.256931608 -0600
+@@ -0,0 +1,72 @@
++# Running the native tests without Xcode
++
++`Package.swift` at the project root is a Swift Package Manager harness. It
++compiles the **real** `Models.swift`, `Scheduling.swift`, `DinnerCatalog.swift`
++and `SessionStore.swift` (no copies) together with the **real**
++`DinnerTogetherTests/DinnerTogetherTests.swift`, and runs all 60 XCTest
++methods in 12 classes. That is actual Swift execution of the engine and the
++store — a step the JavaScript model cannot provide.
++
++What it does not cover: the SwiftUI views (`CookingView`, `Sheets`,
++`PlanView`, `ContentView`, `Theme`), `TimerCenter`, and the real
++`NotificationManager` (UserNotifications). Those still need Xcode and a
++device or simulator.
++
++## Run it
++
++macOS with Xcode 16 command-line tools (or any Swift 6.0+ toolchain):
++
++```
++cd DinnerTogether-RecoveryCandidate-v028
++swift test
++swift test --filter RecoveryNoticeTests     # one class
++swift test --filter RecoveryStoreTests
++```
++
++Linux, or any machine with Docker:
++
++```
++cd DinnerTogether-RecoveryCandidate-v028
++docker run --rm -v "$PWD":/src -w /src swift:6.0 swift test
++```
++
++A `.build/` directory appears next to the project; delete it freely. Keep
++opening `DinnerTogether.xcodeproj` as before — Xcode ignores `Package.swift`.
++
++## How it stays honest
++
++- No source is duplicated. The package's `sources:` list points at the app's
++  own files, so what runs is what ships.
++- `DinnerTogether/EngineTestSupport.swift` replaces `Notifications.swift`
++  inside the harness only: the `NotificationService` protocol is copied
++  verbatim and `NotificationManager` is inert. Every test injects
++  `MockNotifications`, so the real manager is never constructed in tests on
++  any platform. **Do not add this file to the Xcode target** (it would
++  collide with `Notifications.swift`).
++- On Linux only, `EngineSupport/SwiftUIShim` provides a module named
++  `SwiftUI` containing just `ObservableObject` and `@Published`, so
++  `SessionStore.swift`'s `import SwiftUI` resolves. On macOS the real
++  framework is used.
++
++## First-run watch items (written on Linux without a toolchain; unexecuted)
++
++1. **Swift 6.0+ required.** `SessionStore.init` uses `URL.documentsDirectory`
++   and `URL.appending(path:)`; on Linux these come from the Swift 6
++   Foundation. If an older toolchain reports them missing, use the
++   `swift:6.0` image.
++2. **`@MainActor` test classes on Linux.** swift-corelibs-xctest runs
++   `@MainActor`-isolated async tests in Swift 6; if a class fails to launch
++   rather than fail an assertion, report the toolchain version.
++3. **Target named `SwiftUI` (Linux only).** If SwiftPM refuses the module
++   name, rename the shim target and add `import SwiftUI`→shim mapping via
++   `-Xswiftc -module-alias SwiftUI=SwiftUIShim` instead. Not expected.
++4. **Timing-sensitive tests.** `testNoStaleReminderAfter*DuringPendingAuth`
++   and `testIndependentStartsKeepBothReminders` use real sleeps
++   (0.02–0.3 s); on a slow CI runner they could flake. They are the
++   baseline's tests, unchanged.
++5. **Locale.** `Scheduling.formatTime` uses the short time style; the tests
++   only check step titles and phrases ("late to start", "check the food"),
++   never formatted times, so locale differences shouldn't matter.
++
++Record the toolchain (`swift --version`), platform, and the per-class pass
++or fail list in `RECOVERY_HANDOFF.md` §3 when this has run.
+diff -ruN -x '*.patch' -x .build a/EngineSupport/SwiftUIShim/SwiftUI.swift b/EngineSupport/SwiftUIShim/SwiftUI.swift
+--- a/EngineSupport/SwiftUIShim/SwiftUI.swift	1969-12-31 17:00:00.000000000 -0700
++++ b/EngineSupport/SwiftUIShim/SwiftUI.swift	2026-10-09 15:07:44.928929805 -0600
+@@ -0,0 +1,17 @@
++// Linux-only stand-in module named `SwiftUI`, used by Package.swift so that
++// SessionStore.swift's `import SwiftUI` resolves where SwiftUI/Combine don't
++// exist. It provides only the two things the store uses from that import:
++// the ObservableObject marker protocol and the @Published property wrapper.
++// No observation happens; the harness tests read state directly.
++//
++// Never compiled on macOS or iOS (Package.swift adds this target only on
++// Linux), so it cannot shadow the real framework there.
++
++public protocol ObservableObject: AnyObject {}
++
++@propertyWrapper
++public struct Published<Value> {
++    public var wrappedValue: Value
++    public init(wrappedValue: Value) { self.wrappedValue = wrappedValue }
++    public init(initialValue: Value) { self.wrappedValue = initialValue }
++}
+diff -ruN -x '*.patch' -x .build a/Package.swift b/Package.swift
+--- a/Package.swift	1969-12-31 17:00:00.000000000 -0700
++++ b/Package.swift	2026-10-09 15:07:28.132928807 -0600
+@@ -0,0 +1,59 @@
++// swift-tools-version:5.9
++//
++// Engine + store test harness — lets `swift test` run the real scheduling
++// engine, the session store, and the canonical XCTest file WITHOUT Xcode:
++//
++//   macOS (Xcode 16 command-line tools or later):  swift test
++//   Linux / Docker:  docker run --rm -v "$PWD":/src -w /src swift:6.0 swift test
++//
++// This does not replace the Xcode project. Keep opening
++// DinnerTogether.xcodeproj as before; Xcode ignores this file. What the
++// harness compiles is exactly the app's Models.swift, Scheduling.swift,
++// DinnerCatalog.swift and SessionStore.swift (no copies), plus
++// DinnerTogetherTests/DinnerTogetherTests.swift. The SwiftUI views,
++// TimerCenter and the UserNotifications-backed NotificationManager are not
++// compiled here; they stay Xcode-only. See ENGINE_TESTS.md.
++//
++// Written on Linux without a Swift toolchain available — see ENGINE_TESTS.md
++// for the specific things to check the first time it runs.
++import PackageDescription
++
++#if os(Linux)
++// SessionStore.swift says `import SwiftUI` for ObservableObject/@Published.
++// On Linux a two-type stand-in module provides just those.
++let shimTargets: [Target] = [
++    .target(name: "SwiftUI", path: "EngineSupport/SwiftUIShim"),
++]
++let engineDependencies: [Target.Dependency] = ["SwiftUI"]
++#else
++let shimTargets: [Target] = []
++let engineDependencies: [Target.Dependency] = []
++#endif
++
++let package = Package(
++    name: "DinnerTogetherEngine",
++    platforms: [.macOS(.v13), .iOS(.v17)],
++    targets: shimTargets + [
++        .target(
++            name: "DinnerTogether",
++            dependencies: engineDependencies,
++            path: "DinnerTogether",
++            // Explicit list: only the engine and store, never the views.
++            // EngineTestSupport.swift stands in for Notifications.swift
++            // (protocol copied verbatim; inert manager). It is NOT in the
++            // Xcode target.
++            sources: [
++                "Models.swift",
++                "Scheduling.swift",
++                "DinnerCatalog.swift",
++                "SessionStore.swift",
++                "EngineTestSupport.swift",
++            ]
++        ),
++        .testTarget(
++            name: "DinnerTogetherTests",
++            dependencies: ["DinnerTogether"],
++            path: "DinnerTogetherTests"
++        ),
++    ]
++)
+diff -ruN -x '*.patch' -x .build a/RECOVERY_COPY_AND_FLOWS.md b/RECOVERY_COPY_AND_FLOWS.md
+--- a/RECOVERY_COPY_AND_FLOWS.md	2026-10-09 15:00:56.988280570 -0600
++++ b/RECOVERY_COPY_AND_FLOWS.md	2026-10-09 15:09:21.841812146 -0600
+@@ -1,4 +1,4 @@
+-# Recovery copy and flows — candidate v028
++# Recovery copy and flows — candidate v028 r2
+ 
+ Three mid-cook situations. **A is implemented in this candidate. B and C are
+ proposals only** — nothing in the source changed for them. Times are
+@@ -34,6 +34,18 @@
+ numbers are initial UX choices (`Scheduling.readinessNoticeThreshold`,
+ `CookingView.readinessEmphasisMinutes`).
+ 
++When an expired timer is still cooking on the critical path, the estimate is
++floored at *now* and is a lower bound, so the notice says so instead of
++predicting (r2, review finding 5):
++
++```
++[clock.badge.exclamationmark]  At least 5 min behind
++Dinner is set for 7:00. Unfinished steps can't finish before 7:05.
++The "Cook the steak" timer ended at 7:04 — check the food; mark that step
++done when it's ready. After it, about 10 min of Steak steps remain.
++[ Review dinner time ]
++```
++
+ Reason line variants (all derived, one sentence):
+ 
+ | Situation | Copy |
+@@ -41,15 +53,19 @@
+ | Earlier step in the slowest dish finished late | `"Prep the steak & sauce ingredients" finished 7 min late.` |
+ | Slowest dish's next step hasn't been started and is overdue | `"Trim beans & prep garlic" is 8 min late to start, and about 15 min of Green beans steps remain.` |
+ | A running timer sets the estimate for its dish | `The "Cook the steak" timer ends at 7:05, then about 10 min of Steak steps remain.` |
+-| That timer has expired | `The "Cook the steak" timer ended at 7:04 — check it and mark it done; about 10 min of Steak steps remain.` |
++| That timer has expired | `The "Cook the steak" timer ended at 7:04 — check the food; mark that step done when it's ready. After it, about 10 min of Steak steps remain.` |
+ | The critical step itself is running | `The "Cook potatoes until tender" timer ends at 7:05.` |
+-| The critical step itself is an expired timer | `The "Cook potatoes until tender" timer ended at 7:04 — check it and mark it done.` |
+-| A dish finished late and nothing in it remains | `"Rest steak & finish sauce" finished at 7:10.` |
++| The critical step itself is an expired timer | `The "Cook potatoes until tender" timer ended at 7:04 — check the food; mark this step done when it's ready.` |
+ | Fallback | `About 25 min of Steak steps remain.` |
+ 
++(A finished dinner shows no notice at all, however late it finished — r2,
++review finding 2. The "finished at" wording survives in code only as a
++defensive branch.)
++
+ VoiceOver (combined element): *"Timing update. Chosen dinner time 7:00 PM.
+ Estimated readiness 7:07 PM, about 7 minutes later. 'Prep the steak & sauce
+-ingredients' finished 7 min late."* Then the button: *"Review dinner time"*,
++ingredients' finished 7 min late."* (With an expired timer: *"Earliest
++readiness 7:05 PM…"*.) Then the button: *"Review dinner time"*,
+ hint *"Shows the estimate and lets you move dinner to it. Nothing changes
+ until you choose."*
+ 
+@@ -64,10 +80,13 @@
+ 
+ Move dinner to 7:07?
+ 
+-CHOSEN DINNER TIME        ESTIMATED READINESS
+-7:00                      7:07  (amber)
++CHOSEN DINNER TIME        ESTIMATED READINESS      ← "EARLIEST READINESS" when
++7:00                      7:07  (amber)                it is a lower bound
+ 
+ "Prep the steak & sauce ingredients" finished 7 min late.
++(amber, only for a lower bound:) A timer has ended but its step isn't marked
++done, so this is the earliest the meal could be ready — not a prediction.
++Dinner moves in whole minutes, so the new time is never earlier than the estimate.
+ ⓘ Dinner moves from 7:00 to 7:07.
+ ⓘ 3 upcoming steps change time; dependency constraints may keep other steps in place.
+ ⓘ "Drain, mash & season": 6:55 → 7:02.
+@@ -95,7 +114,10 @@
+ early-finish notes, so the two sheets ("Adjust time" and "Review dinner
+ time") say the same things in the same words. The sheet re-reads the live
+ estimate on every tick: the time on the primary button is the time that gets
+-applied. If drift clears while the sheet is open (not reachable today, kept
++applied. Minutes are rounded **up** for the move (r2, review finding 4): a
++7 m 20 s drift shows "about 7 min behind" and "Move dinner to 7:08"; the
++headline rounds to nearest, the move never lands before the estimate, and
++preview and apply share one function (`readinessMoveProposal`). If drift clears while the sheet is open (not reachable today, kept
+ defensively), it shows *"Back on schedule."* with a Done button.
+ 
+ ### Flow
+@@ -116,12 +138,14 @@
+ 
+ ### Known honest edge
+ With an expired timer on the critical path, the estimate is floored at *now*,
+-so "Running about N min behind" ticks up a minute at a time until the cook
+-marks that step done. The reason line says exactly that ("timer ended … check
+-it and mark it done"). Moving dinner in that state is allowed but pointless;
+-the review sheet's early-finish/shift lines make that visible. If this reads
+-as nagging on device, the simplest tweak is to hide the Review button while
+-the reason is an expired timer — a one-line change in `readinessNotice`.
++so "At least N min behind" ticks up a minute at a time until the cook marks
++that step done. The notice and the sheet both say it is a lower bound, and
++the reason line says what to do ("check the food; mark that step done when
++it's ready"). Moving dinner in that state is allowed but rarely useful; the
++sheet's amber note makes that visible. If this reads as nagging on device,
++the simplest tweak is to hide the Review button while
++`report.estimateIsLowerBound` is true — a one-line change in
++`readinessNotice`.
+ 
+ ---
+ 
+@@ -131,7 +155,11 @@
+ and "Overdue 02:10" with a primary **Mark done**; a reminder notification says
+ *"'Cook the steak' timer finished — time to check it."*
+ 
+-What to change (copy only, no logic):
++What to change (copy only, no logic). **Provided as
++`optional-expired-timer-copy.patch` in the package root — not applied to the
++candidate**, so the implemented/proposed line stays where the review asked.
++Apply with `patch -p1 < optional-expired-timer-copy.patch` if wanted; it
++touches only `heatCard` in `CookingView.swift`.
+ 
+ ```
+ Featured RIGHT NOW card (timer expired)
+@@ -139,7 +167,9 @@
+ Countdown: Overdue 02:10             (unchanged)
+ Caption:   The timer ended; the food may not have. Check it before marking
+            this step done.           (new line under "Ends 7:04")
+-Button:    Mark done after checking  (was: Mark done)
++Button:    Mark done after checking  (was: Mark done; VoiceOver hint added:
++           "The timer ended. Confirm the food is ready before marking this
++           step done.")
+ ```
+ 
+ Non-featured running cards with expired timers keep the quiet "Mark done";
+diff -ruN -x '*.patch' -x .build a/RECOVERY_HANDOFF.md b/RECOVERY_HANDOFF.md
+--- a/RECOVERY_HANDOFF.md	2026-10-09 15:00:56.986370369 -0600
++++ b/RECOVERY_HANDOFF.md	2026-10-09 15:10:49.048940750 -0600
+@@ -1,34 +1,58 @@
+-# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028
++# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r2**
+ 
+ Candidate for routine-lateness recovery, built on the unmodified v0.2.8
+ package. **Not a release.** Marketing version and build number are left at
+ 0.2.8 / 9 on purpose; assign the next canonical number at integration.
+-Written on Linux on October 9, 2026 by the recovery-UX agent. No Swift was
+-compiled, no XCTest executed, no UI rendered, no device used. Direct
+-inter-agent messaging was not available in this session; the other two
+-agents were **not** contacted. Joe, please forward this package.
++Revision 2 responds to `FEEDBACK_RECOVERY_CANDIDATE.md` (reviewing agent,
++October 9, 2026). Written on Linux on October 9, 2026 by the recovery-UX
++agent. **No Swift was compiled, no XCTest executed, no UI rendered, no
++device used** — this environment cannot reach a Swift toolchain (swift.org,
++GitHub and apt are all blocked here). Direct inter-agent messaging was not
++available; the other agents were not contacted directly. Joe forwards.
+ 
+-Companion documents: `RECOVERY_REVIEW.md` (why), `RECOVERY_COPY_AND_FLOWS.md`
++Companion files: `RECOVERY_REVIEW.md` (why), `RECOVERY_COPY_AND_FLOWS.md`
+ (screen copy and flows; A implemented, B and C proposed),
+-`recovery-candidate-v028.patch` (unified diff against v0.2.8).
++`ENGINE_TESTS.md` (**new**: how to run the native engine/store tests with
++`swift test`, no Xcode), `recovery-candidate-v028.patch` (unified diff
++against pristine v0.2.8, r2), `recovery-candidate-r1-to-r2.patch` (what
++changed since the reviewed r1), `optional-expired-timer-copy.patch`
++(proposal B as copy-only patch, **not applied**).
++
++## 0. r2 — response to the review, finding by finding
++
++| # | Finding | Status in r2 | Where |
++|---|---|---|---|
++| 1 | `projectedEnds` dependency carry: an out-of-order Done step reset the floor, so a3 projected +65 instead of +75 | **Fixed.** Carry is a running maximum (`dependencyFloor = max(dependencyFloor ?? end, end)`); the Done step's own entry keeps its actual end. Mirrored in JS. | `Scheduling.projectedEnds`; tests `testOutOfOrderCompletionKeepsDependencyCarry` (reviewer's fixture: +75, a2 keeps +40, a3 still blocked by a1 per `dependencyInfo`), `testRunningFirstStepCarriesPastCompletedMiddleStep` (+72 ≥ deadline + 10); JS R15 (reviewer's single-dish repro → 75), R16, R19 (in-order and out-of-order-final unchanged) |
++| 2 | All-done guard belongs in the report/store, not only the view | **Fixed.** `Scheduling.readinessReport` returns nil when no step is unfinished; the view's own `allDone` filter was removed so there is one rule. `moveDinnerToEstimatedReadiness` therefore returns nil with no undo frame or history. | tests `testFinishedDinnerReportsNothingEvenIfLate` (pure; `projectedReadiness` still reports the honest late end), `testFinishedDinnerCannotBeMoved` (serveAt, undo depth, history unchanged); JS R8, R18 |
++| 3 | "check it and mark it done" implies expiry = readiness | **Fixed.** Reasons now read "check the food; mark this step done when it's ready" / "…mark that step done when it's ready. After it, about N min of X steps remain." State transitions unchanged. | `Scheduling.holdUpReason`; tests assert "check the food" present and "mark it done" absent; JS R5 |
++| 4 | Rounding to nearest can set the target before the estimate | **Fixed as recommended.** `ReadinessReport.driftMinutes` (nearest) stays for the headline; new `moveMinutes` (rounded up) drives the proposal. `SessionStore.readinessMoveProposal(now:)` builds the preview and `moveDinnerToEstimatedReadiness` applies exactly that proposal — one function, so preview and apply cannot diverge. Sheet caption: "Dinner moves in whole minutes, so the new time is never earlier than the estimate." | tests `testMoveMinutesRoundUpWhileDriftDisplaysNearest` (7 m 20 s → display 7, move 8; exact 7 → 7), `testPreviewAndMoveAgreeAndNeverUndershootEstimate` (store: preview == applied, serveAt ≥ estimate, applied once); JS R14, R17 |
++| 5a | PlanView says "Running late" | **Fixed.** Now "Use “Adjust time” or “Review dinner time” while cooking, or reset progress to choose a new time." | `PlanView.swift` (one line) |
++| 5b | Floored estimate is a lower bound; keep that visible | **Done.** `ReadinessReport.estimateIsLowerBound` is true when an expired, still-cooking timer is in the critical step's dish. Notice headline becomes "At least N min behind" / "…can't finish before 7:05"; sheet column reads "EARLIEST READINESS" with an amber note; VoiceOver says "Earliest readiness". | `Scheduling.readinessReport`, `CookingView.readinessNotice`, `ServingSheetView`; tests assert the flag in the expired-timer and late-prep scenarios; JS R5, R2 |
++| 5c | Keep implemented vs. proposed separate; no timer extension / overnight recovery | **Kept.** B and C remain proposals. B's copy-only change is shipped as a *separate, unapplied* patch for Joe's call. | `optional-expired-timer-copy.patch`, `RECOVERY_COPY_AND_FLOWS.md` |
++
++Also new in r2, beyond the review: a `swift test` harness so the engine and
++store tests can actually be executed by anyone with a Swift 6 toolchain or
++Docker — see §3 and `ENGINE_TESTS.md`.
+ 
+-## 1. Changed files
++## 1. Changed files (cumulative vs. pristine v0.2.8)
+ 
+ | File | Change |
+ |---|---|
+-| `DinnerTogether/Scheduling.swift` | **Added** `ReadinessReport` struct; `readinessNoticeThreshold` (60 s); `projectedEnds(menu:session:now:)`; `projectedReadiness(menu:session:now:)`; `readinessReport(menu:session:now:)`; private `holdUpReason(...)`. Nothing existing was modified. `expectedMealEnd`, `completeStepEffects`, `proposeDelay`, `applyDelay` are byte-identical. |
+-| `DinnerTogether/SessionStore.swift` | **Removed** `@Published pendingServingProposal`, `acceptServingProposal()`, `keepServingTime()`, and the five `pendingServingProposal = nil` lines (undo, chooseMenu, reset, resolveStale, completeStep). **Added** `readinessReport(now:)` and `@discardableResult moveDinnerToEstimatedReadiness(now:) -> DelayProposal?`. `completeStep` now appends the feasibility explanation to `session.history` instead of caching a proposal; it never touches `serveAt`. |
+-| `DinnerTogether/CookingView.swift` | **Removed** the binding-driven `.sheet` that auto-presented `ServingSheetView`. **Added** `@State showReadinessReview`, `readiness` (derived), `readinessEmphasisMinutes` (10), the `readinessNotice` card placed right after `servingCard`, `.sheet(isPresented: $showReadinessReview) { ServingSheetView() }`, and two accessibility labels ("Chosen dinner time …" on the big time, "Timer deadline …" on a running card's "Ends" line). Warning-panel logic untouched. |
+-| `DinnerTogether/Sheets.swift` | `ServingSheetView` rewritten as a live view: `@EnvironmentObject store`/`timers`, no init parameters. Shows *Chosen dinner time* vs *Estimated readiness*, the reason, the existing `DelayProposal` explanation and early-finish notes, "Move dinner to …" / "Keep … for now". `StalePlanView`, `DelaySheetView`, `DurationEditorView` untouched. |
+-| `DinnerTogetherTests/DinnerTogetherTests.swift` | 3 tests rewritten to the new API with their original regression intent kept (`testStoreCompletionProposalAcceptanceFlow`, `testResetAndMenuChangeClearOldServingProposal`, `testStaleResolutionClearsOldServingProposal`). 13 tests added: `RecoveryNoticeTests` (8, pure) and `RecoveryStoreTests` (5, store). Every other test is unchanged. |
+-| `logic-checks/mirror-test.cjs` | Mirror of `projectedEnds` / `readinessReport` / `holdUpReason`; mini-store gains `readinessReport` and `moveDinnerToEstimatedReadiness`, loses `acceptServingProposal`; scenario 8 updated; 14 new scenario blocks (R1–R14). 65 → 103 assertions. |
+-| `START_HERE.md` | One pointer line to this document. |
+-| `RECOVERY_*.md`, `recovery-candidate-v028.patch` | New. |
+-
+-No change to `Models.swift` (persistence schema), `Notifications.swift`,
+-`TimerCenter.swift`, `PlanView.swift`, `ContentView.swift`, `Theme.swift`,
+-`DinnerCatalog.swift`, `project.pbxproj`, or the scheme. No new files in the
+-app or test targets, so the project file needs no edit.
++| `DinnerTogether/Scheduling.swift` | **Added** `ReadinessReport` (fields: `serveAt`, `estimatedReadyAt`, `driftMinutes`, `moveMinutes`, `estimateIsLowerBound`, `criticalStepID`, `reason`); `readinessNoticeThreshold` (60 s); `projectedEnds` (running-max dependency carry); `projectedReadiness`; `readinessReport` (all-done guard, lower-bound flag, nearest/up minutes); private `holdUpReason`. Nothing existing modified: `expectedMealEnd`, `completeStepEffects`, `proposeDelay`, `applyDelay`, `plan`, `dependencyInfo` are byte-identical. |
++| `DinnerTogether/SessionStore.swift` | **Removed** `@Published pendingServingProposal`, `acceptServingProposal()`, `keepServingTime()` and the five `pendingServingProposal = nil` lines. **Added** `readinessReport(now:)`, `readinessMoveProposal(now:)`, `@discardableResult moveDinnerToEstimatedReadiness(now:) -> DelayProposal?`. `completeStep` appends the feasibility sentence to history instead of caching a proposal; never touches `serveAt`. |
++| `DinnerTogether/CookingView.swift` | Auto-presented serving sheet removed; `@State showReadinessReview`; derived `readiness`; `readinessEmphasisMinutes` (10); `readinessNotice` card after `servingCard` (lower-bound wording); `.sheet(isPresented:) { ServingSheetView() }`; accessibility labels "Chosen dinner time …" and "Timer deadline …". Warning-panel logic untouched. |
++| `DinnerTogether/Sheets.swift` | `ServingSheetView` is a live view (`@EnvironmentObject store`/`timers`, no init parameters) showing chosen vs. estimated/earliest readiness, the reason, the lower-bound note, the whole-minute caption, the `DelayProposal` explanation and early-finish notes, "Move dinner to …" / "Keep … for now". Other sheets untouched. |
++| `DinnerTogether/PlanView.swift` | One copy line (review 5a). |
++| `DinnerTogetherTests/DinnerTogetherTests.swift` | 3 tests rewritten to the new API with their regression intent kept; 18 added (`RecoveryNoticeTests` 11, `RecoveryStoreTests` 7). 42 → 60 methods, 12 classes. All other tests unchanged. |
++| `logic-checks/mirror-test.cjs` | Mirror of the readiness functions and the mini-store move/preview; scenarios R1–R19. 65 → 120 assertions. |
++| `Package.swift`, `DinnerTogether/EngineTestSupport.swift`, `EngineSupport/SwiftUIShim/SwiftUI.swift`, `ENGINE_TESTS.md` | **New** `swift test` harness. `EngineTestSupport.swift` is deliberately not referenced by the Xcode project. |
++| `START_HERE.md` | Pointer lines. |
++| `RECOVERY_*.md`, `recovery-candidate-v028.patch`, `recovery-candidate-r1-to-r2.patch`, `optional-expired-timer-copy.patch` | New / refreshed. |
++
++Untouched: `Models.swift` (persistence schema), `Notifications.swift`,
++`TimerCenter.swift`, `ContentView.swift`, `Theme.swift`,
++`DinnerCatalog.swift`, `project.pbxproj`, the scheme. No files were added to
++the Xcode targets, so the project file needs no edit.
+ 
+ Net state: one `@Published` field removed, one `@State` Bool added, no
+ persisted fields added.
+@@ -37,122 +61,116 @@
+ 
+ ### Routine lateness (implemented)
+ - The cooking screen derives `ReadinessReport` from the session and the
+-  clock on every tick. When the estimated readiness of unfinished work is
+-  ≥ 1 min after `serveAt` and the meal isn't complete, an inline card under
+-  DINNER AT shows "Running about N min behind", both times, and one reason.
+-  No modal opens on its own; there is no dismiss and nothing to invalidate.
+-- **Estimate definition.** `projectedReadiness` walks each dish forward:
+-  done → actual end; cooking → pinned deadline, floored at `now`; pending →
+-  derived planned start, but not before `now` or the predecessor's projected
+-  end. The derived plan is read, never rewritten: planned intervals in the
+-  timeline do not creep, "late to start" labels are unchanged, and
+-  `expectedMealEnd` (the v0.2.8 invariant) is untouched.
+-- **Explicit decision.** "Review dinner time" opens `ServingSheetView`, which
+-  reads the live report and builds `proposeDelay(minutes: driftMinutes)` from
+-  it — same explanation lines and early-finish notes as "Adjust time". "Move
+-  dinner to X" calls `moveDinnerToEstimatedReadiness(now:)`, which recomputes
+-  the report *at that instant*, applies the delay once via `applyDelay`,
+-  pushes one undo frame ("Moved dinner to X"), and appends a history line.
+-  Because the next report derives from the new `serveAt`, there is no
+-  residual drift and no double application. Undo restores the prior session
+-  including timer deadlines (existing machinery).
+-- **Rounding.** Drift is rounded to whole minutes for the delay (the
+-  existing `proposeDelay` is minute-based). A 7 m 40 s drift moves dinner by
+-  8 minutes; the notice then clears because the remaining difference is
+-  under the 60 s threshold. JS scenario R14 covers this.
++  clock on every tick. When unfinished work is estimated to finish ≥ 1 min
++  after `serveAt`, an inline card under DINNER AT shows "Running about N min
++  behind" (or "At least N min behind" when the estimate is a lower bound),
++  both times, and one derived reason. No modal opens on its own; there is
++  no dismiss and nothing to invalidate. A finished dinner shows nothing.
++- **Estimate.** `projectedReadiness` walks each dish forward: done → actual
++  end; cooking → pinned deadline, floored at `now`; pending → derived
++  planned start, but not before `now` or before every earlier step in the
++  dish is projected to finish (running-max carry, r2). The derived plan is
++  read, never rewritten; `expectedMealEnd` (the v0.2.8 invariant) is
++  untouched.
++- **Explicit decision.** "Review dinner time" opens `ServingSheetView`,
++  which shows the live report and `readinessMoveProposal(now:)` — the
++  existing `proposeDelay` built from `moveMinutes` (rounded up). "Move
++  dinner to X" calls `moveDinnerToEstimatedReadiness(now:)`, which
++  recomputes at that instant, applies the same proposal once via
++  `applyDelay`, pushes one undo frame, appends a history line. The next
++  report derives from the new `serveAt`, so there is no residual drift and
++  no double application. Undo restores the prior session including timer
++  deadlines (existing machinery).
+ - **Interruption policy (initial UX choices):** notice at ≥ 1 min
+-  (`Scheduling.readinessNoticeThreshold`), amber tone at ≥ 10 min
+-  (`CookingView.readinessEmphasisMinutes`). Change either constant freely.
+-- **History.** On a late completion the store now records the old
+-  feasibility sentence ("The 7:00 serving time is no longer feasible — the
+-  earliest this meal can finish is 7:07.") in `session.history`. History is
+-  still not rendered anywhere.
++  (`Scheduling.readinessNoticeThreshold`), amber at ≥ 10 min
++  (`CookingView.readinessEmphasisMinutes`).
+ 
+ ### Invariants checked against the diff
+-Delay keeps actuals and deadlines (unchanged `applyDelay`); early start
+-checks prerequisites (untouched); unstarted completion confirms and leaves
+-start unknown (untouched); undo never restarts a timer (untouched);
+-readiness considers every step (untouched `expectedMealEnd`; `projectedEnds`
+-also iterates every step); done/cooking/pending sources (same in
+-`projectedEnds`, with the documented `now` floor); notification continuation
+-validation and reconciler (untouched); warning expansion (untouched);
+-duration-edit lock (untouched); reset/menu/stale clearing obsolete proposals
+-(now vacuous — nothing is stored — and tested as "report follows the new
+-session").
++Unchanged and untouched: delay keeps actuals/deadlines; early start checks
++prerequisites; unstarted completion confirms and leaves start unknown; undo
++never restarts a timer; readiness considers every step (`expectedMealEnd`;
++`projectedEnds` also iterates every step and, since r2, carries every
++earlier step's projected end forward exactly as `startStep`'s prerequisite
++check does); notification continuation validation and reconciler; warning
++expansion; duration-edit lock. Reset/menu/stale "proposal clearing" is now
++vacuous (nothing stored) and tested as "the report follows the new session".
+ 
+ ### Expired timer (B) and stale resume (C)
+-Design only. See `RECOVERY_COPY_AND_FLOWS.md`. No source changed for them.
++Design only. B's copy-only change is available as
++`optional-expired-timer-copy.patch` (unapplied). See
++`RECOVERY_COPY_AND_FLOWS.md`.
+ 
+ ## 3. Validation performed — precisely
+ 
+-Performed here (Linux, Node 22):
+-- `node logic-checks/mirror-test.cjs` → **PASS: 103 supplemental outcome
+-  assertions** (65 baseline unchanged in meaning + 38 new). The new blocks
+-  use the same fixtures and expected numbers as the native tests, including
+-  the Steak night store scenarios (+67 / +75 / +70, undo depth, pinned p2
+-  deadline), so each native assertion has a model counterpart that executed.
+-- `node logic-checks/reconciliation-test.cjs` → PASS: 5 scenarios
+-  (unchanged; the reminder reconciler was not touched).
+-- A bracket-balance script (strings/comments stripped) passes on all 13 Swift
++Performed here (Linux, Node 22), r2:
++- `node logic-checks/mirror-test.cjs` → **PASS: 120 supplemental outcome
++  assertions** (65 baseline + 55 recovery). The reviewer's `repro.cjs`
++  fixture is reproduced as R15 and now yields 75 (was 65). Every number the
++  native tests assert has an executed JS counterpart built from the same
++  fixtures (test menu and Steak night).
++- `node logic-checks/reconciliation-test.cjs` → PASS: 5 (unchanged).
++- Bracket-balance script (strings/comments stripped) passes on all Swift
+   files, candidate and baseline.
+-- Manual static review of every changed Swift hunk (listed below).
+-- `diff -ru` against the pristine v0.2.8 extracted from the original ZIP, to
+-  produce the patch and confirm only the listed files changed.
++- Manual static review of every changed hunk.
++- `recovery-candidate-v028.patch` applied with `patch -p1` to a fresh
++  extraction of the original v0.2.8 ZIP; the result is byte-identical to the
++  candidate tree, and the JS checks pass there.
+ 
+ **Not performed:** Swift compilation, XCTest execution, SwiftUI rendering,
+ VoiceOver, Dynamic Type, iPad layout, notification delivery, device or
+-simulator runs of any kind. The JavaScript results are algorithm-model
+-results and are not evidence that the Swift builds or that the screens look
+-or read as described.
+-
+-### Compiler watch items (new in this candidate; unverified, not confirmed errors)
+-1. `Scheduling.readinessReport`: `ends.max(by:)` on `[String: Date]` with a
+-   nested `func rank(_:)` capturing `session`. Expected fine (Dictionary is a
+-   Sequence of `(key:value:)`); if the closure trips type inference, split
+-   the comparator into a named function.
+-2. `Scheduling.holdUpReason`: `compactMap` returning a labeled optional
+-   tuple `(step: CookingStep, minutes: Int)?` followed by `.max { … }`.
+-   Expected fine in Swift 5; if not, use a tiny private struct.
+-3. `CookingView.readinessNotice` and `ServingSheetView.body`: `let`
+-   declarations inside `if let` blocks within `@ViewBuilder` bodies. The
+-   baseline already relies on `let` inside a ViewBuilder (`let otherDue = …`
+-   in `actionColumn`), so this should be equivalent.
+-4. `ServingSheetView` uses `ViewThatFits` and `Text(_, format: .dateTime…)`;
+-   both are already used elsewhere in v0.2.8 (iOS 16+/17 target).
+-5. `ServingSheetView` relies on `TimerCenter` reaching a presented sheet via
+-   the environment, as `StalePlanView` already relies on `SessionStore`.
+-6. Carried over, untouched, still unverified: the
+-   `Task { @MainActor [weak self] … }` pattern in
++simulator runs. The JavaScript results are algorithm-model results, not
++evidence that the Swift builds or that screens look or read as described.
++
++**What would close most of that gap in one command:** `swift test` from the
++project root (macOS with Xcode 16 CLT, or `docker run --rm -v "$PWD":/src
++-w /src swift:6.0 swift test`). It compiles the real engine and store files
++and runs all 60 XCTest methods — not the views. Written here, unexecuted;
++first-run watch items are in `ENGINE_TESTS.md`.
++
++### Compiler watch items (unverified, not confirmed errors)
++1. `readinessReport`: `ends.max(by:)` over `[String: Date]` with a nested
++   `rank` function; a closure-based `lowerBound` constant. Expected fine.
++2. `holdUpReason`: `compactMap` to a labeled optional tuple then `.max`.
++   Expected fine in Swift 5 mode; a tiny struct is the fallback.
++3. `readinessNotice` / `ServingSheetView.body`: `let` bindings inside
++   `if let` blocks in `@ViewBuilder` bodies (the baseline already does this
++   in `actionColumn`). The sheet's `if let a = …, let b = …` two-clause
++   binding inside a ViewBuilder is ordinary Swift.
++4. `(drift / 60).rounded(.up)` — `FloatingPointRoundingRule`; fine.
++5. `ServingSheetView` relies on `TimerCenter` reaching the sheet through the
++   environment, as `StalePlanView` relies on `SessionStore`.
++6. Harness-only: see `ENGINE_TESTS.md` (Swift 6 Foundation on Linux for
++   `URL.documentsDirectory`; `@MainActor` XCTest classes on Linux; the
++   Linux-only `SwiftUI` shim target name).
++7. Carried over, untouched: `Task { @MainActor [weak self] … }` in
+    `NotificationManager.ensureAuthorization` and the unstructured Tasks in
+-   `resyncNotifications`. Not rewritten; outside this scope.
++   `resyncNotifications`.
+ 
+-## 4. Open questions for Joe / the other agents
++## 4. Open questions
+ 
+-1. **Now-aware estimate vs. plan-anchored readiness.** The notice uses
+-   `projectedReadiness` (counts idle time past a planned start). The brief's
+-   invariant says pending steps use the derived plan; I kept
+-   `expectedMealEnd` exactly for that and treated the projection as a
+-   separate, clearly named estimate. If the team prefers one readiness
+-   definition everywhere, the smaller change is to make `completeStepEffects`
+-   use `projectedReadiness` too — but that alters a v0.2.8-tested value and
+-   should be a deliberate decision, not a merge side effect.
+-2. **Ticking notice with an expired timer.** Floored at `now`, the drift
+-   grows one minute per minute until the expired step is marked done. Honest,
+-   but it may read as nagging next to the "Check now" card. Option: hide the
+-   Review button (not the notice) while the reason is an expired timer.
+-3. **Minute rounding on the move.** Half the time the applied dinner time is
+-   up to 30 s earlier than the displayed estimate (both render the same
+-   minute). Acceptable? The alternative is a seconds-precise `serveAt`, which
+-   the old `acceptServingProposal` also produced.
+-4. **Should "Keep … for now" write a history line?** I chose not to (the
+-   sheet can be opened repeatedly; nothing changes). The old `keepServingTime`
+-   did write one.
+-5. **`PlanView` copy** still says "Use 'Running late' while cooking"; the
+-   button is "Adjust time". Not changed here (not my file); flagging.
++1. **One readiness definition or two?** `completeStepEffects` still uses the
++   plan-anchored `max(expectedMealEnd, now)` for its (now history-only)
++   feasibility sentence, while the notice uses `projectedReadiness`. They
++   can differ when work is late to start. Harmless today (the sentence is
++   only logged), but if history is ever rendered, pick one. My suggestion:
++   switch the sentence to `projectedReadiness` at that point, with a test.
++2. **Hide "Review dinner time" while the estimate is a lower bound?** The
++   flag exists; it is a one-line UI decision. I left the button visible
++   because the sheet now explains the situation.
++3. **Should "Keep … for now" write a history line?** Still no (repeatable,
++   changes nothing). The old `keepServingTime` did.
++4. **`plan()` has the same out-of-order carry shape** (`prevEnd =
++   actualEnd` for a done step). It only affects displayed planned intervals
++   when a middle step was forced/completed ahead of a pending earlier step;
++   `dependencyInfo` already blocks starts correctly, so it is cosmetic. Not
++   changed — it is baseline behavior and outside this scope; flagging for
++   the implementation agent.
+ 
+ ## 5. Merge instructions
+ 
+-Preferred: apply the patch to a pristine v0.2.8 and review hunk by hunk.
++Preferred: apply the cumulative patch to a pristine v0.2.8 and review hunk
++by hunk. Reviewers who already read r1 can read
++`recovery-candidate-r1-to-r2.patch` instead.
+ 
+ ```
+ unzip Dinner_Together_Native_v0_2_8.zip            # pristine baseline
+@@ -160,84 +178,65 @@
+ patch -p1 --dry-run < /path/to/recovery-candidate-v028.patch
+ patch -p1 < /path/to/recovery-candidate-v028.patch
+ node logic-checks/mirror-test.cjs && node logic-checks/reconciliation-test.cjs
++swift test                                          # Mac CLT or Docker; see ENGINE_TESTS.md
+ ```
+ 
+-(`git apply --check recovery-candidate-v028.patch` works too if the baseline
+-is in a git repo; the patch was produced with `diff -ruN` and `-p1` paths.)
+-
+-Overlap points, in case the implementation agent has concurrent edits:
+-
+-- `SessionStore.swift`: every hunk is either a deletion of a
+-  `pendingServingProposal` line or the new "Readiness (derived, never
+-  cached)" section replacing "Serving time". Any other concurrent change
+-  should merge cleanly. If the other agent *added* uses of
+-  `pendingServingProposal`, those need to move to `readinessReport(now:)`.
+-- `CookingView.swift`: four small hunks (state var; `readiness` +
+-  constant; the `.sheet` replacement; `readinessNotice` inserted after
+-  `servingCard`) plus two one-line accessibility labels. Warning
+-  expansion (`onChange(of: warnings…)`) was deliberately not touched.
+-- `Sheets.swift`: only `ServingSheetView` changed. Callers: just
+-  `CookingView`. If anyone else constructs `ServingSheetView(current:…)`, it
+-  no longer exists.
+-- Tests: new classes are appended at the end of the file; the three rewrites
+-  are in place. If the test file was reorganized concurrently, the three
+-  rewritten methods can be dropped in by name.
+-- `mirror-test.cjs`: new code is in two blocks (helpers after
+-  `expectedMealEnd`, scenarios before the final `console.log`) plus a
+-  three-line change in scenario 8 and the mini-store methods.
+-
+-After integrating: assign the canonical version/build, fold the summary
+-below into HANDOFF.md / VALIDATION.md / CHANGELOG.md, and keep these
+-RECOVERY_* files or delete them — nothing in the app references them.
++Overlap points for concurrent edits:
++- `SessionStore.swift`: deletions of `pendingServingProposal` lines plus one
++  new "Readiness (derived, never cached)" section. Any added use of
++  `pendingServingProposal` elsewhere must move to `readinessReport(now:)`.
++- `CookingView.swift`: state var; `readiness` + constant; `.sheet`
++  replacement; `readinessNotice` after `servingCard`; two accessibility
++  labels. `onChange(of: warnings…)` deliberately untouched.
++- `Sheets.swift`: only `ServingSheetView`. `ServingSheetView(current:…)` no
++  longer exists.
++- `PlanView.swift`: one string.
++- Tests: three rewrites in place; new classes appended.
++- New files (`Package.swift`, `EngineTestSupport.swift`, `EngineSupport/`,
++  `ENGINE_TESTS.md`) are additive and can be dropped without affecting the
++  app if the team doesn't want the harness.
+ 
+ Suggested CHANGELOG entry:
+ > **Routine lateness is reported inline, not by a modal.** The cooking
+-> screen shows chosen dinner time vs. estimated readiness (now-aware: idle
+-> time past a planned start counts) with a derived reason and a "Review
+-> dinner time" action. The cached `pendingServingProposal` is gone; moving
+-> dinner is an explicit, once-applied, undoable action through the existing
+-> delay path. 13 native tests added (not executed); JS model 65 → 103.
+-
+-## 6. Remaining native checks (Mac/device)
+-
+-Build and test:
+-- Build both targets; run XCTest. Watch items in §3. Report Xcode/SDK
+-  versions and results per class, especially `RecoveryNoticeTests`,
+-  `RecoveryStoreTests`, and the three rewritten methods.
+-
+-Cooking screen, iPhone:
+-- Finish a step 2–3 min late → notice appears under DINNER AT, quiet tone,
+-  reason names the late step; the big dinner time does not change; no sheet.
+-- Finish three more steps late → still one notice, numbers update, no sheet.
+-- Leave a pending step unstarted 8 min past its planned start → notice shows
+-  the drift and "late to start" reason; timeline rows still show planned
+-  ranges unchanged.
+-- Tap Review dinner time → sheet shows both labeled times, reason, the
+-  delay explanation lines, early-finish notes when a timer would finish
+-  early; Move applies once; notice disappears; Undo restores it; Keep
+-  dismisses with no change.
+-- Lock the device for 3 min with the sheet open → on return, the sheet's
+-  button time has advanced if idle time changed the estimate; Move applies
+-  the time shown.
+-- Let a timer expire → featured card unchanged (v0.2.8 behavior); notice
+-  reason says "timer ended … check it and mark it done"; drift ticks up by
+-  the minute; mark done → estimate settles.
+-- ≥ 10 min drift → amber headline/icon/stroke, legible in Dark Mode.
+-- Reset progress / change menu → no notice on the fresh session.
+-
+-iPad and accessibility:
+-- Regular width: notice sits in the left action column under DINNER AT, does
+-  not stretch; narrow split-view and AX text sizes stack correctly; the
+-  Review button remains reachable at the largest Dynamic Type.
+-- The review sheet's two time columns fall back to a vertical stack
+-  (`ViewThatFits`) at narrow widths / large text; both buttons visible without
+-  scrolling at `.medium` detent, or scrolling works.
+-- VoiceOver: reading order DINNER AT → "Chosen dinner time 7:00 PM" → timing
+-  update element → "Review dinner time" button; running card reads "Timer
+-  deadline 7:05 PM"; sheet reads "Chosen dinner time …" then "Estimated
+-  readiness …".
+-
+-Not changed but worth re-checking after merge: warning panel collapse
+-behavior (scenario 9) since `actionColumn` gained a sibling view, and the
+-existing "Adjust time" flow, since `moveDinnerToEstimatedReadiness` shares
+-its code path.
++> screen shows chosen dinner time vs. estimated readiness (now-aware; idle
++> time and every earlier unfinished step count) with a derived reason and a
++> "Review dinner time" action. The cached `pendingServingProposal` is gone;
++> moving dinner is an explicit, once-applied, undoable action through the
++> existing delay path, rounded up to whole minutes. A finished dinner shows
++> no notice. 18 native tests added (not executed); JS model 65 → 120; a
++> `swift test` harness runs the engine and store tests without Xcode.
++
++## 6. Remaining native checks
++
++First, cheap and real: `swift test` (see `ENGINE_TESTS.md`); record the
++toolchain and per-class results here.
++
++Then on a Mac/device, unchanged from r1 plus the r2 items:
++- Build both targets in Xcode; run the full XCTest suite (adds the views'
++  compile check the harness can't give).
++- Finish a step 2–3 min late → notice, quiet tone, reason names the step;
++  dinner time unchanged; no sheet. Three more late finishes → one notice,
++  numbers update.
++- Leave a pending step unstarted 8 min past plan → notice with "late to
++  start"; timeline planned ranges unchanged.
++- **r2:** force-start and complete a dish's *second* step while its first is
++  still pending (timeline "Review start" → "Start anyway", then Mark done).
++  The notice must count the first step's remaining time; the third step
++  stays "Waiting for …".
++- Tap Review dinner time → both labeled times, reason, delay lines,
++  early-finish notes; Move applies the button's time exactly; Undo restores;
++  Keep changes nothing. **r2:** with a drift that isn't a whole minute, the
++  applied time is the next whole minute, never earlier than the estimate.
++- Let a timer expire → notice reads "At least N min behind … can't finish
++  before …", reason says "check the food"; sheet shows "EARLIEST READINESS"
++  and the amber note; mark done → estimate settles and wording returns to
++  "estimated".
++- Finish every step late → no notice; "Time to enjoy dinner."
++- ≥ 10 min drift → amber, legible in Dark Mode. Reset / change menu → no
++  notice.
++- iPad regular width, narrow split view, largest Dynamic Type, VoiceOver
++  order (DINNER AT → chosen time → timing update → Review button; running
++  card "Timer deadline"; sheet "Chosen dinner time" then
++  "Estimated/Earliest readiness").
++- Re-check warning panel collapse (scenario 9) and the existing "Adjust
++  time" flow after merge.
+diff -ruN -x '*.patch' -x .build a/RECOVERY_REVIEW.md b/RECOVERY_REVIEW.md
+--- a/RECOVERY_REVIEW.md	2026-10-09 15:00:56.988321701 -0600
++++ b/RECOVERY_REVIEW.md	2026-10-09 15:11:17.730568138 -0600
+@@ -1,5 +1,9 @@
+ # Recovery review — v0.2.8 baseline (October 9, 2026)
+ 
++> r2 note: the implementation this review recommends was revised after the
++> reviewing agent's feedback (dependency carry, all-done guard, copy,
++> rounding, lower-bound wording). See `RECOVERY_HANDOFF.md` §0.
++
+ Scope: mid-cook recovery only. Read against the v0.2.8 source, the vision
+ board, and the eleven acceptance scenarios in AGENT_PROMPT.md. Examples use
+ the Steak night menu with dinner at 7:00: steak prep 6:20–6:30, cook
+diff -ruN -x '*.patch' -x .build a/START_HERE.md b/START_HERE.md
+--- a/START_HERE.md	2026-10-09 15:00:56.987262460 -0600
++++ b/START_HERE.md	2026-10-09 15:10:54.596941079 -0600
+@@ -1,8 +1,10 @@
+ # Dinner, Together v0.2.8
+ 
+-> **Recovery candidate (not a release):** this copy carries the routine-lateness
+-> recovery changes. Read `RECOVERY_HANDOFF.md` first; the patch against pristine
+-> v0.2.8 is `recovery-candidate-v028.patch`. Version/build intentionally unchanged.
++> **Recovery candidate r2 (not a release):** this copy carries the routine-lateness
++> recovery changes, revised after review. Read `RECOVERY_HANDOFF.md` first; the patch
++> against pristine v0.2.8 is `recovery-candidate-v028.patch`. Version/build
++> intentionally unchanged. To run the engine/store tests without Xcode:
++> `swift test` (see `ENGINE_TESTS.md`).
+ 
+ Open DinnerTogether.xcodeproj on a Mac with Xcode. The shared DinnerTogether scheme includes native tests.
+ 
+diff -ruN -x '*.patch' -x .build a/logic-checks/mirror-test.cjs b/logic-checks/mirror-test.cjs
+--- a/logic-checks/mirror-test.cjs	2026-10-09 15:00:56.988228282 -0600
++++ b/logic-checks/mirror-test.cjs	2026-10-09 15:06:02.452647199 -0600
+@@ -71,7 +71,10 @@
+       if (state === 'done') end = rec.actualEnd ?? p.plannedEnd;
+       else if (state === 'cooking') end = Math.max(rec.timerDeadline ?? p.end, now);
+       else { const floor = Math.max(prevEnd ?? now, now); end = Math.max(p.plannedStart, floor) + p.minutes * MIN; }
+-      ends[step.id] = end; prevEnd = end;
++      ends[step.id] = end;
++      // Review finding 1: the dependency carry is a running maximum, so an
++      // out-of-order Done step cannot pull later steps ahead of earlier work.
++      prevEnd = Math.max(prevEnd ?? end, end);
+     }
+   }
+   return ends;
+@@ -79,7 +82,10 @@
+ const projectedReadiness = (menu, session, now) => {
+   const v = Object.values(projectedEnds(menu, session, now)); return v.length ? Math.max(...v) : session.serveAt;
+ };
++const allSteps = menu => menu.dishes.flat();
+ function readinessReport(menu, session, now) {
++  // Review finding 2: a finished dinner has no unfinished work to report on.
++  if (!allSteps(menu).some(s => (session.records[s.id]?.state ?? 'notStarted') !== 'done')) return null;
+   const ends = projectedEnds(menu, session, now);
+   const rank = id => ({ cooking: 2, notStarted: 1, done: 0 })[session.records[id]?.state ?? 'notStarted'];
+   const entries = Object.entries(ends);
+@@ -92,8 +98,13 @@
+   }, null);
+   const readyAt = critical[1], drift = readyAt - session.serveAt;
+   if (drift < READINESS_NOTICE_THRESHOLD) return null;
++  const dish = menu.dishes.find(d => d.some(s => s.id === critical[0])) ?? [];
++  const lowerBound = dish.some(s => { const r = session.records[s.id]; return r?.state === 'cooking' && (r.timerDeadline ?? now) <= now; });
+   return { serveAt: session.serveAt, estimatedReadyAt: readyAt,
+-    driftMinutes: Math.max(1, Math.round(drift / MIN)), criticalStepID: critical[0],
++    driftMinutes: Math.max(1, Math.round(drift / MIN)),
++    moveMinutes: Math.max(1, Math.ceil(drift / MIN)),          // review finding 4: round UP for the move
++    estimateIsLowerBound: lowerBound,
++    criticalStepID: critical[0],
+     reason: holdUpReason(menu, session, now, critical[0], readyAt) };
+ }
+ function holdUpReason(menu, session, now, criticalID, readyAt) {
+@@ -105,7 +116,7 @@
+   if (state === 'done') return `"${step.title}" finished at ${readyAt}.`;
+   if (state === 'cooking') {
+     const deadline = rec.timerDeadline ?? readyAt;
+-    return deadline <= now ? `The "${step.title}" timer ended at ${deadline} — check it and mark it done.`
++    return deadline <= now ? `The "${step.title}" timer ended at ${deadline} — check the food; mark this step done when it's ready.`
+                            : `The "${step.title}" timer ends at ${deadline}.`;
+   }
+   const pendingMinutes = dish.filter(s => (session.records[s.id]?.state ?? 'notStarted') === 'notStarted')
+@@ -116,7 +127,7 @@
+   const first = dish[firstIndex], firstRec = session.records[first.id], fs = firstRec?.state ?? 'notStarted';
+   if (fs === 'cooking') {
+     const deadline = firstRec.timerDeadline ?? now;
+-    return deadline <= now ? `The "${first.title}" timer ended at ${deadline} — check it and mark it done; ${remaining}.`
++    return deadline <= now ? `The "${first.title}" timer ended at ${deadline} — check the food; mark that step done when it's ready. After it, ${remaining}.`
+                            : `The "${first.title}" timer ends at ${deadline}, then ${remaining}.`;
+   }
+   if (fs === 'notStarted') {
+@@ -254,10 +265,14 @@
+     // Recovery candidate: no cached proposal. The report is derived at call
+     // time and the move goes through the reviewed delay path, once.
+     readinessReport(now, menu) { return readinessReport(menu, session, now); },
++    readinessMoveProposal(now, menu) {
++      const report = readinessReport(menu, session, now);
++      return report ? proposeDelay(session, menu, report.moveMinutes) : null;
++    },
+     moveDinnerToEstimatedReadiness(now, menu) {
+       const report = readinessReport(menu, session, now);
+-      if (!report || report.driftMinutes < 1) return null;
+-      const proposal = proposeDelay(session, menu, report.driftMinutes);
++      const proposal = api.readinessMoveProposal(now, menu);
++      if (!report || !proposal) return null;
+       pushUndo('move'); session = applyDelay(session, proposal); return proposal;
+     },
+     chooseMenu() { pushUndo('menu'); }, // undoable now
+@@ -550,6 +565,7 @@
+   const rep = readinessReport(menu, s, t0 + 37 * MIN);
+   ok(rep && rep.serveAt === serveAt && rep.estimatedReadyAt === serveAt + 7 * MIN && rep.driftMinutes === 7, 'R2 +7 drift');
+   ok(rep.criticalStepID === 'a3' && rep.reason.includes('Prep A') && rep.reason.includes('7 min late'), 'R2 reason names late finish');
++  ok(rep.moveMinutes === 7 && rep.estimateIsLowerBound === false, 'R2 whole-minute drift: move equals display; not a lower bound');
+   ok(s.serveAt === serveAt && expectedMealEnd(menu, s) === serveAt + 7 * MIN, 'R2 dinner untouched; plan-anchored readiness unchanged');
+ }
+ // R3. pending work late to start projects forward; the plan does not creep
+@@ -581,7 +597,8 @@
+   ok(s.records.a2.state === 'cooking' && s.records.a2.actualEnd == null && s.records.a2.timerDeadline === t0, 'R5 nothing fabricated');
+   ok(projectedReadiness(menu, s, now) === now + 10 * MIN, 'R5 rest can start no earlier than now');
+   const rep = readinessReport(menu, s, now);
+-  ok(rep.driftMinutes === 5 && rep.reason.includes('timer ended') && rep.reason.includes('check it'), 'R5 report');
++  ok(rep.driftMinutes === 5 && rep.reason.includes('timer ended') && rep.reason.includes('check the food') && !rep.reason.includes('mark it done'), 'R5 report says check, never implies done');
++  ok(rep.estimateIsLowerBound === true, 'R5 floored estimate is flagged as a lower bound');
+ }
+ // R6. scenario 5: final done early, middle still cooking beyond dinner
+ {
+@@ -601,14 +618,14 @@
+   const now = t0 + 50 * MIN, rep = readinessReport(menu, s, now);
+   ok(rep && rep.criticalStepID === 'a2' && rep.estimatedReadyAt >= now + 90 * MIN, 'R7 pending prerequisite sets estimate');
+ }
+-// R8. a dish that finished late is reported honestly, naming the finished step
++// R8. review finding 2: a finished dinner reports nothing, however late it finished
+ {
+   const menu = testMenu(), serveAt = t0 + 60 * MIN, s = newSession(serveAt);
+   for (const id of ['a1', 'a2', 'b1']) s.records[id] = { state: 'done', actualEnd: t0 + 50 * MIN };
+   s.records.b2 = { state: 'done', actualEnd: serveAt };
+   s.records.a3 = { state: 'done', actualEnd: serveAt + 6 * MIN };
+-  const rep = readinessReport(menu, s, serveAt + 6 * MIN);
+-  ok(rep.criticalStepID === 'a3' && rep.driftMinutes === 6 && rep.reason.includes('Rest A'), 'R8 late finished dish');
++  ok(projectedReadiness(menu, s, serveAt + 6 * MIN) === serveAt + 6 * MIN, 'R8 history still honest');
++  ok(readinessReport(menu, s, serveAt + 6 * MIN) === null, 'R8 finished dinner: no report');
+ }
+ // Store-level fixture: steak night, mash & beans on schedule, steak prep 7 min late at +37.
+ async function lateSteakPrep() {
+@@ -678,9 +695,76 @@
+   store.session.records.a1 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 37 * MIN + 40e3 };
+   const now = t0 + 37 * MIN + 40e3;
+   const rep = store.readinessReport(now, menu);
+-  ok(rep.driftMinutes === 8, 'R14 rounds to nearest minute');
++  ok(rep.driftMinutes === 8 && rep.moveMinutes === 8, 'R14 7m40s: display 8, move 8');
+   store.moveDinnerToEstimatedReadiness(now, menu);
+   ok(store.session.serveAt === serveAt + 8 * MIN && store.readinessReport(now, menu) === null, 'R14 single application within threshold');
+ }
+-console.log(`PASS: ${n} supplemental outcome assertions (v0.2.8 + recovery candidate; JavaScript model, not Swift execution).`);
++// R15. review finding 1 (reviewer's repro): a1 pending, a2 done at 40, a3 pending, now 55 → 75, not 65
++{
++  const dishOnly = { id: 'one', title: 'One', dishes: [[S('a1','A','Prep A',10), S('a2','A','Cook A',20), S('a3','A','Rest A',10,false)]] };
++  const s = newSession(t0 + 60 * MIN); s.records.a2 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 40 * MIN };
++  const now = t0 + 55 * MIN, ends = projectedEnds(dishOnly, s, now);
++  ok(ends.a1 === t0 + 65 * MIN && ends.a2 === t0 + 40 * MIN && ends.a3 === t0 + 75 * MIN, 'R15 carry is a running max; done step keeps its actual end');
++  ok(projectedReadiness(dishOnly, s, now) === t0 + 75 * MIN, 'R15 readiness 75 (was 65)');
++  ok(dependencyInfo(plan(dishOnly, s), dishOnly, s, 'a3')?.predecessorTitle === 'Prep A', 'R15 consistent with start eligibility');
++  // Same shape inside the two-dish fixture used by the native test.
++  const menu = testMenu(), s2 = newSession(t0 + 60 * MIN);
++  s2.records.a2 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 40 * MIN };
++  s2.records.b1 = { state: 'done', actualEnd: t0 + 45 * MIN };
++  s2.records.b2 = { state: 'cooking', actualStart: t0 + 45 * MIN, timerDeadline: t0 + 60 * MIN };
++  const rep = readinessReport(menu, s2, now);
++  ok(rep.criticalStepID === 'a3' && rep.driftMinutes === 15 && rep.estimatedReadyAt === t0 + 75 * MIN, 'R15 two-dish fixture matches native test');
++}
++// R16. review finding 1, running variant: a1 running to 62, a2 done at 40, a3 pending → a3 ends 72
++{
++  const menu = testMenu(), s = newSession(t0 + 60 * MIN);
++  s.records.a1 = { state: 'cooking', actualStart: t0 + 52 * MIN, timerDeadline: t0 + 62 * MIN };
++  s.records.a2 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 40 * MIN };
++  s.records.b1 = { state: 'done', actualEnd: t0 + 45 * MIN }; s.records.b2 = { state: 'done', actualEnd: t0 + 60 * MIN };
++  const ends = projectedEnds(menu, s, t0 + 55 * MIN);
++  ok(ends.a1 === t0 + 62 * MIN && ends.a2 === t0 + 40 * MIN && ends.a3 === t0 + 72 * MIN, 'R16 final ≥ running deadline + its duration');
++}
++// R17. review finding 4: 7 m 20 s drift → display 7, move 8; preview and apply agree; never undershoots
++{
++  const menu = steakMenu(), serveAt = t0 + 60 * MIN, notif = mockNotif(), store = makeStore(serveAt, notif);
++  const p1Plan = plan(menu, store.session).find(p => p.id === 'p1');
++  await store.startStep('p1', { now: p1Plan.plannedStart, menu });
++  await store.completeStep('p1', { now: p1Plan.plannedEnd, menu });
++  await store.startStep('p2', { now: p1Plan.plannedEnd, menu });
++  const s1Plan = plan(menu, store.session).find(p => p.id === 's1');
++  await store.startStep('s1', { now: s1Plan.plannedStart, menu });
++  const lateEnd = s1Plan.plannedEnd + 7 * MIN + 20e3;
++  await store.completeStep('s1', { now: lateEnd, menu });
++  const rep = store.readinessReport(lateEnd, menu), preview = store.readinessMoveProposal(lateEnd, menu);
++  ok(rep.estimatedReadyAt === serveAt + 7 * MIN + 20e3 && rep.driftMinutes === 7 && rep.moveMinutes === 8, 'R17 display nearest, move up');
++  ok(preview.newServeAt === serveAt + 8 * MIN, 'R17 preview +8');
++  const applied = store.moveDinnerToEstimatedReadiness(lateEnd, menu);
++  ok(applied.newServeAt === preview.newServeAt && store.session.serveAt === serveAt + 8 * MIN, 'R17 apply matches preview');
++  ok(store.session.serveAt >= rep.estimatedReadyAt && store.readinessReport(lateEnd, menu) === null, 'R17 never before the estimate; applied once');
++  // Exact whole minutes don't overshoot.
++  const s = newSession(serveAt); s.records.a1 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 37 * MIN };
++  ok(readinessReport(testMenu(), s, t0 + 37 * MIN).moveMinutes === 7, 'R17 exact minutes: move 7');
++}
++// R18. review finding 2 at the store boundary: finished dinner → no report, no move, nothing changes
++{
++  const menu = steakMenu(), serveAt = t0 + 60 * MIN, notif = mockNotif(), store = makeStore(serveAt, notif);
++  for (const step of allSteps(menu)) store.session.records[step.id] = { state: 'done', actualStart: t0 + 30 * MIN, actualEnd: t0 + 60 * MIN };
++  store.session.records.s3.actualEnd = serveAt + 9 * MIN;
++  const now = serveAt + 9 * MIN, depth = store.undoDepth();
++  ok(store.readinessReport(now, menu) === null && store.readinessMoveProposal(now, menu) === null, 'R18 no report / preview');
++  ok(store.moveDinnerToEstimatedReadiness(now, menu) === null && store.session.serveAt === serveAt && store.undoDepth() === depth, 'R18 no move, no undo frame');
++}
++// R19. in-order and out-of-order-final scenarios unchanged by the carry fix (regression guard)
++{
++  const menu = testMenu(), serveAt = t0 + 60 * MIN, s = newSession(serveAt);
++  s.records.a1 = { state: 'done', actualStart: t0 + 20 * MIN, actualEnd: t0 + 37 * MIN };
++  ok(readinessReport(menu, s, t0 + 37 * MIN).estimatedReadyAt === serveAt + 7 * MIN, 'R19 in-order late prep still +7');
++  const s2 = newSession(serveAt);
++  s2.records.a1 = { state: 'done', actualEnd: t0 + 25 * MIN };
++  s2.records.a2 = { state: 'cooking', actualStart: t0 + 55 * MIN, timerDeadline: t0 + 75 * MIN };
++  s2.records.a3 = { state: 'done', actualEnd: t0 + 50 * MIN };
++  s2.records.b1 = { state: 'done', actualEnd: t0 + 45 * MIN }; s2.records.b2 = { state: 'done', actualEnd: t0 + 60 * MIN };
++  ok(readinessReport(menu, s2, t0 + 56 * MIN).estimatedReadyAt === t0 + 75 * MIN, 'R19 out-of-order final still bounded by running middle');
++}
++console.log(`PASS: ${n} supplemental outcome assertions (v0.2.8 + recovery candidate r2; JavaScript model, not Swift execution).`);
+ })().catch(e => { console.error(e); process.exit(1); });

@@ -1,0 +1,118 @@
+# Dinner, Together — native validation without owning a Mac.
+#
+# Three jobs:
+#   engine-linux  (free, fast)  — `swift test` on Linux via the Package.swift
+#                                 harness (engine + store tests). Verifies the
+#                                 expected number of tests actually executed.
+#   supplemental  (seconds)     — the JavaScript model + a dry run of the
+#                                 validation scripts against a fake toolchain.
+#   native-ios    (macOS runner) — builds the Xcode project, runs XCTest on an
+#                                 iPhone and an iPad simulator, screenshots the
+#                                 seeded recovery states. Uploads everything as
+#                                 the "native-validation-results" artifact
+#                                 whether or not the steps pass, then FAILS the
+#                                 job if any required step failed or could not
+#                                 run (no simulator, app not built, tests not
+#                                 executed, screenshots missing, no summary).
+#
+# Triggers on every push and manually (Actions tab → "Run workflow").
+name: native-validation
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    # `bash` here means `bash --noprofile --norc -eo pipefail`, so a failing
+    # command inside a pipeline (e.g. `swift test | tee`) fails the step.
+    shell: bash
+
+jobs:
+  engine-linux:
+    name: swift test on Linux (Package.swift harness)
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: swift test
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee swift-test-linux.log
+      - name: Verify the expected number of tests executed
+        if: always()
+        run: |
+          expected=$(grep -c 'func test' DinnerTogetherTests/DinnerTogetherTests.swift || true)
+          executed=$(grep -oE 'Executed [0-9]+ tests' swift-test-linux.log | grep -oE '[0-9]+' | sort -n | tail -1)
+          echo "expected=$expected executed=${executed:-0}"
+          test -n "$executed" && [ "$executed" -ge "$expected" ] || { echo "::error::swift test executed ${executed:-0} of $expected expected tests"; exit 1; }
+      - name: Upload Linux log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-linux-log
+          path: swift-test-linux.log
+          if-no-files-found: error
+
+  supplemental:
+    name: JS model + harness dry run (no Swift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node logic-checks/mirror-test.cjs
+      - run: node logic-checks/reconciliation-test.cjs
+      - name: Harness dry run against a fake toolchain (proves the gates, not the app)
+        run: bash native-validation/dry-run/run.sh
+
+  native-ios:
+    name: Xcode build, XCTest, simulator screenshots
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      RESULTS: ${{ github.workspace }}/native-validation/results
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode in use
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes available
+      - name: Build + XCTest (iPhone and iPad simulators) + swift test
+        id: native
+        # Non-zero exit = a required step failed; keep going so the artifact
+        # and the screenshot attempt still happen, then fail at the gate.
+        run: bash native-validation/run-native-pass.sh "$RESULTS" || echo "native-pass-failed=true" >> "$GITHUB_OUTPUT"
+      - name: Screenshots of seeded recovery states
+        id: shots
+        if: always()
+        run: bash native-validation/screenshots.sh "$RESULTS" || echo "screenshots-failed=true" >> "$GITHUB_OUTPUT"
+      - name: Show summary
+        if: always()
+        run: |
+          if [ -f "$RESULTS/SUMMARY.md" ]; then cat "$RESULTS/SUMMARY.md"; else echo "::error::no SUMMARY.md was produced"; fi
+          [ -f "$RESULTS/status.txt" ] && cat "$RESULTS/status.txt" || true
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-validation-results
+          path: |
+            native-validation/results/**
+            !native-validation/results/build/**
+          if-no-files-found: error
+      - name: Gate — fail unless every required step ran and passed
+        if: always()
+        run: |
+          [ -f "$RESULTS/SUMMARY.md" ] || { echo "::error::SUMMARY.md missing — the pass did not run"; exit 1; }
+          [ -f "$RESULTS/status.txt" ] || { echo "::error::status.txt missing — the pass did not finish"; exit 1; }
+          failures=$(sed -n 's/^REQUIRED_FAILURES=//p' "$RESULTS/status.txt" | head -1)
+          if [ "${failures:-1}" != "0" ]; then echo "::error::${failures:-?} required step(s) failed or could not run — see SUMMARY.md in the artifact"; exit 1; fi
+          if grep -q '❌' "$RESULTS/SUMMARY.md"; then echo "::error::SUMMARY.md contains a failed step"; exit 1; fi
+          echo "All required steps passed."
