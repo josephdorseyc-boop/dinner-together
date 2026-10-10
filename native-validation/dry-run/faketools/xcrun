@@ -2,8 +2,8 @@
 if [ "$1" = "xcresulttool" ]; then
   # Mirror the fake xcodebuild's counts (FAKE_EXECUTED / FAKE_FAIL_CASES), like a real result bundle would.
   f="DinnerTogetherTests/DinnerTogetherTests.swift"; d=$([ -f "$f" ] && grep -c 'func test' "$f" || echo 60)
-  n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}
-  echo "{\"totalTestCount\": $n, \"passedTests\": $((n-k)), \"failedTests\": $k, \"skippedTests\": 0, \"result\": \"$([ $k -eq 0 ] && echo Passed || echo Failed)\"}"; exit 0
+  n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}; s=${FAKE_SKIPPED:-0}
+  echo "{\"totalTestCount\": $n, \"passedTests\": $((n-k-s)), \"failedTests\": $k, \"skippedTests\": $s, \"result\": \"$([ $k -eq 0 ] && echo Passed || echo Failed)\"}"; exit 0
 fi
 [ "$1" = "simctl" ] || { echo "fake xcrun: $*" >&2; exit 2; }
 shift

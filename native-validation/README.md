@@ -11,7 +11,7 @@ the workflow — see `../CI_SETUP.md`.
 | `seed-sessions.py` | Writes six `dinner-together-v2.json` session files (the app's own save format) with times relative to now: `late-prep`, `late-to-start`, `expired-timer`, `way-behind`, `all-done-late`, `on-schedule`. Prints the expected screen state for each. |
 | `screenshots.sh` | Boots the simulators, installs the built app, copies each seed into the app's Documents, launches with `-dt-open-cooking -dt-inert-reminders`, and captures PNGs in light and dark, plus two accessibility-large-text shots. |
 | `results/` | Created at run time; uploaded as the CI artifact (minus the DerivedData build folder). `SUMMARY.md` is the human summary; `status.txt` carries `REQUIRED_FAILURES=n` for the CI gate. |
-| `dry-run/` | `run.sh` executes both scripts against a fake `xcodebuild`/`xcrun`/`swift` (in `faketools/`) in ten pass/fail scenarios and checks exit codes, required-failure counts and screenshot counts. Proves the harness's own gates on any machine in seconds; proves nothing about the app. |
+| `dry-run/` | `run.sh` executes both scripts against a fake `xcodebuild`/`xcrun`/`swift` (in `faketools/`) in twelve pass/fail scenarios and checks exit codes, required-failure counts and screenshot counts. Proves the harness's own gates on any machine in seconds; proves nothing about the app. |
 
 Required vs. bonus: both simulators, the Debug build with `-D DEBUG`, XCTest
 executing the expected number of methods on both devices (count taken from

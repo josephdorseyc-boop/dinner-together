@@ -28,6 +28,17 @@
 > `docs/evidence/run-5/README.md` (primary button at the fold with an
 > expired timer at default text size).
 >
+> **r7.1 — Agent 1's r7 review integrated.** They verified run 5 at every
+> tier (Xcode compile, simulator XCTest from result bundles, harness
+> runs, a rendered screenshot) and found one gate-hardening item, A1-4
+> (S3): skipped tests weren't read from the result bundle, so an `XCTSkip`
+> could hide a regression. Fixed: `skippedTests` now fails the gate; the
+> misleading "unparsed log lines" note appears only on the log-fallback
+> path; dry-run fixture `skipped-test` added (12 scenarios). Their patch
+> file did not arrive; re-implemented from the finding. Their next-target
+> recommendation: XCUITest first (same runners, no cost, photographs the
+> sheets), TestFlight second (needs Developer Program enrollment).
+>
 > r7 code delta vs. r6: `CookingView.readinessNotice` compact mode at
 > accessibility sizes; `LaunchOptions.notificationService()` is `@MainActor`;
 > `project.pbxproj` test-target `PRODUCT_NAME`/`LD_RUNPATH_SEARCH_PATHS` and
