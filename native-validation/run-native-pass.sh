@@ -231,8 +231,33 @@ run_ui_tests() { # label udid only_testing expected
   if [ "$arc" -ne 0 ]; then
     fail "$label UI: attachment export failed (exit $arc) — the flows were not photographed"
   else
-    pngs=$(find "$shots" -name '*.png' -size +0 2>/dev/null | wc -l | tr -d ' ')
-    note "  - UI screenshots on $label: ${pngs:-0} PNG(s) under \`ui-screenshots/$label/\`"
+    # Best effort, never a gate: give the exported files their attachment
+    # names (xcresulttool names them by UUID and describes them in
+    # manifest.json), so Agent 2 can read "01-review-sheet.png" instead of a
+    # hash. Unknown manifest shape → files keep their exported names. (A3-U-F7)
+    python3 - "$shots" >> "$RESULTS/25-ui-test-$label-attachments.log" 2>&1 <<'PY' || true
+import json, os, sys
+d = sys.argv[1]; m = os.path.join(d, "manifest.json")
+try:
+    entries = json.load(open(m))
+except Exception as e:
+    print("rename: no usable manifest.json (%s); exported names kept" % e); sys.exit(0)
+seen = {}
+for entry in (entries if isinstance(entries, list) else []):
+    for att in entry.get("attachments", []) if isinstance(entry, dict) else []:
+        src = att.get("exportedFileName"); want = att.get("suggestedHumanReadableName") or att.get("name")
+        if not src or not want or not os.path.isfile(os.path.join(d, src)): continue
+        ext = os.path.splitext(src)[1] or ".png"
+        base = "".join(c if c.isalnum() or c in "-_" else "-" for c in want)
+        n = seen.get(base, 0) + 1; seen[base] = n
+        dst = base + ("" if n == 1 else "-%d" % n) + ext
+        os.rename(os.path.join(d, src), os.path.join(d, dst)); print("rename: %s -> %s" % (src, dst))
+PY
+    # Count what was exported, whatever the extension: the attachments are
+    # all screenshots, and a wrong guess about naming must not fail a run
+    # whose flows were photographed. Zero files with tests executed still fails.
+    pngs=$(find "$shots" -type f ! -name 'manifest.json' -size +0 2>/dev/null | wc -l | tr -d ' ')
+    note "  - UI screenshots on $label: ${pngs:-0} file(s) under \`ui-screenshots/$label/\`"
     if [ "$executed" -gt 0 ] && [ "${pngs:-0}" -eq 0 ]; then
       fail "$label UI: $executed UI test(s) ran but no screenshots were exported"
     fi

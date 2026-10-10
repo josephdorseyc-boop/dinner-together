@@ -54,7 +54,7 @@ leak the previous test's seed.
 | `test02_reviewSheetLowerBound` | Review sheet (expired-timer seed) | "Earliest readiness" label + the amber lower-bound note; "Keep … for now" dismisses and changes nothing. Screenshot: `02-review-sheet-lower-bound`. |
 | `test03_adjustTimeOnSchedule` | Adjust time (on-schedule seed) | Delay sheet opens with the chosen amount; confirming moves DINNER AT exactly 10 minutes; Undo restores it. Screenshots: `03-delay-sheet`, `03-after-confirm`, `03-after-undo`. |
 | `test04_expiredTimerCompletion` | Expired timer (expired-timer seed) | Tapping "Mark Cook the steak done" (the button's accessibility label) finishes the step; it lands in the Completed group. Screenshots: `04-expired-featured`, `04-after-completion`. |
-| `test05_blockedStartAnyway` | Blocked start (late-to-start seed) | "Review start" on s2's timeline card opens the "Waiting on …" alert naming the prerequisite; Cancel changes nothing; "Start anyway" starts the step. Screenshots: `05-timeline-blocked`, `05-blocked-alert`, `05-after-start-anyway`. |
+| `test05_blockedStartAnyway` | Blocked start (`blockedStart` seed: dinner in 20 min, nothing started, so s2 is due and blocked) | "Review start" on s2's timeline card opens the "Waiting on …" alert naming the prerequisite; Cancel changes nothing; "Start anyway" starts the step. Screenshots: `05-timeline-blocked`, `05-blocked-alert`, `05-after-start-anyway`. |
 | `test06_unstartedCompletion` | Unstarted completion | "Mark done" on a step with no recorded start asks first ("It was never marked started…"); confirming completes with "start not recorded" — the start is never fabricated. Screenshots: `06-confirmation-alert`, `06-after-completion`. |
 | `test07a_stalePlanWithProgress` | Stale plan, progress made | The non-dismissable "Welcome back." sheet offers "Resume this plan"; resuming dismisses it onto the cooking screen. Screenshots: `07a-stale-sheet`, `07a-after-resume`. |
 | `test07b_stalePlanNoProgress` | Stale plan, no progress | The sheet offers "Keep menu, fresh time"; the cook lands on the cooking screen with a fresh dinner time. Screenshots: `07b-stale-sheet`, `07b-after-keep`. |
@@ -65,6 +65,34 @@ leak the previous test's seed.
 Re-runs flows 1 and 3 on the iPad destination so the sheets can be judged
 in the two-column layout: `test01_reviewDinnerTimeLatePrep_iPad`,
 `test02_adjustTimeOnSchedule_iPad`.
+
+## Integration notes (Agent 3, r9)
+
+Applied on top of Agent 1's patches, each labeled in the source:
+
+- **A3-U-F1** `XCTestCase.wait(for:timeout:)` returns `Void`; the
+  result-returning wait is `XCTWaiter().wait(for:timeout:)`. Compile fix.
+- **A3-U-F2** Flow 5 needs its own seed (`UISeed.blockedStart`): the
+  timeline offers "Review start" only once a step is due
+  (`Scheduling.blockedInfo` is gated on `now >= plannedStart`). With dinner
+  in 32 min, "Cook the steak" is still two minutes in the future.
+- **A3-U-F3** XCUITest never scrolls on its own. `scrollTo` drags in short,
+  controlled steps until the element is hittable; `tapButton` and
+  `scrollAndTap` use it, and `scrollToTop` precedes the "after undo"
+  photographs. On iPhone, Undo, the Completed group and the s2 card are
+  below the first screen; sheet buttons sit below the medium detent.
+- **A3-U-F4** Dismissals are animated: `waitForDisappearance` replaces
+  `XCTAssertFalse(element.exists)` immediately after a tap.
+- **A3-U-F5** The "Adjust time" confirmation dialog is an action sheet on
+  iPhone and a popover on iPad; the test taps its "Add 10 minutes" button
+  as an app descendant instead of through `app.sheets`.
+- **A3-U-F6** Label-prefix queries use `.any` descendants
+  (`element(labelBeginning:)`), since the review sheet's time columns are
+  combined accessibility elements whose reported type is SwiftUI's choice.
+- **A3-U-F7** (harness) Exported attachments are renamed from
+  `manifest.json` to their attachment names when the manifest has the
+  expected shape (best effort, never a gate), and the "nothing exported"
+  gate counts files of any extension.
 
 ## Notes for reviewers
 

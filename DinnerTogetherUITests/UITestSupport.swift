@@ -86,6 +86,15 @@ enum UISeed {
         session(now: now, serveAt: now.addingTimeInterval(32 * 60), records: [:])
     }
 
+    /// Nothing started and dinner in 20 min: the steak chain (10 + 20 + 10)
+    /// puts s1 20 min late and s2 ("Cook the steak") 10 min past its planned
+    /// start while s1 is still not started — so s2 is both due and blocked,
+    /// which is the only state in which the timeline offers "Review start".
+    /// (A3-U-F2; `lateToStart` keeps s2 two minutes in the future.)
+    static func blockedStart(now: Date) -> String {
+        session(now: now, serveAt: now.addingTimeInterval(20 * 60), records: [:])
+    }
+
     /// s1 cooking with no recorded start — reaches the unstarted-completion
     /// confirmation and the "start not recorded" completed card.
     static func cookingWithoutStart(now: Date) -> String {
@@ -153,10 +162,66 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), message, file: file, line: line)
     }
 
+    /// Waits for an element to leave the hierarchy. Sheets and alerts
+    /// dismiss with an animation, so `exists` checked right after a tap can
+    /// still be true (A3-U-F4).
+    func waitForDisappearance(_ element: XCUIElement, timeout: TimeInterval = 10, _ message: String,
+                              file: StaticString = #filePath, line: UInt = #line) {
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: timeout), .completed, message, file: file, line: line)
+    }
+
+    /// Any element whose accessibility label begins with `prefix`, whatever
+    /// its element type. The review sheet's time columns and the cooking
+    /// screen's notice are combined accessibility elements; querying
+    /// `staticTexts` alone would depend on how SwiftUI reports them (A3-U-F6).
+    func element(labelBeginning prefix: String) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
+    }
+
+    /// Scrolls the screen until the element is hittable. XCUITest never
+    /// scrolls on its own, and on iPhone the timeline — Undo, the Completed
+    /// group, a blocked step's card — sits below the first screen (A3-U-F3).
+    /// Short controlled drags rather than `swipeUp()`, which overshoots.
+    func scrollTo(_ element: XCUIElement, maxDrags: Int = 12,
+                  file: StaticString = #filePath, line: UInt = #line) {
+        var drags = 0
+        while !(element.exists && element.isHittable) && drags < maxDrags {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+            from.press(forDuration: 0.05, thenDragTo: to)
+            drags += 1
+        }
+        XCTAssertTrue(element.exists && element.isHittable,
+                      "element not hittable after \(drags) scroll(s): \(element)", file: file, line: line)
+    }
+
+    /// Returns to the top of the screen so a photograph shows the state the
+    /// flow is about, not wherever the last tap left the scroll position.
+    func scrollToTop(maxDrags: Int = 12) {
+        for _ in 0..<maxDrags {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
+            from.press(forDuration: 0.05, thenDragTo: to)
+            if app.staticTexts["serving-time"].exists && app.staticTexts["serving-time"].isHittable { break }
+        }
+    }
+
+    /// Finds, scrolls to and taps a button by its accessibility label.
     func tapButton(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
         let button = app.buttons[name].firstMatch
         waitForExistence(button, timeout: 10, "button '\(name)' not found", file: file, line: line)
+        scrollTo(button, file: file, line: line)
         button.tap()
+    }
+
+    /// Scrolls to and taps any element (a DisclosureGroup label, a card button).
+    func scrollAndTap(_ element: XCUIElement, _ message: String,
+                      file: StaticString = #filePath, line: UInt = #line) {
+        waitForExistence(element, timeout: 10, message, file: file, line: line)
+        scrollTo(element, file: file, line: line)
+        element.tap()
     }
 
     /// The DINNER AT readout's accessibility label, e.g. "Chosen dinner time 6:23 PM".
@@ -173,7 +238,9 @@ class DinnerTogetherUITestCase: XCTestCase {
         let exp = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(expected)"),
             object: app.staticTexts["serving-time"])
-        XCTAssertEqual(wait(for: [exp], timeout: timeout), .completed,
+        // XCTestCase.wait(for:timeout:) returns Void; the result-returning
+        // variant lives on XCTWaiter (A3-U-F1, compile fix).
+        XCTAssertEqual(XCTWaiter().wait(for: [exp], timeout: timeout), .completed,
                        "DINNER AT did not become '\(expected)' (still '\(servingTimeValue)')",
                        file: file, line: line)
     }
@@ -190,27 +257,28 @@ class DinnerTogetherUITestCase: XCTestCase {
         tapButton("Review dinner time")
         waitForExistence(app.navigationBars["Review dinner time"], timeout: 10, "review sheet opened")
         photograph("01-review-sheet")
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Chosen dinner time'"))
-            .firstMatch.waitForExistence(timeout: 5), "sheet shows the chosen dinner time")
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Estimated readiness'"))
-            .firstMatch.waitForExistence(timeout: 5), "sheet shows the estimated readiness (not a lower bound)")
+        XCTAssertTrue(element(labelBeginning: "Chosen dinner time").waitForExistence(timeout: 5),
+                      "sheet shows the chosen dinner time")
+        XCTAssertTrue(element(labelBeginning: "Estimated readiness").waitForExistence(timeout: 5),
+                      "sheet shows the estimated readiness (not a lower bound)")
 
         let moveButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Move dinner to '")).firstMatch
         XCTAssertTrue(moveButton.waitForExistence(timeout: 5), "Move button present")
         let target = moveButton.label.replacingOccurrences(of: "Move dinner to ", with: "")
         XCTAssertNotEqual(target, before, "the move proposes a different time")
+        scrollTo(moveButton)   // the sheet opens at its medium detent
         moveButton.tap()
 
         waitForServingTimeValue(target)
         XCTAssertNotEqual(servingTimeValue, before)
+        waitForDisappearance(app.buttons["Review dinner time"], "the notice is gone once dinner moves")
         photograph("01-after-move")
-        XCTAssertFalse(app.buttons["Review dinner time"].exists, "the notice is gone once dinner moves")
 
         let undo = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Undo: '")).firstMatch
-        XCTAssertTrue(undo.waitForExistence(timeout: 5), "undo is offered after the move")
-        undo.tap()
+        scrollAndTap(undo, "undo is offered after the move")
         waitForServingTimeValue(before)
         waitForExistence(app.buttons["Review dinner time"], timeout: 10, "the notice returns after undo")
+        scrollToTop()
         photograph("01-after-undo")
     }
 
@@ -221,18 +289,21 @@ class DinnerTogetherUITestCase: XCTestCase {
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen with DINNER AT")
         let before = servingTimeValue
 
+        // With an expired timer the notice follows the RIGHT NOW card (D1),
+        // below the first iPhone screen; tapButton scrolls to it.
         tapButton("Review dinner time")
         waitForExistence(app.navigationBars["Review dinner time"], timeout: 10, "review sheet opened")
         photograph("02-review-sheet-lower-bound")
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Earliest readiness'"))
-            .firstMatch.waitForExistence(timeout: 5), "sheet shows the lower-bound label")
+        XCTAssertTrue(element(labelBeginning: "Earliest readiness").waitForExistence(timeout: 5),
+                      "sheet shows the lower-bound label")
         XCTAssertTrue(app.staticTexts["A timer has ended but its step isn't marked done, so this is the earliest the meal could be ready — not a prediction."]
             .waitForExistence(timeout: 5), "amber lower-bound note shown")
 
         let keep = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Keep '")).firstMatch
         XCTAssertTrue(keep.waitForExistence(timeout: 5), "Keep button present")
+        scrollTo(keep)
         keep.tap()
-        XCTAssertFalse(app.navigationBars["Review dinner time"].exists, "sheet dismissed")
+        waitForDisappearance(app.navigationBars["Review dinner time"], "sheet dismissed")
         XCTAssertEqual(servingTimeValue, before, "keeping the time changes nothing")
     }
 
@@ -245,16 +316,19 @@ class DinnerTogetherUITestCase: XCTestCase {
         let before = servingTimeValue
 
         tapButton("Adjust time")
-        let dialog = app.sheets.firstMatch
-        waitForExistence(dialog, timeout: 10, "delay choice dialog")
-        dialog.buttons["Add 10 minutes"].firstMatch.tap()
+        // The confirmation dialog is an action sheet on iPhone and a popover
+        // on iPad; its buttons are app descendants either way, and the delay
+        // sheet (with its own "Add 10 minutes") is not open yet (A3-U-F5).
+        let choice = app.buttons["Add 10 minutes"].firstMatch
+        waitForExistence(choice, timeout: 10, "delay choice dialog offers Add 10 minutes")
+        choice.tap()
 
         waitForExistence(app.navigationBars["Before we shift things"], timeout: 10, "delay sheet opened")
         photograph("03-delay-sheet")
-        XCTAssertTrue(app.buttons["Add 10 minutes"].firstMatch.waitForExistence(timeout: 5),
-                      "delay sheet confirms the chosen amount")
-
-        app.buttons["Add 10 minutes"].firstMatch.tap()
+        let confirm = app.buttons["Add 10 minutes"].firstMatch
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "delay sheet confirms the chosen amount")
+        scrollTo(confirm)
+        confirm.tap()
         // The displayed times round-trip through the same short-style
         // formatter the app uses; the simulator inherits the host locale.
         let formatter = DateFormatter()
@@ -264,12 +338,13 @@ class DinnerTogetherUITestCase: XCTestCase {
         }
         let expected = formatter.string(from: beforeDate.addingTimeInterval(10 * 60))
         waitForServingTimeValue(expected)
+        waitForDisappearance(app.navigationBars["Before we shift things"], "delay sheet dismissed after confirming")
         photograph("03-after-confirm")
 
         let undo = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Undo: '")).firstMatch
-        XCTAssertTrue(undo.waitForExistence(timeout: 5), "undo is offered after the delay")
-        undo.tap()
+        scrollAndTap(undo, "undo is offered after the delay")
         waitForServingTimeValue(before)
+        scrollToTop()
         photograph("03-after-undo")
     }
 
@@ -280,26 +355,30 @@ class DinnerTogetherUITestCase: XCTestCase {
         launch(seed: UISeed.expiredTimer(now: Date()))
         let markDone = app.buttons["Mark Cook the steak done"]
         waitForExistence(markDone, timeout: 10, "featured expired-timer action")
+        scrollTo(markDone)
         photograph("04-expired-featured")
 
         markDone.tap()
-        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: markDone)
-        XCTAssertEqual(wait(for: [gone], timeout: 10), .completed, "the expired step reached Done")
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Completed ('"))
-            .firstMatch.waitForExistence(timeout: 10), "the step is in the Completed group")
+        waitForDisappearance(markDone, "the expired step reached Done")
+        XCTAssertTrue(element(labelBeginning: "Completed (").waitForExistence(timeout: 10),
+                      "the step is in the Completed group")
         photograph("04-after-completion")
     }
 
     /// Flow 5 — Blocked start: "Review start" explains the unfinished
     /// prerequisite; Cancel changes nothing; "Start anyway" starts the step.
     func flowBlockedStartAnyway() {
-        launch(seed: UISeed.lateToStart(now: Date()))
+        // Needs a seed where s2 is already due: "Review start" (and the
+        // blocked alert) only appear once now >= plannedStart
+        // (Scheduling.blockedInfo). The late-to-start screenshot seed
+        // (dinner in 32 min) leaves s2 two minutes in the future (A3-U-F2).
+        launch(seed: UISeed.blockedStart(now: Date()))
         let card = app.descendants(matching: .any)["timeline-step-s2"]
         waitForExistence(card, timeout: 10, "s2 timeline card")
-        photograph("05-timeline-blocked")
-
         let reviewStart = card.buttons["Review start"]
         XCTAssertTrue(reviewStart.waitForExistence(timeout: 5), "blocked step offers Review start")
+        scrollTo(reviewStart)
+        photograph("05-timeline-blocked")
         reviewStart.tap()
 
         let alert = app.alerts.firstMatch
@@ -309,15 +388,17 @@ class DinnerTogetherUITestCase: XCTestCase {
             .firstMatch.exists, "the alert names the unfinished prerequisite")
 
         alert.buttons["Cancel"].tap()
-        XCTAssertFalse(app.alerts.firstMatch.exists, "Cancel dismisses the alert")
+        waitForDisappearance(app.alerts.firstMatch, "Cancel dismisses the alert")
         XCTAssertTrue(card.buttons["Review start"].waitForExistence(timeout: 5),
                       "Cancel changed nothing: the step is still blocked")
 
-        card.buttons["Review start"].tap()
+        scrollAndTap(card.buttons["Review start"], "Review start again")
         waitForExistence(app.alerts.firstMatch, timeout: 5, "blocked-start alert again")
         app.alerts.firstMatch.buttons["Start anyway"].tap()
-        XCTAssertTrue(card.buttons["Mark done"].waitForExistence(timeout: 10),
+        let markDone = card.buttons["Mark done"]
+        XCTAssertTrue(markDone.waitForExistence(timeout: 10),
                       "Start anyway started the step despite the unfinished prerequisite")
+        scrollTo(markDone)
         photograph("05-after-start-anyway")
     }
 
@@ -327,8 +408,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     func flowUnstartedCompletion() {
         launch(seed: UISeed.cookingWithoutStart(now: Date()))
         let markDone = app.buttons["Mark Prep the steak & sauce ingredients done"]
-        waitForExistence(markDone, timeout: 10, "running step with no recorded start")
-        markDone.tap()
+        scrollAndTap(markDone, "running step with no recorded start")
 
         let alert = app.alerts.firstMatch
         waitForExistence(alert, timeout: 5, "unstarted-completion confirmation")
@@ -337,11 +417,13 @@ class DinnerTogetherUITestCase: XCTestCase {
             .firstMatch.exists, "the alert is honest about the unknown start")
 
         alert.buttons["Mark done"].tap()
-        let completedGroup = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Completed ('")).firstMatch
-        XCTAssertTrue(completedGroup.waitForExistence(timeout: 10), "the step reached the Completed group")
-        completedGroup.tap()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'start not recorded'"))
-            .firstMatch.waitForExistence(timeout: 10), "completion does not fabricate a start time")
+        waitForDisappearance(app.alerts.firstMatch, "confirmation dismissed")
+        let completedGroup = element(labelBeginning: "Completed (")
+        scrollAndTap(completedGroup, "the step reached the Completed group")
+        let note = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS 'start not recorded'")).firstMatch
+        XCTAssertTrue(note.waitForExistence(timeout: 10), "completion does not fabricate a start time")
+        scrollTo(note)
         photograph("06-after-completion")
     }
 
@@ -354,7 +436,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(app.buttons["Resume this plan"].exists, "resume offered when there is progress")
 
         app.buttons["Resume this plan"].tap()
-        XCTAssertFalse(app.staticTexts["Welcome back."].exists, "the sheet dismissed after resume")
+        waitForDisappearance(app.staticTexts["Welcome back."], "the sheet dismissed after resume")
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen visible after resume")
         photograph("07a-after-resume")
     }
@@ -367,7 +449,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(app.buttons["Keep menu, fresh time"].exists, "fresh time offered with no progress")
 
         app.buttons["Keep menu, fresh time"].tap()
-        XCTAssertFalse(app.staticTexts["Welcome back."].exists, "the sheet dismissed")
+        waitForDisappearance(app.staticTexts["Welcome back."], "the sheet dismissed")
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen visible with a fresh time")
         photograph("07b-after-keep")
     }
@@ -382,7 +464,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         tapButton("Review dinner time")
         waitForExistence(app.navigationBars["Review dinner time"], timeout: 10, "review sheet opened")
         photograph("08-ax-review-sheet")
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Estimated readiness'"))
-            .firstMatch.waitForExistence(timeout: 5), "estimate readable at accessibility text size")
+        XCTAssertTrue(element(labelBeginning: "Estimated readiness").waitForExistence(timeout: 5),
+                      "estimate readable at accessibility text size")
     }
 }

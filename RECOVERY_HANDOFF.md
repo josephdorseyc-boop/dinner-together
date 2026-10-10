@@ -1,4 +1,4 @@
-# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r7** — first fully green native run
+# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r9** — XCUITest target integrated (first execution pending CI)
 
 > **Native validation has run.** GitHub Actions (`josephdorseyc-boop/dinner-together`),
 > Xcode 16.4 on macOS 15.7.9, iOS 18.5/18.6 simulators. CI run 5
@@ -39,7 +39,54 @@
 > checking" fully on the first screen); D2 DINNER AT / Adjust time fall
 > back to a vertical stack at large text; D3 the expired-timer caption
 > wraps; D4 timeline rows read "Planned …" / "Timer deadline …". Runs 8
-> (A1-4) and 9 (D1–D4) both green.
+> (A1-4) and 9 (D1–D4) both green. **r8 itself executed green on runs 10
+> and 11** (`0a63a87`, `60e31e6`): 61/61 both simulators, 0 skipped, and
+> the baseline test warning is gone — 0 Swift-source warnings.
+>
+> **r9 — Agent 1's XCUITest stream (A1-U1…U5) integrated.** Agent 1 built
+> the UI-test target the r7 review recommended: `DinnerTogetherUITests/`
+> (9 iPhone flows + 2 iPad re-runs, each attaching keep-always
+> screenshots), a DEBUG-only `DT_SEED_JSON` launch-environment seed hook in
+> `DinnerTogetherApp.init()` plus two accessibility identifiers
+> (`serving-time`, `timeline-step-<id>`; no copy or behavior change), a
+> required XCUITest section in `run-native-pass.sh` (per-device counts from
+> the result bundle, attachment export to `ui-screenshots/<device>/`, gates
+> on executed < expected, failures, skips and "nothing exported"), four
+> dry-run fixtures (16 scenarios, all pass here), `UITESTS.md` and a draft
+> evidence README. Applied verbatim as one commit (`5cad20f`); their
+> handoff is `docs/A1_UITEST_HANDOFF.md`. This time every patch file
+> arrived.
+>
+> My source review against the views found seven things to fix before the
+> first run, each labeled `A3-U-F1…F7` in the source and listed in
+> `UITESTS.md`: a compile error (`XCTestCase.wait(for:)` returns `Void`; the
+> result comes from `XCTWaiter`); Flow 5's seed (the timeline offers
+> "Review start" only once the step is due — `blockedInfo` is gated on
+> `now >= plannedStart` — and the late-to-start seed leaves "Cook the steak"
+> two minutes in the future, so a `blockedStart` seed with dinner in 20 min
+> was added); no scrolling anywhere (XCUITest does not scroll on its own,
+> and on iPhone Undo, the Completed group, the s2 card and the sheets'
+> buttons are below the fold — `scrollTo`/`scrollAndTap`/`scrollToTop`);
+> `exists == false` asserted during dismissal animations
+> (`waitForDisappearance`); `app.sheets` for a dialog that is a popover on
+> iPad; `staticTexts`-only queries for combined accessibility elements; and,
+> in the harness, exported attachments renamed from `manifest.json` to their
+> attachment names (best effort) with the export gate counting files of any
+> extension. Nothing in the engine, store, models, persistence or the 61
+> unit tests changed. A stray `CookingView.swift.orig` (a `patch` backup
+> committed with the r8 design patches, harmless — in no target) is removed
+> and `*.orig`/`*.rej` are ignored.
+>
+> **Evidence tier for the UI tests at the time of writing: source review
+> and the fake-toolchain dry run only.** Neither Agent 1 nor I have a Swift
+> toolchain that runs XCUITest; the first execution is the next CI run.
+> Agent 1's own expectation list (pbxproj key, `xcresulttool export`
+> argument shape, a query miss) stands; the fixes above remove the misses I
+> could see from the source. What a green run will prove: the UI target
+> compiles, 11 flows drive the real app in both simulators, and the review
+> sheet, delay sheet, stale-plan sheet and both confirmation alerts are
+> photographed. What it still will not prove: device, VoiceOver,
+> notification delivery, haptics.
 >
 > **r7.1 — Agent 1's r7 review integrated.** They verified run 5 at every
 > tier (Xcode compile, simulator XCTest from result bundles, harness

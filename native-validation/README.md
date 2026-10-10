@@ -33,6 +33,13 @@ configurations of `project.pbxproj` (added in r4 — the hand-written project
 had never defined it), and `run-native-pass.sh` verifies `-D DEBUG` reached
 the compiler.
 
-Static states only: nothing taps buttons, so the review sheet and the
-confirmation dialogs are not photographed. That needs an XCUITest target,
-planned once the project builds cleanly on CI.
+`screenshots.sh` covers static states only. The interactive flows — the
+review sheet, the delay sheet, the stale-plan sheet and the confirmation
+alerts — are driven and photographed by the XCUITest target
+(`DinnerTogetherUITests/`, r9), which `run-native-pass.sh` runs on both
+simulators as a required section and whose attachments land in
+`ui-screenshots/<device>/`. See `UITESTS.md`. The UI tests seed the app
+through the DEBUG-only `DT_SEED_JSON` launch-environment variable rather
+than `simctl` file copies; the two mechanisms do not interfere because the
+UI tests run first and `screenshots.sh` writes its own seed before every
+launch.

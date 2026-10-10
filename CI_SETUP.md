@@ -47,6 +47,9 @@ artifact you can hand to whoever is reviewing — no Mac involved at any point.
    - `screenshots/iphone/*.png`, `screenshots/ipad/*.png` — the cooking
      screen in each seeded state, light and dark, plus two large-text shots;
      `screenshots/EXPECTATIONS.tsv` says what each one should show.
+   - `ui-screenshots/iphone/*.png`, `ui-screenshots/ipad/*.png` — the
+     interactive flows photographed by the UI tests (`UITESTS.md` lists
+     what each one asserts); `25-ui-test-*-summary.json` has the counts.
    - `*.xcresult.zip` — the full Xcode result bundle, for anyone with Xcode.
 
 I read the summary, the logs and the screenshots, fix what they show, and
@@ -87,9 +90,10 @@ in `README.md`.
 
 ## Later additions this path supports
 
-- A UI test target so the run can also tap "Review dinner time" and capture
-  the sheet (XCUITest; I'd add it once the first clean run confirms the
-  project structure).
+- ~~A UI test target~~ — added in r9 (`DinnerTogetherUITests/`, see
+  `UITESTS.md`): the macOS job now also taps through the review sheet, the
+  delay sheet, the stale-plan sheet and the confirmation alerts, and
+  publishes those screenshots under `ui-screenshots/<device>/`.
 - TestFlight builds from CI (requires an Apple Developer Program membership
   and signing secrets in the repo). That is how an iPhone in your hand runs
   the app without a Mac.
