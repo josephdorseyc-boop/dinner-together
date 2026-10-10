@@ -86,8 +86,9 @@ The privacy policy and support pages are in `docs/`; turn on GitHub Pages
 once (repo **Settings** → **Pages** → Source: Deploy from a branch → `main`,
 folder `/docs` → Save) and they are live at
 `https://josephdorseyc-boop.github.io/dinner-together/privacy.html` and
-`…/support.html`. Put your support email into `docs/support.html` first
-(search for `SUPPORT_EMAIL_PLACEHOLDER`).
+`…/support.html`. The support page carries Joseph.DorseyC@gmail.com as the
+contact; App Store Connect's "Support URL" and "App Review contact" fields
+use the same address.
 
 ## 8. Submit
 
