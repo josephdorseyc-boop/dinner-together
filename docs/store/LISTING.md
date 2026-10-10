@@ -1,15 +1,18 @@
-# App Store listing — Dinner, Together 1.0 (draft for Agent 2's review)
+# App Store listing — Dinner, Together 1.0 (Agent 2 review A2-5 applied)
 
 Paste-ready. Character limits are App Store Connect's; counts are given so
-nothing gets truncated. Agent 2: edit freely, keep the voice (calm, honest,
-no hype), and return the file.
+nothing gets truncated. Agent 2's A2-5 ("honest store listing") is applied:
+the copy claims only what 1.0 does (three preset menus, timing guides rather
+than recipes, no custom menus), and the keywords are single terms so the
+store can combine them. Lengths verified: subtitle 24/30, promotional text
+88/170, keywords 79/100, description 1,736/4,000.
 
 ## App Information
 
 | Field | Value |
 |---|---|
 | Name (30) | `Dinner, Together` (16) |
-| Subtitle (30) | `Every dish ready at the same time` (29) |
+| Subtitle (30) | `Your whole dinner, timed` (24) |
 | Primary category | Food & Drink |
 | Secondary category | Utilities |
 | Content rights | Does not contain, show, or access third-party content |
@@ -33,31 +36,35 @@ Paid app, no in-app purchases, **$2.99** (Tier 3) at launch. Reasoning in
 ## Version 1.0
 
 **Promotional text** (170; can change without a new build)
-`Pick a dinner, pick a time, and cook with a plan that stays honest when things run late.` (89)
+`Pick a dinner, pick a time, and cook with a plan that stays honest when things run late.` (88)
 
 **Description** (4000)
 
 ```
-Dinner, Together plans a whole meal backward from the moment you want to eat, then walks you through it one step at a time.
+Dinner, Together helps you time a multi-dish dinner, working backward from when you want to eat.
 
-Pick a dinner — steak au poivre with mash and green beans, garlic mushroom pasta and a salad, or an easy salmon evening — choose when you want to sit down, and every step of every dish gets its place in a single timeline so that everything is ready together.
+Version 1.0 includes three preset dinner menus: steak au poivre with mash and green beans, garlic mushroom pasta with salad, and a salmon dinner. Choose a menu, review its timing estimates, and pick your serving time. The app brings the steps together in one timeline.
 
-While you cook, the screen answers one question: what do I do right now?
+These are timing guides, not complete recipes. Bring your own recipe for ingredients and cooking instructions. Adding or importing your own menus is not included in this release.
 
-• The next thing that needs your hands is always at the top, with running timers and what's coming up underneath.
-• Timers count down to a deadline, not from a guess. When one ends, the app says "check the food" — it never decides a step is done for you.
-• Running behind is normal. A quiet notice shows the new estimate next to the dinner time you chose; nothing moves on its own. "Review dinner time" shows exactly what would change, and Undo takes it back.
-• Starting a step before the one it depends on is finished takes an explicit "Start anyway," never a silent skip.
-• Pick up where you left off. If life interrupts, the plan waits; the next day it asks whether to resume or start fresh.
-• Reminders arrive as notifications when the phone is in your pocket (optional — the in-app timers work without them).
+While you cook, see what needs your attention now, which timers are running, and what's coming next.
 
-Designed for the counter: large, readable times, a warm cream-and-tomato palette, full Dark Mode and Dynamic Type support, and a two-column layout on iPad. No account, no ads, no tracking, nothing leaves your device.
+• Start a timer using the step's duration estimate. Once started, its deadline stays fixed when you move dinner time.
+• When a timer ends, the app says “Check the food.” You decide when the step is done.
+• Running behind? Compare your chosen dinner time with the latest readiness estimate. Review a proposed time change before applying it, with Undo available afterward.
+• If a step depends on unfinished work, the app explains the dependency before you choose whether to start anyway.
+• Your plan and progress are saved on your device. When you return to an old plan, choose whether to continue or start fresh.
+• Optional local notifications remind you when timers end. In-app timers work without notification permission.
 
-Timing in the app is a planning estimate. Always confirm doneness with your recipe and a thermometer.
+Large times, a warm cream-and-tomato palette, Dark Mode, adjustable text sizes, and a two-column cooking layout on iPad help you follow the plan at the counter.
+
+Works offline. No account, ads, tracking, or subscription.
+
+Timing estimates help with planning; they cannot determine doneness. Follow your recipe and check food with a thermometer where appropriate.
 ```
 
 **Keywords** (100, comma-separated, no spaces after commas)
-`cooking timer,dinner planner,meal timing,kitchen timer,recipe timer,cook time,multiple timers,sous chef` (99)
+`cooking,kitchen,timer,meal,planner,schedule,multiple,offline,steak,salmon,pasta` (79 bytes)
 
 **What's New in This Version** (4000)
 `First release.`
