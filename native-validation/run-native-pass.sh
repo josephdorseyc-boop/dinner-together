@@ -83,9 +83,12 @@ cands.sort(key=lambda c:(c[0], -len(c[1])), reverse=True)
 if cands: print(cands[0][1]+"|"+cands[0][2])
 ' "$1"
 }
-IPHONE="$(pick_device '^iPhone [0-9]+$' || true)"
+# DT_IPHONE_REGEX / DT_IPAD_REGEX override the device choice (the App Store
+# screenshot workflow asks for the 6.9-inch iPhone and the 13-inch iPad).
+IPHONE="$(pick_device "${DT_IPHONE_REGEX:-^iPhone [0-9]+$}" || true)"
 [ -n "$IPHONE" ] || IPHONE="$(pick_device '^iPhone' || true)"
-IPAD="$(pick_device '^iPad' || true)"
+IPAD="$(pick_device "${DT_IPAD_REGEX:-^iPad}" || true)"
+[ -n "$IPAD" ] || IPAD="$(pick_device '^iPad' || true)"
 IPHONE_NAME="${IPHONE%%|*}"; IPHONE_UDID="${IPHONE##*|}"
 IPAD_NAME="${IPAD%%|*}";     IPAD_UDID="${IPAD##*|}"
 note "## Simulators (both required)"

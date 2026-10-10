@@ -31,5 +31,22 @@ case "$1" in
     for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' passed (0.1 seconds)"; fi; done
     echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
     [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0;;
+  archive)
+    # release/build-release.sh: archive -archivePath <dir> ... (cloud signing args ignored)
+    arch=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-archivePath" ] && arch="${args[$((i+1))]}"; done
+    [ -n "$arch" ] || { echo "fake: no -archivePath" >&2; exit 2; }
+    if [ -n "${FAKE_ARCHIVE_RC:-}" ]; then echo "error: No profiles for 'com.fake' were found (fake)"; echo "** ARCHIVE FAILED **"; exit "$FAKE_ARCHIVE_RC"; fi
+    mkdir -p "$arch/Products/Applications/DinnerTogether.app"; printf '#!/bin/sh\n' > "$arch/Products/Applications/DinnerTogether.app/DinnerTogether"
+    echo "** ARCHIVE SUCCEEDED **"; exit 0;;
+  -exportArchive)
+    plist=""; dest=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-exportOptionsPlist" ] && plist="${args[$((i+1))]}"; [ "${args[$i]}" = "-exportPath" ] && dest="${args[$((i+1))]}"; done
+    [ -n "$plist" ] && [ -n "$dest" ] || { echo "fake: need -exportOptionsPlist and -exportPath" >&2; exit 2; }
+    destination=$(sed -n 's/.*<key>destination<\/key><string>\(.*\)<\/string>.*/\1/p' "$plist" | head -1)
+    if [ "$destination" = "upload" ]; then
+      if [ -n "${FAKE_UPLOAD_RC:-}" ]; then echo "error: exportArchive No suitable application records were found (fake)"; echo "** EXPORT FAILED **"; exit "$FAKE_UPLOAD_RC"; fi
+      mkdir -p "$dest"; echo "Upload succeeded (fake)"; echo "** EXPORT SUCCEEDED **"; exit 0
+    fi
+    if [ -n "${FAKE_EXPORT_RC:-}" ]; then echo "error: exportArchive fake export failure"; echo "** EXPORT FAILED **"; exit "$FAKE_EXPORT_RC"; fi
+    mkdir -p "$dest"; printf 'PK-fake' > "$dest/DinnerTogether.ipa"; echo "** EXPORT SUCCEEDED **"; exit 0;;
 esac
 echo "fake xcodebuild: unhandled $*" >&2; exit 2

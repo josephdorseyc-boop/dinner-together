@@ -20,7 +20,7 @@ name: native-validation
 
 on:
   push:
-    branches-ignore: [ci-results, ci-results-linux]
+    branches-ignore: [ci-results, ci-results-linux, store-assets]
     # Documentation-only pushes don't need a 20-minute macOS run.
     paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
@@ -87,6 +87,8 @@ jobs:
       - run: node logic-checks/reconciliation-test.cjs
       - name: Harness dry run against a fake toolchain (proves the gates, not the app)
         run: bash native-validation/dry-run/run.sh
+      - name: Release-script dry run (control flow only; no signing)
+        run: bash release/dry-run.sh
 
   native-ios:
     name: Xcode build, XCTest, simulator screenshots

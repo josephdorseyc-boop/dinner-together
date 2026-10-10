@@ -1,0 +1,53 @@
+name: store-assets
+
+# App Store screenshots at the sizes App Store Connect requires, taken from
+# the same seeded states the validation run photographs: 6.9-inch iPhone
+# (iPhone 17 Pro Max, 1320×2868) and 13-inch iPad (iPad Pro 13-inch (M4),
+# 2064×2752), light and dark. Run by hand; download the artifact and upload
+# the PNGs in App Store Connect → the version's screenshots.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  screenshots:
+    runs-on: macos-15
+    timeout-minutes: 60
+    env:
+      RESULTS: ${{ github.workspace }}/native-validation/results
+      DT_IPHONE_REGEX: '^iPhone 17 Pro Max$'
+      DT_IPAD_REGEX: '^iPad Pro 13-inch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build, test and photograph on the App Store screenshot devices
+        run: |
+          bash native-validation/run-native-pass.sh "$RESULTS" || echo "::warning::native pass reported failures — screenshots may still be usable"
+          bash native-validation/screenshots.sh "$RESULTS"
+      - name: Record the devices and sizes used
+        if: always()
+        run: |
+          cat "$RESULTS/devices.env" || true
+          for f in "$RESULTS"/screenshots/*/*.png; do
+            [ -f "$f" ] && sips -g pixelWidth -g pixelHeight "$f" | tr '\n' ' ' && echo
+          done | sed 's#.*/screenshots/##' | head -40
+      - name: App Store screenshots (artifact)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-store-screenshots
+          path: native-validation/results/screenshots/**
+          if-no-files-found: error
+      - name: Publish to the store-assets branch (readable with plain git)
+        if: always()
+        run: |
+          tmp=$(mktemp -d)
+          cp -R "$RESULTS/screenshots" "$tmp/screenshots" 2>/dev/null || true
+          cp "$RESULTS/devices.env" "$tmp/" 2>/dev/null || true
+          printf 'run_id=%s\nsha=%s\n' "${{ github.run_id }}" "${{ github.sha }}" > "$tmp/RUN.txt"
+          cd "$tmp" && git init -q -b store-assets
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "App Store screenshots for run ${{ github.run_id }} (${{ github.sha }})"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/store-assets
