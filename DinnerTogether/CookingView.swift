@@ -217,7 +217,7 @@ struct CookingView: View {
     @ViewBuilder
     private var actionColumn: some View {
         servingCard
-        readinessNotice
+        if urgentTimer == nil { readinessNotice }
         if allDone {
             VStack(alignment: .leading, spacing: 12) {
                 Image(systemName: "checkmark.seal.fill").font(.title).foregroundStyle(Theme.olive)
@@ -247,6 +247,8 @@ struct CookingView: View {
                 }.dtCard()
             }
         }
+        // Checking food comes before reviewing the dinner-time estimate.
+        if urgentTimer != nil { readinessNotice }
         let otherDue = doNow.filter { $0.id != featuredID }
         if !otherDue.isEmpty {
             SectionLabel(text: "ALSO READY TO START")
@@ -345,11 +347,20 @@ struct CookingView: View {
 
     private var servingCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                SectionLabel(text: "DINNER AT")
-                Spacer()
-                Button("Adjust time") { showDelayChoice = true }
-                    .buttonStyle(QuietButtonStyle()).disabled(allDone)
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    SectionLabel(text: "DINNER AT")
+                        .fixedSize(horizontal: true, vertical: false)
+                    Spacer()
+                    Button("Adjust time") { showDelayChoice = true }
+                        .buttonStyle(QuietButtonStyle()).disabled(allDone)
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionLabel(text: "DINNER AT")
+                    Button("Adjust time") { showDelayChoice = true }
+                        .buttonStyle(QuietButtonStyle()).disabled(allDone)
+                }
             }
             Text(store.session.serveAt, format: .dateTime.hour().minute())
                 .font(.system(.largeTitle, design: .rounded).weight(.medium))
@@ -467,6 +478,7 @@ struct CookingView: View {
                 // end is recorded until the cook says so.
                 Text("The timer ended; the food may not have. Check it before marking this step done.")
                     .font(.caption).foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             DisclosureGroup("Timing details") {
                 VStack(alignment: .leading, spacing: 5) {
@@ -517,7 +529,9 @@ struct CookingView: View {
                 .font(.caption).foregroundStyle(isCooking ? Theme.tomato : Theme.muted)
                 .frame(width: 18).padding(.top, 4).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 10) {
-                Text(Scheduling.formatRange(start: item.plannedStart, end: item.plannedEnd))
+                Text(isCooking
+                     ? "Timer deadline \(Scheduling.formatTime(item.end))"
+                     : "Planned \(Scheduling.formatRange(start: item.plannedStart, end: item.plannedEnd))")
                     .font(.caption.weight(.medium)).monospacedDigit().foregroundStyle(Theme.muted)
                 Text(item.step.title).font(.headline).foregroundStyle(Theme.ink)
                 HStack(spacing: 8) {
