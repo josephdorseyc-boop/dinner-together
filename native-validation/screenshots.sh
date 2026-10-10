@@ -82,9 +82,17 @@ app_running() { # udid → 0 if the app process is alive in the simulator
   printf '%s' "$list" | grep -q "UIKitApplication:$BUNDLE"
 }
 
-capture() { # udid out.png label
-  local udid="$1" out="$2" label="$3"
-  xcrun simctl launch "$udid" "$BUNDLE" -dt-open-cooking -dt-inert-reminders >> "$LOG" 2>&1 \
+launch_args_for() { # scenario → launch arguments
+  # "tonight-*" scenarios photograph the planning screen; everything else
+  # opens straight on Cooking.
+  case "$1" in tonight-*) printf '%s' "-dt-inert-reminders";; *) printf '%s' "-dt-open-cooking -dt-inert-reminders";; esac
+}
+
+capture() { # udid out.png label [scenario]
+  local udid="$1" out="$2" label="$3" scenario="${4:-}"
+  local args; args=$(launch_args_for "$scenario")
+  # shellcheck disable=SC2086
+  xcrun simctl launch "$udid" "$BUNDLE" $args >> "$LOG" 2>&1 \
     || { fail "$label: launch failed"; return; }
   sleep "$SETTLE"
   if ! app_running "$udid"; then fail "$label: app is not running ${SETTLE}s after launch (crash?)"; return; fi
@@ -121,7 +129,7 @@ shoot_device() { # label udid
     for scenario in "${SCENARIOS[@]}"; do
       python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" > /dev/null   # fresh "now"
       cp "$SEEDS/$scenario.json" "$container/Documents/dinner-together-v2.json"
-      capture "$udid" "$dir/$scenario-$appearance.png" "$label/$scenario-$appearance"
+      capture "$udid" "$dir/$scenario-$appearance.png" "$label/$scenario-$appearance" "$scenario"
     done
   done
 
@@ -132,7 +140,7 @@ shoot_device() { # label udid
       python3 "$ROOT/native-validation/seed-sessions.py" "$SEEDS" > /dev/null
       cp "$SEEDS/$scenario.json" "$container/Documents/dinner-together-v2.json"
       local before=$FAILURES
-      capture "$udid" "$dir/$scenario-ax-large-text.png" "$label/$scenario-ax-large-text (bonus)"
+      capture "$udid" "$dir/$scenario-ax-large-text.png" "$label/$scenario-ax-large-text (bonus)" "$scenario"
       FAILURES=$before   # bonus shots never count as required failures
     done
     xcrun simctl ui "$udid" content_size large >> "$LOG" 2>&1 || true

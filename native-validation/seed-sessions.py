@@ -34,9 +34,9 @@ def cooking(start, minutes, deadline):
             "actualStart": swift_date(start), "confirmedMinutes": minutes,
             "timerDeadline": swift_date(deadline)}
 
-def session(now, serve_at, records, history=None):
+def session(now, serve_at, records, history=None, menu_id="steak"):
     return {
-        "menuID": "steak",
+        "menuID": menu_id,
         "serveAt": swift_date(serve_at),
         "durationOverrides": {},
         "records": records,
@@ -91,6 +91,13 @@ def scenarios(now):
     out["on-schedule"] = (session(now, n(38), {
         "s1": cooking(n(-2), 10, n(8)),
     }), "No notice; running timer 08:00 left; nothing late")
+
+    # g) The planning screen ("Tonight"): launched WITHOUT -dt-open-cooking.
+    #    Steak night selected, dinner 50 min out (feasible), nothing started.
+    #    Expect: header, serving-time card, feasibility OK, menu cards, and the
+    #    "Selected: Steak night" footer with "Build my cooking plan" (A2-S3).
+    out["tonight-steak"] = (session(now, n(50), {}),
+        "Tonight (plan) screen: Steak night selected, feasible time 50 min out, no progress; footer action visible")
 
     return out
 

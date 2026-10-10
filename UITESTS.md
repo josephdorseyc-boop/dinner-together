@@ -13,13 +13,13 @@ xcodebuild build-for-testing \
   -project DinnerTogether.xcodeproj -scheme DinnerTogether \
   -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17'
 
-# iPhone flows (9 tests):
+# iPhone flows (10 tests):
 xcodebuild test-without-building \
   -project DinnerTogether.xcodeproj -scheme DinnerTogether \
   -configuration Debug -destination 'platform=iOS Simulator,name=iPhone 17' \
   -only-testing:DinnerTogetherUITests/DinnerTogetherUITests
 
-# iPad flows (2 tests):
+# iPad flows (3 tests):
 xcodebuild test-without-building \
   -project DinnerTogether.xcodeproj -scheme DinnerTogether \
   -configuration Debug -destination 'platform=iOS Simulator,name=iPad (A16)' \
@@ -46,7 +46,7 @@ leak the previous test's seed.
 
 ## What each test asserts
 
-### iPhone — `DinnerTogetherUITests` (9)
+### iPhone — `DinnerTogetherUITests` (10)
 
 | Test | Flow | Asserts |
 |---|---|---|
@@ -59,12 +59,14 @@ leak the previous test's seed.
 | `test07a_stalePlanWithProgress` | Stale plan, progress made | The non-dismissable "Welcome back." sheet offers "Resume this plan"; resuming dismisses it onto the cooking screen. Screenshots: `07a-stale-sheet`, `07a-after-resume`. |
 | `test07b_stalePlanNoProgress` | Stale plan, no progress | The sheet offers "Keep menu, fresh time"; the cook lands on the cooking screen with a fresh dinner time. Screenshots: `07b-stale-sheet`, `07b-after-keep`. |
 | `test08_reviewDinnerTimeAXTextSize` | Flow 1 at accessibility text size | The review sheet opens and the estimate is readable at `UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge`. Screenshot: `08-ax-review-sheet`. |
+| `test09_tonightNineMenus` | Tonight (planning) screen, launched without `-dt-open-cooking` (`tonight` seed) | "Build my cooking plan" is hittable before any scrolling (the A2-S3 bottom inset) and the footer reads "Selected: Steak night"; scrolling to and choosing "Crisp tofu, cozy bowls" updates the footer while the action stays on screen; the action opens the cooking screen. Screenshots: `09-tonight-top`, `09-tonight-menus`, `09-tonight-into-cooking`. |
 
-### iPad — `DinnerTogetherUITests_iPad` (2)
+### iPad — `DinnerTogetherUITests_iPad` (3)
 
-Re-runs flows 1 and 3 on the iPad destination so the sheets can be judged
-in the two-column layout: `test01_reviewDinnerTimeLatePrep_iPad`,
-`test02_adjustTimeOnSchedule_iPad`.
+Re-runs flows 1, 3 and 9 on the iPad destination so the sheets and the
+planning screen can be judged in the wide layout:
+`test01_reviewDinnerTimeLatePrep_iPad`, `test02_adjustTimeOnSchedule_iPad`,
+`test03_tonightNineMenus_iPad`.
 
 ## Integration notes (Agent 3, r9)
 

@@ -52,4 +52,9 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test08_reviewDinnerTimeAXTextSize() {
         flowReviewDinnerTimeAXTextSize()
     }
+
+    /// Flow 9 — Tonight screen with nine menus; selection footer; into cooking.
+    func test09_tonightNineMenus() {
+        flowTonightNineMenus()
+    }
 }

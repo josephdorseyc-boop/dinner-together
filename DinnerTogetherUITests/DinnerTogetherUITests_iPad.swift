@@ -15,4 +15,9 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test02_adjustTimeOnSchedule_iPad() {
         flowAdjustTimeOnSchedule()
     }
+
+    /// Flow 9 on iPad — the planning screen with nine menus and its footer.
+    func test03_tonightNineMenus_iPad() {
+        flowTonightNineMenus()
+    }
 }

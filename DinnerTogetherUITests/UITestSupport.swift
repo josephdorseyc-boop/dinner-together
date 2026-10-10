@@ -35,9 +35,10 @@ enum UISeed {
 
     private static func session(now: Date, serveAt: Date,
                                records: [String: [String: Any]],
-                               lastOpenedAt: Date? = nil) -> String {
+                               lastOpenedAt: Date? = nil,
+                               menuID: String = "steak") -> String {
         let payload: [String: Any] = [
-            "menuID": "steak",
+            "menuID": menuID,
             "serveAt": swiftDate(serveAt),
             "durationOverrides": [String: Int](),
             "records": records,
@@ -112,6 +113,12 @@ enum UISeed {
         ], lastOpenedAt: yesterday)
     }
 
+    /// The planning screen: nothing started, dinner 50 min out (feasible).
+    /// Launched without -dt-open-cooking by Flow 9.
+    static func tonight(now: Date, menuID: String = "steak") -> String {
+        session(now: now, serveAt: now.addingTimeInterval(50 * 60), records: [:], menuID: menuID)
+    }
+
     /// Opened yesterday, never started, dinner time passed.
     static func staleNoProgress(now: Date) -> String {
         session(now: now, serveAt: now.addingTimeInterval(-3 * 3600), records: [:],
@@ -139,10 +146,10 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// explicitly: the app never deletes a seed file, so an unset variable
     /// would leak the previous test's seed into this one.
     @discardableResult
-    func launch(seed: String, extraLaunchArguments: [String] = []) -> XCUIApplication {
+    func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["DT_SEED_JSON"] = seed
-        app.launchArguments += ["-dt-open-cooking", "-dt-inert-reminders"] + extraLaunchArguments
+        app.launchArguments += (openCooking ? ["-dt-open-cooking"] : []) + ["-dt-inert-reminders"] + extraLaunchArguments
         app.launch()
         self.app = app
         return app
@@ -523,5 +530,30 @@ class DinnerTogetherUITestCase: XCTestCase {
         photograph("08-ax-review-sheet")
         XCTAssertTrue(element(labelBeginning: "Estimated readiness").waitForExistence(timeout: 5),
                       "estimate readable at accessibility text size")
+    }
+
+    /// Flow 9 — Tonight (planning) screen with nine menus: the selection
+    /// footer names the chosen dinner and stays reachable without scrolling
+    /// past every card (A2-S3); choosing a meat-free menu updates it; the
+    /// primary action opens the cooking screen.
+    func flowTonightNineMenus() {
+        launch(seed: UISeed.tonight(now: Date()), openCooking: false)
+        let action = app.buttons["Build my cooking plan"].firstMatch
+        waitForExistence(action, timeout: 10, "planning screen with its primary action")
+        XCTAssertTrue(action.isHittable, "the primary action is on screen before any scrolling (bottom inset)")
+        XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 5),
+                      "the footer names the seeded selection")
+        photograph("09-tonight-top")
+
+        let tofu = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Crisp tofu, cozy bowls'")).firstMatch
+        scrollAndTap(tofu, "a new meat-free menu card is reachable")
+        XCTAssertTrue(app.staticTexts["Selected: Crisp tofu, cozy bowls"].waitForExistence(timeout: 5),
+                      "choosing a menu updates the footer")
+        XCTAssertTrue(action.isHittable, "the primary action is still on screen after scrolling the list")
+        photograph("09-tonight-menus")
+
+        action.tap()
+        waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen after Build my cooking plan")
+        photograph("09-tonight-into-cooking")
     }
 }
