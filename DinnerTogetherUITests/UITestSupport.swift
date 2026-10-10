@@ -202,7 +202,11 @@ class DinnerTogetherUITestCase: XCTestCase {
         // The tab bar only matters when it is actually on top (not under a sheet).
         let tabBar = app.tabBars.firstMatch
         let bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
-        return f.minY >= screen.minY + 110 && f.maxY <= screen.maxY - bottomBand
+        // Top band: the status bar plus a little; a navigation bar that
+        // actually covers the element already makes it non-hittable. (iPad's
+        // "Adjust time" sits ~100 pt from the top and never scrolls higher —
+        // run 16.)
+        return f.minY >= screen.minY + 60 && f.maxY <= screen.maxY - bottomBand
     }
 
     func scrollTo(_ element: XCUIElement, maxDrags: Int = 12,
@@ -223,6 +227,7 @@ class DinnerTogetherUITestCase: XCTestCase {
             let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
             let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
         }
         XCTAssertTrue(isComfortablyVisible(element),
@@ -444,8 +449,14 @@ class DinnerTogetherUITestCase: XCTestCase {
         scrollTo(reviewStart)
         photograph("05-timeline-blocked")
         reviewStart.tap()
+        photograph("05-after-review-start-tap")   // evidence of what the tap did, alert or not
 
         let alert = app.alerts.firstMatch
+        if !alert.waitForExistence(timeout: 4) {
+            // One retry: a tap that lands while a scroll view is still settling
+            // can be swallowed. The second tap is at the button's center.
+            reviewStart.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
         waitForExistence(alert, timeout: 5, "blocked-start alert")
         photograph("05-blocked-alert")
         XCTAssertTrue(alert.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Prep the steak'"))
@@ -547,8 +558,12 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         let tofu = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Crisp tofu, cozy bowls'")).firstMatch
         scrollAndTap(tofu, "a new meat-free menu card is reachable")
-        XCTAssertTrue(app.staticTexts["Selected: Crisp tofu, cozy bowls"].waitForExistence(timeout: 5),
-                      "choosing a menu updates the footer")
+        photograph("09-tonight-after-tap")
+        let footer = app.staticTexts["Selected: Crisp tofu, cozy bowls"]
+        if !footer.waitForExistence(timeout: 4) {
+            tofu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()   // one retry (see Flow 5)
+        }
+        XCTAssertTrue(footer.waitForExistence(timeout: 5), "choosing a menu updates the footer")
         XCTAssertTrue(action.isHittable, "the primary action is still on screen after scrolling the list")
         photograph("09-tonight-menus")
 

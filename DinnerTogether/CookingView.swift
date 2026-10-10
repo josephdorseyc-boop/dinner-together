@@ -25,9 +25,23 @@ struct CookingView: View {
     @State private var showReadinessReview = false
     @State private var showCompleted = false
     @State private var showResetConfirm = false
-    @State private var blockedRequest: BlockedRequest?
-    @State private var unstartedCompleteRequest: UnstartedCompleteRequest?
+    /// Both confirmations go through ONE alert modifier. Two `.alert(item:)`
+    /// modifiers on the same view is a known SwiftUI trap (only one of them
+    /// reliably presents); the first UI-test execution (CI run 17) tapped
+    /// "Review start" on a comfortably visible card and no alert appeared,
+    /// while the second modifier's alert worked. One modifier, one state.
+    @State private var prompt: CookingPrompt?
 
+    enum CookingPrompt: Identifiable {
+        case blocked(BlockedRequest)
+        case unstartedCompletion(UnstartedCompleteRequest)
+        var id: String {
+            switch self {
+            case .blocked(let r): return "blocked-" + r.id
+            case .unstartedCompletion(let r): return "unstarted-" + r.id
+            }
+        }
+    }
     struct BlockedRequest: Identifiable {
         let id: String
         let stepID: String
@@ -157,28 +171,30 @@ struct CookingView: View {
         .sheet(isPresented: $showReadinessReview) {
             ServingSheetView()
         }
-        .alert(item: $blockedRequest) { req in
-            Alert(
-                title: Text("Waiting on “\(req.predecessorTitle)”"),
-                message: Text("This step can't start until “\(req.predecessorTitle)” is done (ready around \(Scheduling.formatTime(req.readyAt))). Start it anyway?"),
-                primaryButton: .default(Text("Start anyway")) {
-                    Task { await store.startStep(req.stepID, force: true) }
-                },
-                secondaryButton: .cancel()
-            )
-        }
-        .alert(item: $unstartedCompleteRequest) { req in
-            Alert(
-                title: Text("Mark “\(req.title)” done?"),
-                message: Text("It was never marked started, so we won't guess when it began — only that it finished now."),
-                primaryButton: .default(Text("Mark done")) {
-                    Task {
-                        let result = await store.completeStep(req.stepID, confirmed: true)
-                        if case .completed = result { completionFeedback.toggle() }
-                    }
-                },
-                secondaryButton: .cancel()
-            )
+        .alert(item: $prompt) { prompt in
+            switch prompt {
+            case .blocked(let req):
+                return Alert(
+                    title: Text("Waiting on “\(req.predecessorTitle)”"),
+                    message: Text("This step can't start until “\(req.predecessorTitle)” is done (ready around \(Scheduling.formatTime(req.readyAt))). Start it anyway?"),
+                    primaryButton: .default(Text("Start anyway")) {
+                        Task { await store.startStep(req.stepID, force: true) }
+                    },
+                    secondaryButton: .cancel()
+                )
+            case .unstartedCompletion(let req):
+                return Alert(
+                    title: Text("Mark “\(req.title)” done?"),
+                    message: Text("It was never marked started, so we won't guess when it began — only that it finished now."),
+                    primaryButton: .default(Text("Mark done")) {
+                        Task {
+                            let result = await store.completeStep(req.stepID, confirmed: true)
+                            if case .completed = result { completionFeedback.toggle() }
+                        }
+                    },
+                    secondaryButton: .cancel()
+                )
+            }
         }
     }
 
@@ -188,9 +204,9 @@ struct CookingView: View {
         Task {
             let result = await store.startStep(item.id)
             if case .blocked(let predecessorTitle, let readyAt) = result {
-                blockedRequest = BlockedRequest(id: item.id, stepID: item.id,
-                                                predecessorTitle: predecessorTitle,
-                                                readyAt: readyAt)
+                prompt = .blocked(BlockedRequest(id: item.id, stepID: item.id,
+                                                 predecessorTitle: predecessorTitle,
+                                                 readyAt: readyAt))
             }
         }
     }
@@ -200,9 +216,9 @@ struct CookingView: View {
             let result = await store.completeStep(item.id)
             if case .completed = result { completionFeedback.toggle() }
             if case .needsStartConfirmation(let title) = result {
-                unstartedCompleteRequest = UnstartedCompleteRequest(id: item.id,
-                                                                   stepID: item.id,
-                                                                   title: title)
+                prompt = .unstartedCompletion(UnstartedCompleteRequest(id: item.id,
+                                                                       stepID: item.id,
+                                                                       title: title))
             }
         }
     }
