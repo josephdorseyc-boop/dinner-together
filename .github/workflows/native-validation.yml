@@ -21,6 +21,8 @@ name: native-validation
 on:
   push:
     branches-ignore: [ci-results, ci-results-linux]
+    # Documentation-only pushes don't need a 20-minute macOS run.
+    paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
 
 # Results are also pushed to the ci-results / ci-results-linux branches so
