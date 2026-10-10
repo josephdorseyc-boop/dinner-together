@@ -514,7 +514,17 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         scrollAndTap(card.buttons["Review start"], "Review start again")
         waitForExistence(app.alerts.firstMatch, timeout: 5, "blocked-start alert again")
-        app.alerts.firstMatch.buttons["Start anyway"].tap()
+        let startAnywayAlert = app.alerts.firstMatch
+        startAnywayAlert.buttons["Start anyway"].tap()
+        // The tap can be swallowed while the alert is still animating in
+        // (run 24 flake: the step never started, heat card never appeared).
+        // If the alert is still up after a beat, tap once more at the
+        // button's center — the same retry shape as tapEvenInPopover.
+        let alertGone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: startAnywayAlert)
+        if XCTWaiter().wait(for: [alertGone], timeout: 3) != .completed {
+            startAnywayAlert.buttons["Start anyway"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        waitForDisappearance(startAnywayAlert, "Start anyway dismisses the alert")
         // A cooking step appears in RUNNING TIMERS with a heat card whose button
         // is labeled "Mark <step> done" — unique to the cooking state. (The
         // timeline card's own "Mark done" was visible in run 20's render but did
