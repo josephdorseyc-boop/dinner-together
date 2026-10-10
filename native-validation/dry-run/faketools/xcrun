@@ -1,8 +1,28 @@
 #!/usr/bin/env bash
 if [ "$1" = "xcresulttool" ]; then
-  # Mirror the fake xcodebuild's counts (FAKE_EXECUTED / FAKE_FAIL_CASES), like a real result bundle would.
+  shift
+  if [ "$1" = "export" ]; then
+    # export attachments --path <bundle> --output-path <dir>
+    out=""; prev=""; for a in "$@"; do [ "$prev" = "--output-path" ] && out="$a"; prev="$a"; done
+    [ -z "$out" ] && { echo "fake: no --output-path" >&2; exit 2; }
+    if [ -n "${FAKE_UI_ATTACHMENTS_RC:-}" ]; then echo "fake: attachment export failed" >&2; exit "$FAKE_UI_ATTACHMENTS_RC"; fi
+    mkdir -p "$out"
+    dflt=9; [ "$(basename "$out")" = "ipad" ] && dflt=2
+    n=${FAKE_UI_PNGS:-${FAKE_UI_EXECUTED:-$dflt}}
+    for ((k=1;k<=n;k++)); do printf 'PNGFAKE' > "$out/ui-shot-$k.png"; done
+    exit 0
+  fi
+  # get test-results summary --path <bundle>: mirror the fake xcodebuild's
+  # counts (FAKE_EXECUTED / FAKE_FAIL_CASES / FAKE_SKIPPED, or the FAKE_UI_*
+  # variants for a UI result bundle), like a real result bundle would.
+  path=""; prev=""; for a in "$@"; do [ "$prev" = "--path" ] && path="$a"; prev="$a"; done
   f="DinnerTogetherTests/DinnerTogetherTests.swift"; d=$([ -f "$f" ] && grep -c 'func test' "$f" || echo 60)
   n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}; s=${FAKE_SKIPPED:-0}
+  if [[ "$path" == *-ui* ]]; then
+    fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)
+    if [ "$(basename "$path")" = "ipad-ui.xcresult" ]; then fu="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 2); fi
+    n=${FAKE_UI_EXECUTED:-$du}; k=${FAKE_UI_FAIL_CASES:-0}; s=${FAKE_UI_SKIPPED:-0}
+  fi
   echo "{\"totalTestCount\": $n, \"passedTests\": $((n-k-s)), \"failedTests\": $k, \"skippedTests\": $s, \"result\": \"$([ $k -eq 0 ] && echo Passed || echo Failed)\"}"; exit 0
 fi
 [ "$1" = "simctl" ] || { echo "fake xcrun: $*" >&2; exit 2; }

@@ -3,8 +3,16 @@ import SwiftUI
 @main
 struct DinnerTogetherApp: App {
     @Environment(\.scenePhase) private var scenePhase
-    @StateObject private var store = SessionStore(notifications: LaunchOptions.notificationService())
+    @StateObject private var store: SessionStore
     @StateObject private var timers = TimerCenter()
+
+    init() {
+        #if DEBUG
+        // UI-test seeding must land before SessionStore reads its file.
+        LaunchOptions.writeSeedFileIfPresent()
+        #endif
+        _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService()))
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -27,6 +35,11 @@ struct DinnerTogetherApp: App {
 ///   -dt-open-cooking      open on the Cooking screen instead of Tonight
 ///   -dt-inert-reminders   use a reminder service that never prompts or
 ///                         schedules, so no system alert covers the screen
+///   DT_SEED_JSON          environment variable carrying a dinner-together-v2.json
+///                         payload; written to the store's file before
+///                         SessionStore is created (see writeSeedFileIfPresent).
+///                         UI tests set it on every launch — it is never deleted,
+///                         so a stale seed can only leak if a test forgets to set it.
 ///
 /// Used by native-validation/screenshots.sh. Nothing here changes cooking
 /// behavior: the inert service only replaces the permission/scheduling
@@ -43,8 +56,8 @@ enum LaunchOptions {
 
     /// nil means "the real NotificationManager". Main-actor isolated because
     /// `InertNotificationService` is; the only caller is `DinnerTogetherApp`'s
-    /// stored-property initializer, which runs on the main actor (CI run 3:
-    /// Xcode 16.4 rejected the nonisolated call).
+    /// initializer, which runs on the main actor (CI run 3: Xcode 16.4
+    /// rejected the nonisolated call).
     @MainActor
     static func notificationService() -> NotificationService? {
         #if DEBUG
@@ -53,6 +66,20 @@ enum LaunchOptions {
         return nil
         #endif
     }
+
+    #if DEBUG
+    /// Writes the DT_SEED_JSON payload to the store's file, if the variable
+    /// is present. Called from `DinnerTogetherApp.init()` before SessionStore
+    /// is created, so a UI test launches straight into its seeded state.
+    /// Plain file I/O, deliberately nonisolated. Never deletes: screenshots.sh
+    /// writes its own seeds via simctl and launches without the variable.
+    static func writeSeedFileIfPresent() {
+        guard let json = ProcessInfo.processInfo.environment["DT_SEED_JSON"],
+              !json.isEmpty else { return }
+        let url = URL.documentsDirectory.appending(path: "dinner-together-v2.json")
+        try? json.write(to: url, atomically: true, encoding: .utf8)
+    }
+    #endif
 }
 
 #if DEBUG

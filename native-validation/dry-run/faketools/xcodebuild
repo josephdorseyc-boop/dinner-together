@@ -15,8 +15,19 @@ case "$1" in
     printf '#!/bin/sh\n' > "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"; chmod +x "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"
     echo "** TEST BUILD SUCCEEDED **"; exit 0;;
   test-without-building)
-    bundle=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; done
-    mkdir -p "$bundle"; n=${FAKE_EXECUTED:-$(default_tests)}; f=${FAKE_FAIL_CASES:-0}
+    bundle=""; only=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; [[ "${args[$i]}" == -only-testing:* ]] && only="${args[$i]#-only-testing:}"; done
+    mkdir -p "$bundle"
+    if [[ "$only" == *DinnerTogetherUITests* ]]; then
+      # UI run: the class after the last "/" selects the expected count.
+      class="${only##*/}"; ui_file="DinnerTogetherUITests/DinnerTogetherUITests.swift"
+      [ "$class" = "DinnerTogetherUITests_iPad" ] && ui_file="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"
+      dflt=$([ -f "$ui_file" ] && grep -c 'func test' "$ui_file" || echo 9)
+      n=${FAKE_UI_EXECUTED:-$dflt}; f=${FAKE_UI_FAIL_CASES:-0}
+      for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherUITests.$class test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherUITests.$class test$k]' passed (0.1 seconds)"; fi; done
+      echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+      [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0
+    fi
+    n=${FAKE_EXECUTED:-$(default_tests)}; f=${FAKE_FAIL_CASES:-0}
     for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' passed (0.1 seconds)"; fi; done
     echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
     [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0;;

@@ -366,6 +366,7 @@ struct CookingView: View {
                 .font(.system(.largeTitle, design: .rounded).weight(.medium))
                 .monospacedDigit().foregroundStyle(Theme.ink)
                 .accessibilityLabel("Chosen dinner time \(Scheduling.formatTime(store.session.serveAt))")
+                .accessibilityIdentifier("serving-time") // UI tests read the DINNER AT value
             Text(store.session.serveAt, format: .dateTime.weekday().month().day())
                 .font(.caption).foregroundStyle(Theme.muted)
         }.padding(.bottom, 8)
@@ -572,6 +573,7 @@ struct CookingView: View {
         }.padding(.vertical, 18)
             .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 0.5) }
             .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("timeline-step-\(item.id)") // UI tests scope taps to one step card
     }
 
     private func completedCard(_ item: PlannedStep) -> some View {

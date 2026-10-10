@@ -8,8 +8,8 @@
 #   bash native-validation/run-native-pass.sh [results-dir]
 #
 # Produces: <results>/SUMMARY.md, status.txt (REQUIRED_FAILURES=n),
-# environment.txt, *.log, *-cases.txt, *.xcresult.zip, and the simulator app
-# build for screenshots.sh under <results>/build.
+# environment.txt, *.log, *-cases.txt, *.xcresult.zip, ui-screenshots/<device>/,
+# and the simulator app build for screenshots.sh under <results>/build.
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -44,10 +44,12 @@ finish() {
 
 # Expected test count comes from the source, so "0 tests executed" cannot pass.
 EXPECTED_TESTS=$(count_matches "$ROOT/DinnerTogetherTests/DinnerTogetherTests.swift" 'func test')
+EXPECTED_UI_IPHONE=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" 'func test')
+EXPECTED_UI_IPAD=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift" 'func test')
 
 note "# Native validation — $(date -u '+%Y-%m-%d %H:%M UTC')"
 note ""
-note "Project: $(basename "$ROOT") · bundle com.example.dinnertogether · scheme DinnerTogether · expected XCTest methods: $EXPECTED_TESTS"
+note "Project: $(basename "$ROOT") · bundle com.example.dinnertogether · scheme DinnerTogether · expected XCTest methods: $EXPECTED_TESTS · expected UI tests: $EXPECTED_UI_IPHONE (iPhone) + $EXPECTED_UI_IPAD (iPad)"
 note ""
 
 # ---------------------------------------------------------------- environment
@@ -187,6 +189,66 @@ else
   fail "XCTest skipped: app did not build"
 fi
 
+note ""
+note "## XCUITest (required: interactive flows photographed)"
+# Drives the real app in the simulator via the DinnerTogetherUITests target
+# (seeded per-test through the DEBUG-only DT_SEED_JSON launch environment
+# variable). Screenshots are keep-always XCTAttachments; they are exported
+# from the result bundle so they publish to the ci-results branch next to
+# the static screenshots.
+run_ui_tests() { # label udid only_testing expected
+  local label="$1" udid="$2" only_testing="$3" expected="$4"
+  local bundle="$RESULTS/$label-ui.xcresult"
+  local log="$RESULTS/25-ui-test-$label.log"
+  rm -rf "$bundle"
+  xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+    -only-testing:"$only_testing" -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
+  step_result "xcodebuild UI tests on $label ($only_testing)" $rc "$log"
+  local passed failed executed skipped source counts
+  local summary="$RESULTS/25-ui-test-$label-summary.json"
+  if [ -d "$bundle" ]; then
+    xcrun xcresulttool get test-results summary --path "$bundle" > "$summary" 2>/dev/null || rm -f "$summary"
+  fi
+  if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0))' "$summary" 2>/dev/null); then
+    set -- $counts; executed=$1; passed=$2; failed=$3; skipped=$4; source="xcresult"
+  else
+    executed=0; passed=0; failed=0; skipped=0; source="unavailable"
+  fi
+  note "  - UI cases on $label ($source): executed $executed (expected $expected), passed $passed, failed $failed, skipped $skipped — \`$(basename "$log")\`"
+  if [ "$executed" -lt "$expected" ]; then fail "$label UI: executed $executed of $expected expected UI tests"; fi
+  if [ "$failed" -gt 0 ]; then fail "$label UI: $failed failing UI test(s)"; fi
+  # A skipped test is a test that did not run; it cannot count toward "passed" (Agent 1, A1-4).
+  if [ "$skipped" -gt 0 ]; then fail "$label UI: $skipped skipped UI test(s) — every test must execute"; fi
+  local shots="$RESULTS/ui-screenshots/$label"
+  rm -rf "$shots"; mkdir -p "$shots"
+  local arc=0 pngs=0
+  if [ -d "$bundle" ]; then
+    xcrun xcresulttool export attachments --path "$bundle" --output-path "$shots" \
+      > "$RESULTS/25-ui-test-$label-attachments.log" 2>&1; arc=$?
+  else
+    arc=1
+  fi
+  if [ "$arc" -ne 0 ]; then
+    fail "$label UI: attachment export failed (exit $arc) — the flows were not photographed"
+  else
+    pngs=$(find "$shots" -name '*.png' -size +0 2>/dev/null | wc -l | tr -d ' ')
+    note "  - UI screenshots on $label: ${pngs:-0} PNG(s) under \`ui-screenshots/$label/\`"
+    if [ "$executed" -gt 0 ] && [ "${pngs:-0}" -eq 0 ]; then
+      fail "$label UI: $executed UI test(s) ran but no screenshots were exported"
+    fi
+  fi
+  if [ -d "$bundle" ]; then
+    (cd "$RESULTS" && zip -q -r "$label-ui.xcresult.zip" "$(basename "$bundle")" && rm -rf "$bundle") || true
+  fi
+}
+
+if [ -n "$APP_PATH" ]; then
+  if [ -n "$IPHONE_UDID" ]; then run_ui_tests "iphone" "$IPHONE_UDID" "DinnerTogetherUITests/DinnerTogetherUITests" "$EXPECTED_UI_IPHONE"; else fail "UI tests on iPhone skipped: no simulator"; fi
+  if [ -n "$IPAD_UDID" ];   then run_ui_tests "ipad"   "$IPAD_UDID"   "DinnerTogetherUITests/DinnerTogetherUITests_iPad" "$EXPECTED_UI_IPAD";     else fail "UI tests on iPad skipped: no simulator"; fi
+else
+  fail "UI tests skipped: app did not build"
+fi
+
 # ------------------------------------------------- swift test (engine harness)
 note ""
 note "## swift test (Package.swift engine/store harness, macOS — required)"
@@ -201,5 +263,6 @@ grep -E 'error:|failed' "$LOG" | head -20 | sed 's/^/    /' | tee -a "$SUMMARY" 
 note ""
 note "## Not covered by this script"
 note "- Real notification delivery, device behavior, VoiceOver reading order, haptics."
-note "- Interactive flows (tapping Review dinner time); screenshots.sh covers static states only."
+note "- Static states are covered by screenshots.sh; the interactive flows (review sheet,"
+note "  delay sheet, stale-plan sheet, confirmations) are covered by the XCUITest section above."
 finish
