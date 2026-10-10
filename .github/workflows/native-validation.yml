@@ -116,6 +116,18 @@ jobs:
         run: |
           if [ -f "$RESULTS/SUMMARY.md" ]; then cat "$RESULTS/SUMMARY.md"; else echo "::error::no SUMMARY.md was produced"; fi
           [ -f "$RESULTS/status.txt" ] && cat "$RESULTS/status.txt" || true
+          # Surface the verdict lines as annotations too: they are readable
+          # through the API even when the results branch cannot be pushed.
+          if [ -f "$RESULTS/SUMMARY.md" ]; then
+            grep -E '❌|cases on|UI cases on|UI screenshots on' "$RESULTS/SUMMARY.md" | head -40 | while IFS= read -r line; do
+              case "$line" in *❌*) echo "::error title=native-validation::${line}";; *) echo "::notice title=native-validation::${line}";; esac
+            done
+          fi
+          # First failing UI assertion per device, if any (also as annotations).
+          for d in iphone ipad; do
+            f="$RESULTS/25-ui-test-$d.log"
+            [ -f "$f" ] && grep -E 'error: -\[|failed - |Assertion Failure|XCTAssert' "$f" | head -3 | while IFS= read -r line; do echo "::error title=ui-$d::${line:0:400}"; done || true
+          done
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
@@ -130,8 +142,11 @@ jobs:
         run: |
           tmp=$(mktemp -d)
           if [ -d "$RESULTS" ]; then
-            # Everything except DerivedData and the large .xcresult bundles (those stay in the artifact).
-            (cd "$RESULTS" && find . -type f ! -path './build/*' ! -name '*.xcresult.zip' -print0 | xargs -0 -I{} sh -c 'mkdir -p "$0/$(dirname "{}")" && cp "{}" "$0/{}"' "$tmp")
+            # Everything except DerivedData and the large .xcresult bundles (those
+            # stay in the artifact). tar copes with any file name (run 12: the
+            # xargs/sh -c copy failed and the results never reached the branch).
+            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' -cf - .) | (cd "$tmp" && tar -xf -)
+            du -sh "$tmp" || true
           fi
           printf 'run_id=%s\nsha=%s\njob_status_so_far=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ job.status }}" > "$tmp/RUN.txt"
           cd "$tmp" && git init -q -b ci-results

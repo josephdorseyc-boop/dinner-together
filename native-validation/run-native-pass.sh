@@ -204,9 +204,15 @@ run_ui_tests() { # label udid only_testing expected
   local bundle="$RESULTS/$label-ui.xcresult"
   local log="$RESULTS/25-ui-test-$label.log"
   rm -rf "$bundle"
+  # Per-test time allowance: a flow stuck on a missing element fails in
+  # minutes instead of running the job into its timeout (run 12: 45 min).
   xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
-    -only-testing:"$only_testing" -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
+    -only-testing:"$only_testing" -resultBundlePath "$bundle" \
+    -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
+    > "$log" 2>&1; rc=$?
   step_result "xcodebuild UI tests on $label ($only_testing)" $rc "$log"
+  # The first failure, verbatim, so the summary says what broke without the log.
+  grep -m1 -E 'error: -\[|XCTAssert|failed - ' "$log" | cut -c1-300 | sed 's/^/  - first failure: /' | tee -a "$SUMMARY" || true
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
   if [ -d "$bundle" ]; then
