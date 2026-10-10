@@ -9,7 +9,7 @@ VoiceOver, not notification delivery.
 | Check | Result | Source |
 |---|---|---|
 | Xcode project parses | ✅ | `SUMMARY.md` |
-| App + test targets compile (Debug, iPhone simulator) | ✅ 0 errors, 0 warnings | `SUMMARY.md`, build log on the `ci-results` branch |
+| App + test targets compile (Debug, iPhone simulator) | ✅ 0 errors; app target 0 warnings; test target 1 warning (unused result in a baseline test, fixed in r8); 2 `appintentsmetadataprocessor` notices (toolchain noise) | `SUMMARY.md`, build log on the `ci-results` branch |
 | `-DDEBUG` reached the compiler (screenshot launch flags) | ✅ | `SUMMARY.md` |
 | XCTest on iPhone 17 simulator | ✅ 61/61 passed, 0 failed, 0 skipped | `20-test-iphone-summary.json` (Xcode result bundle) |
 | XCTest on iPad (A16) simulator | ✅ 61/61 passed, 0 failed, 0 skipped | `20-test-ipad-summary.json` |

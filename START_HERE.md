@@ -1,6 +1,6 @@
 # Dinner, Together v0.2.8
 
-> **Recovery candidate r7 (not a release; CI run 5 green — Xcode 16.4 build, XCTest 61/61 on iPhone and iPad simulators, screenshots in `docs/evidence/run-5/`):** this copy carries the routine-lateness
+> **Recovery candidate r8 (not a release; CI runs 5–9 green — Xcode 16.4 build, XCTest 61/61 on iPhone and iPad simulators, screenshots in `docs/evidence/run-5/`):** this copy carries the routine-lateness
 > recovery changes, revised after review. Read `RECOVERY_HANDOFF.md` first; the patch
 > against pristine v0.2.8 is `recovery-candidate-v028.patch`. Version/build
 > intentionally unchanged. To run the engine/store tests without Xcode:

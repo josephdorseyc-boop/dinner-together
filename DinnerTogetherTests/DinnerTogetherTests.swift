@@ -524,7 +524,7 @@ final class StoreTests: XCTestCase {
         let task = Task { await store.startStep(id, now: t0) }
         try? await Task.sleep(nanoseconds: 50_000_000)
         store.resetSession()
-        await task.value
+        _ = await task.value
 
         XCTAssertTrue(mock.scheduled.isEmpty,
                       "no obsolete reminder after reset during pending authorization")

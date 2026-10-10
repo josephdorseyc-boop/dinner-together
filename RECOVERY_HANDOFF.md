@@ -2,7 +2,8 @@
 
 > **Native validation has run.** GitHub Actions (`josephdorseyc-boop/dinner-together`),
 > Xcode 16.4 on macOS 15.7.9, iOS 18.5/18.6 simulators. CI run 5
-> (`214b87f`): app and test targets compile with **0 errors, 0 warnings**;
+> (`214b87f`): app and test targets compile with **0 errors** (app target 0
+> warnings; one unused-result warning in a baseline test, fixed in r8);
 > **XCTest 61/61 on an iPhone 17 simulator and 61/61 on an iPad (A16)
 > simulator** (Xcode result bundles: 0 failed, 0 skipped); `swift test`
 > 61/61 on macOS and on Linux; 28 seeded screenshots captured and reviewed.
@@ -27,6 +28,18 @@
 > target). One open design observation for Agent 2 in
 > `docs/evidence/run-5/README.md` (primary button at the fold with an
 > expired timer at default text size).
+>
+> **r8 — Agent 2's r7 design review integrated and rendered (CI run 9,
+> `3837266`, green: 61/61 both simulators, 0 skipped).** Design stream
+> A2-D1…D4 (their IDs restart at A2-1; labeled D here to avoid clashing with
+> the r4 stream), applied verbatim, `CookingView.swift` only, no logic
+> change: D1 the notice renders after RIGHT NOW when an expired timer is
+> featured — their answer to the fold question, confirmed by
+> `docs/evidence/run-9/iphone/expired-timer-light.png` ("Mark done after
+> checking" fully on the first screen); D2 DINNER AT / Adjust time fall
+> back to a vertical stack at large text; D3 the expired-timer caption
+> wraps; D4 timeline rows read "Planned …" / "Timer deadline …". Runs 8
+> (A1-4) and 9 (D1–D4) both green.
 >
 > **r7.1 — Agent 1's r7 review integrated.** They verified run 5 at every
 > tier (Xcode compile, simulator XCTest from result bundles, harness
