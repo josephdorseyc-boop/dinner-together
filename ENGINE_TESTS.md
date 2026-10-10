@@ -7,10 +7,10 @@ and `SessionStore.swift` (no copies) together with the **real**
 methods in 12 classes. That is actual Swift execution of the engine and the
 store — a step the JavaScript model cannot provide.
 
-**Executed:** Agent 1 ran this harness on r4 (59/59, after the two Linux
-fixes now included as A1-1/A1-2) and on the pristine r6 tree: **61/61, 0
-failures, all 12 classes, first try** (Swift 6.0.3, Ubuntu 24.04). That is
-the complete current suite.
+**Executed:** Agent 1 on Linux (r4 59/59; r6 61/61, Swift 6.0.3); CI on
+Linux (61/61 every run since r6) and on macOS (61/61, Xcode 16.4). The same
+61 tests also pass under `xcodebuild test` on iPhone and iPad simulators —
+see `docs/evidence/run-5/`.
 
 What it does not cover: the SwiftUI views (`CookingView`, `Sheets`,
 `PlanView`, `ContentView`, `Theme`), `TimerCenter`, and the real

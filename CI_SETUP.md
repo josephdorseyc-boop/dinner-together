@@ -64,16 +64,15 @@ The "JS model + harness dry run" job checks the validation scripts
 themselves against a fake toolchain, so a green there means the gates work,
 not that the app does.
 
-## What to expect on the very first run
+## Where this stands
 
-The Linux job should be green on the first run: Agent 1 has already
-executed the same harness on the pristine r6 tree (61/61, first try). The macOS job is the unknown: the Xcode project file in this
-package was written by hand and has never been opened by Xcode, so that job
-is likely to stop early with a project, scheme, or SDK complaint rather
-than a test result. That is the
-purpose of the run: the log tells me exactly what Xcode wants, which nothing
-on the Linux side can tell us. Two or three cycles is a reasonable
-expectation before the full suite and screenshots come back clean.
+As of r7 all three jobs are green on `josephdorseyc-boop/dinner-together`
+(run 5, Xcode 16.4): build, XCTest 61/61 on iPhone and iPad simulators,
+`swift test` on macOS and Linux, 28 screenshots. It took five runs; each red
+run named one real problem in `SUMMARY.md`. Results are also pushed to the
+`ci-results` (macOS) and `ci-results-linux` branches so they can be read
+with plain git when artifact downloads aren't available. A push that breaks
+something shows up as a red macOS job with the reason in `SUMMARY.md`.
 
 ## What this does and does not prove
 
