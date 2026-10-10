@@ -57,7 +57,9 @@ note ""
 
 KEYDIR="$OUT/private_keys"; mkdir -p "$KEYDIR"; chmod 700 "$KEYDIR"
 KEYFILE="$KEYDIR/AuthKey_$ASC_KEY_ID.p8"
-printf '%s\n' "$ASC_KEY_P8" > "$KEYFILE"; chmod 600 "$KEYFILE"
+# umask first: the redirect creates the file before chmod runs, so without
+# this the key is briefly readable at the default mode.
+( umask 077; printf '%s\n' "$ASC_KEY_P8" > "$KEYFILE" ); chmod 600 "$KEYFILE"
 AUTH=(-allowProvisioningUpdates
       -authenticationKeyPath "$KEYFILE"
       -authenticationKeyID "$ASC_KEY_ID"
@@ -101,6 +103,13 @@ if command -v plutil >/dev/null 2>&1 && [ -f "$PLIST" ]; then
       *) fail "archived $k is '$v', expected the requested value";;
     esac
   done
+  # The export-compliance declaration must survive Xcode's Info.plist
+  # synthesis: if INFOPLIST_KEY_ITSAppUsesNonExemptEncryption were silently
+  # dropped from the generated plist, every TestFlight build would stall at
+  # "Missing Compliance" until someone clears it by hand.
+  enc=$(/usr/libexec/PlistBuddy -c "Print :ITSAppUsesNonExemptEncryption" "$PLIST" 2>/dev/null || echo MISSING)
+  note "  - ITSAppUsesNonExemptEncryption = $enc"
+  [ "$enc" = "false" ] || fail "archived ITSAppUsesNonExemptEncryption is '$enc', want 'false' — expect per-upload compliance clearing"
 fi
 note ""
 

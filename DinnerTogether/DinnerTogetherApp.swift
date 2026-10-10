@@ -19,6 +19,14 @@ struct DinnerTogetherApp: App {
             ContentView()
                 .environmentObject(store)
                 .environmentObject(timers)
+                #if DEBUG
+                // UI-test forced type size (A1-T1); nil unless -dt-type-size
+                // was passed, so release and ordinary debug builds are
+                // unaffected.
+                .transformEnvironment(\.dynamicTypeSize) { size in
+                    if let forced = LaunchOptions.forcedTypeSize { size = forced }
+                }
+                #endif
                 .task { await store.refreshNotificationSettings() }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active { Task { await store.refreshNotificationSettings() } }
@@ -35,6 +43,9 @@ struct DinnerTogetherApp: App {
 ///   -dt-open-cooking      open on the Cooking screen instead of Tonight
 ///   -dt-inert-reminders   use a reminder service that never prompts or
 ///                         schedules, so no system alert covers the screen
+///   -dt-type-size <name>  force a DynamicTypeSize (e.g. accessibility3);
+///                         the -UIPreferredContentSizeCategoryName launch
+///                         argument is not honored, this is (A1-T1)
 ///   DT_SEED_JSON          environment variable carrying a dinner-together-v2.json
 ///                         payload; written to the store's file before
 ///                         SessionStore is created (see writeSeedFileIfPresent).
@@ -49,9 +60,33 @@ enum LaunchOptions {
     private static let arguments = Set(ProcessInfo.processInfo.arguments)
     static var openCooking: Bool { arguments.contains("-dt-open-cooking") }
     static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
+
+    /// Forces a DynamicTypeSize for accessibility-size UI-test renders.
+    /// `-UIPreferredContentSizeCategoryName` is not honored by the app;
+    /// `-dt-type-size accessibility3` is. nil in release builds.
+    static var forcedTypeSize: DynamicTypeSize? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-dt-type-size"), i + 1 < args.count else { return nil }
+        switch args[i + 1].lowercased() {
+        case "xsmall": return .xSmall
+        case "small": return .small
+        case "medium": return .medium
+        case "large": return .large
+        case "xlarge": return .xLarge
+        case "xxlarge": return .xxLarge
+        case "xxxlarge": return .xxxLarge
+        case "accessibility1": return .accessibility1
+        case "accessibility2": return .accessibility2
+        case "accessibility3": return .accessibility3
+        case "accessibility4": return .accessibility4
+        case "accessibility5": return .accessibility5
+        default: return nil
+        }
+    }
     #else
     static var openCooking: Bool { false }
     static var inertReminders: Bool { false }
+    static var forcedTypeSize: DynamicTypeSize? { nil }
     #endif
 
     /// nil means "the real NotificationManager". Main-actor isolated because

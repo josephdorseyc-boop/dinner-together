@@ -50,9 +50,11 @@ jobs:
         run: |
           # The validation workflow runs on every push; this release must sit on a
           # commit it has already approved (compile, 61 XCTest, UI flows, screenshots).
-          conclusion=$(gh api "repos/${{ github.repository }}/actions/workflows/native-validation.yml/runs?head_sha=${{ github.sha }}&per_page=5" \
-            --jq '[.workflow_runs[] | select(.status=="completed")] | .[0].conclusion // "none"')
-          echo "native-validation for ${{ github.sha }}: $conclusion"
+          runs_json=$(gh api "repos/${{ github.repository }}/actions/workflows/native-validation.yml/runs?head_sha=${{ github.sha }}&per_page=5")
+          incomplete=$(printf '%s' "$runs_json" | jq '[.workflow_runs[] | select(.status != "completed")] | length')
+          conclusion=$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status=="completed")] | .[0].conclusion // "none"')
+          echo "native-validation for ${{ github.sha }}: $conclusion (incomplete runs: $incomplete)"
+          [ "$incomplete" = "0" ] || { echo "::error::native-validation is still running for this commit — wait for it to finish, or rerun with require_green=false"; exit 1; }
           [ "$conclusion" = "success" ] || { echo "::error::native-validation is '$conclusion' for this commit — fix that first, or rerun with require_green=false"; exit 1; }
 
       - name: Xcode in use

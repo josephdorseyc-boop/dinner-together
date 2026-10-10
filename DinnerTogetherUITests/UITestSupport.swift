@@ -583,9 +583,10 @@ class DinnerTogetherUITestCase: XCTestCase {
 
     /// Flow 8 — Flow 1 at accessibility text size.
     func flowReviewDinnerTimeAXTextSize() {
+        // -UIPreferredContentSizeCategoryName is not honored by the app;
+        // -dt-type-size forces DynamicTypeSize via LaunchOptions (A1-T1).
         launch(seed: UISeed.latePrep(now: Date()), extraLaunchArguments: [
-            "-UIPreferredContentSizeCategoryName",
-            "UICTContentSizeCategoryAccessibilityExtraExtraExtraLarge",
+            "-dt-type-size", "accessibility3",
         ])
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen with DINNER AT")
         tapButton("Review dinner time")

@@ -263,7 +263,7 @@ for entry in (entries if isinstance(entries, list) else []):
     for att in entry.get("attachments", []) if isinstance(entry, dict) else []:
         src = att.get("exportedFileName"); want = att.get("suggestedHumanReadableName") or att.get("name")
         if not src or not want or not os.path.isfile(os.path.join(d, src)): continue
-        ext = os.path.splitext(src)[1] or ".png"
+        ext = os.path.splitext(src)[1] or ".plist"   # extension-less exports are XCTest's own binary-plist attachments ("UI Snapshot", "Synthesized Event"); screenshots always arrive with .png
         import re
         want = re.sub(r"_\d+_[0-9A-Fa-f-]{36}(\.\w+)?$", "", want)   # "01-review-sheet_0_<UUID>.png" -> "01-review-sheet"
         want = re.sub(r"\.(png|txt|mp4|jpeg|jpg)$", "", want)
