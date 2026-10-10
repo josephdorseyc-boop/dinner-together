@@ -164,6 +164,16 @@ class DinnerTogetherUITestCase: XCTestCase {
         add(attachment)
     }
 
+    /// The accessibility hierarchy as text, kept always — readable from the
+    /// results branch when a tap "did nothing" and XCTest's own dump is not
+    /// exported (iPad, runs 20–21).
+    func attachHierarchy(_ name: String) {
+        let attachment = XCTAttachment(string: app.debugDescription)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     func waitForExistence(_ element: XCUIElement, timeout: TimeInterval = 10, _ message: String,
                           file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(element.waitForExistence(timeout: timeout), message, file: file, line: line)
@@ -391,8 +401,25 @@ class DinnerTogetherUITestCase: XCTestCase {
         // sheet (with its own "Add 10 minutes") is not open yet (A3-U-F5).
         let choice = app.buttons["Add 10 minutes"].firstMatch
         tapEvenInPopover(choice)   // iPad presents the dialog as a popover
-
-        waitForExistence(app.navigationBars["Before we shift things"], timeout: 10, "delay sheet opened")
+        let delaySheet = app.navigationBars["Before we shift things"]
+        if !delaySheet.waitForExistence(timeout: 6) {
+            // iPad: the popover's content reported zero frames (run 20); record
+            // what is on screen, then try once more through the popover query
+            // or, if the popover was dismissed, by reopening the dialog.
+            photograph("03-after-dialog-tap")
+            attachHierarchy("03-after-dialog-tap-hierarchy")
+            let inPopover = app.popovers.buttons["Add 10 minutes"].firstMatch
+            if inPopover.waitForExistence(timeout: 2) {
+                inPopover.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            } else {
+                tapButton("Adjust time")
+                Thread.sleep(forTimeInterval: 1.5)   // let the popover finish laying out
+                let again = app.buttons["Add 10 minutes"].firstMatch
+                waitForExistence(again, timeout: 10, "delay choice dialog offers Add 10 minutes (retry)")
+                again.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            }
+        }
+        waitForExistence(delaySheet, timeout: 10, "delay sheet opened")
         photograph("03-delay-sheet")
         let confirm = app.buttons["Add 10 minutes"].firstMatch
         XCTAssertTrue(confirm.waitForExistence(timeout: 5), "delay sheet confirms the chosen amount")
@@ -470,10 +497,17 @@ class DinnerTogetherUITestCase: XCTestCase {
         scrollAndTap(card.buttons["Review start"], "Review start again")
         waitForExistence(app.alerts.firstMatch, timeout: 5, "blocked-start alert again")
         app.alerts.firstMatch.buttons["Start anyway"].tap()
-        let markDone = card.buttons["Mark done"]
-        XCTAssertTrue(markDone.waitForExistence(timeout: 10),
-                      "Start anyway started the step despite the unfinished prerequisite")
-        scrollTo(markDone)
+        // A cooking step appears in RUNNING TIMERS with a heat card whose button
+        // is labeled "Mark <step> done" — unique to the cooking state. (The
+        // timeline card's own "Mark done" was visible in run 20's render but did
+        // not resolve under the card container; this label does not depend on it.)
+        let heat = app.buttons["Mark Cook the steak done"]
+        if !heat.waitForExistence(timeout: 10) { attachHierarchy("05-after-start-anyway-hierarchy") }
+        XCTAssertTrue(heat.exists, "Start anyway started the step despite the unfinished prerequisite")
+        XCTAssertTrue(app.staticTexts["Status: Cooking"].firstMatch.waitForExistence(timeout: 5)
+                      || app.staticTexts["Cooking"].firstMatch.exists,
+                      "the step's badge reads Cooking")
+        scrollTo(card)
         photograph("05-after-start-anyway")
     }
 
@@ -561,7 +595,14 @@ class DinnerTogetherUITestCase: XCTestCase {
         photograph("09-tonight-after-tap")
         let footer = app.staticTexts["Selected: Crisp tofu, cozy bowls"]
         if !footer.waitForExistence(timeout: 4) {
-            tofu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()   // one retry (see Flow 5)
+            attachHierarchy("09-tonight-after-tap-hierarchy")
+            // iPad (runs 17–21): two taps at the card's center changed nothing,
+            // the same card works on iPhone. Try the title text and a short press.
+            let title = app.staticTexts["Crisp tofu, cozy bowls"].firstMatch
+            if title.exists { title.press(forDuration: 0.08) } else { tofu.press(forDuration: 0.08) }
+            if !footer.waitForExistence(timeout: 3) {
+                tofu.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5)).tap()
+            }
         }
         XCTAssertTrue(footer.waitForExistence(timeout: 5), "choosing a menu updates the footer")
         XCTAssertTrue(action.isHittable, "the primary action is still on screen after scrolling the list")

@@ -143,7 +143,16 @@ struct CookingView: View {
         ) {
             ForEach([5, 10, 15], id: \.self) { minutes in
                 Button("Add \(minutes) minutes") {
-                    delayProposal = store.proposeDelay(minutes: minutes)
+                    // Hand the proposal to the sheet only after the dialog has
+                    // gone: on iPad the dialog is a popover, and a sheet
+                    // presented from inside its action can be dropped (first
+                    // UI-test execution, run 20). The proposal itself is
+                    // computed now, as before.
+                    let proposal = store.proposeDelay(minutes: minutes)
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        delayProposal = proposal
+                    }
                 }
             }
             Button("Cancel", role: .cancel) {}
