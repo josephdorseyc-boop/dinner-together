@@ -184,17 +184,55 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// scrolls on its own, and on iPhone the timeline — Undo, the Completed
     /// group, a blocked step's card — sits below the first screen (A3-U-F3).
     /// Short controlled drags rather than `swipeUp()`, which overshoots.
+    /// "Comfortably on screen": hittable AND clear of the top and bottom
+    /// bands where the navigation bar, tab bar and home indicator live.
+    /// Run 14: `isHittable` was true for a "Review start" button whose
+    /// lower half sat under the tab bar, and the tap did nothing (A3-U-F8).
+    func isComfortablyVisible(_ element: XCUIElement) -> Bool {
+        guard element.exists, element.isHittable else { return false }
+        let screen = app.frame
+        let f = element.frame
+        // The tab bar only matters when it is actually on top (not under a sheet).
+        let tabBar = app.tabBars.firstMatch
+        let bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
+        return f.minY >= screen.minY + 110 && f.maxY <= screen.maxY - bottomBand
+    }
+
     func scrollTo(_ element: XCUIElement, maxDrags: Int = 12,
                   file: StaticString = #filePath, line: UInt = #line) {
         var drags = 0
-        while !(element.exists && element.isHittable) && drags < maxDrags {
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
-            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
-            from.press(forDuration: 0.05, thenDragTo: to)
+        while !isComfortablyVisible(element) && drags < maxDrags {
+            let screen = app.frame
+            // Aim the element at the middle of the screen; if it doesn't exist
+            // yet, page downward. A short hold at the end stops the scroll view
+            // from decelerating past the target.
+            var delta = screen.height * 0.4
+            if element.exists {
+                delta = element.frame.midY - screen.midY
+                delta = max(-screen.height * 0.45, min(screen.height * 0.45, delta))
+            }
+            let startY = delta >= 0 ? 0.70 : 0.30
+            let endY = startY - Double(delta / screen.height)
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY))
+            from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             drags += 1
         }
-        XCTAssertTrue(element.exists && element.isHittable,
-                      "element not hittable after \(drags) scroll(s): \(element)", file: file, line: line)
+        XCTAssertTrue(isComfortablyVisible(element),
+                      "element not comfortably on screen after \(drags) scroll(s): \(element)", file: file, line: line)
+    }
+
+    /// Taps an element that may sit in a popover (iPad confirmation dialogs
+    /// report their buttons as not hittable — run 14, test02 on iPad); falls
+    /// back to a tap at the element's center (A3-U-F10).
+    func tapEvenInPopover(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
+        waitForExistence(element, timeout: 10, "element to tap exists: \(element)", file: file, line: line)
+        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true"), object: element)
+        if XCTWaiter().wait(for: [hittable], timeout: 3) == .completed {
+            element.tap()
+        } else {
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
     }
 
     /// Returns to the top of the screen so a photograph shows the state the
@@ -235,14 +273,29 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// Waits until the DINNER AT readout shows the expected value.
     func waitForServingTimeValue(_ expected: String, timeout: TimeInterval = 10,
                                  file: StaticString = #filePath, line: UInt = #line) {
+        waitForServingTimeValue(oneOf: [expected], timeout: timeout, file: file, line: line)
+    }
+
+    /// Waits until the DINNER AT readout shows one of the accepted values.
+    func waitForServingTimeValue(oneOf accepted: [String], timeout: TimeInterval = 10,
+                                 file: StaticString = #filePath, line: UInt = #line) {
+        let labels = accepted.map { "Chosen dinner time \($0)" }
         let exp = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(expected)"),
+            predicate: NSPredicate(format: "label IN %@", labels),
             object: app.staticTexts["serving-time"])
         // XCTestCase.wait(for:timeout:) returns Void; the result-returning
         // variant lives on XCTWaiter (A3-U-F1, compile fix).
         XCTAssertEqual(XCTWaiter().wait(for: [exp], timeout: timeout), .completed,
-                       "DINNER AT did not become '\(expected)' (still '\(servingTimeValue)')",
+                       "DINNER AT did not become one of \(accepted) (still '\(servingTimeValue)')",
                        file: file, line: line)
+    }
+
+    /// "3:45 AM" -> "3:46 AM", through the same short-style formatter the app uses.
+    func plusOneMinute(_ time: String) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        guard let date = formatter.date(from: time) else { return time }
+        return formatter.string(from: date.addingTimeInterval(60))
     }
 
     // MARK: Flows (each test method calls one)
@@ -264,12 +317,17 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         let moveButton = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Move dinner to '")).firstMatch
         XCTAssertTrue(moveButton.waitForExistence(timeout: 5), "Move button present")
+        scrollTo(moveButton)   // the sheet opens at its medium detent
+        // The sheet is live: the time on the button is recomputed every draw,
+        // and a pending step clamped to "now" makes the estimate advance in
+        // real time. Read the label immediately before tapping, and accept
+        // the minute boundary the proposal may cross between the read and
+        // the tap (run 14 on iPad: button said 3:45, applied 3:46) (A3-U-F9).
         let target = moveButton.label.replacingOccurrences(of: "Move dinner to ", with: "")
         XCTAssertNotEqual(target, before, "the move proposes a different time")
-        scrollTo(moveButton)   // the sheet opens at its medium detent
         moveButton.tap()
 
-        waitForServingTimeValue(target)
+        waitForServingTimeValue(oneOf: [target, plusOneMinute(target)])
         XCTAssertNotEqual(servingTimeValue, before)
         waitForDisappearance(app.buttons["Review dinner time"], "the notice is gone once dinner moves")
         photograph("01-after-move")
@@ -320,8 +378,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         // on iPad; its buttons are app descendants either way, and the delay
         // sheet (with its own "Add 10 minutes") is not open yet (A3-U-F5).
         let choice = app.buttons["Add 10 minutes"].firstMatch
-        waitForExistence(choice, timeout: 10, "delay choice dialog offers Add 10 minutes")
-        choice.tap()
+        tapEvenInPopover(choice)   // iPad presents the dialog as a popover
 
         waitForExistence(app.navigationBars["Before we shift things"], timeout: 10, "delay sheet opened")
         photograph("03-delay-sheet")

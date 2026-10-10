@@ -146,8 +146,11 @@ run_tests() { # label udid
   local log="$RESULTS/20-test-$label.log"
   local cases="$RESULTS/20-test-$label-cases.txt"
   rm -rf "$bundle"
+  # Unit bundle only: without -only-testing the xctestrun also runs the UI
+  # bundle here (run 14: "executed 72 (expected 61)"), double-running the
+  # flows and mixing their failures into the unit verdict.
   xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
-    -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
+    -only-testing:DinnerTogetherTests -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
   step_result "xcodebuild test-without-building on $label" $rc "$log"
   grep -E "Test Case '.*' (passed|failed)|Executed [0-9]+ tests" "$log" > "$cases" 2>/dev/null || true
   local passed failed executed skipped source
@@ -257,6 +260,9 @@ for entry in (entries if isinstance(entries, list) else []):
         src = att.get("exportedFileName"); want = att.get("suggestedHumanReadableName") or att.get("name")
         if not src or not want or not os.path.isfile(os.path.join(d, src)): continue
         ext = os.path.splitext(src)[1] or ".png"
+        import re
+        want = re.sub(r"_\d+_[0-9A-Fa-f-]{36}(\.\w+)?$", "", want)   # "01-review-sheet_0_<UUID>.png" -> "01-review-sheet"
+        want = re.sub(r"\.(png|txt|mp4|jpeg|jpg)$", "", want)
         base = "".join(c if c.isalnum() or c in "-_" else "-" for c in want)
         n = seen.get(base, 0) + 1; seen[base] = n
         dst = base + ("" if n == 1 else "-%d" % n) + ext

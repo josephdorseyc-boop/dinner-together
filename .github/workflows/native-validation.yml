@@ -145,7 +145,8 @@ jobs:
             # Everything except DerivedData and the large .xcresult bundles (those
             # stay in the artifact). tar copes with any file name (run 12: the
             # xargs/sh -c copy failed and the results never reached the branch).
-            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' -cf - .) | (cd "$tmp" && tar -xf -)
+            # Screen recordings of failed UI tests stay in the artifact (10+ MB each).
+            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' --exclude='*.mp4' -cf - .) | (cd "$tmp" && tar -xf -)
             du -sh "$tmp" || true
           fi
           printf 'run_id=%s\nsha=%s\njob_status_so_far=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ job.status }}" > "$tmp/RUN.txt"

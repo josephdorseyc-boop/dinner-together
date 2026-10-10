@@ -94,6 +94,24 @@ Applied on top of Agent 1's patches, each labeled in the source:
   expected shape (best effort, never a gate), and the "nothing exported"
   gate counts files of any extension.
 
+After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
+
+- **A3-U-F8** `isHittable` is not "tappable": a button whose lower half
+  sat under the tab bar reported hittable and the tap did nothing (Flow 5).
+  `scrollTo` now demands the element be clear of the navigation-bar and
+  tab-bar bands, aims it at mid-screen with a targeted drag, and holds at
+  the end of each drag so the scroll view doesn't coast past it.
+- **A3-U-F9** The review sheet is live: the button's time is recomputed
+  every draw and can cross a minute boundary between reading the label and
+  tapping (iPad: button said 3:45, applied 3:46). Flow 1 reads the label
+  immediately before tapping and accepts that minute or the next.
+- **A3-U-F10** iPad presents the "Adjust time" confirmation dialog as a
+  popover whose buttons report not hittable; `tapEvenInPopover` falls back
+  to a coordinate tap at the button's center.
+- (harness) The unit-test run now passes `-only-testing:DinnerTogetherTests`;
+  without it the xctestrun also executed the UI bundle ("executed 72,
+  expected 61") and mixed its failures into the unit verdict.
+
 ## Notes for reviewers
 
 - Assertions prefer the app's existing accessibility labels (they are
