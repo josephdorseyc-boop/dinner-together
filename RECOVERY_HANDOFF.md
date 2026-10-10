@@ -1,4 +1,39 @@
-# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r6.1** (docs only; code identical to r6)
+# RECOVERY_HANDOFF — Dinner_Together_Recovery_Candidate_v028 **r7** — first fully green native run
+
+> **Native validation has run.** GitHub Actions (`josephdorseyc-boop/dinner-together`),
+> Xcode 16.4 on macOS 15.7.9, iOS 18.5/18.6 simulators. CI run 5
+> (`214b87f`): app and test targets compile with **0 errors, 0 warnings**;
+> **XCTest 61/61 on an iPhone 17 simulator and 61/61 on an iPad (A16)
+> simulator** (Xcode result bundles: 0 failed, 0 skipped); `swift test`
+> 61/61 on macOS and on Linux; 28 seeded screenshots captured and reviewed.
+> Evidence and 12 representative screenshots: `docs/evidence/run-5/`.
+> Full logs and all 28 PNGs: the repo's `ci-results` branch (force-updated
+> every run).
+>
+> Getting there took five runs, each finding one real thing: run 2 — the
+> hand-written project never gave the test bundle a `PRODUCT_NAME`
+> (`PlugIns/.xctest`); run 3 — my r3 debug hook called a `@MainActor`
+> initializer from a nonisolated context (the only compile error in the
+> app target); run 4 — Agent 2's predicted defect confirmed by rendering: at
+> accessibility text size the notice filled the first screen and hid the
+> urgent card, fixed by a compact notice at those sizes; run 5 — green, and
+> a log-interleaving artifact that made the prose test counter undercount
+> by one, fixed by reading Xcode's result bundle instead. Reviewers' earlier
+> findings (A1-1…3, A2-1…4) are all confirmed closed by execution.
+>
+> **Still not performed by anyone:** physical device, VoiceOver reading
+> order, notification delivery, haptics, and the interactive flows (the
+> review sheet and dialogs are not photographed; that needs an XCUITest
+> target). One open design observation for Agent 2 in
+> `docs/evidence/run-5/README.md` (primary button at the fold with an
+> expired timer at default text size).
+>
+> r7 code delta vs. r6: `CookingView.readinessNotice` compact mode at
+> accessibility sizes; `LaunchOptions.notificationService()` is `@MainActor`;
+> `project.pbxproj` test-target `PRODUCT_NAME`/`LD_RUNPATH_SEARCH_PATHS` and
+> `DEBUG` defined once at project level; harness: `-DDEBUG` grep, complete-app
+> check, xcresult-based counts, results published to git branches. No
+> scheduling, store, model or persistence change since r5.
 
 > **r6 verified by Agent 1 — 61/61.** `swift test` on the pristine r6 tree:
 > all 61 XCTest methods pass, 0 failures, all 12 classes, first try (Swift
@@ -196,16 +231,19 @@ Performed here (Linux, Node 22), r2:
   extraction of the original v0.2.8 ZIP; the result is byte-identical to the
   candidate tree, and the JS checks pass there.
 
-**Executed by Agent 1 (XCTest execution, Linux):** r4 → 59/59; **r6 →
-61/61, 0 failures, all 12 classes, pristine tree, first try** (Swift 6.0.3,
-Ubuntu). This covers every test in the file, including the two added in
-r5 and the r6 harness fixes. The CI Linux job repeats exactly this run.
+**Executed — Xcode 16.4, GitHub macOS runner (CI run 5, `214b87f`):** app
++ test targets compile (0 errors, 0 warnings); XCTest **61/61 on iPhone 17
+simulator and 61/61 on iPad (A16) simulator** per Xcode's result bundles;
+`swift test` 61/61 on macOS; 28 seeded screenshots on both devices in light,
+dark and accessibility text size, reviewed against `EXPECTATIONS.tsv`
+(`docs/evidence/run-5/`).
 
-**Not performed by anyone:** Swift compilation of the iOS app target, XCTest
-on simulators, SwiftUI rendering, VoiceOver, Dynamic Type, iPad layout,
-notification delivery, device runs. The JavaScript results are
-algorithm-model results, not evidence that screens look or read as
-described.
+**Executed — Linux:** Agent 1, r4 59/59 and r6 61/61 (Swift 6.0.3); the CI
+Linux job, 61/61 on every run since r6.
+
+**Not performed by anyone:** physical device, VoiceOver reading order,
+notification delivery, haptics, interactive flows (review sheet, dialogs).
+The JavaScript results remain algorithm-model results.
 
 **What would close most of that gap in one command:** `swift test` from the
 project root (macOS with Xcode 16 CLT, or `docker run --rm -v "$PWD":/src

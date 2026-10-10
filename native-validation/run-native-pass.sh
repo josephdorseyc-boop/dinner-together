@@ -145,21 +145,30 @@ run_tests() { # label udid
     -resultBundlePath "$bundle" > "$log" 2>&1; rc=$?
   step_result "xcodebuild test-without-building on $label" $rc "$log"
   grep -E "Test Case '.*' (passed|failed)|Executed [0-9]+ tests" "$log" > "$cases" 2>/dev/null || true
-  local passed failed executed
-  passed=$(count_matches "$cases" "' passed")
-  failed=$(count_matches "$cases" "' failed")
-  # Largest "Executed N tests" line is the suite total.
-  executed=$(grep -oE 'Executed [0-9]+ tests' "$cases" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)
-  executed=${executed:-0}
-  note "  - cases on $label: executed $executed (expected $EXPECTED_TESTS), passed $passed, failed $failed — \`$(basename "$cases")\`"
+  local passed failed executed source
+  # Prefer Xcode's structured result bundle (CI run 5: a simulator log line
+  # interleaved with a "passed" line made the prose grep undercount by one).
+  local summary="$RESULTS/20-test-$label-summary.json"
+  if [ -d "$bundle" ]; then
+    xcrun xcresulttool get test-results summary --path "$bundle" > "$summary" 2>/dev/null || rm -f "$summary"
+  fi
+  if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"])' "$summary" 2>/dev/null); then
+    set -- $counts; executed=$1; passed=$2; failed=$3; source="xcresult"
+  else
+    passed=$(count_matches "$cases" "' passed")
+    failed=$(count_matches "$cases" "' failed")
+    executed=$(grep -oE 'Executed [0-9]+ tests' "$cases" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1)
+    executed=${executed:-0}; source="log"
+  fi
+  note "  - cases on $label ($source): executed $executed (expected $EXPECTED_TESTS), passed $passed, failed $failed — \`$(basename "$cases")\`"
   if [ "$executed" -lt "$EXPECTED_TESTS" ]; then fail "$label executed $executed of $EXPECTED_TESTS expected tests"; fi
   if [ "$failed" -gt 0 ]; then
     fail "$label: $failed failing test case(s)"
     note '```'; grep "' failed" "$cases" | tee -a "$SUMMARY"; note '```'
     grep -E 'error:' "$log" | head -40 > "$RESULTS/20-test-$label-failures.txt" || true
   fi
+  if [ "$passed" -lt "$executed" ] && [ "$failed" -eq 0 ]; then note "    (note: $((executed - passed)) case line(s) unparsed in the log; counts above come from $source)"; fi
   if [ -d "$bundle" ]; then
-    xcrun xcresulttool get test-results summary --path "$bundle" > "$RESULTS/20-test-$label-summary.json" 2>/dev/null || true
     (cd "$RESULTS" && zip -q -r "$label.xcresult.zip" "$(basename "$bundle")" && rm -rf "$bundle") || true
   fi
 }
