@@ -38,13 +38,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-store-screenshots
-          path: native-validation/results/screenshots/**
+          path: |
+            native-validation/results/screenshots/**
+            native-validation/results/ui-screenshots/**
           if-no-files-found: error
       - name: Publish to the store-assets branch (readable with plain git)
         if: always()
         run: |
           tmp=$(mktemp -d)
           cp -R "$RESULTS/screenshots" "$tmp/screenshots" 2>/dev/null || true
+          # The UI-test attachments (review sheet, delay sheet, nine-menu list…) at the same store sizes.
+          (cd "$RESULTS" && tar --exclude='*.mp4' -cf - ui-screenshots 2>/dev/null) | (cd "$tmp" && tar -xf -) || true
           cp "$RESULTS/devices.env" "$tmp/" 2>/dev/null || true
           printf 'run_id=%s\nsha=%s\n' "${{ github.run_id }}" "${{ github.sha }}" > "$tmp/RUN.txt"
           cd "$tmp" && git init -q -b store-assets
