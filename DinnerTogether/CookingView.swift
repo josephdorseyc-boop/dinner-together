@@ -347,19 +347,27 @@ struct CookingView: View {
 
     private var servingCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ViewThatFits(in: .horizontal) {
-                HStack {
-                    SectionLabel(text: "DINNER AT")
-                        .fixedSize(horizontal: true, vertical: false)
-                    Spacer()
-                    Button("Adjust time") { showDelayChoice = true }
-                        .buttonStyle(QuietButtonStyle()).disabled(allDone)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
+            if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 8) {
                     SectionLabel(text: "DINNER AT")
                     Button("Adjust time") { showDelayChoice = true }
                         .buttonStyle(QuietButtonStyle()).disabled(allDone)
+                }
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack {
+                        SectionLabel(text: "DINNER AT")
+                            .fixedSize(horizontal: true, vertical: false)
+                        Spacer()
+                        Button("Adjust time") { showDelayChoice = true }
+                            .buttonStyle(QuietButtonStyle()).disabled(allDone)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionLabel(text: "DINNER AT")
+                        Button("Adjust time") { showDelayChoice = true }
+                            .buttonStyle(QuietButtonStyle()).disabled(allDone)
+                    }
                 }
             }
             Text(store.session.serveAt, format: .dateTime.hour().minute())

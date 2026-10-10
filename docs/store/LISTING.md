@@ -43,7 +43,7 @@ Paid app, no in-app purchases, **$2.99** (Tier 3) at launch. Reasoning in
 ```
 Dinner, Together helps you time a multi-dish dinner, working backward from when you want to eat.
 
-Version 1.0 includes three preset dinner menus: steak au poivre with mash and green beans, garlic mushroom pasta with salad, and a salmon dinner. Choose a menu, review its timing estimates, and pick your serving time. The app brings the steps together in one timeline.
+Version 1.0 includes nine preset dinner menus, from steak night and salmon to lemon chicken, turkey tacos, tofu bowls, chickpea curry, skillet gnocchi, and Sunday pork tenderloin. Four menus are meat-free; use vegetarian ingredients in your chosen recipes. Choose a menu, review its timing estimates, and pick your serving time. The app brings the steps together in one timeline.
 
 These are timing guides, not complete recipes. Bring your own recipe for ingredients and cooking instructions. Adding or importing your own menus is not included in this release.
 

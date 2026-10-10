@@ -1257,3 +1257,65 @@ final class RecoveryStoreTests: XCTestCase {
         XCTAssertNil(store.readinessReport(now: lateEnd), "applied once; no residual drift")
     }
 }
+
+// MARK: - Catalog workflows (planning validity, not recipe validation)
+
+final class CatalogTests: XCTestCase {
+    private func assertMenuPlans(_ menuID: String, file: StaticString = #filePath, line: UInt = #line) {
+        guard let menu = DinnerCatalog.menus.first(where: { $0.id == menuID }) else {
+            return XCTFail("Missing catalog menu: \(menuID)", file: file, line: line)
+        }
+        let serveAt = t0.addingTimeInterval(2 * 3600)
+        let session = sessionFor(menuID: menuID, serveAt: serveAt)
+        XCTAssertEqual(Scheduling.checkFeasibility(menu: menu, serveAt: serveAt, durations: [:], now: t0),
+                       .ok, file: file, line: line)
+        let plan = Scheduling.plan(menu: menu, session: session)
+        XCTAssertEqual(plan.count, menu.steps.count, file: file, line: line)
+        XCTAssertEqual(Set(plan.map { $0.id }), Set(menu.steps.map { $0.id }), file: file, line: line)
+        for dish in menu.dishes {
+            let chain = dish.compactMap { step in plan.first(where: { $0.id == step.id }) }
+            XCTAssertEqual(chain.count, dish.count, file: file, line: line)
+            XCTAssertEqual(chain.last?.plannedEnd, serveAt, file: file, line: line)
+            for item in chain {
+                XCTAssertGreaterThanOrEqual(item.plannedStart, t0, file: file, line: line)
+                XCTAssertEqual(item.plannedEnd.timeIntervalSince(item.plannedStart),
+                               Double(item.minutes) * 60, file: file, line: line)
+            }
+            for index in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[index - 1].plannedEnd, chain[index].plannedStart, file: file, line: line)
+            }
+        }
+    }
+
+    func testLemonChickenPlansTwoHoursOut() { assertMenuPlans("lemon-chicken") }
+    func testTurkeyTacosPlansTwoHoursOut() { assertMenuPlans("turkey-tacos") }
+    func testTofuBowlsPlansTwoHoursOut() { assertMenuPlans("tofu-bowls") }
+    func testChickpeaCurryPlansTwoHoursOut() { assertMenuPlans("chickpea-curry") }
+    func testGnocchiGreensPlansTwoHoursOut() { assertMenuPlans("gnocchi-greens") }
+    func testPorkSupperPlansTwoHoursOut() { assertMenuPlans("pork-supper") }
+
+    func testCatalogIdentifiersAreGloballyUnique() {
+        let menuIDs = DinnerCatalog.menus.map { $0.id }
+        let stepIDs = DinnerCatalog.menus.flatMap { $0.steps.map { $0.id } }
+        XCTAssertEqual(Set(menuIDs).count, menuIDs.count)
+        XCTAssertEqual(Set(stepIDs).count, stepIDs.count)
+    }
+
+    func testNewDinnerWorkflowBounds() {
+        let ids = ["lemon-chicken", "turkey-tacos", "tofu-bowls", "chickpea-curry", "gnocchi-greens", "pork-supper"]
+        for id in ids {
+            guard let menu = DinnerCatalog.menus.first(where: { $0.id == id }) else {
+                XCTFail("Missing menu: \(id)"); continue
+            }
+            XCTAssertTrue((2...4).contains(menu.dishes.count), id)
+            XCTAssertTrue((35...75).contains(menu.longestDishMinutes), id)
+            for dish in menu.dishes {
+                XCTAssertTrue((2...4).contains(dish.count), id)
+                for step in dish {
+                    XCTAssertTrue((3...30).contains(step.minutes), step.id)
+                    XCTAssertTrue(step.detail.lowercased().contains("recipe"), step.id)
+                }
+            }
+        }
+    }
+}

@@ -25,6 +25,20 @@ struct PlanView: View {
                 ForEach(DinnerCatalog.menus) { menu in
                     menuCard(menu)
                 }
+                Text("Timings are planning estimates, not complete tested recipes. Use your trusted recipes and verify doneness separately.")
+                    .font(.caption)
+                    .foregroundStyle(Theme.muted)
+            }
+            .padding(24)
+            .frame(maxWidth: 720)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Theme.cream)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 6) {
+                Text("Selected: \(store.menu.title)")
+                    .font(.caption)
+                    .foregroundStyle(Theme.muted)
                 Button(action: {
                     // Recompute feasibility right before entering cooking —
                     // duration edits can invalidate the serving time.
@@ -35,15 +49,13 @@ struct PlanView: View {
                 }
                 .buttonStyle(BigButtonStyle())
                 .accessibilityHint("Opens your cooking timeline.")
-                Text("Timings are planning estimates, not complete tested recipes. Use your trusted recipes and verify doneness separately.")
-                    .font(.caption)
-                    .foregroundStyle(Theme.muted)
             }
-            .padding(24)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
+            .background(Theme.cream)
         }
-        .background(Theme.cream)
         .navigationTitle("Dinner, Together")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { recheckFeasibility() }
