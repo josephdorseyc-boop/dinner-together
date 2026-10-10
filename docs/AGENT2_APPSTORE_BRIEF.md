@@ -19,9 +19,13 @@ The validation loop you know is unchanged and still gates every release:
 61 unit tests, the XCUITest tap-through (first execution: CI run 12),
 seeded screenshots.
 
-## Your four deliverables, in priority order
+## Your deliverables, in priority order (S1 already closed)
 
-### S1 — The listing (`docs/store/LISTING.md`) — review and return
+### S1 — The listing (`docs/store/LISTING.md`) — DONE (your A2-5 is applied)
+
+Your "honest store listing" patch is on `main` verbatim (`66fd696`); the
+file now carries the verified lengths. Nothing further unless you want a
+second pass after the screenshots exist.
 
 Every App Store Connect field is drafted and paste-ready: name, subtitle,
 promotional text, description, keywords, screenshot order, review notes.
