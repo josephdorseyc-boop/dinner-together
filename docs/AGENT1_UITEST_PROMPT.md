@@ -1,10 +1,10 @@
-# Dinner, Together — brief for the next collaborating agent (Agent 4)
+# Dinner, Together — implementation brief for Agent 1: XCUITest target
 
-Joe is adding you to an active, working collaboration on **Dinner, Together**,
-a native SwiftUI iPhone/iPad app. This is an implementation assignment with a
-verified starting point and a running CI loop, not a strategy request. Read
-the attached files in the order below, then deliver the focused candidate
-described in §5.
+Agent 1 — this is the XCUITest assignment you recommended in your r7
+findings, handed to you as an implementation task on top of your
+verification role. It has a verified starting point and a running CI loop.
+Read the attached files in the order below (much of it you have already
+verified), then deliver the focused candidate described in §5.
 
 ## 1. Product, in brief
 
@@ -38,8 +38,8 @@ notification delivery, haptics, and — your assignment — any **tap-through**
 of the app. The review sheet, the delay sheet, the stale-plan sheet, and the
 confirmation dialogs have never been rendered.
 
-Three reviewers' findings (Agent 1 engineering, Agent 2 product/design) have
-all been closed by execution. Nothing is open except the next validation
+All findings from both reviewers (yours and Agent 2's) have been closed by
+execution. Nothing is open except the next validation
 target, which is this brief.
 
 ## 3. Reading order
@@ -63,23 +63,27 @@ target, which is this brief.
 
 - **Agent 3** owns the build and integrates. It pushes to `main`, runs CI,
   reads results from the `ci-results` branch, and circulates evidence. You
-  do not have push access; you return a patch.
-- **Agent 1** verifies engineering (reproducible issues, severity-ranked).
-- **Agent 2** reviews product/design (copy, hierarchy, accessibility).
-- **You (Agent 4)** own **UI automation and the rendering of interactive
-  flows**. Work in an isolated copy. Do not edit `Scheduling.swift`,
+  do not have push access; you return patches.
+- **You (Agent 1)** own **UI automation and the rendering of interactive
+  flows** for this assignment. Because you will be implementing, the
+  independent verification of this work comes from CI execution (Agent 3)
+  and from Agent 2's review of the rendered attachments; keep your own
+  claims to what you can show. Work in an isolated copy. Do not edit `Scheduling.swift`,
   `SessionStore.swift`, `Models.swift`, or the unit-test file's existing
   tests; those are verified and owned elsewhere. Small, explicit additions
   to `DinnerTogetherApp.swift` (`LaunchOptions`) are expected and allowed,
   DEBUG-only. Do not bump the marketing version or build number.
 - Deliver **one `.patch` per concern** against commit `0a63a87`, `diff -u`
-  with `a/` `b/` prefixes, named `A4-<n>-<slug>.patch`, plus the files
-  themselves. Say explicitly which patches depend on which.
+  with `a/` `b/` prefixes, named `A1-U<n>-<slug>.patch` (the `U` keeps
+  them distinct from your review findings `A1-1…A1-4`), plus the files
+  themselves. Say explicitly which patches depend on which. **Attach the
+  patch files** — twice now only the findings document arrived.
 - Label every claim by how you know it: **source review**, **supplemental
   check** (dry run, scripts), **Swift compilation**, **XCTest execution**,
-  **simulator rendering**. You will not have a Mac or Xcode; say so, and
-  write for the CI run to be the first execution. Do not describe anything
-  as working until a CI run shows it.
+  **simulator rendering**. Your Linux toolchain can compile and run the
+  `Package.swift` harness but not XCUITest or the app target; say so, and
+  write for the CI run to be the first execution of the UI tests. Do not
+  describe anything as working until a CI run shows it.
 
 ## 5. Assignment: an XCUITest target that photographs the interactive flows
 
@@ -175,9 +179,9 @@ image" comparisons — attachments are evidence for humans, not oracles.
 
 ## 7. Deliverables
 
-1. Patches `A4-1…` against `0a63a87` (UI test target + `LaunchOptions`
+1. Patches `A1-U1…` against `0a63a87` (UI test target + `LaunchOptions`
    seed hook; harness + dry run; workflow; docs), with a one-paragraph
-   `A4_HANDOFF.md`: what each patch does, what you could and could not
+   `A1_UITEST_HANDOFF.md`: what each patch does, what you could and could not
    verify, the exact validation performed and its tier, open questions,
    and what you expect the first CI run to complain about.
 2. `UITESTS.md`: how to run the UI tests locally on a Mac and what each test
