@@ -22,6 +22,10 @@ jobs:
       DT_IPAD_REGEX: '^iPad Pro 13-inch'
     steps:
       - uses: actions/checkout@v4
+      - name: Use Mountain Time so the rendered clocks read like a dinner, not a night shift
+        # The simulator inherits the host's time zone. Run this workflow in the
+        # late afternoon (about 5:30 PM MT) for 6–7 PM dinner times in the frames.
+        run: sudo systemsetup -settimezone America/Denver >/dev/null 2>&1 || true; date
       - name: Build, test and photograph on the App Store screenshot devices
         run: |
           bash native-validation/run-native-pass.sh "$RESULTS" || echo "::warning::native pass reported failures — screenshots may still be usable"

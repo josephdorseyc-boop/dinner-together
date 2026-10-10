@@ -69,22 +69,25 @@ Timing estimates help with planning; they cannot determine doneness. Follow your
 **What's New in This Version** (4000)
 `First release.`
 
-**Screenshots** — from the `store-assets` workflow artifact, in this order
-(captions are optional on the App Store; if Agent 2 wants captioned frames,
-they can be composed from the same PNGs):
+**Screenshots** — produced by the `store-assets` workflow (Actions →
+store-assets → Run workflow) on the iPhone 17 Pro Max and iPad Pro 13-inch
+simulators and composed into captioned frames by
+`release/compose-store-frames.py` (Agent 2's six-frame story, their
+captions). Twelve files, exact App Store sizes: iPhone 6.9-inch 1320×2868,
+iPad 13-inch 2064×2752. Upload in this order:
 
-| # | iPhone 6.9" (1320×2868) | What it shows |
+| # | Caption | Render |
 |---|---|---|
-| 1 | `on-schedule-light.png` | Cooking screen, on time: DINNER AT, RIGHT NOW, running timer |
-| 2 | `late-prep-light.png` | "Running about 7 min behind" — the estimate beside the chosen time |
-| 3 | `expired-timer-light.png` | "Check the food" — a timer ending is a prompt, not a completion |
-| 4 | `way-behind-dark.png` | Dark Mode, amber emphasis at 15 min behind |
-| 5 | `late-prep-ax-large-text.png` | Accessibility text size, compact notice |
-| 6 | `all-done-late-light.png` | "Time to enjoy dinner." |
+| 1 | Pick dinner. Pick a time. | Tonight screen, Steak night selected (`tonight-steak-light`) |
+| 2 | Know what to do now. | Cooking, on schedule, timer running (`on-schedule-light`) |
+| 3 | Running late? Review the plan. | The review sheet from the UI tests (`01-review-sheet`) |
+| 4 | A timer ends. You check the food. | Expired-timer cooking screen (`expired-timer-light`) |
+| 5 | Nine dinners to choose from. | Tonight list scrolled, tofu selected (`09-tonight-menus`) |
+| 6 | A calmer counter, even after dark. | Dark Mode cooking screen (`on-schedule-dark`) |
 
-Same six for iPad 13" (2064×2752) from `ipad/`. The Tonight (planning)
-screen is not yet photographed by the harness; `screenshots.sh` could add a
-`-dt-open-cooking`-less variant — Agent 2 to say whether it's wanted.
+Run the workflow in the late afternoon Mountain Time so the clocks in the
+frames read like dinner (the runner is set to America/Denver); a run at
+4 AM UTC produced "Dinner at 5:03 AM" renders, usable for layout review only.
 
 ## App Review Information
 
