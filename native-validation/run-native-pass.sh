@@ -221,12 +221,16 @@ run_ui_tests() { # label udid only_testing expected
   if [ -d "$bundle" ]; then
     xcrun xcresulttool get test-results summary --path "$bundle" > "$summary" 2>/dev/null || rm -f "$summary"
   fi
-  if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0))' "$summary" 2>/dev/null); then
-    set -- $counts; executed=$1; passed=$2; failed=$3; skipped=$4; source="xcresult"
+  local expectedfail=0
+  if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0), j.get("expectedFailures", 0))' "$summary" 2>/dev/null); then
+    set -- $counts; executed=$1; passed=$2; failed=$3; skipped=$4; expectedfail=$5; source="xcresult"
   else
     executed=0; passed=0; failed=0; skipped=0; source="unavailable"
   fi
-  note "  - UI cases on $label ($source): executed $executed (expected $expected), passed $passed, failed $failed, skipped $skipped — \`$(basename "$log")\`"
+  # Expected failures (XCTExpectFailure) are documented known issues; they are
+  # reported here every run so they can never be forgotten, and never count as passes.
+  note "  - UI cases on $label ($source): executed $executed (expected $expected), passed $passed, failed $failed, skipped $skipped, expected-failures $expectedfail — \`$(basename "$log")\`"
+  if [ "$expectedfail" -gt 0 ]; then note "    - ⚠️ $expectedfail expected failure(s) on $label — known issue(s) documented in UITESTS.md; see the test's XCTExpectFailure message in \`$(basename "$log")\`"; fi
   if [ "$executed" -lt "$expected" ]; then fail "$label UI: executed $executed of $expected expected UI tests"; fi
   if [ "$failed" -gt 0 ]; then fail "$label UI: $failed failing UI test(s)"; fi
   # A skipped test is a test that did not run; it cannot count toward "passed" (Agent 1, A1-4).
