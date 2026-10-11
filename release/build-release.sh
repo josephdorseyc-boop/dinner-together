@@ -84,14 +84,16 @@ xcodebuild archive \
   MARKETING_VERSION="$DT_VERSION" \
   CURRENT_PROJECT_VERSION="$DT_BUILD" \
   CODE_SIGN_STYLE=Automatic \
-  CODE_SIGN_IDENTITY="Apple Distribution" \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
   > "$LOG" 2>&1; rc=$?
-# CODE_SIGN_IDENTITY="Apple Distribution": left to itself, an automatic-signing
+# The archive is deliberately unsigned. Left to itself, an automatic-signing
 # archive asks Apple for an *iOS App Development* profile, which the portal
 # refuses to generate for a team with no registered devices ("Your team has no
-# devices from which to generate a provisioning profile" — release run 2).
-# Asking for the distribution identity makes Xcode request the App Store
-# profile instead, which needs no devices and is what the export wants anyway.
+# devices from which to generate a provisioning profile" — release run 2), and
+# overriding the identity to Apple Distribution is rejected as a conflict with
+# automatic signing (run 3). The export step below re-signs the archive with
+# the cloud-managed Apple Distribution certificate and the App Store profile,
+# which need no devices — and that signature is the only one that ships.
 if [ $rc -eq 0 ] && [ -d "$ARCHIVE/Products/Applications/DinnerTogether.app" ]; then
   note "- ✅ xcodebuild archive (exit 0) — \`$(basename "$LOG")\`"
 else
