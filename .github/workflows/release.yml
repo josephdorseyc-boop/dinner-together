@@ -26,8 +26,12 @@ on:
         type: boolean
         default: true
 
+# contents: write only so the summary and logs can be pushed to the
+# release-results branch (artifact and log downloads need blob-storage access
+# that not every environment has). Pushes made with GITHUB_TOKEN do not
+# trigger new runs.
 permissions:
-  contents: read
+  contents: write
   actions: read
 
 concurrency:
@@ -75,8 +79,43 @@ jobs:
       - name: Show summary
         if: always()
         run: |
-          [ -f "$OUT/SUMMARY.md" ] && cat "$OUT/SUMMARY.md" || echo "::error::no SUMMARY.md"
+          if [ -f "$OUT/SUMMARY.md" ]; then cat "$OUT/SUMMARY.md"; else echo "::error::no SUMMARY.md"; fi
           [ -f "$OUT/status.txt" ] && cat "$OUT/status.txt" || true
+          # The verdict also goes out as check-run annotations: those are
+          # readable through the REST API (check-runs/<job>/annotations) even
+          # where the log and artifact blob store is not. GitHub keeps at most
+          # 10 of each level per step, so the lists are capped.
+          if [ -f "$OUT/SUMMARY.md" ]; then
+            grep -E '^Version ' "$OUT/SUMMARY.md" | head -1 | sed 's/^/::notice::/'
+            grep -E '^  - ' "$OUT/SUMMARY.md" | head -4 | sed 's/^  - /::notice::archived /'
+            grep -E '^- (✅|⏭)' "$OUT/SUMMARY.md" | head -4 | sed 's/^- /::notice::/'
+            grep -E '^- ❌' "$OUT/SUMMARY.md" | head -3 | sed 's/^- ❌ /::error::/'
+            grep -E '^    ' "$OUT/SUMMARY.md" | head -7 | sed 's/^    /::error::/'
+          fi
+
+      - name: Publish summary and logs to the release-results branch
+        if: always()
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          # Text outputs only — never the .ipa, the archive or the key. The key
+          # contents never reach a log; its ID and the issuer ID are
+          # identifiers, not secrets, but they are scrubbed anyway.
+          stage=$(mktemp -d)/run-${{ github.run_number }}; mkdir -p "$stage"
+          for f in "$OUT"/SUMMARY.md "$OUT"/status.txt "$OUT"/environment.txt "$OUT"/*.log "$OUT"/ExportOptions-*.plist; do
+            [ -f "$f" ] || continue
+            sed -e "s/${ASC_KEY_ID:-__none__}/[key-id]/g" -e "s/${ASC_ISSUER_ID:-__none__}/[issuer-id]/g" "$f" > "$stage/$(basename "$f")"
+          done
+          printf 'run_id=%s\nrun_number=%s\nsha=%s\nversion=%s\nsubmit=%s\nconclusion_so_far=%s\n' \
+            "${{ github.run_id }}" "${{ github.run_number }}" "${{ github.sha }}" "${{ inputs.version }}" "${{ inputs.submit }}" "${{ job.status }}" > "$stage/RUN.txt"
+          url="https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          work=$(mktemp -d); cd "$work"; git init -q
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git fetch -q "$url" release-results 2>/dev/null; then git checkout -q -B release-results FETCH_HEAD; else git checkout -q -b release-results; fi
+          mkdir -p "run-${{ github.run_number }}"; cp -R "$stage"/. "run-${{ github.run_number }}/"
+          git add -A && git commit -q -m "release run ${{ github.run_number }} (${{ github.sha }}): ${{ job.status }}"
+          git push -q "$url" HEAD:refs/heads/release-results
 
       - name: Keep the .ipa, logs and summary (never the signing key)
         if: always()
