@@ -98,6 +98,16 @@ jobs:
       RESULTS: ${{ github.workspace }}/native-validation/results
     steps:
       - uses: actions/checkout@v4
+      - name: Select Xcode 26 (App Store Connect requires the iOS 26 SDK)
+        run: |
+          # The image's default Xcode (16.4, iOS 18.5 SDK) builds fine but App
+          # Store Connect refuses its uploads ("must be built with the iOS 26
+          # SDK or later" — release run 4). Pin one 26.x; fall back to the
+          # newest 26.x if the pinned one is ever dropped from the image.
+          app="/Applications/Xcode_${DT_XCODE:-26.2}.app"
+          [ -d "$app" ] || app=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          echo "DEVELOPER_DIR=$app/Contents/Developer" >> "$GITHUB_ENV"
+          echo "Selected $app"
       - name: Xcode in use
         run: |
           xcodebuild -version
