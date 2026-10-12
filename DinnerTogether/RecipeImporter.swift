@@ -51,7 +51,7 @@ enum RecipeImporter {
         for block in jsonLDBlocks(in: html) {
             guard let data = block.data(using: .utf8),
                   let json = try? JSONSerialization.jsonObject(with: data) else { continue }
-            if let recipe = findRecipeObject(in: json), let parsed = recipe(from: recipe, url: url) {
+            if let object = findRecipeObject(in: json), let parsed = recipe(from: object, url: url) {
                 return parsed
             }
         }
