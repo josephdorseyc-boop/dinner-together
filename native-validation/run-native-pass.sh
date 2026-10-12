@@ -134,6 +134,19 @@ if [ -n "$IPHONE_UDID" ]; then
   # Confirm DEBUG reached the Swift compiler (needed by the screenshot launch flags).
   # Xcode 16 prints the condition as `-DDEBUG` (no space); older logs used `-D DEBUG`.
   if grep -qE -- '-D ?DEBUG' "$LOG" 2>/dev/null; then pass "Swift compiled with -DDEBUG (launch flags active)"; else fail "no '-DDEBUG' in the build log: #if DEBUG launch flags are compiled out"; fi
+  # The Release configuration is what the archive compiles: a symbol that
+  # exists only under #if DEBUG passes every Debug step here and fails the
+  # release (build 9, release run 9: LaunchOptions.stubScreenshotData).
+  LOG="$RESULTS/11-build-release-iphone.log"
+  xcodebuild build -project DinnerTogether.xcodeproj -scheme DinnerTogether -configuration Release \
+    -derivedDataPath "$DERIVED" -destination "id=$IPHONE_UDID" \
+    CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" > "$LOG" 2>&1; rc=$?
+  step_result "build app (iPhone simulator, Release — the configuration the archive compiles)" $rc "$LOG"
+  if [ $rc -ne 0 ]; then
+    note ""; note "First errors (Release):"; note '```'
+    grep -E 'error:|\*\* BUILD FAILED' "$LOG" | head -30 | tee -a "$SUMMARY"
+    note '```'
+  fi
 else
   fail "build skipped: no iPhone simulator"
 fi

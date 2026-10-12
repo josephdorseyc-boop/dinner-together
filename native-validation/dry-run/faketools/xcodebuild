@@ -14,6 +14,11 @@ case "$1" in
     if [ -n "${FAKE_BUILD_RC:-}" ]; then echo "DinnerTogether/Foo.swift:1:1: error: fake compile error"; echo "** TEST BUILD FAILED **"; exit "$FAKE_BUILD_RC"; fi
     printf '#!/bin/sh\n' > "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"; chmod +x "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"
     echo "** TEST BUILD SUCCEEDED **"; exit 0;;
+  build)
+    echo "SwiftCompile normal arm64 Compiling CookingView.swift"
+    echo "    /usr/bin/swiftc -O ..."
+    if [ -n "${FAKE_RELEASE_BUILD_RC:-}" ]; then echo "DinnerTogether/RecipeViews.swift:1:1: error: type 'LaunchOptions' has no member 'fake' (fake)"; echo "** BUILD FAILED **"; exit "$FAKE_RELEASE_BUILD_RC"; fi
+    echo "** BUILD SUCCEEDED **"; exit 0;;
   test-without-building)
     bundle=""; only=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; [[ "${args[$i]}" == -only-testing:* ]] && only="${args[$i]#-only-testing:}"; done
     mkdir -p "$bundle"

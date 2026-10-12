@@ -252,6 +252,10 @@ enum LaunchOptions {
         let url = URL.documentsDirectory.appending(path: "dinner-together-v2.json")
         try? json.write(to: url, atomically: true, encoding: .utf8)
     }
+    #else
+    /// Release: the screenshot source is always the photo picker. (Build 9's
+    /// first release archive failed on this symbol — validation builds Debug.)
+    static func stubScreenshotData() -> [Data] { [] }
     #endif
 }
 
