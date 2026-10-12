@@ -412,6 +412,31 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertNotNil(library.saveError)
     }
 
+    func testFailedUpdateAndRemoveRollBack() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try sampleRecipe()
+        XCTAssertTrue(library.add(recipe))
+        let name = library.saveImage(Data([0xFF, 0xD8]), for: recipe.id)!
+        let imagePath = dir.appending(path: "recipe-images/\(name)").path
+        let saved = library.recipe(id: recipe.id)!
+        // Make every further write fail: move the folder away, leave a file
+        // where the folder was.
+        let moved = dir.deletingLastPathComponent().appending(path: "moved-\(UUID().uuidString)")
+        try FileManager.default.moveItem(at: dir, to: moved)
+        try Data().write(to: dir)
+
+        XCTAssertFalse(library.setStep(recipeID: recipe.id, stepID: recipe.steps[0].id, minutes: 42))
+        XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed timing edit rolled back")
+        XCTAssertNotNil(library.saveError)
+
+        XCTAssertFalse(library.remove(id: recipe.id))
+        XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed delete rolled back")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: moved.appending(path: "recipe-images/\(name)").path),
+                      "the photo survives a failed delete")
+        _ = imagePath
+    }
+
     func testStoreWithoutProviderIsCatalogOnly() async {
         let store = SessionStore(fileURL: tempDir().appending(path: "s.json"), notifications: MockNotifications())
         store.chooseMenu("recipe:" + UUID().uuidString)

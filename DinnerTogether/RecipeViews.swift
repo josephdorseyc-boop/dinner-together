@@ -340,6 +340,11 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         hero(recipe)
                         VStack(alignment: .leading, spacing: 22) {
+                            if let problem = library.saveError {
+                                Label(problem, systemImage: "exclamationmark.triangle")
+                                    .font(.subheadline).foregroundStyle(Theme.warning)
+                                    .accessibilityIdentifier("recipe-save-error")
+                            }
                             stats(recipe)
                             if recipe.needsTimingReview && tab != .timing { reviewBanner(recipe) }
                             tabBar
@@ -683,8 +688,10 @@ struct RecipeDetailView: View {
     }
 
     private func delete(_ recipe: Recipe) {
-        if isTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
-        library.remove(id: recipe.id)
+        let wasTonight = isTonight
+        // Delete first; only a delete that reached disk changes tonight's dinner.
+        guard library.remove(id: recipe.id) else { return } // saveError banner explains
+        if wasTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
         dismiss()
     }
 }

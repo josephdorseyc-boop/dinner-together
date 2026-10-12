@@ -66,25 +66,33 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         return true
     }
 
-    func update(_ recipe: Recipe) {
-        guard let i = recipes.firstIndex(where: { $0.id == recipe.id }) else { add(recipe); return }
+    /// Same rollback rule as `add`: memory never shows an edit the file lacks.
+    @discardableResult
+    func update(_ recipe: Recipe) -> Bool {
+        guard let i = recipes.firstIndex(where: { $0.id == recipe.id }) else { return add(recipe) }
+        let before = recipes
         recipes[i] = recipe
-        save()
+        guard save() else { recipes = before; return false }
+        return true
     }
 
-    /// Removes the recipe and its image. The caller decides what happens to a
-    /// session that was using it (see `SessionStore.chooseMenu`); the library
-    /// never reaches into the session.
-    func remove(id: UUID) {
-        if let r = recipe(id: id), let name = r.imageFilename {
-            try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
-        }
+    /// Removes the recipe, then its image — the image only once the library
+    /// file no longer lists the recipe, so a failed save can't leave a recipe
+    /// pointing at a deleted photo. The caller decides what happens to a
+    /// session that was using it; the library never reaches into the session.
+    @discardableResult
+    func remove(id: UUID) -> Bool {
+        let before = recipes
+        let imageName = recipe(id: id)?.imageFilename
         recipes.removeAll { $0.id == id }
-        save()
+        guard save() else { recipes = before; return false }
+        if let name = imageName { try? FileManager.default.removeItem(at: imagesURL.appending(path: name)) }
+        return true
     }
 
-    func markTimingReviewed(id: UUID) {
-        guard var r = recipe(id: id) else { return }
+    @discardableResult
+    func markTimingReviewed(id: UUID) -> Bool {
+        guard var r = recipe(id: id) else { return false }
         r.needsTimingReview = false
         r.dishes = r.dishes.map { dish in
             dish.map { step in
@@ -92,12 +100,13 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
                             detail: step.detail, handsOn: step.handsOn, estimated: false)
             }
         }
-        update(r)
+        return update(r)
     }
 
     /// Edits one step's timing. Confirming a value clears its `estimated` mark.
-    func setStep(recipeID: UUID, stepID: String, minutes: Int? = nil, handsOn: Bool? = nil) {
-        guard var r = recipe(id: recipeID) else { return }
+    @discardableResult
+    func setStep(recipeID: UUID, stepID: String, minutes: Int? = nil, handsOn: Bool? = nil) -> Bool {
+        guard var r = recipe(id: recipeID) else { return false }
         r.dishes = r.dishes.map { dish in
             dish.map { step in
                 guard step.id == stepID else { return step }
@@ -107,7 +116,7 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
                                    estimated: minutes == nil ? step.estimated : false)
             }
         }
-        update(r)
+        return update(r)
     }
 
     // MARK: Images
