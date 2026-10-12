@@ -1319,3 +1319,98 @@ final class CatalogTests: XCTestCase {
         }
     }
 }
+
+// Holiday-only exceptions: six dishes and one uninterrupted 180-minute roast.
+// The ordinary dinner bounds above remain unchanged.
+final class HolidayCatalogTests: XCTestCase {
+    func testThanksgivingHasExplicitHolidayBounds() throws {
+        let menu = try XCTUnwrap(DinnerCatalog.menus.first { $0.id == "thanksgiving" })
+        XCTAssertEqual(menu.dishes.count, 6)
+        XCTAssertEqual(menu.longestDishMinutes, 240)
+        for dish in menu.dishes {
+            XCTAssertTrue((3...4).contains(dish.count))
+            for step in dish {
+                XCTAssertTrue(step.detail.lowercased().contains("recipe"), step.id)
+                if step.id == "tg-t2" {
+                    XCTAssertEqual(step.minutes, 180)
+                    XCTAssertFalse(step.handsOn)
+                } else {
+                    XCTAssertTrue((3...30).contains(step.minutes), step.id)
+                }
+            }
+        }
+    }
+
+    func testThanksgivingFourHourPlanAndPinnedRoast() throws {
+        let menu = try XCTUnwrap(DinnerCatalog.menus.first { $0.id == "thanksgiving" })
+        let serveAt = t0.addingTimeInterval(240 * 60)
+        var session = sessionFor(menuID: menu.id, serveAt: serveAt)
+        XCTAssertEqual(Scheduling.checkFeasibility(menu: menu, serveAt: serveAt, durations: [:], now: t0), .ok)
+        XCTAssertEqual(Scheduling.checkFeasibility(menu: menu, serveAt: t0.addingTimeInterval(120 * 60), durations: [:], now: t0),
+                       .startsInPast(earliestServeAt: serveAt))
+        let plan = Scheduling.plan(menu: menu, session: session)
+        XCTAssertEqual(plan.count, menu.steps.count)
+        for dish in menu.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.count, dish.count)
+            XCTAssertEqual(chain.last?.plannedEnd, serveAt)
+            for item in chain {
+                XCTAssertGreaterThanOrEqual(item.plannedStart, t0)
+                XCTAssertEqual(item.plannedEnd.timeIntervalSince(item.plannedStart), Double(item.minutes) * 60)
+            }
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+        let roast = try XCTUnwrap(plan.first { $0.id == "tg-t2" })
+        var record = StepRecord()
+        record.state = .cooking
+        record.actualStart = roast.plannedStart
+        record.timerDeadline = roast.plannedEnd
+        record.confirmedMinutes = 180
+        record.runID = UUID()
+        session.records[roast.id] = record
+        session.serveAt = serveAt.addingTimeInterval(15 * 60)
+        let shifted = try XCTUnwrap(Scheduling.plan(menu: menu, session: session).first { $0.id == roast.id })
+        XCTAssertEqual(shifted.start, roast.plannedStart)
+        XCTAssertEqual(shifted.end, roast.plannedEnd)
+        XCTAssertEqual(session.records[roast.id]?.timerDeadline, roast.plannedEnd)
+    }
+}
+
+// Long-duration display only: scheduling and rounding remain unchanged.
+final class LongDurationCopyTests: XCTestCase {
+    func testMinutesKeepTheirWholeMinuteValue() {
+        XCTAssertEqual(Scheduling.formatMinutes(59), "59 min")
+        XCTAssertEqual(Scheduling.formatMinutes(60), "1 hr")
+        XCTAssertEqual(Scheduling.formatMinutes(125), "2 hr 5 min")
+        XCTAssertEqual(Scheduling.formatMinutes(1650), "27 hr 30 min")
+    }
+
+    func testOverdueCountdownUsesHoursWithoutLosingSeconds() {
+        XCTAssertEqual(Scheduling.formatCountdown(remaining: -7501), "Overdue 2:05:01")
+        XCTAssertEqual(Scheduling.formatCountdown(remaining: -3599), "Overdue 59:59")
+        XCTAssertEqual(Scheduling.formatCountdown(remaining: 7501), "2:05:01")
+    }
+
+    func testNextDayAndPastDayTimesCarryDates() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        let reference = calendar.date(from: DateComponents(year: 2026, month: 10, day: 11, hour: 23, minute: 55))!
+        let tomorrow = reference.addingTimeInterval(20 * 60)
+        let yesterday = reference.addingTimeInterval(-24 * 60 * 60)
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = calendar.timeZone
+        dateFormatter.dateStyle = .medium
+        XCTAssertTrue(Scheduling.formatMoment(tomorrow, relativeTo: reference, calendar: calendar).contains(dateFormatter.string(from: tomorrow)))
+        XCTAssertTrue(Scheduling.formatMoment(yesterday, relativeTo: reference, calendar: calendar).contains(dateFormatter.string(from: yesterday)))
+        XCTAssertFalse(Scheduling.formatMoment(reference, relativeTo: reference, calendar: calendar).contains(dateFormatter.string(from: reference)))
+    }
+
+    func testDisplayKeepsLowerBoundAndMoveRoundingDifferent() {
+        let lower = Int((125 * 60.0 + 59) / 60)
+        let move = Int(((125 * 60.0 + 59) / 60).rounded(.up))
+        XCTAssertEqual(Scheduling.formatMinutes(lower), "2 hr 5 min")
+        XCTAssertEqual(Scheduling.formatMinutes(move), "2 hr 6 min")
+    }
+}

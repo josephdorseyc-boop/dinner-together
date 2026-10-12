@@ -476,3 +476,200 @@ final class RecipeLibraryTests: XCTestCase {
         }
     }
 }
+
+// Original A2 scheduling fixtures. Not kitchen-tested recipes or public menu content.
+final class A2RecipeFixtureTests: XCTestCase {
+    func testFixture1() throws {
+        let input = """
+        Garlic mushrooms
+        Yield: 2 servings
+        Total time: 15 minutes
+        
+        Ingredients
+        250 g mushrooms
+        1 tablespoon olive oil
+        1 garlic clove
+        
+        Directions
+        1. Slice the mushrooms and chop the garlic for 5 minutes.
+        2. Cook the mushrooms in the oil, stirring frequently, for 8 minutes.
+        3. Add garlic and finish the mushrooms for 2 minutes.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: input), method: .text, id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!, now: t0)
+        XCTAssertEqual(recipe.title, "Garlic mushrooms")
+        XCTAssertEqual(recipe.dishes.map { $0.map { $0.minutes } }, [[5, 8, 2]])
+        XCTAssertEqual(recipe.estimatedStepCount, 0)
+        XCTAssertTrue(recipe.needsTimingReview)
+        var session = DinnerSession()
+        session.menuID = recipe.menuID
+        session.serveAt = t0.addingTimeInterval(Double(recipe.plannedMinutes) * 60)
+        let plan = Scheduling.plan(menu: recipe.menu, session: session)
+        XCTAssertEqual(plan.count, recipe.steps.count)
+        for dish in recipe.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.last?.plannedEnd, session.serveAt)
+            XCTAssertGreaterThanOrEqual(chain.first!.plannedStart, t0)
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+    }
+
+    func testFixture2() throws {
+        let input = """
+        Lemon couscous
+        Yield: 2 generous side portions
+        Total time: 20 minutes
+        
+        Ingredients
+        1 cup couscous
+        1 lemon
+        Water according to the couscous package
+        
+        Directions
+        1. Measure the ingredients and prepare the lemon for 5 minutes.
+        2. Bring the water to a boil and pour it over the couscous for 5 minutes.
+        3. Let the couscous rest covered for 10 minutes.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: input), method: .text, id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!, now: t0)
+        XCTAssertEqual(recipe.title, "Lemon couscous")
+        XCTAssertEqual(recipe.dishes.map { $0.map { $0.minutes } }, [[5, 5, 10]])
+        XCTAssertEqual(recipe.estimatedStepCount, 0)
+        XCTAssertTrue(recipe.needsTimingReview)
+        var session = DinnerSession()
+        session.menuID = recipe.menuID
+        session.serveAt = t0.addingTimeInterval(Double(recipe.plannedMinutes) * 60)
+        let plan = Scheduling.plan(menu: recipe.menu, session: session)
+        XCTAssertEqual(plan.count, recipe.steps.count)
+        for dish in recipe.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.last?.plannedEnd, session.serveAt)
+            XCTAssertGreaterThanOrEqual(chain.first!.plannedStart, t0)
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+    }
+
+    func testFixture3() throws {
+        let input = """
+        Frozen berry drink with lime and a three-hour freezer stage
+        Yield: 2 tall glasses, or 4 small tasting portions
+        Total time: 187 minutes
+        
+        Ingredients
+        2 cups berry juice
+        1 lime
+        
+        Directions
+        1. Mix the juice and lime and fill an ice tray for 5 minutes.
+        2. Freeze the mixture for 3 hours; check that it is solid before continuing.
+        3. Blend and pour the frozen drink for 2 minutes.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: input), method: .text, id: UUID(uuidString: "00000000-0000-0000-0000-000000000003")!, now: t0)
+        XCTAssertEqual(recipe.title, "Frozen berry drink with lime and a three-hour freezer stage")
+        XCTAssertEqual(recipe.dishes.map { $0.map { $0.minutes } }, [[5, 180, 2]])
+        XCTAssertEqual(recipe.estimatedStepCount, 0)
+        XCTAssertTrue(recipe.needsTimingReview)
+        XCTAssertFalse(recipe.steps[1].handsOn)
+        var session = DinnerSession()
+        session.menuID = recipe.menuID
+        session.serveAt = t0.addingTimeInterval(Double(recipe.plannedMinutes) * 60)
+        let plan = Scheduling.plan(menu: recipe.menu, session: session)
+        XCTAssertEqual(plan.count, recipe.steps.count)
+        for dish in recipe.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.last?.plannedEnd, session.serveAt)
+            XCTAssertGreaterThanOrEqual(chain.first!.plannedStart, t0)
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+        let freeze = try XCTUnwrap(plan.first { $0.minutes == 180 })
+        var record = StepRecord()
+        record.state = .cooking
+        record.actualStart = freeze.plannedStart
+        record.timerDeadline = freeze.plannedEnd
+        record.confirmedMinutes = 180
+        session.records[freeze.id] = record
+        session.serveAt = session.serveAt.addingTimeInterval(15 * 60)
+        let changed = try XCTUnwrap(Scheduling.plan(menu: recipe.menu, session: session).first { $0.id == freeze.id })
+        XCTAssertEqual(changed.end, freeze.plannedEnd)
+    }
+
+    func testFixture4() throws {
+        let input = """
+        Vegetable platter with a separately served lemon sauce
+        Yield: 4 side portions with sauce served separately
+        Total time: 42 minutes
+        
+        Ingredients
+        4 cups chopped vegetables
+        2 tablespoons olive oil
+        1 lemon
+        2 tablespoons yogurt
+        
+        Directions
+        1. Prepare the vegetables and tray for 5 minutes.
+        2. Roast the vegetables for 35 minutes; check texture before serving.
+        3. Meanwhile, whisk a separate lemon sauce for 5 minutes.
+        4. Let the sauce rest for 5 minutes.
+        5. Serve the vegetables on their own platter for 2 minutes, with the sauce in a separate bowl.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: input), method: .text, id: UUID(uuidString: "00000000-0000-0000-0000-000000000004")!, now: t0)
+        XCTAssertEqual(recipe.title, "Vegetable platter with a separately served lemon sauce")
+        XCTAssertEqual(recipe.dishes.map { $0.map { $0.minutes } }, [[5, 35, 2], [5, 5]])
+        XCTAssertEqual(recipe.estimatedStepCount, 0)
+        XCTAssertTrue(recipe.needsTimingReview)
+        var session = DinnerSession()
+        session.menuID = recipe.menuID
+        session.serveAt = t0.addingTimeInterval(Double(recipe.plannedMinutes) * 60)
+        let plan = Scheduling.plan(menu: recipe.menu, session: session)
+        XCTAssertEqual(plan.count, recipe.steps.count)
+        for dish in recipe.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.last?.plannedEnd, session.serveAt)
+            XCTAssertGreaterThanOrEqual(chain.first!.plannedStart, t0)
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+    }
+
+    func testFixture5() throws {
+        let input = """
+        Bean spread with an untimed step
+        Yield: 2 snack portions
+        
+        Ingredients
+        1 can beans
+        1 tablespoon olive oil
+        1 lemon
+        
+        Directions
+        1. Drain the beans and prepare the lemon for 5 minutes.
+        2. Warm the beans until hot.
+        3. Mash and season the spread for 8-10 minutes.
+        4. Finish plating for 30 seconds.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: input), method: .text, id: UUID(uuidString: "00000000-0000-0000-0000-000000000005")!, now: t0)
+        XCTAssertEqual(recipe.title, "Bean spread with an untimed step")
+        XCTAssertEqual(recipe.dishes.map { $0.map { $0.minutes } }, [[5, 5, 10, 1]])
+        XCTAssertEqual(recipe.estimatedStepCount, 1)
+        XCTAssertTrue(recipe.needsTimingReview)
+        var session = DinnerSession()
+        session.menuID = recipe.menuID
+        session.serveAt = t0.addingTimeInterval(Double(recipe.plannedMinutes) * 60)
+        let plan = Scheduling.plan(menu: recipe.menu, session: session)
+        XCTAssertEqual(plan.count, recipe.steps.count)
+        for dish in recipe.dishes {
+            let chain = dish.compactMap { step in plan.first { $0.id == step.id } }
+            XCTAssertEqual(chain.last?.plannedEnd, session.serveAt)
+            XCTAssertGreaterThanOrEqual(chain.first!.plannedStart, t0)
+            for i in chain.indices.dropFirst() {
+                XCTAssertEqual(chain[i - 1].plannedEnd, chain[i].plannedStart)
+            }
+        }
+    }
+
+}

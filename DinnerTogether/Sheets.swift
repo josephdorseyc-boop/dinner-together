@@ -106,7 +106,7 @@ struct ServingSheetView: View {
                     if let report = store.readinessReport(now: timers.now),
                        let proposal = store.readinessMoveProposal(now: timers.now) {
                         let readinessLabel = report.estimateIsLowerBound ? "Earliest readiness" : "Estimated readiness"
-                        Text("Move dinner to \(Scheduling.formatTime(proposal.newServeAt))?")
+                        Text("Move dinner to \(Scheduling.formatMoment(proposal.newServeAt))?")
                             .font(.largeTitle.weight(.semibold))
                         ViewThatFits(in: .horizontal) {
                             HStack(alignment: .top, spacing: 28) {
@@ -145,12 +145,12 @@ struct ServingSheetView: View {
                                     .foregroundStyle(Theme.ink)
                             }
                         }
-                        Button("Move dinner to \(Scheduling.formatTime(proposal.newServeAt))") {
+                        Button("Move dinner to \(Scheduling.formatMoment(proposal.newServeAt))") {
                             store.moveDinnerToEstimatedReadiness(now: timers.now)
                             dismiss()
                         }
                         .buttonStyle(BigButtonStyle())
-                        Button("Keep \(Scheduling.formatTime(report.serveAt)) for now") { dismiss() }
+                        Button("Keep \(Scheduling.formatMoment(report.serveAt)) for now") { dismiss() }
                             .buttonStyle(SecondaryButtonStyle())
                         Text("Keeping the time changes nothing. The estimate stays on the cooking screen while steps run late, and you can come back here any time.")
                             .font(.caption)
@@ -176,13 +176,13 @@ struct ServingSheetView: View {
     private func timeColumn(_ label: String, _ time: Date, emphasized: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             SectionLabel(text: label.uppercased())
-            Text(time, format: .dateTime.hour().minute())
+            Text(Scheduling.formatMoment(time, relativeTo: timers.now))
                 .font(.system(.title, design: .rounded).weight(.medium))
                 .monospacedDigit()
                 .foregroundStyle(emphasized ? Theme.warning : Theme.ink)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label) \(Scheduling.formatTime(time))")
+        .accessibilityLabel("\(label) \(Scheduling.formatMoment(time, relativeTo: timers.now))")
     }
 }
 
@@ -212,12 +212,12 @@ struct DurationEditorView: View {
                     Text("How long does this take in your kitchen?")
                         .foregroundStyle(Theme.muted)
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("\(minutes) min")
+                        Text(Scheduling.formatMinutes(minutes))
                             .font(.system(.largeTitle, design: .rounded).weight(.medium))
                             .monospacedDigit()
                         Stepper("Adjust minutes", value: $minutes, in: 1...480)
                             .accessibilityValue("\(minutes) minutes")
-                        Button("Use original estimate (\(step.minutes) min)") {
+                        Button("Use original estimate (\(Scheduling.formatMinutes(step.minutes)))") {
                             minutes = step.minutes
                         }.buttonStyle(QuietButtonStyle())
                     }.dtCard()

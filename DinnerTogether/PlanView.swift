@@ -130,10 +130,10 @@ struct PlanView: View {
                 Label("Let’s give dinner enough time", systemImage: "exclamationmark.triangle")
                     .font(.headline)
                     .foregroundStyle(Theme.warning)
-                Text("Starting now, this menu can reach the table at \(Scheduling.formatTime(earliest)).")
+                Text("Starting now, this menu can reach the table at \(Scheduling.formatMoment(earliest)).")
                     .font(.subheadline)
                     .foregroundStyle(Theme.ink)
-                Button("Use \(Scheduling.formatTime(earliest))") {
+                Button("Use \(Scheduling.formatMoment(earliest))") {
                     store.setServeAt(earliest)
                     recheckFeasibility()
                 }
@@ -160,7 +160,7 @@ struct PlanView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(menu.title).font(.headline)
                         Text(menu.subtitle).font(.caption).foregroundStyle(Theme.muted)
-                        Text("About \(menuMinutes(menu)) min · \(menu.dishes.count) dishes")
+                        Text("About \(Scheduling.formatMinutes(menuMinutes(menu))) · \(menu.dishes.count) dishes")
                             .font(.caption).foregroundStyle(Theme.olive)
                     }
                     Spacer()
@@ -175,6 +175,13 @@ struct PlanView: View {
             .accessibilityLabel("\(menu.title), \(menu.subtitle)")
             .accessibilityAddTraits(selected ? .isSelected : [])
 
+            if menu.id == "thanksgiving" {
+                Text("Holiday guide: about 4 hours with the preset estimates. Match the roast time to your recipe. Check shared oven space and temperatures, and plan help for the final sides; the app flags overlaps but does not resolve them.")
+                    .font(.caption)
+                    .foregroundStyle(Theme.muted)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
             Divider().padding(.horizontal, 16)
 
             DisclosureGroup("Dishes & timing") {
@@ -224,13 +231,13 @@ struct PlanView: View {
             // useful. Select the menu first, then adjust.
             if selected {
                 Button { editingStep = step } label: {
-                    Label("\(minutes) min", systemImage: "pencil")
+                    Label("\(Scheduling.formatMinutes(minutes))", systemImage: "pencil")
                 }
                     .buttonStyle(QuietButtonStyle())
                     .accessibilityLabel("Edit \(step.title) estimate, \(minutes) minutes")
                     .disabled(hasProgress)
             } else {
-                Text("\(step.minutes) min")
+                Text("\(Scheduling.formatMinutes(step.minutes))")
                     .font(.caption)
                     .foregroundStyle(Theme.muted)
             }

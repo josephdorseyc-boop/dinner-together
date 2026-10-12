@@ -413,15 +413,15 @@ struct CookingView: View {
         if let report = readiness {
             let emphasized = report.driftMinutes >= Self.readinessEmphasisMinutes
             let tone = emphasized ? Theme.warning : Theme.muted
-            let chosen = Scheduling.formatTime(report.serveAt)
-            let ready = Scheduling.formatTime(report.estimatedReadyAt)
+            let chosen = Scheduling.formatMoment(report.serveAt, relativeTo: now)
+            let ready = Scheduling.formatMoment(report.estimatedReadyAt, relativeTo: now)
             // A floored estimate (expired timer still cooking) is a lower
             // bound; say so instead of predicting.
             // A lower bound may only claim the whole minutes it supports
             // (rounded down); "about" keeps nearest rounding. (A2-1)
             let headline = report.estimateIsLowerBound
-                ? "At least \(report.lowerBoundMinutes) min behind"
-                : "Running about \(report.driftMinutes) min behind"
+                ? "At least \(Scheduling.formatMinutes(report.lowerBoundMinutes)) behind"
+                : "Running about \(Scheduling.formatMinutes(report.driftMinutes)) behind"
             let detail = report.estimateIsLowerBound
                 ? "Dinner is set for \(chosen). Unfinished steps can't finish before \(ready)."
                 : "Dinner is set for \(chosen). Unfinished steps are estimated to finish around \(ready)."
@@ -434,8 +434,8 @@ struct CookingView: View {
             let compactLine = "Dinner \(chosen) · \(report.estimateIsLowerBound ? "earliest" : "estimated") \(ready)"
             let readinessLabel = report.estimateIsLowerBound ? "Earliest readiness" : "Estimated readiness"
             let laterPhrase = report.estimateIsLowerBound
-                ? "at least \(report.lowerBoundMinutes) minutes later"
-                : "about \(report.driftMinutes) minutes later"
+                ? "at least \(Scheduling.formatMinutes(report.lowerBoundMinutes)) later"
+                : "about \(Scheduling.formatMinutes(report.driftMinutes)) later"
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Image(systemName: "clock.badge.exclamationmark")
@@ -539,14 +539,14 @@ struct CookingView: View {
             HStack {
                 Text(item.step.dish).font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
                 Spacer()
-                Label("\(item.minutes) min", systemImage: item.step.handsOn ? "hand.raised" : "timer")
+                Label("\(Scheduling.formatMinutes(item.minutes))", systemImage: item.step.handsOn ? "hand.raised" : "timer")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
             Text(item.step.title).font(.title2.weight(.semibold)).foregroundStyle(Theme.ink)
             Text(item.step.handsOn ? "Needs your attention" : "Hands-off after you start")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if overdue {
-                Label("About \(max(1, Int(now.timeIntervalSince(item.plannedStart) / 60))) min late to start", systemImage: "clock.badge.exclamationmark")
+                Label("About \(Scheduling.formatMinutes(max(1, Int(now.timeIntervalSince(item.plannedStart) / 60)))) late to start", systemImage: "clock.badge.exclamationmark")
                     .font(.caption.weight(.medium)).foregroundStyle(Theme.warning)
             }
             Button { startTapped(item) } label: { Label("Start this step", systemImage: "play.fill") }
@@ -578,7 +578,7 @@ struct CookingView: View {
                         .font(.subheadline.weight(.medium)).monospacedDigit().foregroundStyle(Theme.ink)
                 }
                 if !isCooking, blocked == nil, now.timeIntervalSince(item.plannedStart) >= 60 {
-                    Text("About \(max(1, Int(now.timeIntervalSince(item.plannedStart) / 60))) min late to start")
+                    Text("About \(Scheduling.formatMinutes(max(1, Int(now.timeIntervalSince(item.plannedStart) / 60)))) late to start")
                         .font(.caption).foregroundStyle(Theme.warning)
                 }
                 if let blocked = blocked {

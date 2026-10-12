@@ -350,14 +350,14 @@ enum Scheduling {
 
         switch rec?.state ?? .notStarted {
         case .done:
-            return "“\(step.title)” finished at \(formatTime(readyAt))."
+            return "“\(step.title)” finished at \(formatMoment(readyAt, relativeTo: now))."
         case .cooking:
             let deadline = rec?.timerDeadline ?? readyAt
             if deadline <= now {
                 // Expiry is not readiness: say what to do, not what to record.
-                return "The “\(step.title)” timer ended at \(formatTime(deadline)) — check the food; mark this step done when it's ready."
+                return "The “\(step.title)” timer ended at \(formatMoment(deadline, relativeTo: now)) — check the food; mark this step done when it's ready."
             }
-            return "The “\(step.title)” timer ends at \(formatTime(deadline))."
+            return "The “\(step.title)” timer ends at \(formatMoment(deadline, relativeTo: now))."
         case .notStarted:
             break
         }
@@ -366,10 +366,10 @@ enum Scheduling {
         let pendingMinutes = dish
             .filter { (session.records[$0.id]?.state ?? .notStarted) == .notStarted }
             .reduce(0) { $0 + effectiveMinutes($1, durations: durations) }
-        let remaining = "about \(pendingMinutes) min of \(step.dish) steps remain"
+        let remaining = "about \(formatMinutes(pendingMinutes)) of \(step.dish) steps remain"
         guard let firstIndex = dish.firstIndex(where: {
             (session.records[$0.id]?.state ?? .notStarted) != .done
-        }) else { return "About \(pendingMinutes) min of \(step.dish) steps remain." }
+        }) else { return "About \(formatMinutes(pendingMinutes)) of \(step.dish) steps remain." }
         let first = dish[firstIndex]
         let firstRec = session.records[first.id]
 
@@ -377,14 +377,14 @@ enum Scheduling {
         case .cooking:
             let deadline = firstRec?.timerDeadline ?? now
             if deadline <= now {
-                return "The “\(first.title)” timer ended at \(formatTime(deadline)) — check the food; mark that step done when it's ready. After it, \(remaining)."
+                return "The “\(first.title)” timer ended at \(formatMoment(deadline, relativeTo: now)) — check the food; mark that step done when it's ready. After it, \(remaining)."
             }
-            return "The “\(first.title)” timer ends at \(formatTime(deadline)), then \(remaining)."
+            return "The “\(first.title)” timer ends at \(formatMoment(deadline, relativeTo: now)), then \(remaining)."
         case .notStarted:
             let plannedStart = planByID[first.id]?.plannedStart ?? now
             let lateBy = now.timeIntervalSince(plannedStart)
             if lateBy >= 60 {
-                return "“\(first.title)” is \(Int(lateBy / 60)) min late to start, and \(remaining)."
+                return "“\(first.title)” is \(formatMinutes(Int(lateBy / 60))) late to start, and \(remaining)."
             }
             // Not late to start: an earlier step's actual end pushed the chain.
             let lateFinish = dish[..<firstIndex].compactMap { s -> (step: CookingStep, minutes: Int)? in
@@ -394,11 +394,11 @@ enum Scheduling {
                 return late >= 60 ? (step: s, minutes: Int((late / 60).rounded())) : nil
             }.max { $0.minutes < $1.minutes }
             if let lateFinish = lateFinish {
-                return "“\(lateFinish.step.title)” finished \(lateFinish.minutes) min late."
+                return "“\(lateFinish.step.title)” finished \(formatMinutes(lateFinish.minutes)) late."
             }
-            return "About \(pendingMinutes) min of \(step.dish) steps remain."
+            return "About \(formatMinutes(pendingMinutes)) of \(step.dish) steps remain."
         case .done:
-            return "About \(pendingMinutes) min of \(step.dish) steps remain."
+            return "About \(formatMinutes(pendingMinutes)) of \(step.dish) steps remain."
         }
     }
 
@@ -435,8 +435,8 @@ enum Scheduling {
                 if deadline < newServeAt.addingTimeInterval(-60) {
                     let mins = Int(newServeAt.timeIntervalSince(deadline) / 60)
                     earlyNotes.append(
-                        "The “\(p.step.title)” timer deadline is \(formatTime(deadline)) — about " +
-                        "\(mins) min before the new dinner time. Check the food to confirm it's ready. " +
+                        "The “\(p.step.title)” timer deadline is \(formatMoment(deadline, relativeTo: session.serveAt)) — about " +
+                        "\(formatMinutes(mins)) before the new dinner time. Check the food to confirm it's ready. " +
                         "We won't guess a safe holding time; check your recipe."
                     )
                 }
@@ -479,7 +479,7 @@ enum Scheduling {
         var s = session
         s.serveAt = proposal.newServeAt
         s.history.append(HistoryEvent(text:
-            "Added \(proposal.minutes) min — dinner moved to \(formatTime(proposal.newServeAt)). " +
+            "Added \(formatMinutes(proposal.minutes)) — dinner moved to \(formatTime(proposal.newServeAt)). " +
             "\(proposal.shifts.count) upcoming steps shifted; running timers untouched."
         ))
         return s
@@ -525,7 +525,7 @@ enum Scheduling {
                 .max() ?? 0
             explanation.append(
                 "“\(completedTitle)” finished late — \(affected.count) following step" +
-                "\(affected.count == 1 ? "" : "s") moved about \(mins) min later."
+                "\(affected.count == 1 ? "" : "s") moved about \(formatMinutes(mins)) later."
             )
         }
 
@@ -615,6 +615,26 @@ enum Scheduling {
         timeFormatter.string(from: date)
     }
 
+    /// The integer is already rounded by its caller. Do not round a lower
+    /// bound up while turning minutes into a readable duration.
+    static func formatMinutes(_ minutes: Int) -> String {
+        let value = max(0, minutes)
+        if value < 60 { return "\(value) min" }
+        let hours = value / 60, remainder = value % 60
+        return remainder == 0 ? "\(hours) hr" : "\(hours) hr \(remainder) min"
+    }
+
+    /// Include a calendar date when a time is outside the reference day.
+    /// Explicit dates avoid ambiguous 'tomorrow' when reviewing a stale plan.
+    static func formatMoment(_ date: Date, relativeTo reference: Date = Date(), calendar: Calendar = .current) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.timeStyle = .short
+        formatter.dateStyle = calendar.isDate(date, inSameDayAs: reference) ? .none : .medium
+        return formatter.string(from: date)
+    }
+
     static func formatRange(start: Date, end: Date) -> String {
         "\(formatTime(start)) – \(formatTime(end))"
     }
@@ -623,6 +643,7 @@ enum Scheduling {
     static func formatCountdown(remaining: TimeInterval) -> String {
         if remaining < 0 {
             let o = Int(-remaining)
+            if o >= 3600 { return String(format: "Overdue %d:%02d:%02d", o / 3600, (o % 3600) / 60, o % 60) }
             return String(format: "Overdue %02d:%02d", o / 60, o % 60)
         }
         let r = Int(remaining)

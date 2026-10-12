@@ -78,7 +78,7 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// The menu the engine and the screens use. Subtitle shows the source
     /// so a plan built from "Mom's lasagna" still says where it came from.
     var menu: DinnerMenu {
-        let timing = plannedMinutes > 0 ? "About \(plannedMinutes) min" : "Timing not set"
+        let timing = plannedMinutes > 0 ? "About \(Scheduling.formatMinutes(plannedMinutes))" : "Timing not set"
         let line = [source.byline, timing].compactMap { $0 }.joined(separator: " · ")
         return DinnerMenu(id: menuID, title: title, subtitle: line, symbol: "book.closed", dishes: dishes)
     }
