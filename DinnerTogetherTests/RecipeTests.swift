@@ -266,13 +266,44 @@ final class RecipeBuildTests: XCTestCase {
         XCTAssertEqual(recipe.plannedMinutes, 250)
     }
 
-    func testMeanwhileBecomesParallelDish() throws {
+    func testMeanwhileThatIsCombinedBackStaysInOrder() throws {
+        // "Toss together" needs the garlic butter: the engine can't express a
+        // cross-dish wait, so the meanwhile step is cooked in sequence.
         let imported = try RecipeImporter.parse(html: stringInstructionsHTML, url: nil)
         let recipe = RecipeImporter.build(imported, method: .link, now: t0)
+        XCTAssertEqual(recipe.dishes.count, 1)
+        XCTAssertEqual(recipe.dishes[0].map { $0.title },
+                       ["Boil the noodles 8-10 minutes", "Meanwhile, melt the butter and cook the garlic 2 minutes", "Toss together and serve"])
+        XCTAssertFalse(recipe.dishes[0][1].dish.hasSuffix("— meanwhile"))
+    }
+
+    func testMeanwhileServedSeparatelyRunsInParallel() throws {
+        let text = """
+        Roast vegetables with yogurt dip
+        Directions
+        1. Roast the vegetables for 30 minutes.
+        2. Meanwhile, stir the yogurt dip together, 5 minutes.
+        3. Let the dip rest for 10 minutes.
+        4. Serve the vegetables with the dip on the side.
+        """
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text, now: t0)
         XCTAssertEqual(recipe.dishes.count, 2)
-        XCTAssertEqual(recipe.dishes[0].map { $0.title }, ["Boil the noodles 8-10 minutes", "Toss together and serve"])
-        XCTAssertEqual(recipe.dishes[1].map { $0.title }, ["Meanwhile, melt the butter and cook the garlic 2 minutes"])
-        XCTAssertTrue(recipe.dishes[1][0].dish.hasSuffix("— meanwhile"))
+        XCTAssertEqual(recipe.dishes[1].count, 2)
+    }
+
+    func testLongFirstLineIsStillTheTitle() throws {
+        let text = """
+        Roasted vegetable platter with a separately served lemon sauce and herbs
+        Ingredients
+        4 cups vegetables
+        Directions
+        1. Roast for 35 minutes.
+        """
+        let r = try RecipeImporter.parse(text: text)
+        XCTAssertEqual(r.title, "Roasted vegetable platter with a separately served lemon sauce and herbs")
+        XCTAssertEqual(r.directions.count, 1)
+        XCTAssertEqual(try RecipeImporter.parse(text: "Preheat the oven to 400°F and roast everything for 30 minutes.\nServe.").title,
+                       "Untitled recipe", "an instruction is never taken as the title")
     }
 
     func testEstimatesScaleUpToStatedTotal() {

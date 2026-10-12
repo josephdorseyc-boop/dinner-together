@@ -242,7 +242,10 @@ enum RecipeImporter {
             if isDirectionsHeader(line) { mode = 2; first = false; continue }
             if first {
                 first = false
-                if line.count <= 90, !looksLikeIngredient(line), !looksLikeStep(line) { title = stripStepPrefix(line); continue }
+                // A long first line can still be a title (A2 R5 finding): reject
+                // it only when it reads like an instruction — numbered, starts
+                // with a cooking verb, or ends in a full stop.
+                if line.count <= 120, !looksLikeIngredient(line), !looksLikeInstruction(line) { title = stripStepPrefix(line); continue }
             }
             switch mode {
             case 1: ingredients.append(stripStepPrefix(line))
@@ -281,6 +284,16 @@ enum RecipeImporter {
         let units = #"\b(?:cups?|tbsp|tsp|tablespoons?|teaspoons?|oz|ounces?|lbs?|pounds?|grams?|g|kg|ml|liters?|cloves?|cans?|packages?|bunch|sprigs?|pinch|slices?|sticks?|heads?)\b"#
         return line.count <= 70 && !l.hasSuffix(".") && l.range(of: units, options: .regularExpression) != nil
     }
+
+    /// `looksLikeStep` without its "any long line" fallback: used for titles.
+    static func looksLikeInstruction(_ line: String) -> Bool {
+        let l = line.lowercased().trimmingCharacters(in: .whitespaces)
+        if l.hasSuffix(".") || l.hasSuffix("!") { return true }
+        if l.range(of: #"^\s*(?:step\s*\d+|\d{1,2}\s*[.):-]\s+)"#, options: .regularExpression) != nil { return true }
+        return l.range(of: stepVerbs, options: .regularExpression) != nil
+    }
+
+    static let stepVerbs = #"^\s*(?:preheat|heat|combine|mix|stir|whisk|add|cook|bake|roast|simmer|boil|bring|place|put|pour|season|serve|remove|transfer|drain|let|cover|reduce|melt|sauté|saute|fry|chop|slice|dice|toss|fold|beat|cut|divide|spread|sprinkle|garnish|meanwhile|while|once|when|in a|using)\b"#
 
     static func looksLikeStep(_ line: String) -> Bool {
         let l = line.lowercased()
@@ -404,6 +417,8 @@ enum RecipeImporter {
         var current: [CookingStep] = []
         var meanwhile: [CookingStep] = []
         var inMeanwhile = false
+        var joinAt: Int?
+        var rejoins = false
         var n = 0
         let directions = imported.directions
         let dishLabel = shortLabel(imported.title, max: 32)
@@ -426,8 +441,24 @@ enum RecipeImporter {
                 meanwhile.append(CookingStep(id: step.id, dish: dishLabel + " — meanwhile", title: step.title,
                                              minutes: step.minutes, detail: step.detail, handsOn: step.handsOn, estimated: step.estimated))
             } else {
+                if !meanwhile.isEmpty {
+                    if joinAt == nil { joinAt = current.count }
+                    if raw.range(of: rejoinPattern, options: [.regularExpression, .caseInsensitive]) != nil { rejoins = true }
+                }
                 current.append(step)
             }
+        }
+        // The engine has no cross-dish prerequisites. A meanwhile section that a
+        // later step combines back in ("toss the pasta with the sauce") would be
+        // planned to finish at dinner time, after the step that needs it. So it
+        // only becomes a parallel dish when nothing combines it back; otherwise
+        // it is cooked in order. Slower, never wrong (A2 R5 finding).
+        if rejoins, let at = joinAt {
+            current.insert(contentsOf: meanwhile.map {
+                CookingStep(id: $0.id, dish: dishLabel, title: $0.title, minutes: $0.minutes,
+                            detail: $0.detail, handsOn: $0.handsOn, estimated: $0.estimated)
+            }, at: at)
+            meanwhile = []
         }
         if !current.isEmpty { dishes.append(current) }
         if !meanwhile.isEmpty { dishes.append(meanwhile) }
@@ -445,6 +476,9 @@ enum RecipeImporter {
         recipe.needsTimingReview = true
         return recipe
     }
+
+    /// Steps that put a meanwhile component back into the main dish.
+    static let rejoinPattern = #"^\s*(?:combine|toss|return|add the [\w\s]{1,30}? to|stir (?:in|together|the \w+ into)|pour (?:the \w+ )?over|spoon (?:the \w+ )?over|top (?:the|with)|fold in|transfer the \w+ to the)\b|\b(?:toss|combine)\b.*\b(?:with|together)\b"#
 
     /// When the recipe states a total time and the guessed steps leave the
     /// plan short of it, grow the guesses (never the stated times) to meet it.
