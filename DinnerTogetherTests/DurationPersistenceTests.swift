@@ -26,7 +26,7 @@ final class DurationPersistenceTests: XCTestCase {
         return library.recipe(id: recipe.id)!
     }
 
-    func testDurationEditPersistsAcrossRelaunch() throws {
+    func testDurationEditPersistsAcrossRelaunch() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         let recipe = try recipeAt180(in: library)
@@ -43,7 +43,7 @@ final class DurationPersistenceTests: XCTestCase {
                        "saving 181 minutes persists after relaunch")
     }
 
-    func testFailedConfirmationRollsBack() throws {
+    func testFailedConfirmationRollsBack() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         let recipe = try recipeAt180(in: library)
@@ -62,20 +62,24 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertNotNil(library.saveError, "visible feedback for the failed save")
     }
 
-    func testFailedDeletePreservesRecipeAndPhoto() throws {
+    func testFailedDeletePreservesRecipeAndPhoto() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         let recipe = try recipeAt180(in: library)
         let name = library.saveImage(Data([0xFF, 0xD8]), for: recipe.id)!
         let saved = library.recipe(id: recipe.id)!
 
-        let moved = dir.deletingLastPathComponent().appending(path: "moved-\(UUID().uuidString)")
-        try FileManager.default.moveItem(at: dir, to: moved)
-        try Data().write(to: dir)
+        // Block only the JSON destination. The original image stays reachable,
+        // so deleting it before a failed save would genuinely fail this test.
+        let image = dir.appending(path: "recipe-images/\(name)")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: image.path))
+        let json = dir.appending(path: "dinner-together-recipes-v1.json")
+        try FileManager.default.removeItem(at: json)
+        try FileManager.default.createDirectory(at: json, withIntermediateDirectories: false)
 
         XCTAssertFalse(library.remove(id: recipe.id))
         XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed delete keeps the recipe")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: moved.appending(path: "recipe-images/\(name)").path),
+        XCTAssertTrue(FileManager.default.fileExists(atPath: image.path),
                       "the photo survives a failed delete")
     }
 }
