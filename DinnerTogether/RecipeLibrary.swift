@@ -231,11 +231,19 @@ struct RecipeImportService {
         do {
             imported = try RecipeImporter.parse(html: html, url: pageURL)
         } catch RecipeImportError.noRecipeData {
-            guard let next = RecipeImporter.redirectTarget(inHTML: html, from: pageURL), next != pageURL else { throw RecipeImportError.noRecipeData }
-            let second = try await fetcher.fetch(next)
-            html = String(decoding: second.data, as: UTF8.self)
-            pageURL = second.finalURL
-            imported = try RecipeImporter.parse(html: html, url: pageURL)
+            let newsPlaceholder = RecipeImporter.isAppleNewsPlaceholder(url: pageURL, html: html)
+            let newsError = RecipeImportError.appleNewsOnly(title: RecipeImporter.placeholderTitle(html))
+            guard let next = RecipeImporter.redirectTarget(inHTML: html, from: pageURL), next != pageURL else {
+                throw newsPlaceholder ? newsError : RecipeImportError.noRecipeData
+            }
+            do {
+                let second = try await fetcher.fetch(next)
+                html = String(decoding: second.data, as: UTF8.self)
+                pageURL = second.finalURL
+                imported = try RecipeImporter.parse(html: html, url: pageURL)
+            } catch {
+                throw newsPlaceholder ? newsError : error
+            }
         }
         if imported.source.url == nil { imported.source.url = pageURL }
         let recipe = RecipeImporter.build(imported, method: .link, now: now)

@@ -32,6 +32,9 @@ struct ImportedSection: Equatable {
 enum RecipeImportError: Error, Equatable, LocalizedError {
     case noRecipeData
     case emptyText
+    /// An apple.news link: News serves a placeholder page, never the recipe.
+    case appleNewsOnly(title: String?)
+    case noTextInScreenshots
 
     var errorDescription: String? {
         switch self {
@@ -39,6 +42,11 @@ enum RecipeImportError: Error, Equatable, LocalizedError {
             return "This page doesn’t include recipe data the app can read. Copy the recipe text and paste it instead."
         case .emptyText:
             return "Paste the recipe’s ingredients and directions first."
+        case .appleNewsOnly(let title):
+            let name = title.map { "“\($0)” " } ?? "This recipe "
+            return name + "lives inside the Apple News app, so its link can’t be read. In News, take screenshots of the recipe — the title, ingredients and every step — then choose Screenshots above."
+        case .noTextInScreenshots:
+            return "We couldn’t find recipe text in those images. Choose screenshots that show the ingredients and steps."
         }
     }
 }
@@ -80,6 +88,21 @@ enum RecipeImporter {
             }
         }
         return nil
+    }
+
+    /// apple.news links open a "only available in Apple News" placeholder that
+    /// carries the title and nothing else (checked October 11, 2026).
+    static func isAppleNewsPlaceholder(url: URL, html: String) -> Bool {
+        let host = (url.host ?? "").lowercased()
+        return host.hasSuffix("apple.news") || html.contains("only available in Apple News")
+    }
+
+    /// og:title without the " — Publisher" suffix.
+    static func placeholderTitle(_ html: String) -> String? {
+        let raw = firstMatch(#"<meta[^>]+property\s*=\s*["']og:title["'][^>]*content\s*=\s*["']([^"']+)["']"#, in: html, group: 1, caseInsensitive: true)
+            ?? firstMatch(#"<title[^>]*>([\s\S]*?)</title>"#, in: html, group: 1, caseInsensitive: true)
+        guard let t = raw.map(decodeEntities).map(cleanLine), !t.isEmpty else { return nil }
+        return t.components(separatedBy: " — ").first?.components(separatedBy: " - ").first ?? t
     }
 
     static func jsonLDBlocks(in html: String) -> [String] {
@@ -378,7 +401,7 @@ enum RecipeImporter {
     static func isHandsOff(_ text: String, minutes: Int?) -> Bool {
         if let m = minutes, m < 3 { return false }
         let l = text.lowercased()
-        let passive = #"\b(bake|baking|roast|roasting|simmer|simmering|freeze|freezing|chill|chilling|refrigerate|refrigerating|rest|resting|let (?:it |them |the \w+ )?(?:stand|sit|rest|cool|rise|steep|soak)|cool (?:completely|slightly|to room)|marinate|marinating|rise|proof|prove|proving|soak|soaking|steep|braise|braising|slow[- ]cook|preheat|until (?:set|firm|solid|frozen|doubled)|in the oven|in the fridge|in the freezer|overnight|boil (?:the )?(?:potatoes|pasta|eggs|rice)|cook,? covered|covered,? (?:for|until))\b"#
+        let passive = #"\b(bake|baking|roast|roasting|simmer|simmering|freeze|freezing|chill|chilling|refrigerate|refrigerating|rest|resting|let (?:it |them |the \w+ )?(?:stand|sit|rest|cool|rise|steep|soak)|cool (?:completely|slightly|to room)|cool,? (?:about|for)|marinate|marinating|rise|proof|prove|proving|soak|soaking|steep|braise|braising|slow[- ]cook|preheat|until (?:set|firm|solid|frozen|doubled)|in the oven|in the fridge|in the freezer|overnight|boil (?:the )?(?:potatoes|pasta|eggs|rice)|cook,? covered|covered,? (?:for|until))\b"#
         let active = #"\b(stir(?:ring)? (?:constantly|continuously|frequently)|whisk(?:ing)? (?:constantly|continuously)|constantly|continuously)\b"#
         guard l.range(of: passive, options: .regularExpression) != nil else { return false }
         return l.range(of: active, options: .regularExpression) == nil
@@ -611,5 +634,293 @@ enum RecipeImporter {
             let r = m.range(at: group)
             return r.location == NSNotFound ? nil : ns.substring(with: r)
         }
+    }
+}
+
+// MARK: - Screenshots (text recognized on the device)
+
+/// One line of text recognized in a screenshot or photo. Coordinates are
+/// fractions of the image: 0 is the top/left edge, 1 the bottom/right.
+struct OCRLine: Equatable {
+    var text: String
+    var top: Double
+    var left: Double = 0.06
+    var height: Double = 0.015
+    var bottom: Double { top + height }
+}
+
+extension RecipeImporter {
+
+    /// Builds a recipe from screenshots of a recipe page — Apple News+ Food,
+    /// a cookbook app, a website — in any order, overlapping or not.
+    ///
+    /// - The title is the heading repeated at the top of several screenshots
+    ///   (a navigation bar), or else the tallest text.
+    /// - "STEP n" labels key the directions, so a step cut across two
+    ///   screenshots is stitched back together and duplicates collapse.
+    /// - Ingredient lines are grouped by spacing: a wrapped line joins the
+    ///   ingredient above it; a gap starts a new one.
+    /// - App chrome (status bar, tabs, buttons) is dropped.
+    static func parse(screenshots pages: [[OCRLine]]) throws -> ImportedRecipe {
+        let cleaned = pages.map { readingOrder($0.map(cleanOCR).filter { !$0.text.isEmpty }) }
+        guard cleaned.contains(where: { !$0.isEmpty }) else { throw RecipeImportError.noTextInScreenshots }
+
+        let title = screenshotTitle(cleaned)
+        let titleKey = title.map(normalizedKey) ?? ""
+        var recipe = ImportedRecipe(title: title ?? "Untitled recipe")
+
+        var ingredients: [String] = []
+        var stepHeads: [Int: [String]] = [:]
+        var stepTails: [Int: [String]] = [:]
+        var looseSteps: [String] = []
+
+        for page in cleaned {
+            let tabRow = tabBarRow(page)
+            let firstMarker = page.compactMap { stepNumber($0.text) }.first
+            let hasHeader = page.contains { isIngredientsHeader($0.text) || isDirectionsHeader($0.text) }
+            enum Mode { case unknown, ingredients, directions, step(Int) }
+            var mode = Mode.unknown
+            var preMarker: [String] = []
+            var looseBlock: [String] = []
+            var previous: OCRLine?
+            var i = 0
+
+            func flushLoose() {
+                if !looseBlock.isEmpty { looseSteps.append(joinLines(looseBlock)); looseBlock = [] }
+            }
+
+            while i < page.count {
+                let line = page[i]
+                defer { previous = line; i += 1 }
+                let text = line.text
+                let key = normalizedKey(text)
+                if let row = tabRow, abs(line.top - row) < 0.012 { continue }
+                if isChrome(key) { continue }
+                if key.count >= 4, !titleKey.isEmpty, titleKey.contains(key) { continue }
+
+                // Metadata, inline ("Yield: 2") or as label/value rows.
+                if let v = firstMatch(#"^(?:total time|total)\s*[:：]\s*(.+)$"#, in: text, group: 1, caseInsensitive: true) {
+                    recipe.totalMinutes = recipe.totalMinutes ?? minutes(in: v); continue
+                }
+                if let v = firstMatch(#"^(?:yield|serves|servings|makes)\s*[:：]?\s*(.+)$"#, in: text, group: 1, caseInsensitive: true),
+                   !["yield", "serves", "servings", "makes"].contains(key) {
+                    recipe.yield = recipe.yield ?? cleanLine(v); continue
+                }
+                if ["total time", "yield", "servings", "serves", "prep time", "cook time"].contains(key) {
+                    // Labels side by side, values on the next row in the same order.
+                    var labels = [key]
+                    var j = i + 1
+                    while j < page.count, ["total time", "yield", "servings", "serves", "prep time", "cook time"].contains(normalizedKey(page[j].text)) {
+                        labels.append(normalizedKey(page[j].text)); j += 1
+                    }
+                    for label in labels where j < page.count {
+                        let value = page[j].text
+                        switch label {
+                        case "total time": recipe.totalMinutes = recipe.totalMinutes ?? minutes(in: value)
+                        case "yield", "servings", "serves": recipe.yield = recipe.yield ?? value
+                        default: break
+                        }
+                        j += 1
+                    }
+                    i = j - 1
+                    continue
+                }
+                if case .unknown = mode,
+                   firstMatch(#"^(.{2,40}?)\s+[•·∙●–]\s+(.{2,60})$"#, in: text, group: 0) != nil,
+                   recipe.source.publisher == nil {
+                    let parts = text.components(separatedBy: CharacterSet(charactersIn: "•·∙●–")).map { $0.trimmingCharacters(in: .whitespaces) }
+                    if parts.count == 2 { recipe.source.publisher = parts[0]; recipe.source.author = parts[1]; continue }
+                }
+
+                if isIngredientsHeader(text) { flushLoose(); mode = .ingredients; continue }
+                if isDirectionsHeader(text) { flushLoose(); mode = .directions; continue }
+                if let n = stepNumber(text) { flushLoose(); mode = .step(n); stepHeads[n, default: []].append(""); continue }
+
+                switch mode {
+                case .unknown:
+                    if firstMarker != nil { preMarker.append(text) }
+                    else if !hasHeader {
+                        // A bare screenshot (cookbook page, scrolled list): sort by shape.
+                        if looksLikeIngredient(text) && !looksLikeInstruction(text) { ingredients.append(stripStepPrefix(text)) }
+                        else {
+                            if startsParagraph(text, line, previous, blockIsEmpty: looseBlock.isEmpty) { flushLoose() }
+                            looseBlock.append(text)
+                        }
+                    }
+                case .ingredients:
+                    let gap = previous.map { line.top - $0.bottom } ?? 1
+                    let startsNew = gap > line.height * 1.0 || startsWithQuantity(text) || ingredients.isEmpty
+                    if startsNew || previousWasHeader(previous) { ingredients.append(stripStepPrefix(text)) }
+                    else { ingredients[ingredients.count - 1] = joinLines([ingredients[ingredients.count - 1], text]) }
+                case .directions:
+                    if startsParagraph(text, line, previous, blockIsEmpty: looseBlock.isEmpty) { flushLoose() }
+                    looseBlock.append(text)
+                case .step(let n):
+                    var heads = stepHeads[n] ?? [""]
+                    heads[heads.count - 1] = joinLines([heads[heads.count - 1], text])
+                    stepHeads[n] = heads
+                }
+            }
+            flushLoose()
+            if let m = firstMarker, m > 1, !preMarker.isEmpty { stepTails[m - 1, default: []].append(joinLines(preMarker)) }
+        }
+
+        // Ingredients: drop fragments, collapse duplicates across screenshots.
+        var merged: [String] = []
+        for item in ingredients.map(cleanLine) where item.filter({ $0.isLetter }).count >= 3 {
+            let k = normalizedKey(item)
+            if let idx = merged.firstIndex(where: { normalizedKey($0).hasPrefix(k) }) { _ = idx; continue }
+            if let idx = merged.firstIndex(where: { k.hasPrefix(normalizedKey($0)) }) { merged[idx] = item; continue }
+            merged.append(item)
+        }
+        recipe.ingredients = merged
+
+        // Directions: the longest copy of each numbered step, plus any tail
+        // that a later screenshot showed and the longest copy lacks.
+        var steps: [String] = []
+        for n in Set(stepHeads.keys).union(stepTails.keys).sorted() {
+            var text = (stepHeads[n] ?? []).max(by: { $0.count < $1.count }) ?? ""
+            for tail in stepTails[n] ?? [] where !normalizedKey(text).contains(normalizedKey(tail)) {
+                text = mergeOverlapping(text, tail)
+            }
+            text = cleanLine(text)
+            if !text.isEmpty { steps.append(text) }
+        }
+        steps.append(contentsOf: looseSteps.map(stripStepPrefix).filter { !$0.isEmpty })
+        if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
+
+        guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
+        return recipe
+    }
+
+    // MARK: Screenshot helpers
+
+    /// Removes recognition artifacts around Apple's inline timer chips
+    /// ("about © 30 seconds ." → "about 30 seconds.").
+    static func cleanOCR(_ line: OCRLine) -> OCRLine {
+        var t = line.text
+        t = t.replacingOccurrences(of: #"[©®⏱◷⌚⏲]"#, with: " ", options: .regularExpression)
+        t = t.replacingOccurrences(of: #"\(\s*(\d[^()]{0,24}?(?:seconds?|minutes?|mins?|hours?|hrs?))\s*\)"#, with: "$1", options: [.regularExpression, .caseInsensitive])
+        t = t.replacingOccurrences(of: #"\s+([.,;:!?)])"#, with: "$1", options: .regularExpression)
+        var out = line
+        out.text = cleanLine(t)
+        return out
+    }
+
+    /// Top-to-bottom, and left-to-right within a row.
+    static func readingOrder(_ lines: [OCRLine]) -> [OCRLine] {
+        let sorted = lines.sorted { $0.top < $1.top }
+        var rows: [[OCRLine]] = []
+        for line in sorted {
+            if let last = rows.last?.first, abs(line.top - last.top) < max(0.004, min(line.height, last.height) * 0.5) {
+                rows[rows.count - 1].append(line)
+            } else {
+                rows.append([line])
+            }
+        }
+        return rows.flatMap { $0.sorted { $0.left < $1.left } }
+    }
+
+    static func normalizedKey(_ s: String) -> String {
+        s.lowercased().replacingOccurrences(of: #"[^\p{L}\p{N}½¼¾⅓⅔⅛]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespaces)
+    }
+
+    static func stepNumber(_ text: String) -> Int? {
+        firstMatch(#"^\s*step\s*(\d{1,2})\s*[:.]?\s*$"#, in: text, group: 1, caseInsensitive: true).flatMap { Int($0) }
+    }
+
+    static func startsWithQuantity(_ text: String) -> Bool {
+        text.range(of: #"^\s*(?:[-•*·]\s*)?(?:\d|½|¼|¾|⅓|⅔|⅛)"#, options: .regularExpression) != nil
+    }
+
+    static func isChrome(_ key: String) -> Bool {
+        if key.isEmpty { return true }
+        if key.range(of: #"^\d{1,2} \d{2}$"#, options: .regularExpression) != nil { return true }   // 6:09
+        if key.range(of: #"^\d{1,3}$"#, options: .regularExpression) != nil { return true }         // battery
+        if key.count <= 2 && key.range(of: #"\d"#, options: .regularExpression) == nil { return true }
+        let exact: Set<String> = ["nutrition", "more", "scale", "cook", "save", "share", "start cooking", "read the story",
+                                  "customize units", "recipe units are from the publisher", "in reminders", "print",
+                                  "jump to recipe", "cook save share", "show more", "see more", "notes", "reviews"]
+        if exact.contains(key) { return true }
+        return key.contains("grocery list") || key.hasPrefix("add to grocery")
+    }
+
+    /// The row holding both "Ingredients" and "Directions" side by side is a
+    /// tab bar, not a section header.
+    static func tabBarRow(_ page: [OCRLine]) -> Double? {
+        let ing = page.filter { normalizedKey($0.text) == "ingredients" }
+        let dir = page.filter { normalizedKey($0.text) == "directions" || normalizedKey($0.text) == "instructions" || normalizedKey($0.text) == "method" }
+        for a in ing { if dir.contains(where: { abs($0.top - a.top) < 0.012 }) { return a.top } }
+        return nil
+    }
+
+    /// The heading repeated at the top of two or more screenshots wins; else
+    /// the run of tallest text on any screenshot.
+    static func screenshotTitle(_ pages: [[OCRLine]]) -> String? {
+        var counts: [String: (count: Int, text: String, underTabs: Bool)] = [:]
+        for page in pages {
+            let tab = tabBarRow(page)
+            let top = page.filter { $0.top < 0.16 && (tab == nil || $0.top < tab! - 0.012) && !isChrome(normalizedKey($0.text)) }
+            guard !top.isEmpty else { continue }
+            let joined = joinLines(top.map { $0.text })
+            let k = normalizedKey(joined)
+            guard k.count >= 4 else { continue }
+            counts[k] = ((counts[k]?.count ?? 0) + 1, joined, (counts[k]?.underTabs ?? false) || tab != nil)
+        }
+        // Repeated across screenshots, or a single navigation title sitting
+        // directly above an Ingredients/Directions tab bar.
+        if let best = counts.values.filter({ $0.count >= 2 || $0.underTabs })
+            .max(by: { ($0.count, $0.text.count) < ($1.count, $1.text.count) }) { return best.text }
+
+        for page in pages {
+            let heights = page.map { $0.height }.sorted()
+            guard heights.count >= 3 else { continue }
+            let median = heights[heights.count / 2]
+            var run: [String] = []
+            for line in page {
+                let k = normalizedKey(line.text)
+                if line.height >= median * 1.35 && !isChrome(k) && !isIngredientsHeader(line.text) && !isDirectionsHeader(line.text) && stepNumber(line.text) == nil {
+                    run.append(line.text)
+                } else if !run.isEmpty { break }
+            }
+            if !run.isEmpty { return joinLines(run) }
+        }
+        return nil
+    }
+
+    static func joinLines(_ parts: [String]) -> String {
+        var out = ""
+        for p in parts.map({ $0.trimmingCharacters(in: .whitespaces) }) where !p.isEmpty {
+            if out.isEmpty { out = p }
+            else if out.hasSuffix("-") && !out.hasSuffix(" -") { out.removeLast(); out += p }
+            else { out += " " + p }
+        }
+        return out
+    }
+
+    /// Joins a head and a tail that may overlap ("…medium heat. Remove" +
+    /// "Remove from heat…").
+    static func mergeOverlapping(_ head: String, _ tail: String) -> String {
+        let a = head.split(separator: " ").map(String.init)
+        let b = tail.split(separator: " ").map(String.init)
+        for k in stride(from: min(a.count, b.count), through: 2, by: -1) {
+            if a.suffix(k).map(normalizedKey) == b.prefix(k).map(normalizedKey) {
+                return joinLines([head, b.dropFirst(k).joined(separator: " ")])
+            }
+        }
+        return joinLines([head, tail])
+    }
+
+    private static func previousWasHeader(_ previous: OCRLine?) -> Bool {
+        guard let p = previous?.text else { return true }
+        return isIngredientsHeader(p) || normalizedKey(p).hasPrefix("yield") || normalizedKey(p) == "scale"
+    }
+
+    private static func startsParagraph(_ text: String, _ line: OCRLine, _ previous: OCRLine?, blockIsEmpty: Bool) -> Bool {
+        guard !blockIsEmpty else { return false }
+        let gap = previous.map { line.top - $0.bottom } ?? 1
+        let numbered = text.range(of: #"^\s*\d{1,2}\s*[.)]\s+"#, options: .regularExpression) != nil
+        return gap > line.height * 1.0 || numbered
     }
 }
