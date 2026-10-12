@@ -97,6 +97,10 @@ struct RecipeRow: View {
     let recipe: Recipe
     let selected: Bool
 
+    // Explicit: the private wrapper makes the memberwise init file-private,
+    // and Tonight (PlanView.swift) shows this row too.
+    init(recipe: Recipe, selected: Bool) { self.recipe = recipe; self.selected = selected }
+
     var body: some View {
         HStack(spacing: 14) {
             RecipeThumbnail(recipe: recipe, size: 58)
@@ -136,8 +140,12 @@ struct RecipeThumbnail: View {
 
     var body: some View {
         Group {
-            if let url = library.imageURL(for: recipe), let image = UIImage(contentsOfFile: url.path) {
+            if let image = RecipePhotos.load(recipe, from: library)?.image {
                 Image(uiImage: image).resizable().scaledToFill()
+            } else if let palette = recipe.resolvedPalette(photo: nil) {
+                Image(systemName: "book.closed").font(.title3.weight(.medium)).foregroundStyle(.white.opacity(0.9))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(palette.swatchGradient)
             } else {
                 Image(systemName: "book.closed").font(.title3.weight(.medium)).foregroundStyle(Theme.muted)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -480,8 +488,16 @@ struct RecipeDetailView: View {
     @State private var confirmingReplace = false
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
+    @State private var choosingPageStyle = false
+    @Environment(\.colorScheme) private var colorScheme
 
     private var recipe: Recipe? { library.recipe(id: recipeID) }
+    /// The page's colors (photo or the cook's choice); nil = classic cream.
+    private var pagePalette: RecipePalette? { recipe.flatMap { RecipePhotos.palette(for: $0, from: library) } }
+    /// A colored page always draws light text on its deep colors, whatever
+    /// the phone's appearance; the classic page follows the phone.
+    private var pageScheme: ColorScheme { pagePalette == nil ? colorScheme : .dark }
+    private var labelColor: Color { pagePalette == nil ? Theme.olive : Theme.pageAccent }
     private var isTonight: Bool { store.session.menuID == recipe?.menuID }
     private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
     /// Timing is frozen while this recipe is being cooked, same rule as the catalog.
@@ -515,9 +531,19 @@ struct RecipeDetailView: View {
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .background(Theme.recipeBackground)
-                .safeAreaInset(edge: .bottom, spacing: 0) { cookBar(recipe) }
+                .background {
+                    if let palette = pagePalette { RecipePageBackground(palette: palette) }
+                    else { Theme.recipeBackground.ignoresSafeArea() }
+                }
+                .environment(\.recipePalette, pagePalette)
+                .environment(\.colorScheme, pageScheme)
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    cookBar(recipe)
+                        .environment(\.recipePalette, pagePalette)
+                        .environment(\.colorScheme, pageScheme)
+                }
                 .toolbar { moreMenu(recipe) }
+                .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID) }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
                         guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
@@ -554,7 +580,7 @@ struct RecipeDetailView: View {
 
     @ViewBuilder
     private func hero(_ recipe: Recipe) -> some View {
-        if let url = library.imageURL(for: recipe), let image = UIImage(contentsOfFile: url.path) {
+        if let image = RecipePhotos.load(recipe, from: library)?.image {
             VStack(alignment: .leading, spacing: 0) {
                 // Width comes from the screen, not the photo: a fill-scaled image
                 // framed only by height keeps its natural width and widens the page.
@@ -563,11 +589,24 @@ struct RecipeDetailView: View {
                     .frame(height: dynamicTypeSize.isAccessibilitySize ? 160 : 240)
                     .overlay(Image(uiImage: image).resizable().scaledToFill())
                     .clipped()
+                    .mask {
+                        // Colored page: the photo itself fades out, so it melts
+                        // into the gradient (the page's top third is one color).
+                        if pagePalette != nil {
+                            LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.6),
+                                                   .init(color: .clear, location: 1)],
+                                           startPoint: .top, endPoint: .bottom)
+                        } else {
+                            Rectangle()
+                        }
+                    }
                     .overlay(alignment: .bottom) {
-                        LinearGradient(colors: [Theme.cream.opacity(0), Theme.cream],
-                                       startPoint: .top, endPoint: .bottom)
-                            .frame(height: 80)
-                            .allowsHitTesting(false)
+                        if pagePalette == nil {
+                            LinearGradient(colors: [Theme.cream.opacity(0), Theme.cream],
+                                           startPoint: .top, endPoint: .bottom)
+                                .frame(height: 80)
+                                .allowsHitTesting(false)
+                        }
                     }
                     // A content photo, not decoration: VoiceOver names it and
                     // tests can find it (cover-crop flow).
@@ -582,10 +621,20 @@ struct RecipeDetailView: View {
             }
         } else {
             VStack(alignment: .leading, spacing: 12) {
-                if !dynamicTypeSize.isAccessibilitySize {
-                    Label("FROM YOUR COLLECTION", systemImage: "book.closed")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(Theme.olive)
+                HStack(alignment: .center, spacing: 8) {
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Label("FROM YOUR COLLECTION", systemImage: "book.closed")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(labelColor)
+                    }
+                    Spacer(minLength: 0)
+                    // Typed and pasted recipes have no photo to take colors
+                    // from, so the choice is on the page, not only in •••.
+                    Button { choosingPageStyle = true } label: {
+                        Label("Page color", systemImage: "paintpalette")
+                    }
+                    .buttonStyle(QuietButtonStyle())
+                    .accessibilityIdentifier("page-color-button")
                 }
                 titleBlock(recipe, onPhoto: false)
             }
@@ -657,7 +706,8 @@ struct RecipeDetailView: View {
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
             }
             .foregroundStyle(Theme.ink)
-            .dtCard()
+            .padding(22)
+            .recipeSurface(cornerRadius: 26)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("timing-review-banner")
@@ -673,7 +723,7 @@ struct RecipeDetailView: View {
                         .padding(.horizontal, 10).frame(minHeight: 44)
                         .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(tab == t ? Theme.ink : Theme.muted)
-                        .background(tab == t ? Theme.paper : .clear, in: Capsule())
+                        .background(tab == t ? selectedTabFill : .clear, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(tab == t ? .isSelected : [])
@@ -688,7 +738,7 @@ struct RecipeDetailView: View {
                         .padding(.horizontal, 10).frame(minHeight: 44)
                         .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(tab == t ? Theme.ink : Theme.muted)
-                        .background(tab == t ? Theme.paper : .clear, in: Capsule())
+                        .background(tab == t ? selectedTabFill : .clear, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(tab == t ? .isSelected : [])
@@ -698,7 +748,11 @@ struct RecipeDetailView: View {
             }
         }
         .padding(4)
-        .background(Theme.ink.opacity(0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .modifier(TabTrack(colored: pagePalette != nil))
+    }
+
+    private var selectedTabFill: Color {
+        pagePalette == nil ? Theme.paper : Color.white.opacity(RecipePalette.selectedLift)
     }
 
     // MARK: Tabs
@@ -714,7 +768,7 @@ struct RecipeDetailView: View {
                     .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 18).padding(.vertical, 14)
-                    .background(Theme.paper, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .recipeSurface(cornerRadius: 18)
             }
         }
     }
@@ -727,9 +781,10 @@ struct RecipeDetailView: View {
             ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
                 VStack(alignment: .leading, spacing: 8) {
                     Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
-                        .foregroundStyle(Theme.olive)
+                        .foregroundStyle(labelColor)
                         .accessibilityAddTraits(.isHeader)
-                    TimedText.make(line).font(.title3).lineSpacing(7)
+                    TimedText.make(line, accent: pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+                        .font(.title3).lineSpacing(7)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
@@ -753,7 +808,7 @@ struct RecipeDetailView: View {
             ForEach(recipe.dishes, id: \.self) { dish in
                 VStack(alignment: .leading, spacing: 10) {
                     if recipe.dishes.count > 1 {
-                        Text(dish.first?.dish ?? "").font(.caption.weight(.bold)).foregroundStyle(Theme.olive)
+                        Text(dish.first?.dish ?? "").font(.caption.weight(.bold)).foregroundStyle(labelColor)
                     }
                     ForEach(dish) { step in timingRow(step) }
                 }
@@ -790,7 +845,7 @@ struct RecipeDetailView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.paper, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .recipeSurface(cornerRadius: 18)
         .accessibilityElement(children: .contain)
     }
 
@@ -830,14 +885,16 @@ struct RecipeDetailView: View {
                 Label("View the original\(recipe.source.publisher.map { " on \($0)" } ?? "")", systemImage: "safari")
                     .font(.subheadline.weight(.semibold))
             }
+            .tint(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
             .padding(.top, 8)
         }
     }
 
     // MARK: Actions
 
+    @ViewBuilder
     private func cookBar(_ recipe: Recipe) -> some View {
-        VStack(spacing: 6) {
+        let bar = VStack(spacing: 6) {
             if isTonight {
                 Text("This is tonight’s dinner. Set the time on Tonight, then build your plan.")
                     .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
@@ -851,33 +908,70 @@ struct RecipeDetailView: View {
                     }
                     UIAccessibility.post(notification: .announcement, argument: "Timing confirmed.")
                 } label: { Label("Timing looks right", systemImage: "checkmark") }
-                .buttonStyle(BigButtonStyle())
+                .buttonStyle(BigButtonStyle(onColoredPage: pagePalette != nil))
                 .disabled(timingLocked || recipe.steps.isEmpty)
                 .accessibilityIdentifier("timing-looks-right")
             } else {
                 Button {
                     if recipe.needsTimingReview { tab = .timing }
-                    else if isTonight { dismiss() }
+                    // "Back to Tonight" goes to Tonight — not just back to the
+                    // collection with the recipe ticked (Joe, build 10).
+                    else if isTonight { if let onChoose { onChoose() } else { dismiss() } }
                     else if hasProgress { confirmingReplace = true }
                     else { choose(recipe) }
                 } label: {
                     Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
                 }
-                .buttonStyle(BigButtonStyle())
+                .buttonStyle(BigButtonStyle(onColoredPage: pagePalette != nil))
                 .disabled(recipe.steps.isEmpty)
                 .accessibilityIdentifier("cook-this-recipe")
             }
         }
         .padding(.horizontal, 24).padding(.vertical, 12)
         .frame(maxWidth: 720).frame(maxWidth: .infinity)
-        .background(Theme.cream)
+        if let palette = pagePalette {
+            // Frosted, and mostly the page's deepest color, so the caption
+            // stays readable whatever scrolls underneath.
+            bar.background {
+                Rectangle().fill(.ultraThinMaterial)
+                    .overlay(palette.colors[2].color.opacity(0.88))
+                    .ignoresSafeArea()
+            }
+        } else {
+            bar.background(Theme.cream)
+        }
     }
 
     @ToolbarContentBuilder
     private func moreMenu(_ recipe: Recipe) -> some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
-            if let url = recipe.source.url {
-                ShareLink(item: url) { Image(systemName: "square.and.arrow.up").accessibilityLabel("Share link") }
+            Menu {
+                if let url = recipe.source.url {
+                    ShareLink(item: url) { Label("Share link", systemImage: "square.and.arrow.up") }
+                }
+                Button {
+                    // A sheet from a Menu action presents reliably once the
+                    // menu has closed (4 runs of 4 on iPhone and iPad); a
+                    // dialog from one does not, which is why Delete is a
+                    // button on the page (A3-U-F11).
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        choosingPageStyle = true
+                    }
+                } label: { Label("Page color", systemImage: "paintpalette") }
+            } label: {
+                // On a colored page the glyph carries its own dark disc, so
+                // it reads over a bright hero photo whatever the glass does
+                // (iPad run 38290508810: white dots on clear glass over the
+                // orange photo were nearly invisible).
+                if pagePalette == nil {
+                    Image(systemName: "ellipsis.circle").accessibilityLabel("More")
+                } else {
+                    Image(systemName: "ellipsis.circle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color.white, Color.black.opacity(0.42))
+                        .accessibilityLabel("More")
+                }
             }
         }
     }
@@ -892,7 +986,7 @@ struct RecipeDetailView: View {
             if timingLocked { cannotDelete = true } else { confirmingDelete = true }
         } label: {
             Label("Delete this recipe", systemImage: "trash")
-                .foregroundStyle(Theme.tomato)
+                .foregroundStyle(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
         }
         .buttonStyle(QuietButtonStyle())
         .padding(.top, 12)
@@ -921,7 +1015,7 @@ struct RecipeDetailView: View {
 enum TimedText {
     static let pattern = #"(?i)\b\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔]|\s\d/\d)?(?:\s*(?:to|-|–|or)\s*\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔]|\s\d/\d)?)?\s*(?:seconds?|secs?|minutes?|mins?|hours?|hrs?)\b|\b(?:an|one|half an|a half) hours?\b|\bovernight\b"#
 
-    static func make(_ line: String) -> Text {
+    static func make(_ line: String, accent: Color = Theme.tomato) -> Text {
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return Text(line) }
         let ns = NSString(string: line)
         let matches = regex.matches(in: line, options: [], range: NSRange(location: 0, length: ns.length))
@@ -935,7 +1029,7 @@ enum TimedText {
             }
             let chip = Text("\(Image(systemName: "timer")) \(ns.substring(with: m.range))")
                 .fontWeight(.semibold)
-                .foregroundStyle(Theme.tomato)
+                .foregroundStyle(accent)
             result = Text("\(result)\(chip)")
             cursor = m.range.location + m.range.length
         }
@@ -1078,6 +1172,20 @@ struct ScreenshotCoverSheet: View {
             context.fill(CGRect(origin: .zero, size: output))
             image.draw(in: CGRect(x: -CGFloat(crop.x) * scale, y: -CGFloat(crop.y) * scale,
                                   width: image.size.width * scale, height: image.size.height * scale))
+        }
+    }
+}
+
+/// The tab bar's track: a faint ink wash on the classic page, frosted glass
+/// on a colored one (the wash would lighten the page under muted labels).
+private struct TabTrack: ViewModifier {
+    let colored: Bool
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if colored {
+            content.recipeSurface(cornerRadius: 20)
+        } else {
+            content.background(Theme.ink.opacity(0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
     }
 }

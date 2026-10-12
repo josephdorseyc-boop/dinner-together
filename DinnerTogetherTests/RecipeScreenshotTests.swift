@@ -273,3 +273,154 @@ final class DeviceOCRRegressionTests: XCTestCase {
         XCTAssertTrue(RecipeImporter.markUnreliable([page])[0].allSatisfy { !$0.unreliable }, "a page written in Cyrillic is not ‘mixed’")
     }
 }
+
+// MARK: - Joe's five screenshots of the same recipe from News's Recipes view
+// (October 12, build 1.0 (10)): the cover with Cook · Saved · Share and the
+// story teaser bleeding through the tab bar, the ingredient cards, and three
+// Directions pages where STEP 1 is split by a photo, the "STEP 2" label sits
+// under the floating News button, and the "Ingredients Directions" tabs read
+// as one line. What arrived: "Saved" and the teaser as steps 1 and 2, step 1
+// ending with the start of step 2, "Ingredients Directions" glued to step 2.
+
+private func recipesViewChrome(tabsJoined: Bool = false) -> [OCRLine] {
+    var lines = [L("4:07", 0.020, 0.10, h: 0.015), L("73", 0.022, 0.87, h: 0.012),
+                 L("Whipped Frozen Apple Cider", 0.075, 0.21, h: 0.020)]
+    if tabsJoined {
+        lines += [L("Ingredients Directions", 0.138, 0.07), L("Nutrition", 0.138, 0.60), L("More", 0.138, 0.83)]
+    } else {
+        lines += [L("Ingredients", 0.138, 0.07), L("Directions", 0.138, 0.35), L("Nutrition", 0.138, 0.60), L("More", 0.138, 0.83)]
+    }
+    return lines
+}
+
+private let rvCover: [OCRLine] = [
+    L("4:06", 0.020, 0.10, h: 0.015), L("73", 0.022, 0.87, h: 0.012),
+    L("Whipped Frozen", 0.500, h: 0.040), L("Apple Cider", 0.545, h: 0.040),
+    L("EatingWell • Julia Levy", 0.595),
+    L("Total Time", 0.645, 0.06), L("Yield", 0.645, 0.43),
+    L("4 hr 10 min", 0.670, 0.06, h: 0.020), L("2", 0.670, 0.43, h: 0.020),
+    L("Cook", 0.770, 0.16), L("Saved", 0.770, 0.46), L("Share", 0.770, 0.76),
+    L("Read the Story", 0.835, 0.21), L("Whipped Frozen Apple Cider", 0.855, 0.21),
+    L("ect m it warn nd colo Up Following Search", 0.945),
+    L("retreshing enough for any time you want a... MoRE", 0.975),
+]
+
+private let rvIngredients = recipesViewChrome() + [
+    L("Ingredients", 0.195, h: 0.022), L("Scale", 0.200, 0.81),
+    L("Yield: 2", 0.222, h: 0.015),
+    L("1½ cups unsweetened apple cider,", 0.285), L("plus 3 more tablespoons as needed", 0.311),
+    L("1½ tablespoons pure maple syrup", 0.385),
+    L("1 (3-inch) cinnamon stick, plus more", 0.459), L("for garnish", 0.485),
+    L("1 tablespoon thinly sliced unpeeled", 0.559), L("fresh ginger", 0.585),
+    L("½ teaspoon whole cloves", 0.659),
+    L("½ teaspoon whole black peppercorns", 0.733),
+    L("½ teaspoon allspice berries (optional)", 0.807),
+    L("½ cup unsweetened canned coconut", 0.881), L("milk, well shaken and stirred", 0.907),
+    L("Add to Grocery List", 0.980, 0.25),
+]
+
+/// STEP 1 is split by a photo; the "STEP 2" label at the very bottom is
+/// under the floating News button, so only its first line survives.
+private let rvStep1 = recipesViewChrome() + [
+    L("STEP 1", 0.195, h: 0.015),
+    L("Combine 1½ cups cider, 1½ tablespoons", 0.230, h: 0.018),
+    L("maple syrup, 1 cinnamon stick, 1 tablespoon", 0.258, h: 0.018),
+    L("sliced ginger, ½ teaspoon each cloves and", 0.287, h: 0.018),
+    L("peppercorns and ½ teaspoon allspice", 0.315, h: 0.018),
+    L("berries (if using) in a small saucepan; bring", 0.344, h: 0.018),
+    L("to a boil over medium heat.", 0.372, h: 0.018),
+    L("Remove from heat; let steep at room", 0.815, h: 0.018),
+    L("temperature, stirring once or twice, until", 0.843, h: 0.018),
+    L("cool, about © 1 hour . Strain and discard", 0.871, h: 0.018),
+    L("spices.", 0.900, h: 0.018),
+    L("S", 0.955, 0.06, h: 0.015),
+    L("Pour the cider mixture evenly into 12 ice", 0.985, h: 0.018),
+]
+
+private let rvStep2 = recipesViewChrome() + [
+    L("STEP 2", 0.205, h: 0.015),
+    L("Pour the cider mixture evenly into 12 ice", 0.240, h: 0.018),
+    L("cube tray wells (about 2 tablespoons each).", 0.268, h: 0.018),
+    L("Freeze until solid, about © 3 hours .", 0.297, h: 0.018),
+    L("STEP 3", 0.740, h: 0.015),
+    L("Place the frozen cider cubes and ½ cup", 0.775, h: 0.018),
+    L("coconut milk in a blender. Process until", 0.803, h: 0.018),
+    L("slushy, about © 30 seconds . Add up to", 0.832, h: 0.018),
+    L("3 tablespoons cider, 1 tablespoon at a time,", 0.860, h: 0.018),
+    L("to reach the desired consistency.", 0.888, h: 0.018),
+]
+
+private let rvStep3 = recipesViewChrome(tabsJoined: true) + [
+    L("STEP 3", 0.205, h: 0.015),
+    L("Place the frozen cider cubes and ½ cup", 0.240, h: 0.018),
+    L("coconut milk in a blender. Process until", 0.268, h: 0.018),
+    L("slushy, about © 30 seconds . Add up to", 0.297, h: 0.018),
+    L("3 tablespoons cider, 1 tablespoon at a time,", 0.325, h: 0.018),
+    L("to reach the desired consistency.", 0.354, h: 0.018),
+    L("Divide between 2 (8-ounce) chilled glasses", 0.800, h: 0.018),
+    L("and serve immediately, garnished with 1", 0.830, h: 0.018),
+    L("cinnamon stick, if desired.", 0.858, h: 0.018),
+    L("Start Cooking", 0.945, 0.40, h: 0.018),
+]
+
+final class RecipesViewScreenshotTests: XCTestCase {
+
+    func testJoesRecipesViewScreenshotsImportCleanly() throws {
+        let r = try RecipeImporter.parse(screenshots: [rvCover, rvIngredients, rvStep1, rvStep2, rvStep3])
+        XCTAssertEqual(r.title, "Whipped Frozen Apple Cider")
+        XCTAssertEqual(r.source.publisher, "EatingWell")
+        XCTAssertEqual(r.source.author, "Julia Levy")
+        XCTAssertEqual(r.totalMinutes, 250)
+        XCTAssertEqual(r.yield, "2")
+        XCTAssertEqual(r.ingredients.count, 8, r.ingredients.joined(separator: " | "))
+        XCTAssertEqual(r.ingredients.last, "½ cup unsweetened canned coconut milk, well shaken and stirred")
+        XCTAssertEqual(r.directions.count, 3, "no cover-page text as steps: \(r.directions)")
+        XCTAssertEqual(r.directions[0], "Combine 1½ cups cider, 1½ tablespoons maple syrup, 1 cinnamon stick, 1 tablespoon sliced ginger, ½ teaspoon each cloves and peppercorns and ½ teaspoon allspice berries (if using) in a small saucepan; bring to a boil over medium heat. Remove from heat; let steep at room temperature, stirring once or twice, until cool, about 1 hour. Strain and discard spices.",
+                       "step 1 is whole across its photo and does not end with the start of step 2")
+        XCTAssertEqual(r.directions[1], "Pour the cider mixture evenly into 12 ice cube tray wells (about 2 tablespoons each). Freeze until solid, about 3 hours.",
+                       "the tab row read as one line is not part of step 2")
+        XCTAssertEqual(r.directions[2], "Place the frozen cider cubes and ½ cup coconut milk in a blender. Process until slushy, about 30 seconds. Add up to 3 tablespoons cider, 1 tablespoon at a time, to reach the desired consistency. Divide between 2 (8-ounce) chilled glasses and serve immediately, garnished with 1 cinnamon stick, if desired.")
+        let all = r.directions.joined(separator: " ")
+        for junk in ["Saved", "Following", "Search", "MoRE", "Ingredients Directions", "Read the Story"] {
+            XCTAssertFalse(all.contains(junk), "\(junk) is app chrome, not a direction")
+        }
+    }
+
+    func testCoverPageAloneStillGivesTheSummary() throws {
+        // Only the cover: metadata but no directions and no ingredients → the
+        // import says so instead of inventing steps from the buttons.
+        XCTAssertThrowsError(try RecipeImporter.parse(screenshots: [rvCover]))
+        let r = try RecipeImporter.parse(screenshots: [rvCover, rvIngredients])
+        XCTAssertEqual(r.totalMinutes, 250)
+        XCTAssertEqual(r.yield, "2")
+        XCTAssertTrue(r.directions.isEmpty, "\(r.directions)")
+    }
+
+    func testCookbookPageWithServesLineIsNotACover() throws {
+        // A bare cookbook photo says "Serves 4" and has no app buttons: its
+        // text is still sorted into ingredients and directions.
+        let page = [L("Serves 4", 0.10), L("2 eggs", 0.16), L("1 cup flour", 0.19),
+                    L("Whisk the eggs into the flour and rest the batter for 20 minutes.", 0.30)]
+        let r = try RecipeImporter.parse(screenshots: [page])
+        XCTAssertEqual(r.ingredients, ["2 eggs", "1 cup flour"])
+        XCTAssertEqual(r.directions, ["Whisk the eggs into the flour and rest the batter for 20 minutes."])
+    }
+
+    func testOverlapTrimAndChromeRows() {
+        XCTAssertEqual(RecipeImporter.trimOverlap("Strain and discard spices. Pour the cider mixture evenly into 12 ice",
+                                                  next: "Pour the cider mixture evenly into 12 ice cube tray wells."),
+                       "Strain and discard spices.")
+        XCTAssertEqual(RecipeImporter.trimOverlap("Set aside. Add the onions", next: "Add the garlic and cook"), "Set aside. Add the onions",
+                       "two shared words are not an overlap")
+        XCTAssertEqual(RecipeImporter.trimOverlap("Pour the cider", next: "Pour the cider mixture"), "Pour the cider",
+                       "a step that is nothing but the overlap keeps its text")
+        for line in ["Ingredients Directions", "Nutrition More", "Today News+ Audio Following Search", "Saved", "cook saved share",
+                     "ect m it warn nd colo Up Following Search"] {
+            XCTAssertTrue(RecipeImporter.isChrome(RecipeImporter.normalizedKey(line)), line)
+        }
+        for line in ["Combine the ingredients", "Search for the ripest tomatoes", "More flour if needed"] {
+            XCTAssertFalse(RecipeImporter.isChrome(RecipeImporter.normalizedKey(line)), line)
+        }
+    }
+}
+

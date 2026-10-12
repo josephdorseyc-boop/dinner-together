@@ -86,4 +86,10 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test22_coverCropHappyPath() { flowCoverCropHappyPath() }
     /// Cover crop — r13: recipe saved, cover failed → retry / continue.
     func test23_coverSaveFailureRetry() { flowCoverSaveFailureRetry() }
+    /// Page colors — r14: photo colors, frosted cards, ••• → Page color → Classic cream.
+    func test24_photoPageColors() { flowPhotoPageColors() }
+    /// Page colors — r15: a typed recipe picks Plum from the page.
+    func test25_typedPageColor() { flowTypedPageColor() }
+    /// Page colors — r16: a color that can’t be saved.
+    func test26_pageColorSaveFailure() { flowPageColorSaveFailure() }
 }

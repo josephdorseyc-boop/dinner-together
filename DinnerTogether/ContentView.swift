@@ -31,7 +31,7 @@ struct ContentView: View {
                 }
             } else {
                 TabView(selection: $tab) {
-                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }) }
+                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }, openRecipe: openRecipe) }
                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
                         .tag(0)
                     NavigationStack { CookingView() }
@@ -65,6 +65,13 @@ struct ContentView: View {
         }
     }
 
+    /// Tonight's recipe card → its page in the Recipes destination.
+    private func openRecipe(_ id: UUID) {
+        recipePath = [id]
+        tab = 2
+        sidebarSelection = "recipes"
+    }
+
     private var recipeNavigation: some View {
         NavigationStack(path: $recipePath) {
             RecipesView(path: $recipePath, goTonight: {
@@ -84,7 +91,8 @@ struct ContentView: View {
             CookingView()
         } else {
             PlanView(goCooking: { sidebarSelection = "cooking" },
-                     goRecipes: { sidebarSelection = "recipes" })
+                     goRecipes: { sidebarSelection = "recipes" },
+                     openRecipe: openRecipe)
         }
     }
 }

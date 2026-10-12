@@ -180,30 +180,43 @@ struct CookingView: View {
         .sheet(isPresented: $showReadinessReview) {
             ServingSheetView()
         }
-        .alert(item: $prompt) { prompt in
+        // The modern alert API (iOS 15+): the legacy `Alert` value's buttons
+        // reached XCUITest as "Button from legacy attributes vs
+        // DisclosureTriangle from modern attribute", and XCTest then treated
+        // the app's own alert as an interruption and dismissed it itself
+        // (test05/test06, runs 38290508810 and 38298547276).
+        .alert(Text(prompt.map(Self.title) ?? ""),
+               isPresented: Binding(get: { prompt != nil }, set: { if !$0 { prompt = nil } }),
+               presenting: prompt) { prompt in
             switch prompt {
             case .blocked(let req):
-                return Alert(
-                    title: Text("Waiting on “\(req.predecessorTitle)”"),
-                    message: Text("This step can't start until “\(req.predecessorTitle)” is done (ready around \(Scheduling.formatTime(req.readyAt))). Start it anyway?"),
-                    primaryButton: .default(Text("Start anyway")) {
-                        Task { await store.startStep(req.stepID, force: true) }
-                    },
-                    secondaryButton: .cancel()
-                )
+                Button("Start anyway") {
+                    Task { await store.startStep(req.stepID, force: true) }
+                }
+                Button("Cancel", role: .cancel) {}
             case .unstartedCompletion(let req):
-                return Alert(
-                    title: Text("Mark “\(req.title)” done?"),
-                    message: Text("It was never marked started, so we won't guess when it began — only that it finished now."),
-                    primaryButton: .default(Text("Mark done")) {
-                        Task {
-                            let result = await store.completeStep(req.stepID, confirmed: true)
-                            if case .completed = result { completionFeedback.toggle() }
-                        }
-                    },
-                    secondaryButton: .cancel()
-                )
+                Button("Mark done") {
+                    Task {
+                        let result = await store.completeStep(req.stepID, confirmed: true)
+                        if case .completed = result { completionFeedback.toggle() }
+                    }
+                }
+                Button("Cancel", role: .cancel) {}
             }
+        } message: { prompt in
+            switch prompt {
+            case .blocked(let req):
+                Text("This step can't start until “\(req.predecessorTitle)” is done (ready around \(Scheduling.formatTime(req.readyAt))). Start it anyway?")
+            case .unstartedCompletion:
+                Text("It was never marked started, so we won't guess when it began — only that it finished now.")
+            }
+        }
+    }
+
+    private static func title(_ prompt: CookingPrompt) -> String {
+        switch prompt {
+        case .blocked(let req): return "Waiting on “\(req.predecessorTitle)”"
+        case .unstartedCompletion(let req): return "Mark “\(req.title)” done?"
         }
     }
 

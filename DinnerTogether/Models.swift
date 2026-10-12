@@ -68,6 +68,9 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// True until the cook has looked at the Timing tab once.
     var needsTimingReview: Bool = true
     var notes: String?
+    /// The cook's page color choice; nil = automatic (photo colors if the
+    /// recipe has a photo, else the classic cream page).
+    var pageStyle: PageStyle?
 
     static let menuIDPrefix = "recipe:"
     var menuID: String { Recipe.menuIDPrefix + id.uuidString }
