@@ -1,0 +1,10 @@
+{
+  "baseline": "9e56fe6385c3852dbb406bf4b2fe65c2e3631606",
+  "patch_application": "PASS in isolated copy",
+  "existing_assertions_retained": true,
+  "assertions_added": 1,
+  "test_count": 3,
+  "native_execution": false,
+  "app_source_changed": false,
+  "xcode_target_membership": "reference, group, build file and unit Sources entry supplied"
+}
