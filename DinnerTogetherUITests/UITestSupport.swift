@@ -203,15 +203,38 @@ class DinnerTogetherUITestCase: XCTestCase {
             let alert = app.alerts.firstMatch
             if !alert.exists { return }
             let button = alert.buttons[label]
-            if button.waitForExistence(timeout: 2) {
-                if button.isHittable { button.tap() }
-                else { button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+            // Don't ask isHittable mid-animation: XCTest records "Failed to
+            // determine hittability" as a failure (build-7 run, test06). Wait
+            // for a real on-screen frame and tap its centre instead.
+            if button.waitForExistence(timeout: 2), waitForOnScreenFrame(button) {
+                button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             }
             let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
                                                  object: app.alerts.firstMatch)
             if XCTWaiter().wait(for: [gone], timeout: 3) == .completed { return }
         }
         XCTFail("\(message): the alert is still showing after tapping “\(label)” three times", file: file, line: line)
+    }
+
+    /// True once the element has a non-empty frame whose centre is inside the
+    /// window — the condition for a coordinate tap to land on it.
+    @discardableResult
+    func waitForOnScreenFrame(_ element: XCUIElement, timeout: TimeInterval = 3) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            let f = element.frame, w = app.windows.firstMatch.frame
+            if element.exists, !f.isEmpty, w.contains(CGPoint(x: f.midX, y: f.midY)) { return true }
+            usleep(150_000)
+        } while Date() < deadline
+        return false
+    }
+
+    /// Taps a control pinned outside the scroll content (a bottom bar): it
+    /// never scrolls, so scrollAndTap's comfortable-visibility rule can't apply.
+    func tapPinned(_ element: XCUIElement, _ message: String, file: StaticString = #filePath, line: UInt = #line) {
+        waitForExistence(element, timeout: 5, message, file: file, line: line)
+        XCTAssertTrue(waitForOnScreenFrame(element), "\(message): on screen", file: file, line: line)
+        element.tap()
     }
 
     func waitForDisappearance(_ element: XCUIElement, timeout: TimeInterval = 10, _ message: String,
@@ -820,7 +843,7 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch.exists,
                       "Cancel discarded the change")
 
-        scrollAndTap(app.buttons["timing-looks-right"], "Timing looks right")
+        tapPinned(app.buttons["timing-looks-right"], "Timing looks right (pinned footer, A2-R8)")
         waitForDisappearance(app.buttons["timing-looks-right"], "the review is recorded")
         let cookNow = app.buttons["cook-this-recipe"]
         XCTAssertTrue(cookNow.label.contains("Cook this for dinner"), "after review the recipe can be cooked: \(cookNow.label)")
@@ -875,7 +898,7 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         app.buttons["recipe-tab-timing"].tap()
-        scrollAndTap(app.buttons["timing-looks-right"], "Timing looks right")
+        tapPinned(app.buttons["timing-looks-right"], "Timing looks right (pinned footer, A2-R8)")
         let problem = app.descendants(matching: .any)["recipe-save-error"]
         XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown")
         XCTAssertTrue(app.buttons["timing-looks-right"].exists, "the recipe is still unreviewed and the action is still reachable")
