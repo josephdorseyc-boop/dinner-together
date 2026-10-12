@@ -704,3 +704,32 @@ final class A2RecipeFixtureTests: XCTestCase {
     }
 
 }
+
+// A1-R1 finding: notes inside a HowToStep must not become cooking steps.
+final class RecipeNotesTests: XCTestCase {
+    func testDoAheadAndEditorNotesAreNotSteps() throws {
+        let html = """
+        <script type="application/ld+json">{"@type":"Recipe","name":"Cookies","recipeIngredient":["1 cup flour"],
+        "recipeInstructions":[{"@type":"HowToStep","text":"Mix the dough."},
+        {"@type":"HowToStep","text":"Bake until golden, 8–10 minutes. Let cool.\\nDo Ahead: Dough balls can be frozen 3 months ahead; add 1–2 minutes to the bake.\\nEditor’s note: First printed in 2019."}]}</script>
+        """
+        let r = try RecipeImporter.parse(html: html, url: nil)
+        XCTAssertEqual(r.directions, ["Mix the dough.", "Bake until golden, 8–10 minutes. Let cool."])
+        XCTAssertEqual(r.notes.count, 2)
+        let recipe = RecipeImporter.build(r, method: .link)
+        XCTAssertEqual(recipe.steps.count, 2)
+        XCTAssertEqual(recipe.steps[1].minutes, 10, "the note’s “1–2 minutes” doesn’t leak into the bake time")
+        XCTAssertTrue(recipe.notes?.hasPrefix("Do Ahead") == true)
+    }
+
+    func testPastedNotesAfterDirections() throws {
+        let r = try RecipeImporter.parse(text: """
+        Toast
+        Directions
+        1. Toast the bread, 3 minutes.
+        Note: Use day-old bread.
+        """)
+        XCTAssertEqual(r.directions, ["Toast the bread, 3 minutes."])
+        XCTAssertEqual(r.notes, ["Note: Use day-old bread."])
+    }
+}

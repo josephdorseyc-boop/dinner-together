@@ -589,6 +589,14 @@ struct RecipeDetailView: View {
                     TimedText.make(line).font(.body).lineSpacing(3)
                 }
             }
+            if let notes = recipe.notes, !notes.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionLabel(text: "NOTES")
+                    Text(notes).font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityIdentifier("recipe-notes")
+            }
         }
     }
 

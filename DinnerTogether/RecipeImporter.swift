@@ -20,6 +20,9 @@ struct ImportedRecipe: Equatable {
     var totalMinutes: Int?
     var ingredients: [String] = []
     var sections: [ImportedSection] = []
+    /// "Do Ahead", "Editor's note", storage tips: kept with the recipe, never
+    /// scheduled as a cooking step.
+    var notes: [String] = []
 
     var directions: [String] { sections.flatMap { $0.steps } }
 }
@@ -145,7 +148,9 @@ enum RecipeImporter {
         recipe.totalMinutes = duration(dict["totalTime"]) ?? sum(duration(dict["prepTime"]), duration(dict["cookTime"]))
         recipe.ingredients = stringList(dict["recipeIngredient"] ?? dict["ingredients"]).map(cleanLine)
             .filter { !$0.isEmpty }
-        recipe.sections = instructionSections(dict["recipeInstructions"])
+        var notes: [String] = []
+        recipe.sections = instructionSections(dict["recipeInstructions"], notes: &notes)
+        recipe.notes = notes
         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { return nil }
         return recipe
     }
@@ -155,33 +160,51 @@ enum RecipeImporter {
         return (a ?? 0) + (b ?? 0)
     }
 
-    private static func instructionSections(_ any: Any?) -> [ImportedSection] {
+    private static func instructionSections(_ any: Any?, notes: inout [String]) -> [ImportedSection] {
         guard let any = any else { return [] }
         if let s = any as? String {
-            return [ImportedSection(name: nil, steps: splitSteps(from: s))]
+            return [ImportedSection(name: nil, steps: separatingNotes(splitSteps(from: s), into: &notes))]
         }
         if let dict = any as? [String: Any] {
-            return instructionSections(dict["itemListElement"] ?? dict["text"])
+            return instructionSections(dict["itemListElement"] ?? dict["text"], notes: &notes)
         }
         guard let array = any as? [Any] else { return [] }
         var sections: [ImportedSection] = []
         var loose: [String] = []
         for item in array {
             if let s = item as? String {
-                loose.append(contentsOf: splitSteps(from: s))
+                loose.append(contentsOf: separatingNotes(splitSteps(from: s), into: &notes))
             } else if let dict = item as? [String: Any] {
                 let types = typeNames(dict["@type"])
                 if types.contains("howtosection") || dict["itemListElement"] != nil {
                     if !loose.isEmpty { sections.append(ImportedSection(name: nil, steps: loose)); loose = [] }
-                    let inner = instructionSections(dict["itemListElement"]).flatMap { $0.steps }
+                    let inner = instructionSections(dict["itemListElement"], notes: &notes).flatMap { $0.steps }
                     sections.append(ImportedSection(name: text(dict["name"]), steps: inner))
                 } else if let t = text(dict["text"]) ?? text(dict["name"]) {
-                    loose.append(contentsOf: splitSteps(from: t))
+                    // One HowToStep is one step: its paragraphs stay together,
+                    // except paragraphs that are notes (A1-R1: Bon Appétit's
+                    // "Do Ahead:" and "Editor’s note:" became cooking steps).
+                    let paragraphs = cleanLine(t).components(separatedBy: .newlines).map(cleanLine).filter { !$0.isEmpty }
+                    let body = separatingNotes(paragraphs, into: &notes)
+                    let step = stripStepPrefix(joinLines(body))
+                    if !step.isEmpty { loose.append(step) }
                 }
             }
         }
         if !loose.isEmpty { sections.append(ImportedSection(name: nil, steps: loose)) }
         return sections.filter { !$0.steps.isEmpty }
+    }
+
+    /// Paragraphs that annotate a recipe rather than instruct.
+    static func isNoteLine(_ line: String) -> Bool {
+        line.range(of: #"^\s*(?:do[- ]ahead|make[- ]ahead|editor[’']?s note|cook[’']?s note|recipe note|notes?|tips?|storage|to store|leftovers|variations?|substitutions?|head this way)\b\s*[:.—–-]?"#,
+                   options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    static func separatingNotes(_ lines: [String], into notes: inout [String]) -> [String] {
+        var kept: [String] = []
+        for line in lines { if isNoteLine(line) { notes.append(line) } else { kept.append(line) } }
+        return kept
     }
 
     /// A single instruction string often holds several steps.
@@ -247,6 +270,7 @@ enum RecipeImporter {
         var steps: [String] = []
         var yield: String?
         var totalMinutes: Int?
+        var notes: [String] = []
         var mode = 0 // 0 unknown, 1 ingredients, 2 steps
         var first = true
 
@@ -272,7 +296,8 @@ enum RecipeImporter {
             }
             switch mode {
             case 1: ingredients.append(stripStepPrefix(line))
-            case 2: steps.append(stripStepPrefix(line))
+            case 2:
+                if isNoteLine(line) { notes.append(line) } else { steps.append(stripStepPrefix(line)) }
             default:
                 if looksLikeIngredient(line) { ingredients.append(stripStepPrefix(line)) }
                 else if looksLikeStep(line) || line.count > 60 { steps.append(stripStepPrefix(line)) }
@@ -288,6 +313,7 @@ enum RecipeImporter {
         recipe.sections = steps.isEmpty ? [] : [ImportedSection(name: nil, steps: steps)]
         recipe.yield = yield
         recipe.totalMinutes = totalMinutes
+        recipe.notes = notes
         return recipe
     }
 
@@ -492,6 +518,7 @@ enum RecipeImporter {
         recipe.yield = imported.yield
         recipe.totalMinutes = imported.totalMinutes
         recipe.ingredients = imported.ingredients
+        recipe.notes = imported.notes.isEmpty ? nil : imported.notes.joined(separator: "\n\n")
         recipe.directions = directions
         recipe.dishes = dishes
         recipe.importedAt = now
