@@ -216,14 +216,23 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTFail("\(message): the alert is still showing after tapping “\(label)” three times", file: file, line: line)
     }
 
-    /// True once the element has a non-empty frame whose centre is inside the
-    /// window — the condition for a coordinate tap to land on it.
+    /// A frame XCTest can actually tap: every component finite. Alert and
+    /// popover buttons can report infinite frames mid-animation or mid-layout;
+    /// tapping those coordinates throws NSInternalInconsistencyException
+    /// ("point.x != INFINITY && point.y != INFINITY").
+    func isFiniteFrame(_ f: CGRect) -> Bool {
+        f.origin.x.isFinite && f.origin.y.isFinite && f.size.width.isFinite && f.size.height.isFinite
+    }
+
+    /// True once the element has a finite, non-empty frame whose centre is
+    /// inside the window — the condition for a coordinate tap to land on it.
     @discardableResult
     func waitForOnScreenFrame(_ element: XCUIElement, timeout: TimeInterval = 3) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
         repeat {
             let f = element.frame, w = app.windows.firstMatch.frame
-            if element.exists, !f.isEmpty, w.contains(CGPoint(x: f.midX, y: f.midY)) { return true }
+            if element.exists, isFiniteFrame(f), !f.isEmpty,
+               w.contains(CGPoint(x: f.midX, y: f.midY)) { return true }
             usleep(150_000)
         } while Date() < deadline
         return false
@@ -307,8 +316,10 @@ class DinnerTogetherUITestCase: XCTestCase {
         let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true"), object: element)
         if XCTWaiter().wait(for: [hittable], timeout: 3) == .completed {
             element.tap()
-        } else {
+        } else if waitForOnScreenFrame(element, timeout: 3) {
             element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        } else {
+            XCTFail("no finite on-screen frame for coordinate tap: \(element)", file: file, line: line)
         }
     }
 
