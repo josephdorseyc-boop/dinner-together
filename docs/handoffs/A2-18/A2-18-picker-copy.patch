@@ -1,0 +1,23 @@
+diff --git a/DinnerTogether/RecipePageStyle.swift b/DinnerTogether/RecipePageStyle.swift
+--- a/DinnerTogether/RecipePageStyle.swift
++++ b/DinnerTogether/RecipePageStyle.swift
+@@ -209,8 +209,8 @@
+                 if let recipe {
+                     VStack(alignment: .leading, spacing: 16) {
+                         Text(RecipePhotos.load(recipe, from: library) == nil
+-                             ? "Give this recipe a colored page. Text stays easy to read on every color."
+-                             : "Use the photo’s colors or pick one. Text stays easy to read on every color.")
++                             ? "Choose a color for this recipe. Changes save as you select."
++                             : "Match the photo, or choose a color. Changes save as you select.")
+                             .font(.subheadline).foregroundStyle(Theme.muted)
+                             .fixedSize(horizontal: false, vertical: true)
+                         if let problem {
+@@ -290,7 +290,7 @@
+         if library.update(changed) {
+             problem = nil
+         } else {
+-            problem = library.saveError ?? "The page color couldn’t be saved. Try again."
++            problem = "The page color couldn’t be saved. Your previous color is still selected. Choose another color to try again."
+             UIAccessibility.post(notification: .announcement, argument: problem)
+         }
+     }
