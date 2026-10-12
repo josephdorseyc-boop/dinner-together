@@ -1,0 +1,15 @@
+{
+  "baseline": "aca699b882dc3bc8635d59b05e7dc80c0c3c7625",
+  "files": 5,
+  "patch_application": "PASS; applied bytes match proposal",
+  "test_methods_added": 0,
+  "test_flow": "Existing recipe flow now asserts explicit selection routes to Tonight",
+  "contrast_ratios_at_wash_endpoint": {
+    "light_muted": 4.68,
+    "dark_muted": 7.5,
+    "light_ink": 11.75,
+    "dark_ink": 13.6
+  },
+  "swift_execution": false,
+  "simulator_rendering": false
+}

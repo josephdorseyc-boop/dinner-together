@@ -1,0 +1,315 @@
+--- a/DinnerTogether/ContentView.swift
++++ b/DinnerTogether/ContentView.swift
+@@ -1,6 +1,6 @@
+ import SwiftUI
+ 
+-/// Root view. iPhone gets the familiar two tabs; iPad gets a sidebar with a
++/// Root view. iPhone gets the Tonight, Cooking and Recipes tabs; iPad gets a sidebar with a
+ /// genuinely wider detail layout instead of a stretched phone screen.
+ struct ContentView: View {
+     @EnvironmentObject private var store: SessionStore
+@@ -10,6 +10,8 @@
+     @State private var tab = LaunchOptions.openCooking ? 1 : 0
+     @State private var sidebarSelection: String? = LaunchOptions.openCooking ? "cooking" : "tonight"
+ 
++    @State private var recipePath: [UUID] = []
++
+     var body: some View {
+         Group {
+             if horizontalSizeClass == .regular {
+@@ -17,19 +19,27 @@
+                     List(selection: $sidebarSelection) {
+                         Label("Tonight", systemImage: "fork.knife").tag("tonight")
+                         Label("Cooking", systemImage: "timer").tag("cooking")
++                        Label("Recipes", systemImage: "book.closed").tag("recipes")
+                     }
+                     .navigationTitle("Dinner, Together")
+                 } detail: {
+-                    NavigationStack { detailView }
++                    if sidebarSelection == "recipes" {
++                        recipeNavigation
++                    } else {
++                        NavigationStack { detailView }
++                    }
+                 }
+             } else {
+                 TabView(selection: $tab) {
+-                    NavigationStack { PlanView(goCooking: { tab = 1 }) }
++                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }) }
+                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
+                         .tag(0)
+                     NavigationStack { CookingView() }
+                         .tabItem { Label("Cooking", systemImage: "timer") }
+                         .tag(1)
++                    recipeNavigation
++                        .tabItem { Label("Recipes", systemImage: "book.closed") }
++                        .tag(2)
+                 }
+                 .toolbarBackground(Theme.cream, for: .tabBar)
+                 .toolbarBackground(.visible, for: .tabBar)
+@@ -55,12 +65,26 @@
+         }
+     }
+ 
++    private var recipeNavigation: some View {
++        NavigationStack(path: $recipePath) {
++            RecipesView(path: $recipePath, goTonight: {
++                recipePath.removeAll()
++                tab = 0
++                sidebarSelection = "tonight"
++            }, goCooking: {
++                tab = 1
++                sidebarSelection = "cooking"
++            })
++        }
++    }
++
+     @ViewBuilder
+     private var detailView: some View {
+         if sidebarSelection == "cooking" {
+             CookingView()
+         } else {
+-            PlanView(goCooking: { sidebarSelection = "cooking" })
++            PlanView(goCooking: { sidebarSelection = "cooking" },
++                     goRecipes: { sidebarSelection = "recipes" })
+         }
+     }
+ }
+--- a/DinnerTogether/PlanView.swift
++++ b/DinnerTogether/PlanView.swift
+@@ -5,6 +5,7 @@
+ struct PlanView: View {
+     @EnvironmentObject private var store: SessionStore
+     var goCooking: () -> Void
++    var goRecipes: () -> Void
+ 
+     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+     @State private var feasibility: Feasibility = .ok
+@@ -21,7 +22,11 @@
+                 header
+                 servingTimeCard
+                 feasibilityCard
+-                YourRecipesSection()
++                Button(action: goRecipes) {
++                    Label("Choose from Recipes", systemImage: "book.closed")
++                }
++                .buttonStyle(SecondaryButtonStyle())
++                .accessibilityIdentifier("open-recipes")
+                 SectionLabel(text: "ON THE MENU")
+                 ForEach(DinnerCatalog.menus) { menu in
+                     menuCard(menu)
+--- a/DinnerTogether/RecipeViews.swift
++++ b/DinnerTogether/RecipeViews.swift
+@@ -2,18 +2,56 @@
+ import UIKit
+ import PhotosUI
+ 
+-// The "add a recipe" screens: the Your Recipes section on Tonight, the
++// The Recipes destination, its collection, the
+ // Add-a-recipe sheet, and the recipe page (Ingredients · Directions · Timing).
+ // House style throughout: cream/paper surfaces, serif display type, tomato
+ // accents — the reference is Apple News+ Food's layout, not its look.
+ 
+-// MARK: - Tonight: Your recipes
++// MARK: - Recipes destination
++
++struct RecipesView: View {
++    @EnvironmentObject private var store: SessionStore
++    @Binding var path: [UUID]
++    var goTonight: () -> Void
++    var goCooking: () -> Void
++
++    var body: some View {
++        ScrollView {
++            VStack(alignment: .leading, spacing: 24) {
++                VStack(alignment: .leading, spacing: 8) {
++                    Text("Your kitchen, collected.")
++                        .font(.system(.largeTitle, design: .serif).weight(.medium))
++                    Text("Your favorites, ready for dinner.")
++                        .foregroundStyle(Theme.muted)
++                }
++                if store.session.records.values.contains(where: { $0.state != .notStarted }) {
++                    Button(action: goCooking) {
++                        Label("Back to cooking", systemImage: "timer")
++                    }
++                    .buttonStyle(SecondaryButtonStyle())
++                }
++                YourRecipesSection(onOpenRecipe: { path.append($0) }, onChoose: goTonight)
++            }
++            .padding(24)
++            .frame(maxWidth: 720, alignment: .leading)
++            .frame(maxWidth: .infinity)
++        }
++        .background(Theme.recipeBackground)
++        .foregroundStyle(Theme.ink)
++        .navigationTitle("Recipes")
++        .navigationBarTitleDisplayMode(.inline)
++        .accessibilityIdentifier("recipe-library")
++    }
++}
++
++// MARK: - Your recipes
+ 
+ struct YourRecipesSection: View {
++    var onOpenRecipe: (UUID) -> Void
++    var onChoose: () -> Void
+     @EnvironmentObject private var library: RecipeLibrary
+     @EnvironmentObject private var store: SessionStore
+     @State private var adding = false
+-    @State private var openRecipe: UUID?
+ 
+     var body: some View {
+         VStack(alignment: .leading, spacing: 14) {
+@@ -46,13 +84,10 @@
+             }
+         }
+         .navigationDestination(for: UUID.self) { id in
+-            RecipeDetailView(recipeID: id)
+-        }
+-        .navigationDestination(item: $openRecipe) { id in
+-            RecipeDetailView(recipeID: id)
++            RecipeDetailView(recipeID: id, onChoose: onChoose)
+         }
+         .sheet(isPresented: $adding) {
+-            AddRecipeSheet { id in openRecipe = id }
++            AddRecipeSheet { id in onOpenRecipe(id) }
+         }
+     }
+ }
+@@ -358,6 +393,7 @@
+     }
+ 
+     let recipeID: UUID
++    var onChoose: (() -> Void)? = nil
+     @EnvironmentObject private var library: RecipeLibrary
+     @EnvironmentObject private var store: SessionStore
+     @Environment(\.dismiss) private var dismiss
+@@ -402,7 +438,7 @@
+                         .frame(maxWidth: .infinity)
+                     }
+                 }
+-                .background(Theme.cream)
++                .background(Theme.recipeBackground)
+                 .safeAreaInset(edge: .bottom, spacing: 0) { cookBar(recipe) }
+                 .toolbar { moreMenu(recipe) }
+                 .sheet(item: $editingStep) { step in
+@@ -447,6 +483,12 @@
+                     .frame(height: dynamicTypeSize.isAccessibilitySize ? 160 : 240)
+                     .overlay(Image(uiImage: image).resizable().scaledToFill())
+                     .clipped()
++                    .overlay(alignment: .bottom) {
++                        LinearGradient(colors: [Theme.cream.opacity(0), Theme.cream],
++                                       startPoint: .top, endPoint: .bottom)
++                            .frame(height: 80)
++                            .allowsHitTesting(false)
++                    }
+                     .accessibilityHidden(true)
+                 titleBlock(recipe, onPhoto: false)
+                     .padding(.horizontal, 24).padding(.top, 20)
+@@ -454,10 +496,17 @@
+                     .frame(maxWidth: .infinity)
+             }
+         } else {
+-            titleBlock(recipe, onPhoto: false)
+-                .padding(.horizontal, 24).padding(.top, 20)
+-                .frame(maxWidth: 720, alignment: .leading)
+-                .frame(maxWidth: .infinity)
++            VStack(alignment: .leading, spacing: 12) {
++                if !dynamicTypeSize.isAccessibilitySize {
++                    Label("FROM YOUR COLLECTION", systemImage: "book.closed")
++                        .font(.caption.weight(.semibold))
++                        .foregroundStyle(Theme.olive)
++                }
++                titleBlock(recipe, onPhoto: false)
++            }
++            .padding(.horizontal, 24).padding(.top, 20)
++            .frame(maxWidth: 720, alignment: .leading)
++            .frame(maxWidth: .infinity)
+         }
+     }
+ 
+@@ -592,9 +641,11 @@
+             }
+             ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
+                 VStack(alignment: .leading, spacing: 8) {
+-                    Text("STEP \(i + 1)").font(.footnote.weight(.bold)).tracking(0.8)
++                    Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
++                        .foregroundStyle(Theme.olive)
+                         .accessibilityAddTraits(.isHeader)
+-                    TimedText.make(line).font(.body).lineSpacing(3)
++                    TimedText.make(line).font(.title3).lineSpacing(7)
++                        .fixedSize(horizontal: false, vertical: true)
+                 }
+             }
+             if let notes = recipe.notes, !notes.isEmpty {
+@@ -756,7 +807,7 @@
+     private func choose(_ recipe: Recipe) {
+         guard !recipe.needsTimingReview else { tab = .timing; return }
+         store.chooseMenu(recipe.menuID)
+-        dismiss()
++        if let onChoose { onChoose() } else { dismiss() }
+     }
+ 
+     private func delete(_ recipe: Recipe) {
+--- a/DinnerTogether/Theme.swift
++++ b/DinnerTogether/Theme.swift
+@@ -18,6 +18,12 @@
+     static let line = adaptive((0.902, 0.875, 0.824), (0.270, 0.255, 0.220))
+     // Filled buttons retain the darker tomato so white labels stay legible.
+     static let buttonFill = Color(red: 0.659, green: 0.220, blue: 0.153)
++    // Restrained reading surface; opaque colors keep text contrast predictable.
++    static let recipeWash = adaptive((0.945, 0.920, 0.865), (0.135, 0.150, 0.115))
++    static var recipeBackground: LinearGradient {
++        LinearGradient(colors: [cream, recipeWash, cream],
++                       startPoint: .topLeading, endPoint: .bottomTrailing)
++    }
+     static let warning = adaptive((0.510, 0.300, 0.090), (0.950, 0.740, 0.430))
+ }
+ 
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -744,7 +744,13 @@
+                openCooking: false, recipes: recipes, heroPhoto: heroPhoto)
+     }
+ 
++    private func openRecipesLibrary() {
++        scrollAndTap(app.buttons["open-recipes"], "Choose from Recipes")
++        waitForExistence(app.buttons["add-recipe"], timeout: 5, "Recipes collection")
++    }
++
+     private func openRecipe(_ title: String) {
++        openRecipesLibrary()
+         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
+         scrollAndTap(row, "the recipe row for “\(title)”")
+         waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
+@@ -798,9 +804,10 @@
+         verifyAppearance(capture)
+     }
+ 
+-    /// r01 — Tonight with an empty recipe library.
++    /// r01 — the Recipes destination with an empty library.
+     func flowRecipeLibraryEmpty() {
+         launchRecipes([], .standard)
++        openRecipesLibrary()
+         let add = app.buttons["add-recipe"]
+         scrollTo(add)
+         XCTAssertTrue(app.staticTexts["Cook your own recipes, on time."].exists, "empty state explains the feature")
+@@ -853,6 +860,10 @@
+         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
+                        "confirming did not choose the recipe as tonight’s dinner")
+         photograph("r05-timing-confirmed" + capture.suffix)
++        tapPinned(cookNow, "Choose the reviewed recipe for dinner")
++        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
++                      "choosing a recipe routes to Tonight without starting cooking")
++        XCTAssertTrue(app.buttons["open-recipes"].exists, "Tonight keeps the Recipes shortcut")
+     }
+ 
+     /// r03 — an untimed step stays marked as an estimate.
+@@ -881,6 +892,7 @@
+     /// r06 — an Apple News link explains itself and switches to Screenshots.
+     func flowAppleNewsLink(_ capture: RecipeCapture = .standard) {
+         launchRecipes([], capture, extra: ["-dt-stub-apple-news"])
++        openRecipesLibrary()
+         scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
+         let field = app.textFields["recipe-link"]
+         waitForExistence(field, timeout: 5, "the link field")
