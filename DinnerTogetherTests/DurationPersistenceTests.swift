@@ -10,7 +10,7 @@ import XCTest
 @MainActor
 final class DurationPersistenceTests: XCTestCase {
     private func tempDir() -> URL {
-        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: "dt-dur-\\(UUID().uuidString)", directoryHint: .isDirectory)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: "dt-dur-\(UUID().uuidString)", directoryHint: .isDirectory)
         try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
@@ -51,7 +51,7 @@ final class DurationPersistenceTests: XCTestCase {
 
         // Make every further write fail: move the folder away, leave a file
         // where the folder was.
-        let moved = dir.deletingLastPathComponent().appending(path: "moved-\\(UUID().uuidString)")
+        let moved = dir.deletingLastPathComponent().appending(path: "moved-\(UUID().uuidString)")
         try FileManager.default.moveItem(at: dir, to: moved)
         try Data().write(to: dir)
 
@@ -69,13 +69,13 @@ final class DurationPersistenceTests: XCTestCase {
         let name = library.saveImage(Data([0xFF, 0xD8]), for: recipe.id)!
         let saved = library.recipe(id: recipe.id)!
 
-        let moved = dir.deletingLastPathComponent().appending(path: "moved-\\(UUID().uuidString)")
+        let moved = dir.deletingLastPathComponent().appending(path: "moved-\(UUID().uuidString)")
         try FileManager.default.moveItem(at: dir, to: moved)
         try Data().write(to: dir)
 
         XCTAssertFalse(library.remove(id: recipe.id))
         XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed delete keeps the recipe")
-        XCTAssertTrue(FileManager.default.fileExists(atPath: moved.appending(path: "recipe-images/\\(name)").path),
+        XCTAssertTrue(FileManager.default.fileExists(atPath: moved.appending(path: "recipe-images/\(name)").path),
                       "the photo survives a failed delete")
     }
 }
