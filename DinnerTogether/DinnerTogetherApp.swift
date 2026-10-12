@@ -14,7 +14,13 @@ struct DinnerTogetherApp: App {
         #endif
         // The library is created first: the store resolves `recipe:` menu ids
         // through it while loading the saved session.
+        #if DEBUG
+        LaunchOptions.writeRecipeSeedIfPresent()
+        #endif
         let library = RecipeLibrary()
+        #if DEBUG
+        library.simulateSaveFailure = LaunchOptions.failRecipeSaves
+        #endif
         _library = StateObject(wrappedValue: library)
         _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService(),
                                                         menuProvider: library))
@@ -66,6 +72,11 @@ enum LaunchOptions {
     #if DEBUG
     private static let arguments = Set(ProcessInfo.processInfo.arguments)
     static var openCooking: Bool { arguments.contains("-dt-open-cooking") }
+    /// Every recipe-library save fails (UI test of the unsaved-change states).
+    static var failRecipeSaves: Bool { arguments.contains("-dt-fail-recipe-saves") }
+    /// Link import answers apple.news URLs with the recorded "only available
+    /// in Apple News" placeholder instead of the network.
+    static var stubAppleNews: Bool { arguments.contains("-dt-stub-apple-news") }
     static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
 
     /// Forces a DynamicTypeSize for accessibility-size UI-test renders.
@@ -92,6 +103,8 @@ enum LaunchOptions {
     }
     #else
     static var openCooking: Bool { false }
+    static var failRecipeSaves: Bool { false }
+    static var stubAppleNews: Bool { false }
     static var inertReminders: Bool { false }
     static var forcedTypeSize: DynamicTypeSize? { nil }
     #endif
@@ -109,7 +122,33 @@ enum LaunchOptions {
         #endif
     }
 
+    /// The import service the Add sheet uses: the real network, or in UI
+    /// tests the recorded Apple News placeholder.
+    static func importService() -> RecipeImportService {
+        #if DEBUG
+        if stubAppleNews { return RecipeImportService(fetcher: AppleNewsPlaceholderFetcher()) }
+        #endif
+        return RecipeImportService()
+    }
+
     #if DEBUG
+    /// DT_SEED_RECIPE_TEXTS: a JSON array of pasted-recipe texts. Each is
+    /// imported exactly as the Text option would, and the library file is
+    /// replaced with the result ("[]" empties it). UI tests set it on every
+    /// launch, so recipes never leak from one test into the next.
+    static func writeRecipeSeedIfPresent() {
+        guard let json = ProcessInfo.processInfo.environment["DT_SEED_RECIPE_TEXTS"],
+              let texts = try? JSONDecoder().decode([String].self, from: Data(json.utf8)) else { return }
+        let base = Date()
+        let recipes = texts.enumerated().compactMap { i, text -> Recipe? in
+            guard let imported = try? RecipeImporter.parse(text: text) else { return nil }
+            // Newest first in the library: the first text is listed first.
+            return RecipeImporter.build(imported, method: .text, now: base.addingTimeInterval(-Double(i)))
+        }
+        let url = URL.documentsDirectory.appending(path: RecipeLibrary.fileName)
+        if let data = try? JSONEncoder().encode(recipes) { try? data.write(to: url, options: .atomic) }
+    }
+
     /// Writes the DT_SEED_JSON payload to the store's file, if the variable
     /// is present. Called from `DinnerTogetherApp.init()` before SessionStore
     /// is created, so a UI test launches straight into its seeded state.
@@ -135,5 +174,21 @@ final class InertNotificationService: NotificationService {
     func schedule(stepID: String, title: String, deadline: Date) { }
     func cancel(stepID: String) { }
     func cancelAll() { }
+}
+#endif
+
+#if DEBUG
+/// What https://apple.news/… returned on October 11, 2026: a placeholder with
+/// the title and no recipe. Lets the UI test exercise the Apple News message
+/// without the network.
+struct AppleNewsPlaceholderFetcher: RecipePageFetcher {
+    func fetch(_ url: URL) async throws -> (data: Data, finalURL: URL) {
+        let html = """
+        <html><head><title>Whipped Frozen Apple Cider</title>
+        <meta property="og:title" content="Whipped Frozen Apple Cider — EatingWell"></head>
+        <body><p>This content is only available in Apple News.</p></body></html>
+        """
+        return (Data(html.utf8), url)
+    }
 }
 #endif

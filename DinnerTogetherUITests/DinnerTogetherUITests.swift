@@ -57,4 +57,29 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test09_tonightNineMenus() {
         flowTonightNineMenus()
     }
+
+    /// Recipes — r01: Tonight with an empty library.
+    func test10_recipeLibraryEmpty() {
+        flowRecipeLibraryEmpty()
+    }
+
+    /// Recipes — r02–r05: review gate, estimate, duration editor, confirmation.
+    func test11_recipeReviewGate() {
+        flowRecipeReviewGate()
+    }
+
+    /// Recipes — r06: an Apple News link explains itself.
+    func test12_appleNewsLink() {
+        flowAppleNewsLink()
+    }
+
+    /// Recipes — r07: a failed save stays honest.
+    func test13_timingSaveFailure() {
+        flowTimingSaveFailure()
+    }
+
+    /// Recipes — r08: Thanksgiving on Tonight.
+    func test14_thanksgivingCard() {
+        flowThanksgivingCard()
+    }
 }

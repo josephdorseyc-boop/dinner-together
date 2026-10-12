@@ -164,7 +164,7 @@ struct AddRecipeSheet: View {
     @State private var error: String?
     @State private var picked: [PhotosPickerItem] = []
 
-    private let service = RecipeImportService()
+    private let service = LaunchOptions.importService()
 
     var body: some View {
         NavigationStack {

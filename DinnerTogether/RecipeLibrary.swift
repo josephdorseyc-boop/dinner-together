@@ -23,12 +23,16 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     private let fileURL: URL
     private let imagesURL: URL
+    nonisolated static let fileName = "dinner-together-recipes-v1.json"
+    /// UI tests only (-dt-fail-recipe-saves): every save fails, as a full or
+    /// read-only disk would. Never set in release builds.
+    var simulateSaveFailure = false
 
     /// `directory` defaults to the app's Documents folder (same place as the
     /// session file). Tests pass a temporary directory.
     init(directory: URL? = nil) {
         let dir = directory ?? URL.documentsDirectory
-        fileURL = dir.appending(path: "dinner-together-recipes-v1.json")
+        fileURL = dir.appending(path: RecipeLibrary.fileName)
         imagesURL = dir.appending(path: "recipe-images", directoryHint: .isDirectory)
         if let data = try? Data(contentsOf: fileURL),
            let loaded = try? JSONDecoder().decode([Recipe].self, from: data) {
@@ -148,6 +152,10 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     @discardableResult
     func save() -> Bool {
+        if simulateSaveFailure {
+            saveError = "Your recipes couldn’t be saved. Keep the app open and try again."
+            return false
+        }
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]

@@ -146,9 +146,13 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// explicitly: the app never deletes a seed file, so an unset variable
     /// would leak the previous test's seed into this one.
     @discardableResult
-    func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true) -> XCUIApplication {
+    func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true,
+                recipes: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["DT_SEED_JSON"] = seed
+        // Always set, so recipes from one test never appear in another.
+        let recipeData = (try? JSONSerialization.data(withJSONObject: recipes)) ?? Data("[]".utf8)
+        app.launchEnvironment["DT_SEED_RECIPE_TEXTS"] = String(decoding: recipeData, as: UTF8.self)
         app.launchArguments += (openCooking ? ["-dt-open-cooking"] : []) + ["-dt-inert-reminders"] + extraLaunchArguments
         app.launch()
         self.app = app
@@ -654,5 +658,140 @@ class DinnerTogetherUITestCase: XCTestCase {
         action.tap()
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen after Build my cooking plan")
         photograph("09-tonight-into-cooking")
+    }
+}
+
+// MARK: - Recipe flows (A2 capture contract, October 11, 2026)
+
+/// Agent 2's R5 scheduling fixtures — test data, not tested cooking recipes.
+enum RecipeFixtureText {
+    static let frozenBerry = """
+        Frozen berry drink with lime and a three-hour freezer stage
+        Yield: 2 tall glasses, or 4 small tasting portions
+        Total time: 187 minutes
+
+        Ingredients
+        2 cups berry juice
+        1 lime
+
+        Directions
+        1. Mix the juice and lime and fill an ice tray for 5 minutes.
+        2. Freeze the mixture for 3 hours; check that it is solid before continuing.
+        3. Blend and pour the frozen drink for 2 minutes.
+        """
+    static let beanSpread = """
+        Bean spread with an untimed step
+        Yield: 2 snack portions
+
+        Ingredients
+        1 can beans
+        1 tablespoon olive oil
+        1 lemon
+
+        Directions
+        1. Drain the beans and prepare the lemon for 5 minutes.
+        2. Warm the beans until hot.
+        3. Mash and season the spread for 8-10 minutes.
+        4. Finish plating for 30 seconds.
+        """
+    static let frozenBerryTitle = "Frozen berry drink with lime and a three-hour freezer stage"
+    static let beanSpreadTitle = "Bean spread with an untimed step"
+}
+
+extension DinnerTogetherUITestCase {
+    private func openRecipe(_ title: String) {
+        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
+        scrollAndTap(row, "the recipe row for “\(title)”")
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
+    }
+
+    /// r01 — Tonight with an empty recipe library.
+    func flowRecipeLibraryEmpty() {
+        launch(seed: UISeed.tonight(now: Date()), openCooking: false, recipes: [])
+        let add = app.buttons["add-recipe"]
+        scrollTo(add)
+        XCTAssertTrue(app.staticTexts["Cook your own recipes, on time."].exists, "empty state explains the feature")
+        photograph("r01-library-empty")
+    }
+
+    /// r02–r05 — unreviewed recipe page, cook gate, estimate, duration editor, confirmation.
+    func flowRecipeReviewGate() {
+        launch(seed: UISeed.tonight(now: Date()), openCooking: false,
+               recipes: [RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread])
+        XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 10), "seeded dinner")
+
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        XCTAssertTrue(app.buttons["timing-review-banner"].exists, "an imported recipe asks for a timing check")
+        photograph("r02-recipe-unreviewed")
+
+        let cook = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(cook.label.contains("Check timing"), "the primary action asks for the check first: \(cook.label)")
+        cook.tap()
+        let confirm = app.buttons["timing-looks-right"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "the cook action opened the Timing tab")
+        XCTAssertTrue(app.buttons["recipe-tab-timing"].isSelected, "Timing is the selected tab")
+
+        let freezer = app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch
+        scrollAndTap(freezer, "the three-hour freezer step’s minutes")
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "the duration editor opened")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '180'")).firstMatch.exists, "it shows 180 minutes")
+        photograph("r04-duration-180")
+        cancel.tap()
+        waitForDisappearance(cancel, "editor closed")
+
+        scrollAndTap(confirm, "Timing looks right")
+        waitForDisappearance(app.buttons["timing-looks-right"], "the review is recorded")
+        let cookNow = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(cookNow.label.contains("Cook this for dinner"), "after review the recipe can be cooked: \(cookNow.label)")
+        photograph("r05-timing-confirmed")
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 5),
+                      "opening, checking and confirming a recipe never changed tonight’s dinner")
+        openRecipe(RecipeFixtureText.beanSpreadTitle)
+        app.buttons["recipe-tab-timing"].tap()
+        let estimated = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Estimated time'")).firstMatch
+        scrollTo(estimated)
+        XCTAssertTrue(estimated.exists, "the untimed step stays marked as an estimate")
+        photograph("r03-timing-estimate")
+    }
+
+    /// r06 — an Apple News link explains itself and switches to Screenshots.
+    func flowAppleNewsLink() {
+        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: ["-dt-stub-apple-news"], openCooking: false, recipes: [])
+        scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
+        let field = app.textFields["recipe-link"]
+        waitForExistence(field, timeout: 5, "the link field")
+        field.tap()
+        field.typeText("https://apple.news/KHuRjSBKDOACcBIjqE6y9tg")
+        app.buttons["import-recipe"].tap()
+        let error = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Apple News'")).firstMatch
+        XCTAssertTrue(error.waitForExistence(timeout: 10), "the Apple News explanation appears")
+        XCTAssertTrue(app.descendants(matching: .any)["choose-screenshots"].exists, "the sheet switched to Screenshots and stayed open")
+        photograph("r06-apple-news-link")
+    }
+
+    /// r07 — a confirmation that can’t be saved says so and stays unreviewed.
+    func flowTimingSaveFailure() {
+        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: ["-dt-fail-recipe-saves"], openCooking: false,
+               recipes: [RecipeFixtureText.frozenBerry])
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        app.buttons["recipe-tab-timing"].tap()
+        let confirm = app.buttons["timing-looks-right"]
+        scrollAndTap(confirm, "Timing looks right")
+        let problem = app.descendants(matching: .any)["recipe-save-error"]
+        XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown")
+        scrollToTop()
+        XCTAssertTrue(app.buttons["timing-looks-right"].exists, "the recipe is still unreviewed")
+        photograph("r07-save-error")
+    }
+
+    /// r08 — the Thanksgiving card on Tonight.
+    func flowThanksgivingCard() {
+        launch(seed: UISeed.tonight(now: Date()), openCooking: false, recipes: [])
+        let card = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Thanksgiving, together'")).firstMatch
+        scrollTo(card)
+        XCTAssertTrue(card.exists, "the holiday menu is on Tonight")
+        photograph("r08-thanksgiving")
     }
 }
