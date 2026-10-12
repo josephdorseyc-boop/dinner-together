@@ -24,7 +24,7 @@ on:
     # wip/** branches get the 1-minute Linux harness on every push
     # (engine-quick.yml); run this full workflow on them by hand when wanted.
     # Documentation-only pushes don't need a 20-minute macOS run.
-    paths-ignore: ['docs/**', '**/*.md']
+    paths-ignore: ['docs/**', '**/*.md', '.github/workflows/ui-review-evidence.yml']
   workflow_dispatch:
 
 # Results are also pushed to the ci-results / ci-results-linux branches so
@@ -150,6 +150,26 @@ jobs:
             native-validation/results/**
             !native-validation/results/build/**
           if-no-files-found: error
+      # A2-16: the renders alone, small enough to download (the full results
+      # artifact is ~600 MB; this one is ~60 MB). Original PNG bytes, with
+      # the summary, provenance and UI logs — per run, so a later run's
+      # force-push of ci-results never takes an earlier run's renders away.
+      - name: Upload review evidence (screenshots, summary, UI logs only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-review-evidence-${{ github.run_id }}
+          path: |
+            native-validation/results/ui-screenshots/**
+            native-validation/results/screenshots/**
+            native-validation/results/SUMMARY.md
+            native-validation/results/status.txt
+            native-validation/results/devices.env
+            native-validation/results/25-ui-test-*.log
+            native-validation/results/25-ui-test-*-summary.json
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
       # Best effort: the artifact above is the record. Two runs finishing
       # together race on the force-push (run 38305253325 lost to 38306639479
       # and was marked failed although its gate passed), so retry, then
