@@ -192,11 +192,12 @@ struct ServingSheetView: View {
 struct DurationEditorView: View {
     let step: CookingStep
     let initialMinutes: Int
-    var onSave: (Int) -> Void
+    var onSave: (Int) -> String?
     @Environment(\.dismiss) private var dismiss
     @State private var minutes: Int
+    @State private var saveError: String?
 
-    init(step: CookingStep, initialMinutes: Int, onSave: @escaping (Int) -> Void) {
+    init(step: CookingStep, initialMinutes: Int, onSave: @escaping (Int) -> String?) {
         self.step = step
         self.initialMinutes = initialMinutes
         self.onSave = onSave
@@ -221,7 +222,12 @@ struct DurationEditorView: View {
                             minutes = step.minutes
                         }.buttonStyle(QuietButtonStyle())
                     }.dtCard()
-                    Text("The plan updates when you save. Started timers keep their original deadline.")
+                    if let saveError {
+                        Text(saveError)
+                            .font(.subheadline).foregroundStyle(Theme.warning)
+                            .accessibilityIdentifier("estimate-save-error")
+                    }
+                    Text("Save this estimate to your recipe. Any timers already running keep their deadlines.")
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }.padding(24)
             }
@@ -229,8 +235,13 @@ struct DurationEditorView: View {
             .background(Theme.cream)
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 Button("Save estimate") {
-                    onSave(minutes)
-                    dismiss()
+                    // A2 S3: a failed save keeps the editor and the entered
+                    // value. The cook can retry or Cancel; nothing is lost.
+                    if let error = onSave(minutes) {
+                        saveError = error
+                    } else {
+                        dismiss()
+                    }
                 }
                 .buttonStyle(BigButtonStyle())
                 .disabled(minutes == initialMinutes)
