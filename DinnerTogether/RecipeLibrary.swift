@@ -27,6 +27,9 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     /// UI tests only (-dt-fail-recipe-saves): every save fails, as a full or
     /// read-only disk would. Never set in release builds.
     var simulateSaveFailure = false
+    /// UI tests only (-dt-fail-cover-saves): the recipe saves, its photo
+    /// doesn't — the "retry / continue without cover" path (A2-13).
+    var simulateImageSaveFailure = false
 
     /// `directory` defaults to the app's Documents folder (same place as the
     /// session file). Tests pass a temporary directory.
@@ -125,16 +128,28 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     // MARK: Images
 
-    /// Stores image bytes for a recipe and records the file name on it.
+    /// Writes a fresh image, commits its reference, then removes the old cover.
     @discardableResult
     func saveImage(_ data: Data, for recipeID: UUID, fileExtension: String = "jpg") -> String? {
         guard var r = recipe(id: recipeID) else { return nil }
+        if simulateImageSaveFailure {
+            saveError = "The recipe was saved, but its photo couldn’t be."
+            return nil
+        }
         do {
             try FileManager.default.createDirectory(at: imagesURL, withIntermediateDirectories: true)
-            let name = "\(recipeID.uuidString).\(fileExtension)"
-            try data.write(to: imagesURL.appending(path: name), options: .atomic)
+            let previousName = r.imageFilename
+            let name = "\(recipeID.uuidString)-\(UUID().uuidString).\(fileExtension)"
+            let newURL = imagesURL.appending(path: name)
+            try data.write(to: newURL, options: .atomic)
             r.imageFilename = name
-            update(r)
+            guard update(r) else {
+                try? FileManager.default.removeItem(at: newURL)
+                return nil
+            }
+            if let previousName {
+                try? FileManager.default.removeItem(at: imagesURL.appending(path: previousName))
+            }
             return name
         } catch {
             saveError = "The recipe was saved, but its photo couldn’t be."
@@ -166,6 +181,28 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
             saveError = "Your recipes couldn’t be saved. Keep the app open and try again."
             return false
         }
+    }
+}
+
+// Pure geometry shared by the cover preview/export and portable tests.
+enum RecipeCoverCrop {
+    struct Rect: Equatable {
+        let x: Double
+        let y: Double
+        let width: Double
+        let height: Double
+    }
+
+    static func rect(width: Double, height: Double, zoom: Double,
+                     horizontal: Double, vertical: Double) -> Rect? {
+        guard [width, height, zoom, horizontal, vertical].allSatisfy({ $0.isFinite }),
+              width > 0, height > 0 else { return nil }
+        let ratio = 4.0 / 3.0
+        let cropWidth = min(width, height * ratio) / max(1, min(4, zoom))
+        let cropHeight = cropWidth / ratio
+        return Rect(x: max(0, width - cropWidth) * max(0, min(1, horizontal)),
+                    y: max(0, height - cropHeight) * max(0, min(1, vertical)),
+                    width: cropWidth, height: cropHeight)
     }
 }
 

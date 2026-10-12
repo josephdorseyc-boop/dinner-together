@@ -931,21 +931,15 @@ extension DinnerTogetherUITestCase {
     }
 
     /// r09 — a delete that can’t be saved keeps the recipe and says so.
+    /// Delete is a button at the end of the page (not a ••• item: a dialog
+    /// from a closing menu was dropped on iPhone in every CI run).
     func flowDeleteFailure() {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
-        let more = app.buttons["More"]
-        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        XCTAssertFalse(app.buttons["Delete recipe"].exists, "Delete is no longer a menu item")
+        scrollAndTap(app.buttons["delete-recipe"], "Delete this recipe (end of the page)")
         let question = app.staticTexts["Delete this recipe?"]
-        // iPad: the menu is a popover and a tap can be swallowed while it
-        // animates (run 38266917187; passed in 38259705494). One retry.
-        for attempt in 0..<2 where !question.exists {
-            tapEvenInPopover(more)
-            let deleteItem = app.buttons["Delete recipe"].firstMatch
-            if deleteItem.waitForExistence(timeout: 5) { tapEvenInPopover(deleteItem) }
-            if question.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
-        }
-        waitForExistence(question, timeout: 1, "the delete confirmation")
+        waitForExistence(question, timeout: 5, "the delete confirmation")
         let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
         tapEvenInPopover(confirmDelete)
         waitForDisappearance(question, "the confirmation closed")
@@ -966,5 +960,72 @@ extension DinnerTogetherUITestCase {
         title.swipeLeft()
         XCTAssertEqual(title.frame.minX, before, accuracy: 1, "the page does not scroll sideways")
         photograph("r10-hero-landscape" + capture.suffix)
+    }
+
+    // MARK: Cover crop (A2-13). Agent 1's PR #8 flows, run inside the main
+    // classes with the -dt-stub-screenshots source (two drawn screenshots:
+    // a text page read by the real on-device recognizer, and a food photo).
+
+    private func startScreenshotImport(_ extra: [String]) {
+        launchRecipes([], .standard, extra: ["-dt-stub-screenshots"] + extra)
+        openRecipesLibrary()
+        scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
+        let segment = app.buttons["Screenshots"]
+        waitForExistence(segment, timeout: 5, "the Screenshots option")
+        segment.tap()
+        waitForExistence(app.descendants(matching: .any)["choose-screenshots"], timeout: 5, "the stubbed screenshots")
+    }
+
+    private func chooseCoverCrop() {
+        scrollAndTap(app.buttons["choose-cover"], "Choose a cover from screenshots")
+        let source = app.descendants(matching: .any)["cover-source"]
+        waitForExistence(source, timeout: 10, "the cover source picker")
+        // The food photo is the second stubbed screenshot.
+        tapEvenInPopover(source)
+        let second = app.buttons["Screenshot 2"].firstMatch
+        if second.waitForExistence(timeout: 5) { tapEvenInPopover(second) }
+        XCTAssertTrue(app.images["cover-preview"].waitForExistence(timeout: 5), "crop preview")
+        XCTAssertTrue(app.sliders["cover-zoom"].exists && app.sliders["cover-horizontal"].exists && app.sliders["cover-vertical"].exists,
+                      "zoom and position sliders")
+        app.sliders["cover-zoom"].adjust(toNormalizedSliderPosition: 0.3)
+        photograph("r11-cover-crop")
+        tapPinned(app.buttons["use-cover-crop"], "Use this crop")
+        XCTAssertTrue(app.images["Selected recipe cover"].waitForExistence(timeout: 5), "the cover shows in the form")
+    }
+
+    /// r11/r12 — screenshots → cover crop → Add → the recipe page shows the
+    /// text the recognizer read and the cover as its hero.
+    func flowCoverCropHappyPath() {
+        startScreenshotImport([])
+        chooseCoverCrop()
+        let add = app.buttons["import-recipe"]
+        XCTAssertTrue(add.label.contains("Add recipe"), "not in the retry state: \(add.label)")
+        scrollAndTap(add, "Add recipe")
+        let title = app.staticTexts["recipe-title"]
+        XCTAssertTrue(title.waitForExistence(timeout: 30), "the recipe page opens after on-device text recognition")
+        XCTAssertTrue(title.label.contains("Cider"), "the recognizer read the title: \(title.label)")
+        XCTAssertTrue(app.descendants(matching: .any)["recipe-hero"].exists, "the crop is the recipe’s hero")
+        photograph("r12-cover-hero")
+        app.buttons["recipe-tab-directions"].tap()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Freeze until solid'")).firstMatch.waitForExistence(timeout: 5),
+                      "STEP 2 was read from the screenshot")
+    }
+
+    /// r13 — the recipe saves, the cover doesn’t: retry or continue, no duplicate.
+    func flowCoverSaveFailureRetry() {
+        startScreenshotImport(["-dt-fail-cover-saves"])
+        chooseCoverCrop()
+        scrollAndTap(app.buttons["import-recipe"], "Add recipe")
+        let retry = app.buttons["import-recipe"]
+        let relabeled = NSPredicate(format: "label CONTAINS 'Retry cover save'")
+        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: relabeled, object: retry)], timeout: 30), .completed,
+                       "the button offers a retry, not a second add: \(retry.label)")
+        XCTAssertTrue(app.buttons["continue-without-cover"].exists, "continue without cover is offered")
+        XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'recipe is saved'")).firstMatch.exists,
+                      "the error says the recipe itself is safe")
+        photograph("r13-cover-retry")
+        app.buttons["continue-without-cover"].tap()
+        XCTAssertTrue(app.staticTexts["recipe-title"].waitForExistence(timeout: 10), "continuing opens the saved recipe")
+        XCTAssertFalse(app.descendants(matching: .any)["recipe-hero"].exists, "no cover was attached")
     }
 }

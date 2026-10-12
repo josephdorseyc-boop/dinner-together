@@ -611,6 +611,12 @@ enum Scheduling {
         return f
     }()
 
+    /// The next whole `minutes` mark at or after `date` (seconds dropped).
+    static func roundUp(_ date: Date, toMinutes minutes: Int) -> Date {
+        let step = Double(minutes * 60)
+        return Date(timeIntervalSinceReferenceDate: (date.timeIntervalSinceReferenceDate / step).rounded(.up) * step)
+    }
+
     static func formatTime(_ date: Date) -> String {
         timeFormatter.string(from: date)
     }

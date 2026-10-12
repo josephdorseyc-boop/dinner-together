@@ -82,4 +82,8 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test20_appleNewsLinkAX3() { flowAppleNewsLink(.ax3) }
     /// Recipes in Dark Mode (verified: screen luminance) — r02, r03.
     func test21_recipeDark() { flowRecipePageAndEstimate(.darkMode) }
+    /// Cover crop (A2-13, A1 PR #8) — r11, r12: stubbed screenshots, real on-device OCR.
+    func test22_coverCropHappyPath() { flowCoverCropHappyPath() }
+    /// Cover crop — r13: recipe saved, cover failed → retry / continue.
+    func test23_coverSaveFailureRetry() { flowCoverSaveFailureRetry() }
 }

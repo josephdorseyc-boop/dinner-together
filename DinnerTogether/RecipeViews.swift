@@ -198,6 +198,27 @@ struct AddRecipeSheet: View {
     @State private var working = false
     @State private var error: String?
     @State private var picked: [PhotosPickerItem] = []
+    /// DEBUG UI tests only (-dt-stub-screenshots); always empty in release.
+    @State private var stubbed: [Data] = LaunchOptions.stubScreenshotData()
+    private var screenshotCount: Int { stubbed.isEmpty ? picked.count : stubbed.count }
+
+    /// The chosen screenshots' bytes, in selection order.
+    private func screenshotData() async throws -> [Data] {
+        if !stubbed.isEmpty { return stubbed }
+        var out: [Data] = []
+        for item in picked {
+            if let data = try await item.loadTransferable(type: Data.self) { out.append(data) }
+        }
+        return out
+    }
+    @State private var choosingCover = false
+    @State private var coverData: Data?
+    @State private var pendingCoverSave: PendingCoverSave?
+
+    private struct PendingCoverSave {
+        let recipe: Recipe
+        let data: Data
+    }
 
     private let service = LaunchOptions.importService()
 
@@ -215,12 +236,16 @@ struct AddRecipeSheet: View {
                         ForEach(Mode.allCases) { Text($0.rawValue).tag($0) }
                     }
                     .pickerStyle(.segmented)
+                    .disabled(working || pendingCoverSave != nil)
 
-                    switch mode {
-                    case .link: linkInput
-                    case .screenshots: screenshotInput
-                    case .text: textInput
+                    Group {
+                        switch mode {
+                        case .link: linkInput
+                        case .screenshots: screenshotInput
+                        case .text: textInput
+                        }
                     }
+                    .disabled(working || pendingCoverSave != nil)
 
                     if let error {
                         Label(error, systemImage: "exclamationmark.triangle")
@@ -232,12 +257,17 @@ struct AddRecipeSheet: View {
                         if working {
                             HStack(spacing: 10) { ProgressView().tint(.white); Text("Reading the recipe…") }
                         } else {
-                            Label("Add recipe", systemImage: "arrow.down.doc")
+                            Label(pendingCoverSave == nil ? "Add recipe" : "Retry cover save", systemImage: "arrow.down.doc")
                         }
                     }
                     .buttonStyle(BigButtonStyle())
-                    .disabled(working || !canImport)
+                    .disabled(working || (pendingCoverSave == nil && !canImport))
                     .accessibilityIdentifier("import-recipe")
+                    if let pendingCoverSave {
+                        Button("Continue without cover") { finishImport(pendingCoverSave.recipe) }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .accessibilityIdentifier("continue-without-cover")
+                    }
 
                     Text(mode == .link
                          ? "Link import needs internet access. Review the imported recipe and any estimated times before cooking."
@@ -248,31 +278,60 @@ struct AddRecipeSheet: View {
             }
             .background(Theme.cream)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(working) }
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(pendingCoverSave == nil ? "Cancel" : "Done") {
+                        if let pending = pendingCoverSave { finishImport(pending.recipe) }
+                        else { dismiss() }
+                    }.disabled(working)
+                }
             }
         }
         .tint(Theme.tomato)
         .interactiveDismissDisabled(working)
+        .onChange(of: picked) { _, _ in coverData = nil }
+        .sheet(isPresented: $choosingCover) {
+            ScreenshotCoverSheet(load: { try await screenshotData() }) { coverData = $0 }
+        }
     }
 
     private var canImport: Bool {
         switch mode {
         case .link: return parsedLink != nil
-        case .screenshots: return !picked.isEmpty
+        case .screenshots: return screenshotCount > 0
         case .text: return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
 
     private var screenshotInput: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step. Choose images in recipe order, then check for missing or repeated text after import.")
+            Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step, with each step fully visible below the top bar in at least one screenshot. Choose images in recipe order, then check for missing or repeated text after import.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
-                Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
+            if stubbed.isEmpty {
+                PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
+                    Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("choose-screenshots")
+            } else {
+                Label("\(stubbed.count) test screenshots", systemImage: "photo.on.rectangle.angled")
+                    .accessibilityIdentifier("choose-screenshots")
             }
-            .buttonStyle(SecondaryButtonStyle())
-            .accessibilityIdentifier("choose-screenshots")
-            Text("The text is read on this device. The screenshots aren’t saved.")
+            if screenshotCount > 0 {
+                Button(coverData == nil ? "Choose a cover from screenshots" : "Adjust cover crop") {
+                    choosingCover = true
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("choose-cover")
+            }
+            if let coverData, let image = UIImage(data: coverData) {
+                Image(uiImage: image).resizable().scaledToFit()
+                    .frame(maxHeight: 180)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .accessibilityLabel("Selected recipe cover")
+                Button("Remove cover") { self.coverData = nil }
+                    .buttonStyle(QuietButtonStyle())
+            }
+            Text("The text is read on this device. Only a cover crop you choose is saved with the recipe; the full screenshots aren’t kept.")
                 .font(.caption).foregroundStyle(Theme.muted)
         }
     }
@@ -340,11 +399,27 @@ struct AddRecipeSheet: View {
             .compactMap { $0.url }.first { ($0.scheme ?? "").hasPrefix("http") }
     }
 
+    private func finishImport(_ recipe: Recipe) {
+        if pendingCoverSave != nil { library.saveError = nil }
+        pendingCoverSave = nil
+        UIAccessibility.post(notification: .announcement, argument: "Added \(recipe.title).")
+        dismiss()
+        onAdded(recipe.id)
+    }
+
     private func runImport() {
         error = nil
         working = true
         Task { @MainActor in
             defer { working = false }
+            if let pending = pendingCoverSave {
+                guard library.saveImage(pending.data, for: pending.recipe.id) != nil else {
+                    error = "Your recipe is saved, but the cover couldn’t be saved. Retry or continue without it."
+                    return
+                }
+                finishImport(pending.recipe)
+                return
+            }
             do {
                 let recipe: Recipe
                 var imageData: Data?
@@ -353,11 +428,10 @@ struct AddRecipeSheet: View {
                     recipe = result.recipe
                     imageData = result.imageData
                 } else if mode == .screenshots {
+                    imageData = coverData
                     var pages: [[OCRLine]] = []
-                    for item in picked {
-                        if let data = try await item.loadTransferable(type: Data.self) {
-                            pages.append(try await ScreenshotReader.lines(in: data))
-                        }
+                    for data in try await screenshotData() {
+                        pages.append(try await ScreenshotReader.lines(in: data))
                     }
                     recipe = RecipeImporter.build(try RecipeImporter.parse(screenshots: pages), method: .photo)
                 } else {
@@ -369,11 +443,13 @@ struct AddRecipeSheet: View {
                     return
                 }
                 if let data = imageData, let jpeg = RecipeFormat.storableJPEG(data) {
-                    library.saveImage(jpeg, for: recipe.id)
+                    guard library.saveImage(jpeg, for: recipe.id) != nil else {
+                        pendingCoverSave = PendingCoverSave(recipe: recipe, data: jpeg)
+                        error = "Your recipe is saved, but the cover couldn’t be saved. Retry or continue without it."
+                        return
+                    }
                 }
-                UIAccessibility.post(notification: .announcement, argument: "Added \(recipe.title).")
-                dismiss()
-                onAdded(recipe.id)
+                finishImport(recipe)
             } catch let e as LocalizedError {
                 if case RecipeImportError.appleNewsOnly = e { mode = .screenshots }
                 error = e.errorDescription ?? "That didn’t work. Try pasting the recipe text instead."
@@ -432,6 +508,7 @@ struct RecipeDetailView: View {
                             case .timing: timing(recipe)
                             }
                             sourceLink(recipe)
+                            deleteButton
                         }
                         .padding(24)
                         .frame(maxWidth: 720)
@@ -492,7 +569,12 @@ struct RecipeDetailView: View {
                             .frame(height: 80)
                             .allowsHitTesting(false)
                     }
-                    .accessibilityHidden(true)
+                    // A content photo, not decoration: VoiceOver names it and
+                    // tests can find it (cover-crop flow).
+                    .accessibilityElement()
+                    .accessibilityLabel("Photo of \(recipe.title)")
+                    .accessibilityAddTraits(.isImage)
+                    .accessibilityIdentifier("recipe-hero")
                 titleBlock(recipe, onPhoto: false)
                     .padding(.horizontal, 24).padding(.top, 20)
                     .frame(maxWidth: 720, alignment: .leading)
@@ -794,17 +876,27 @@ struct RecipeDetailView: View {
     @ToolbarContentBuilder
     private func moreMenu(_ recipe: Recipe) -> some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
-            Menu {
-                if let url = recipe.source.url {
-                    ShareLink(item: url) { Label("Share link", systemImage: "square.and.arrow.up") }
-                }
-                Button(role: .destructive) {
-                    if timingLocked { cannotDelete = true } else { confirmingDelete = true }
-                } label: { Label("Delete recipe", systemImage: "trash") }
-            } label: {
-                Image(systemName: "ellipsis.circle").accessibilityLabel("More")
+            if let url = recipe.source.url {
+                ShareLink(item: url) { Image(systemName: "square.and.arrow.up").accessibilityLabel("Share link") }
             }
         }
+    }
+
+    /// Delete lives at the end of the page, not in the ••• menu: a
+    /// confirmation dialog requested from a closing Menu was dropped on
+    /// iPhone in five CI runs out of five (and once on iPad), with or
+    /// without a delay — the cook would have tapped Delete and seen
+    /// nothing. From a plain button the dialog presents every time.
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            if timingLocked { cannotDelete = true } else { confirmingDelete = true }
+        } label: {
+            Label("Delete this recipe", systemImage: "trash")
+                .foregroundStyle(Theme.tomato)
+        }
+        .buttonStyle(QuietButtonStyle())
+        .padding(.top, 12)
+        .accessibilityIdentifier("delete-recipe")
     }
 
     private func choose(_ recipe: Recipe) {
@@ -849,5 +941,143 @@ enum TimedText {
         }
         if cursor < ns.length { result = Text("\(result)\(Text(ns.substring(from: cursor)))") }
         return result
+    }
+}
+
+// MARK: - Optional screenshot cover (local pixels only)
+
+struct ScreenshotCoverSheet: View {
+    /// Supplies the chosen screenshots' bytes (photo picker or UI-test stub).
+    let load: () async throws -> [Data]
+    var onUse: (Data) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @State private var images: [UIImage] = []
+    @State private var selected = 0
+    @State private var zoom = 1.0
+    @State private var horizontal = 0.5
+    @State private var vertical = 0.5
+    @State private var loading = true
+    @State private var problem: String?
+
+    private var preview: UIImage? {
+        guard images.indices.contains(selected) else { return nil }
+        return croppedImage(images[selected], width: 640)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Choose the food photo")
+                        .font(.system(.title2, design: .serif).weight(.semibold))
+                    Text("Choose a screenshot with a photo, then adjust the crop to leave out text and buttons. A cover is optional.")
+                        .foregroundStyle(Theme.muted)
+                    if loading {
+                        ProgressView("Loading screenshots…")
+                    } else if !images.isEmpty {
+                        Picker("Screenshot", selection: $selected) {
+                            ForEach(images.indices, id: \.self) { index in
+                                Text("Screenshot \(index + 1)").tag(index)
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .accessibilityIdentifier("cover-source")
+                        if let preview {
+                            Image(uiImage: preview).resizable().scaledToFit()
+                                .clipShape(RoundedRectangle(cornerRadius: 20))
+                                .accessibilityLabel("Cover crop preview")
+                                .accessibilityIdentifier("cover-preview")
+                        }
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Zoom").font(.headline)
+                            Slider(value: $zoom, in: 1...4, step: 0.05) { Text("Zoom") }
+                                .accessibilityValue(String(format: "%.1f times", zoom))
+                                .accessibilityIdentifier("cover-zoom")
+                            Text("Left to right").font(.headline)
+                            Slider(value: $horizontal, in: 0...1) { Text("Horizontal crop position") }
+                                .accessibilityValue("\(Int(horizontal * 100)) percent")
+                                .accessibilityIdentifier("cover-horizontal")
+                            Text("Top to bottom").font(.headline)
+                            Slider(value: $vertical, in: 0...1) { Text("Vertical crop position") }
+                                .accessibilityValue("\(Int(vertical * 100)) percent")
+                                .accessibilityIdentifier("cover-vertical")
+                        }
+                        .dtCard()
+                    }
+                    if let problem {
+                        Text(problem).foregroundStyle(Theme.warning)
+                            .accessibilityIdentifier("cover-error")
+                    }
+                }
+                .padding(24)
+                .frame(maxWidth: 640)
+                .frame(maxWidth: .infinity)
+            }
+            .background(Theme.cream)
+            .foregroundStyle(Theme.ink)
+            .navigationTitle("Cover photo")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button("Use this crop") {
+                    guard images.indices.contains(selected),
+                          let image = croppedImage(images[selected], width: 1200),
+                          let data = image.jpegData(compressionQuality: 0.88) else {
+                        problem = "This crop couldn’t be prepared. Try another screenshot."
+                        return
+                    }
+                    onUse(data)
+                    dismiss()
+                }
+                .buttonStyle(BigButtonStyle())
+                .disabled(loading || preview == nil)
+                .accessibilityIdentifier("use-cover-crop")
+                .padding(.horizontal, 24).padding(.vertical, 12)
+                .background(Theme.cream)
+            }
+        }
+        .tint(Theme.tomato)
+        .onChange(of: selected) { _, _ in zoom = 1; horizontal = 0.5; vertical = 0.5 }
+        .task { await loadImages() }
+    }
+
+    @MainActor
+    private func loadImages() async {
+        defer { loading = false }
+        do {
+            var loaded: [UIImage] = []
+            for data in try await load() {
+                guard !Task.isCancelled else { return }
+                guard let jpeg = RecipeFormat.storableJPEG(data),
+                      let image = UIImage(data: jpeg) else {
+                    problem = "A screenshot couldn’t be opened. Cancel and choose your screenshots again."
+                    return
+                }
+                loaded.append(image)
+            }
+            guard !Task.isCancelled else { return }
+            images = loaded
+            if loaded.isEmpty { problem = "Choose screenshots before adding a cover." }
+        } catch {
+            problem = "The screenshots couldn’t be opened. Cancel and try again."
+        }
+    }
+
+    private func croppedImage(_ image: UIImage, width: CGFloat) -> UIImage? {
+        guard let crop = RecipeCoverCrop.rect(width: Double(image.size.width), height: Double(image.size.height),
+                                             zoom: zoom, horizontal: horizontal, vertical: vertical) else { return nil }
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let output = CGSize(width: width, height: width * 3 / 4)
+        let scale = width / CGFloat(crop.width)
+        return UIGraphicsImageRenderer(size: output, format: format).image { context in
+            UIColor.white.setFill()
+            context.fill(CGRect(origin: .zero, size: output))
+            image.draw(in: CGRect(x: -CGFloat(crop.x) * scale, y: -CGFloat(crop.y) * scale,
+                                  width: image.size.width * scale, height: image.size.height * scale))
+        }
     }
 }

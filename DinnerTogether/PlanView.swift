@@ -49,9 +49,16 @@ struct PlanView: View {
                     // Recompute feasibility right before entering cooking —
                     // duration edits can invalidate the serving time.
                     recheckFeasibility()
-                    if hasProgress || feasibility == .ok { goCooking() }
+                    if hasProgress || feasibility == .ok { goCooking(); return }
+                    // Never a silent no-op (Joe, build 8). The label already
+                    // named the time, so moving dinner to it is what was asked.
+                    if case .startsInPast(let earliest) = feasibility {
+                        store.setServeAt(earliest)
+                        recheckFeasibility()
+                        goCooking()
+                    }
                 }) {
-                    Label(hasProgress ? "Back to cooking" : "Build my cooking plan", systemImage: "arrow.right")
+                    Label(primaryActionTitle, systemImage: "arrow.right")
                 }
                 .buttonStyle(BigButtonStyle())
                 .accessibilityHint("Opens your cooking timeline.")
@@ -90,6 +97,14 @@ struct PlanView: View {
             }
             Button("Cancel", role: .cancel) { pendingMenuID = nil }
         }
+    }
+
+    private var primaryActionTitle: String {
+        if hasProgress { return "Back to cooking" }
+        if case .startsInPast(let earliest) = feasibility {
+            return "Build plan for \(Scheduling.formatTime(earliest))"
+        }
+        return "Build my cooking plan"
     }
 
     // MARK: Sections
