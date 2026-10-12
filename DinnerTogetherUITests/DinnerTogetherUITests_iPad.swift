@@ -30,4 +30,7 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test09_deleteFailure_iPad() { flowDeleteFailure() }
     func test10_heroPhoto_iPad() { flowHeroPhoto() }
     func test11_recipeDark_iPad() { flowRecipePageAndEstimate(.darkMode) }
+    // Page colors on iPad: r14, r15.
+    func test12_photoPageColors_iPad() { flowPhotoPageColors() }
+    func test13_typedPageColor_iPad() { flowTypedPageColor() }
 }

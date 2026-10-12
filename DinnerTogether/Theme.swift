@@ -11,10 +11,12 @@ enum Theme {
     }
     static let cream = adaptive((0.980, 0.965, 0.929), (0.102, 0.098, 0.086))
     static let paper = adaptive((0.999, 0.992, 0.973), (0.153, 0.145, 0.125))
-    static let ink = adaptive((0.188, 0.169, 0.145), (0.965, 0.945, 0.890))
+    // Dark Mode text colors come from PageText (RecipePalette.swift): colored
+    // recipe pages draw in Dark Mode, and the Linux tests check those values.
+    static let ink = adaptive((0.188, 0.169, 0.145), PageText.ink.tuple)
     static let tomato = adaptive((0.659, 0.220, 0.153), (0.950, 0.540, 0.420))
-    static let olive = adaptive((0.282, 0.337, 0.224), (0.690, 0.760, 0.560))
-    static let muted = adaptive((0.431, 0.404, 0.369), (0.730, 0.710, 0.650))
+    static let olive = adaptive((0.282, 0.337, 0.224), PageText.olive.tuple)
+    static let muted = adaptive((0.431, 0.404, 0.369), PageText.muted.tuple)
     static let line = adaptive((0.902, 0.875, 0.824), (0.270, 0.255, 0.220))
     // Filled buttons retain the darker tomato so white labels stay legible.
     static let buttonFill = Color(red: 0.659, green: 0.220, blue: 0.153)
@@ -24,7 +26,16 @@ enum Theme {
         LinearGradient(colors: [cream, recipeWash, cream],
                        startPoint: .topLeading, endPoint: .bottomTrailing)
     }
-    static let warning = adaptive((0.510, 0.300, 0.090), (0.950, 0.740, 0.430))
+    static let warning = adaptive((0.510, 0.300, 0.090), PageText.warning.tuple)
+    /// Timer chips and step labels on a colored recipe page (see PageText.accent).
+    static let pageAccent = PageText.accent.color
+    /// Light-mode ink, fixed: text on the light button of a colored page.
+    static let inkOnLight = Color(red: 0.188, green: 0.169, blue: 0.145)
+}
+
+extension RGB {
+    var tuple: (Double, Double, Double) { (r, g, b) }
+    var color: Color { Color(.sRGB, red: r, green: g, blue: b, opacity: 1) }
 }
 
 struct SectionLabel: View {
@@ -48,14 +59,18 @@ extension View {
 }
 
 struct BigButtonStyle: ButtonStyle {
+    /// On a colored recipe page the button is a light pill with dark text
+    /// (12:1) rather than tomato on a deep, possibly red, gradient.
+    var onColoredPage = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.headline.weight(.semibold))
             .padding(.horizontal, 18).padding(.vertical, 12)
             .frame(maxWidth: .infinity, minHeight: 56)
-            .foregroundStyle(.white)
-            .background(Theme.buttonFill, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .foregroundStyle(onColoredPage ? Theme.inkOnLight : .white)
+            .background(onColoredPage ? PageText.ink.color : Theme.buttonFill,
+                        in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .opacity(isEnabled ? (configuration.isPressed ? 0.88 : 1) : 0.45)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.985 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.16), value: configuration.isPressed)

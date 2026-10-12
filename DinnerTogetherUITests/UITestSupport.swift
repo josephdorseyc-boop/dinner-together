@@ -799,6 +799,35 @@ extension DinnerTogetherUITestCase {
         return total / Double(w * h) / 255
     }
 
+    /// Mean luminance of the bare page in the gap just below the recipe tabs
+    /// (the track ends 4 pt below the buttons; content starts 22 pt later).
+    /// The same spot in every layout, so the iPad sidebar, the tab bar, the
+    /// cook bar and the hero photo never count.
+    func pageLuminance(file: StaticString = #filePath, line: UInt = #line) -> Double {
+        let first = app.buttons["recipe-tab-ingredients"], last = app.buttons["recipe-tab-timing"]
+        guard first.waitForExistence(timeout: 5), last.exists else {
+            XCTFail("recipe tabs not found", file: file, line: line); return -1
+        }
+        // Bring the tabs to the upper middle, clear of the cook bar.
+        let screen = app.frame
+        for _ in 0..<3 where first.frame.maxY > screen.height * 0.6 || first.frame.minY < screen.minY + 100 {
+            let delta = max(-screen.height * 0.45, min(screen.height * 0.45, first.frame.midY - screen.midY))
+            let startY = delta >= 0 ? 0.70 : 0.30
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY - Double(delta / screen.height))),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+        Thread.sleep(forTimeInterval: 0.5) // let a sheet dismissal or color change finish
+        let shot = app.screenshot().image
+        guard let cg = shot.cgImage, screen.width > 0 else { return -1 }
+        let scale = CGFloat(cg.width) / screen.width
+        let x0 = first.frame.minX, x1 = last.frame.maxX, y0 = first.frame.maxY + 9
+        let rect = CGRect(x: x0 * scale, y: y0 * scale, width: (x1 - x0) * scale, height: 10 * scale).integral
+        guard let strip = cg.cropping(to: rect) else { return -1 }
+        return Self.meanLuminance(UIImage(cgImage: strip))
+    }
+
     private func onRecipePage(_ capture: RecipeCapture) {
         verifyTypeSize(capture)
         verifyAppearance(capture)
@@ -1033,5 +1062,113 @@ extension DinnerTogetherUITestCase {
         app.buttons["continue-without-cover"].tap()
         XCTAssertTrue(app.staticTexts["recipe-title"].waitForExistence(timeout: 10), "continuing opens the saved recipe")
         XCTAssertFalse(app.descendants(matching: .any)["recipe-hero"].exists, "no cover was attached")
+    }
+
+    // MARK: Page colors (Joe, Oct 12): photo colors, a chosen color, frosted cards.
+
+    private func openPageColorFromMenu() {
+        let more = app.buttons["More"]
+        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        let sheetDone = app.buttons["page-style-done"]
+        // iPad: the menu is a popover and a tap can be swallowed while it
+        // animates (same retry as the delete flow).
+        for attempt in 0..<2 where !sheetDone.exists {
+            tapEvenInPopover(more)
+            let item = app.buttons["Page color"].firstMatch
+            if item.waitForExistence(timeout: 5) { tapEvenInPopover(item) }
+            if sheetDone.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
+        }
+        waitForExistence(sheetDone, timeout: 1, "the Page color sheet")
+    }
+
+    private func closePageColorSheet() {
+        let done = app.buttons["page-style-done"]
+        done.tap()
+        waitForDisappearance(done, "the Page color sheet closed")
+    }
+
+    private func swatch(_ id: String) -> XCUIElement { app.buttons["page-style-\(id)"] }
+
+    /// r14 — a photo recipe’s page takes the photo’s colors with frosted
+    /// cards; ••• → Page color offers Match photo, seven colors and Classic
+    /// cream, and Classic brings the light page back.
+    func flowPhotoPageColors() {
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, heroPhoto: true)
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        XCTAssertTrue(app.descendants(matching: .any)["recipe-hero"].exists, "the photo is the hero")
+        let colored = pageLuminance()
+        XCTAssertLessThan(colored, 0.35, "the page took the photo’s deep colors, not cream: lower-half luminance \(colored)")
+        photograph("r14a-photo-colors")
+        app.buttons["recipe-tab-directions"].tap()
+        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the colored page")
+        photograph("r14b-photo-colors-directions")
+
+        openPageColorFromMenu()
+        XCTAssertTrue(swatch("match-photo").isSelected, "automatic shows as Match photo")
+        for id in ["cider", "tomato", "olive", "saffron", "plum", "lagoon", "charcoal", "classic"] {
+            XCTAssertTrue(swatch(id).exists, "the \(id) option is offered")
+        }
+        photograph("r14c-page-color-sheet")
+        swatch("classic").tap()
+        XCTAssertTrue(swatch("classic").waitForSelection(), "Classic cream is now selected")
+        closePageColorSheet()
+        let cream = pageLuminance()
+        XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: lower-half luminance \(cream)")
+        photograph("r14d-photo-classic")
+    }
+
+    /// r15 — a typed recipe (no photo) picks a color from the page’s own
+    /// button; the timer chips and step labels switch to the light accent.
+    func flowTypedPageColor() {
+        launchRecipes([RecipeFixtureText.beanSpread], .standard)
+        openRecipe(RecipeFixtureText.beanSpreadTitle)
+        let light = pageLuminance()
+        XCTAssertGreaterThan(light, 0.6, "a typed recipe starts on the cream page: \(light)")
+        let button = app.buttons["page-color-button"]
+        waitForExistence(button, timeout: 5, "the Page color button on a typed recipe")
+        photograph("r15a-typed-cream")
+        button.tap()
+        waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
+        XCTAssertFalse(swatch("match-photo").exists, "no Match photo without a photo")
+        XCTAssertTrue(swatch("classic").isSelected, "automatic without a photo shows as Classic cream")
+        swatch("plum").tap()
+        XCTAssertTrue(swatch("plum").waitForSelection(), "Plum is now selected")
+        photograph("r15b-plum-sheet")
+        closePageColorSheet()
+        let plum = pageLuminance()
+        XCTAssertLessThan(plum, 0.35, "the page is plum: \(plum)")
+        photograph("r15c-typed-plum")
+        app.buttons["recipe-tab-directions"].tap()
+        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the plum page")
+        photograph("r15d-typed-plum-directions")
+    }
+
+    /// r16 — a color that can’t be saved says so and the page stays as it was.
+    func flowPageColorSaveFailure() {
+        launchRecipes([RecipeFixtureText.beanSpread], .standard, extra: ["-dt-fail-recipe-saves"])
+        openRecipe(RecipeFixtureText.beanSpreadTitle)
+        let button = app.buttons["page-color-button"]
+        waitForExistence(button, timeout: 5, "the Page color button")
+        button.tap()
+        waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
+        swatch("lagoon").tap()
+        XCTAssertTrue(app.descendants(matching: .any)["page-style-error"].waitForExistence(timeout: 5), "the save problem is shown in the sheet")
+        XCTAssertFalse(swatch("lagoon").isSelected, "the failed choice is not shown as chosen")
+        XCTAssertTrue(swatch("classic").isSelected, "the page’s real color stays selected")
+        photograph("r16-page-color-save-failed")
+        closePageColorSheet()
+        XCTAssertGreaterThan(pageLuminance(), 0.6, "the page stayed cream")
+    }
+}
+
+extension XCUIElement {
+    /// Selection updates after the save and re-render; poll briefly.
+    func waitForSelection(timeout: TimeInterval = 3) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if exists && isSelected { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        return exists && isSelected
     }
 }
