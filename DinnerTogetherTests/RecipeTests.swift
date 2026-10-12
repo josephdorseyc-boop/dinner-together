@@ -400,11 +400,53 @@ final class RecipeLibraryTests: XCTestCase {
         let recipe = try sampleRecipe()
         library.add(recipe)
         let name = library.saveImage(Data([0xFF, 0xD8, 0xFF, 0xE0]), for: recipe.id)
-        XCTAssertEqual(name, "\(recipe.id.uuidString).jpg")
+        XCTAssertTrue(name?.hasPrefix(recipe.id.uuidString + "-") == true)
+        XCTAssertTrue(name?.hasSuffix(".jpg") == true)
         XCTAssertNotNil(library.imageURL(for: library.recipe(id: recipe.id)!))
         library.remove(id: recipe.id)
         XCTAssertTrue(library.isEmpty)
         XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appending(path: "recipe-images/\(name!)").path), "image removed with the recipe")
+    }
+
+    func testCoverReplacementPreservesOldBytesWhenMetadataSaveFails() async throws {
+        let dir = tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try sampleRecipe()
+        XCTAssertTrue(library.add(recipe))
+        let oldBytes = Data([1, 2, 3])
+        let newBytes = Data([4, 5, 6])
+        let oldName = try XCTUnwrap(library.saveImage(oldBytes, for: recipe.id))
+        let oldRecipe = try XCTUnwrap(library.recipe(id: recipe.id))
+        let oldURL = try XCTUnwrap(library.imageURL(for: oldRecipe))
+        library.simulateSaveFailure = true
+        XCTAssertNil(library.saveImage(newBytes, for: recipe.id))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.imageFilename, oldName)
+        XCTAssertEqual(try Data(contentsOf: oldURL), oldBytes)
+        XCTAssertEqual(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.imageFilename, oldName)
+        let folder = dir.appending(path: "recipe-images")
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: folder.path), [oldName])
+        library.simulateSaveFailure = false
+        let newName = try XCTUnwrap(library.saveImage(newBytes, for: recipe.id))
+        XCTAssertNotEqual(newName, oldName)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: oldURL.path))
+        let reloaded = RecipeLibrary(directory: dir)
+        let reloadedRecipe = try XCTUnwrap(reloaded.recipe(id: recipe.id))
+        let newURL = try XCTUnwrap(reloaded.imageURL(for: reloadedRecipe))
+        XCTAssertEqual(try Data(contentsOf: newURL), newBytes)
+    }
+
+    func testFirstCoverFailureLeavesNoImageReferenceOrFile() async throws {
+        let dir = tempDir()
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try sampleRecipe()
+        XCTAssertTrue(library.add(recipe))
+        library.simulateSaveFailure = true
+        XCTAssertNil(library.saveImage(Data([1, 2, 3]), for: recipe.id))
+        XCTAssertNil(library.recipe(id: recipe.id)?.imageFilename)
+        XCTAssertNotNil(library.saveError)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: dir.appending(path: "recipe-images").path), [])
     }
 
     func testStoreResolvesRecipeMenusAndFallsBackWhenDeleted() async throws {
@@ -731,5 +773,30 @@ final class RecipeNotesTests: XCTestCase {
         """)
         XCTAssertEqual(r.directions, ["Toast the bread, 3 minutes."])
         XCTAssertEqual(r.notes, ["Note: Use day-old bread."])
+    }
+}
+
+final class RecipeCoverCropTests: XCTestCase {
+    func testPortraitAndLandscapeCropsStayWithinTheSource() throws {
+        for (width, height) in [(710.0, 1536.0), (2400.0, 1200.0)] {
+            for zoom in [1.0, 2.0, 4.0] {
+                for position in [0.0, 0.5, 1.0] {
+                    let crop = try XCTUnwrap(RecipeCoverCrop.rect(width: width, height: height,
+                                                               zoom: zoom, horizontal: position, vertical: position))
+                    XCTAssertGreaterThanOrEqual(crop.x, 0)
+                    XCTAssertGreaterThanOrEqual(crop.y, 0)
+                    XCTAssertLessThanOrEqual(crop.x + crop.width, width + 0.000001)
+                    XCTAssertLessThanOrEqual(crop.y + crop.height, height + 0.000001)
+                    XCTAssertEqual(crop.width / crop.height, 4.0 / 3.0, accuracy: 0.000001)
+                }
+            }
+        }
+    }
+
+    func testCropRejectsInvalidImagesAndClampsControls() throws {
+        XCTAssertNil(RecipeCoverCrop.rect(width: 0, height: 100, zoom: 1, horizontal: 0, vertical: 0))
+        XCTAssertNil(RecipeCoverCrop.rect(width: 100, height: 100, zoom: .nan, horizontal: 0, vertical: 0))
+        let crop = try XCTUnwrap(RecipeCoverCrop.rect(width: 800, height: 1200, zoom: 0, horizontal: -1, vertical: 2))
+        XCTAssertEqual(crop, RecipeCoverCrop.Rect(x: 0, y: 600, width: 800, height: 600))
     }
 }
