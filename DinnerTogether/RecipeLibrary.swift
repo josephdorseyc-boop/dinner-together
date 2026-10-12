@@ -27,6 +27,9 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     /// UI tests only (-dt-fail-recipe-saves): every save fails, as a full or
     /// read-only disk would. Never set in release builds.
     var simulateSaveFailure = false
+    /// UI tests only (-dt-fail-cover-saves): the recipe saves, its photo
+    /// doesn't — the "retry / continue without cover" path (A2-13).
+    var simulateImageSaveFailure = false
 
     /// `directory` defaults to the app's Documents folder (same place as the
     /// session file). Tests pass a temporary directory.
@@ -129,6 +132,10 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     @discardableResult
     func saveImage(_ data: Data, for recipeID: UUID, fileExtension: String = "jpg") -> String? {
         guard var r = recipe(id: recipeID) else { return nil }
+        if simulateImageSaveFailure {
+            saveError = "The recipe was saved, but its photo couldn’t be."
+            return nil
+        }
         do {
             try FileManager.default.createDirectory(at: imagesURL, withIntermediateDirectories: true)
             let previousName = r.imageFilename

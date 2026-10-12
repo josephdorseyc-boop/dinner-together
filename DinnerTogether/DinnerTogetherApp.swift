@@ -21,6 +21,7 @@ struct DinnerTogetherApp: App {
         let library = RecipeLibrary()
         #if DEBUG
         library.simulateSaveFailure = LaunchOptions.failRecipeSaves
+        library.simulateImageSaveFailure = LaunchOptions.failCoverSaves
         #endif
         _library = StateObject(wrappedValue: library)
         _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService(),
@@ -78,6 +79,8 @@ enum LaunchOptions {
     static var openCooking: Bool { arguments.contains("-dt-open-cooking") }
     /// Every recipe-library save fails (UI test of the unsaved-change states).
     static var failRecipeSaves: Bool { arguments.contains("-dt-fail-recipe-saves") }
+    /// Only the photo save fails (the recipe itself saves): A2-13's retry path.
+    static var failCoverSaves: Bool { arguments.contains("-dt-fail-cover-saves") }
     /// Link import answers apple.news URLs with the recorded "only available
     /// in Apple News" placeholder instead of the network.
     static var stubAppleNews: Bool { arguments.contains("-dt-stub-apple-news") }
@@ -119,6 +122,7 @@ enum LaunchOptions {
     #else
     static var openCooking: Bool { false }
     static var failRecipeSaves: Bool { false }
+    static var failCoverSaves: Bool { false }
     static var stubAppleNews: Bool { false }
     static var forcedColorScheme: ColorScheme? { nil }
     static var inertReminders: Bool { false }
