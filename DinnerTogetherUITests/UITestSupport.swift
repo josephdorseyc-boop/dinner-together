@@ -422,10 +422,10 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         let undo = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Undo: '")).firstMatch
         scrollAndTap(undo, "undo is offered after the move")
+        scrollToTop()
+        photograph("01-after-undo")  // before asserting: the failure state is evidence too (A2)
         waitForServingTimeValue(before)
         waitForExistence(app.buttons["Review dinner time"], timeout: 10, "the notice returns after undo")
-        scrollToTop()
-        photograph("01-after-undo")
     }
 
     /// Flow 2 — Review sheet on a lower-bound estimate: the amber note
@@ -523,9 +523,9 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         let undo = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Undo: '")).firstMatch
         scrollAndTap(undo, "undo is offered after the delay")
-        waitForServingTimeValue(before)
         scrollToTop()
-        photograph("03-after-undo")
+        photograph("03-after-undo")  // before asserting: the failure state is evidence too (A2)
+        waitForServingTimeValue(before)
     }
 
     /// Flow 4 — Expired timer completion: "Mark Cook the steak done"
