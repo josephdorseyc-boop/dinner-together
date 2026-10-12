@@ -30,7 +30,7 @@ struct YourRecipesSection: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Cook your own recipes, on time.")
                         .font(.headline)
-                    Text("Bring a recipe link or paste its text. Review the steps and timing before you cook. Some sites may not support link import.")
+                    Text("Add a recipe from a link, from screenshots (the way in for Apple News+ Food), or as pasted text. You’ll check the timing before you cook.")
                         .font(.subheadline)
                         .foregroundStyle(Theme.muted)
                 }
