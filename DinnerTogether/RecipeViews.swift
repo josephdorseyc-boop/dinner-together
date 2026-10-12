@@ -407,7 +407,10 @@ struct RecipeDetailView: View {
                 .toolbar { moreMenu(recipe) }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes) { minutes in
-                        library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes)
+                        guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
+                            return library.saveError ?? "The estimate couldn’t be saved. Try again."
+                        }
+                        return nil
                     }
                 }
                 .confirmationDialog("Change dinner and clear progress?", isPresented: $confirmingReplace, titleVisibility: .visible) {
