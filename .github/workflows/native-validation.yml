@@ -150,8 +150,13 @@ jobs:
             native-validation/results/**
             !native-validation/results/build/**
           if-no-files-found: error
+      # Best effort: the artifact above is the record. Two runs finishing
+      # together race on the force-push (run 38305253325 lost to 38306639479
+      # and was marked failed although its gate passed), so retry, then
+      # carry on.
       - name: Publish results to the ci-results branch (readable with plain git)
         if: always()
+        continue-on-error: true
         run: |
           tmp=$(mktemp -d)
           if [ -d "$RESULTS" ]; then
@@ -166,7 +171,10 @@ jobs:
           cd "$tmp" && git init -q -b ci-results
           git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -q -m "native-validation results for run ${{ github.run_id }} (${{ github.sha }})"
-          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results
+          for attempt in 1 2 3 4; do
+            git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results && break
+            echo "push attempt $attempt failed; retrying"; sleep $((attempt * 15))
+          done
       - name: Gate — fail unless every required step ran and passed
         if: always()
         run: |
