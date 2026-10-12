@@ -11,6 +11,16 @@ final class RecipePaletteTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(c.contrast(with: .white), 7, "\(label) stop \(i): white text", file: file, line: line)
             XCTAssertGreaterThanOrEqual(c.contrast(with: RecipePalette.mutedText), 4.5, "\(label) stop \(i): muted text", file: file, line: line)
         }
+        // Everything text sits on: the stops, frosted cards, solid cards.
+        for (i, surface) in p.textSurfaces.enumerated() {
+            XCTAssertGreaterThanOrEqual(surface.contrast(with: PageText.ink), 7, "\(label) surface \(i) \(p.hexStops): ink", file: file, line: line)
+            for t in PageText.all {
+                XCTAssertGreaterThanOrEqual(surface.contrast(with: t.color), 4.5, "\(label) surface \(i) \(p.hexStops): \(t.name)", file: file, line: line)
+            }
+        }
+        for (i, surface) in p.selectedSurfaces.enumerated() {
+            XCTAssertGreaterThanOrEqual(surface.contrast(with: PageText.ink), 4.5, "\(label) selected tab \(i): ink", file: file, line: line)
+        }
     }
 
     func testEveryPresetIsReadable() {
@@ -65,5 +75,35 @@ final class RecipePaletteTests: XCTestCase {
         XCTAssertNil(try JSONDecoder().decode(Recipe.self, from: old).pageStyle, "a recipe saved before page colors decodes as automatic")
         r.pageStyle = .preset("lagoon")
         XCTAssertEqual(try JSONDecoder().decode(Recipe.self, from: JSONEncoder().encode(r)).pageStyle, .preset("lagoon"))
+    }
+
+    /// Automatic follows the photo; the cook's choice wins; unknown or
+    /// impossible choices fall back instead of painting nothing.
+    func testWhichPaletteAPagePaintsWith() throws {
+        let photo = try XCTUnwrap(RecipePalette.fromPixels(Array(repeating: RGB(0.7, 0.36, 0.12), count: 20)))
+        let plum = try XCTUnwrap(RecipePalette.preset("plum"))
+        var r = Recipe(title: "Cider")
+        XCTAssertEqual(r.resolvedPalette(photo: photo), photo, "automatic + photo: match the photo")
+        XCTAssertNil(r.resolvedPalette(photo: nil), "automatic, no photo: classic cream")
+        r.pageStyle = .classic
+        XCTAssertNil(r.resolvedPalette(photo: photo), "classic stays cream even with a photo")
+        r.pageStyle = .preset("plum")
+        XCTAssertEqual(r.resolvedPalette(photo: photo), plum, "a chosen color wins over the photo")
+        XCTAssertEqual(r.resolvedPalette(photo: nil), plum)
+        r.pageStyle = .preset("from-a-newer-version")
+        XCTAssertEqual(r.resolvedPalette(photo: photo), photo)
+        XCTAssertNil(r.resolvedPalette(photo: nil))
+        r.pageStyle = .matchPhoto
+        XCTAssertNil(r.resolvedPalette(photo: nil), "match photo after the photo is gone: cream")
+    }
+
+    /// Theme.tomato's Dark Mode color is the reason colored pages use their
+    /// own accent: record the measurement so nobody "simplifies" it back.
+    func testTomatoIsTooDimForColoredPages() throws {
+        let darkTomato = RGB(0.950, 0.540, 0.420)
+        let worst = RecipePalette.presets.flatMap { $0.palette.colors }.map { $0.contrast(with: darkTomato) }.min() ?? 0
+        XCTAssertLessThan(worst, 4.5)
+        let accentWorst = RecipePalette.presets.flatMap { $0.palette.colors }.map { $0.contrast(with: PageText.accent) }.min() ?? 0
+        XCTAssertGreaterThanOrEqual(accentWorst, 6)
     }
 }

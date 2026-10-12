@@ -89,8 +89,8 @@ struct RecipePalette: Equatable {
     /// muted caption color (dark-mode `Theme.muted`) above 4.5:1.
     static let ceilings: [Double] = [0.06, 0.045, 0.03]
 
-    /// Dark-mode `Theme.muted` (Theme.swift), the dimmest text on a page.
-    static let mutedText = RGB(0.730, 0.710, 0.650)
+    /// The dimmest text on a page (`Theme.muted` in Dark Mode).
+    static let mutedText = PageText.muted
 
     struct Preset: Identifiable { let id: String; let name: String; let palette: RecipePalette }
 
@@ -180,5 +180,67 @@ struct RecipePalette: Equatable {
             }
         }
         return zip(centers, counts).map { ($0, $1) }
+    }
+}
+
+/// The light text a colored page draws with. Theme.swift takes its Dark Mode
+/// values from here, so the contrast tests cover exactly what the screen shows.
+enum PageText {
+    static let ink = RGB(0.965, 0.945, 0.890)
+    static let muted = RGB(0.730, 0.710, 0.650)
+    static let olive = RGB(0.690, 0.760, 0.560)
+    static let warning = RGB(0.950, 0.740, 0.430)
+    /// Timer chips and step labels on a colored page. `Theme.tomato`'s Dark
+    /// Mode value measures 3.9:1 on the deepest preset stop — under AA — so a
+    /// colored page uses this apricot instead (6.3:1 at worst).
+    static let accent = RGB(1.0, 0.780, 0.580)
+    /// Every color body text may use on a colored page.
+    static let all: [(name: String, color: RGB)] = [
+        ("ink", ink), ("muted", muted), ("olive", olive), ("warning", warning), ("accent", accent),
+    ]
+}
+
+extension RecipePalette {
+    /// Frosted cards: the system's thin material, then this much black, so a
+    /// card is never lighter than the page behind it (text only gains contrast).
+    static let glassShade = 0.16
+    /// The selected tab: this much white over the page.
+    static let selectedLift = 0.14
+
+    private static let black = RGB(0, 0, 0)
+
+    /// Reduce Transparency / Increase Contrast: cards are this solid color.
+    var solidCard: RGB { Self.black.over(colors[1], alpha: 0.3) }
+
+    /// Every flat color text can sit on, modeled without blur (the blur of a
+    /// smooth gradient is the gradient). Mixing stops in sRGB never raises
+    /// luminance above the brighter stop, so the stops bound the blended page.
+    var textSurfaces: [RGB] {
+        colors + colors.map { Self.black.over($0, alpha: Self.glassShade) } + [solidCard]
+    }
+
+    /// Selected-tab capsules: white lifted over each stop.
+    var selectedSurfaces: [RGB] { colors.map { RGB.white.over($0, alpha: Self.selectedLift) } }
+
+    /// "#RRGGBB", for logs and test messages.
+    var hexStops: [String] {
+        colors.map { c in
+            let parts: [Int] = [c.r, c.g, c.b].map { Int(($0 * 255).rounded()) }
+            return "#" + parts.map { String(format: "%02X", $0) }.joined()
+        }
+    }
+}
+
+extension Recipe {
+    /// What this recipe's page is painted with: nil means the classic cream
+    /// page. Automatic (nil style) follows the photo when there is one; a
+    /// chosen preset wins over the photo; "match photo" without a photo, or
+    /// a preset this version doesn't know, falls back the same way automatic does.
+    func resolvedPalette(photo: RecipePalette?) -> RecipePalette? {
+        switch pageStyle {
+        case .none, .some(.matchPhoto): return photo
+        case .some(.classic): return nil
+        case .some(.preset(let id)): return RecipePalette.preset(id) ?? photo
+        }
     }
 }
