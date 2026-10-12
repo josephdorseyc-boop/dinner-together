@@ -18,6 +18,9 @@ final class RecipePaletteTests: XCTestCase {
                 XCTAssertGreaterThanOrEqual(surface.contrast(with: t.color), 4.5, "\(label) surface \(i) \(p.hexStops): \(t.name)", file: file, line: line)
             }
         }
+        // The selected tab's capsule carries ink only (RecipeViews.tabBar:
+        // `tab == t ? Theme.ink : Theme.muted`); muted sits on the frosted
+        // track, which `textSurfaces` covers. Add a color there and add it here.
         for (i, surface) in p.selectedSurfaces.enumerated() {
             XCTAssertGreaterThanOrEqual(surface.contrast(with: PageText.ink), 4.5, "\(label) selected tab \(i): ink", file: file, line: line)
         }

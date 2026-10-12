@@ -4,8 +4,11 @@ import SwiftUI
 /// adjust estimates before cooking, then head to the kitchen.
 struct PlanView: View {
     @EnvironmentObject private var store: SessionStore
+    @EnvironmentObject private var library: RecipeLibrary
     var goCooking: () -> Void
     var goRecipes: () -> Void
+    /// Opens one of the cook's recipes on its page (Recipes tab / sidebar).
+    var openRecipe: ((UUID) -> Void)? = nil
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var feasibility: Feasibility = .ok
@@ -22,8 +25,9 @@ struct PlanView: View {
                 header
                 servingTimeCard
                 feasibilityCard
+                tonightsRecipe
                 Button(action: goRecipes) {
-                    Label("Choose from Recipes", systemImage: "book.closed")
+                    Label(tonightRecipe == nil ? "Choose from Recipes" : "Choose a different recipe", systemImage: "book.closed")
                 }
                 .buttonStyle(SecondaryButtonStyle())
                 .accessibilityIdentifier("open-recipes")
@@ -108,6 +112,29 @@ struct PlanView: View {
     }
 
     // MARK: Sections
+
+    /// The cook's own recipe when it is tonight's dinner.
+    private var tonightRecipe: Recipe? { library.recipe(menuID: store.session.menuID) }
+
+    /// Tonight names the dish when it is one of the cook's recipes, right
+    /// above the catalog (Joe, build 10: "it should tell you which recipe
+    /// you're making on the home page"). Tapping opens the recipe.
+    @ViewBuilder
+    private var tonightsRecipe: some View {
+        if let recipe = tonightRecipe {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionLabel(text: "TONIGHT’S DINNER")
+                Button {
+                    if let openRecipe { openRecipe(recipe.id) } else { goRecipes() }
+                } label: {
+                    RecipeRow(recipe: recipe, selected: true)
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("tonight-recipe")
+                .accessibilityHint("Opens the recipe.")
+            }
+        }
+    }
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {

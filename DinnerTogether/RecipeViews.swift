@@ -97,6 +97,10 @@ struct RecipeRow: View {
     let recipe: Recipe
     let selected: Bool
 
+    // Explicit: the private wrapper makes the memberwise init file-private,
+    // and Tonight (PlanView.swift) shows this row too.
+    init(recipe: Recipe, selected: Bool) { self.recipe = recipe; self.selected = selected }
+
     var body: some View {
         HStack(spacing: 14) {
             RecipeThumbnail(recipe: recipe, size: 58)
@@ -910,7 +914,9 @@ struct RecipeDetailView: View {
             } else {
                 Button {
                     if recipe.needsTimingReview { tab = .timing }
-                    else if isTonight { dismiss() }
+                    // "Back to Tonight" goes to Tonight — not just back to the
+                    // collection with the recipe ticked (Joe, build 10).
+                    else if isTonight { if let onChoose { onChoose() } else { dismiss() } }
                     else if hasProgress { confirmingReplace = true }
                     else { choose(recipe) }
                 } label: {

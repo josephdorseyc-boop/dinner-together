@@ -904,6 +904,21 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
                       "choosing a recipe routes to Tonight without starting cooking")
         XCTAssertTrue(app.buttons["open-recipes"].exists, "Tonight keeps the Recipes shortcut")
+
+        // Tonight names the recipe (Joe, build 10) — the card opens its page,
+        // and "Back to Tonight" from there lands on Tonight, not the collection.
+        let card = app.buttons["tonight-recipe"]
+        scrollTo(card)
+        XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "Tonight shows which recipe is being made: \(card.label)")
+        photograph("r17-tonight-recipe" + capture.suffix)
+        card.tap()
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the card opened the recipe page")
+        let back = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(back.label.contains("Back to Tonight"), "tonight’s recipe offers the way back: \(back.label)")
+        tapPinned(back, "Back to Tonight")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
+                      "Back to Tonight shows Tonight")
+        XCTAssertFalse(app.buttons["add-recipe"].exists, "…not the recipe collection")
     }
 
     /// r03 — an untimed step stays marked as an estimate.

@@ -717,6 +717,14 @@ extension RecipeImporter {
             let tabRow = tabBarRow(page)
             let firstMarker = page.compactMap { stepNumber($0.text) }.first
             let hasHeader = page.contains { isIngredientsHeader($0.text) || isDirectionsHeader($0.text) }
+            // A recipe's summary page — title, time/yield labels and the app's
+            // own buttons, no section or step — supplies metadata only. Its
+            // other text (a story teaser, "Saved", the row of tabs bleeding
+            // through the glass) is not a direction (Joe, build 10: "Saved"
+            // and a garbled teaser arrived as steps 1 and 2).
+            let isCover = firstMarker == nil && !hasHeader
+                && page.contains { metadataLabels.contains(normalizedKey($0.text)) }
+                && page.contains { coverButtons.contains(normalizedKey($0.text)) }
             enum Mode { case unknown, ingredients, directions, step(Int) }
             var mode = Mode.unknown
             var preMarker: [String] = []
@@ -753,11 +761,11 @@ extension RecipeImporter {
                    !["yield", "serves", "servings", "makes"].contains(key) {
                     recipe.yield = recipe.yield ?? cleanLine(v); continue
                 }
-                if ["total time", "yield", "servings", "serves", "prep time", "cook time"].contains(key) {
+                if metadataLabels.contains(key) {
                     // Labels side by side, values on the next row in the same order.
                     var labels = [key]
                     var j = i + 1
-                    while j < page.count, ["total time", "yield", "servings", "serves", "prep time", "cook time"].contains(normalizedKey(page[j].text)) {
+                    while j < page.count, metadataLabels.contains(normalizedKey(page[j].text)) {
                         labels.append(normalizedKey(page[j].text)); j += 1
                     }
                     for label in labels where j < page.count {
@@ -786,7 +794,7 @@ extension RecipeImporter {
                 switch mode {
                 case .unknown:
                     if firstMarker != nil { preMarker.append(text) }
-                    else if !hasHeader {
+                    else if !hasHeader && !isCover {
                         // A bare screenshot (cookbook page, scrolled list): sort by shape.
                         if looksLikeIngredient(text) && !looksLikeInstruction(text) { ingredients.append(stripStepPrefix(text)) }
                         else {
@@ -837,8 +845,18 @@ extension RecipeImporter {
             text = cleanLine(text)
             if !text.isEmpty { numberedText[n] = text }
         }
-        // Weave the unnumbered directions back in where they were seen.
+        // A step's last lines can be the next step's first lines when its
+        // "STEP n" label was hidden under a floating button (Joe, build 10:
+        // step 1 ended with "Pour the cider mixture evenly into 12 ice",
+        // which is how step 2 begins). The later step keeps the text.
         let numbered = Set(stepHeads.keys).union(stepTails.keys).sorted()
+        for (a, b) in zip(numbered, numbered.dropFirst()) {
+            if let prev = numberedText[a], let next = numberedText[b] {
+                let trimmed = trimOverlap(prev, next: next)
+                numberedText[a] = trimmed.isEmpty ? nil : trimmed
+            }
+        }
+        // Weave the unnumbered directions back in where they were seen.
         var woven: [String] = []
         func loose(after n: Int?) -> [String] {
             looseSteps.filter { $0.after == n }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty }
@@ -939,16 +957,44 @@ extension RecipeImporter {
         text.range(of: #"^\s*(?:[-•*·]\s*)?(?:\d|½|¼|¾|⅓|⅔|⅛)"#, options: .regularExpression) != nil
     }
 
+    static let metadataLabels: Set<String> = ["total time", "yield", "servings", "serves", "prep time", "cook time"]
+    /// The buttons a recipe app shows under its title.
+    static let coverButtons: Set<String> = ["cook", "save", "saved", "share", "read the story", "start cooking", "jump to recipe", "print"]
+    /// Words a row of tabs is made of; a line of nothing else is a tab bar.
+    static let tabWords: Set<String> = ["ingredients", "directions", "instructions", "method", "nutrition", "more", "notes",
+                                        "reviews", "steps", "overview", "tips", "today", "news", "audio", "following", "search"]
+    /// The News app's own tabs: two of them in one line means the line was
+    /// read through the tab bar ("…colo Up Following Search retreshing…").
+    static let newsTabs: Set<String> = ["today", "audio", "following", "search"]
+
     static func isChrome(_ key: String) -> Bool {
         if key.isEmpty { return true }
         if key.range(of: #"^\d{1,2} \d{2}$"#, options: .regularExpression) != nil { return true }   // 6:09
         if key.range(of: #"^\d{1,3}$"#, options: .regularExpression) != nil { return true }         // battery
         if key.count <= 2 && key.range(of: #"\d"#, options: .regularExpression) == nil { return true }
-        let exact: Set<String> = ["nutrition", "more", "scale", "cook", "save", "share", "start cooking", "read the story",
+        let exact: Set<String> = ["nutrition", "more", "scale", "cook", "save", "saved", "share", "start cooking", "read the story",
                                   "customize units", "recipe units are from the publisher", "in reminders", "print",
-                                  "jump to recipe", "cook save share", "show more", "see more", "notes", "reviews"]
+                                  "jump to recipe", "cook save share", "cook saved share", "show more", "see more", "notes", "reviews"]
         if exact.contains(key) { return true }
-        return key.contains("grocery list") || key.hasPrefix("add to grocery")
+        if key.contains("grocery list") || key.hasPrefix("add to grocery") { return true }
+        let words = key.split(separator: " ").map(String.init)
+        // "Ingredients Directions" read as one line; "Today News+ Audio Following Search".
+        if words.count >= 2 && words.allSatisfy({ tabWords.contains($0) }) { return true }
+        if words.filter({ newsTabs.contains($0) }).count >= 2 { return true }
+        return false
+    }
+
+    /// Removes from `prev` a suffix of three or more words that is also the
+    /// start of `next`.
+    static func trimOverlap(_ prev: String, next: String) -> String {
+        let a = prev.split(separator: " ").map(String.init)
+        let b = next.split(separator: " ").map(String.init)
+        guard a.count > 3, b.count >= 3 else { return prev }
+        for k in stride(from: min(a.count - 1, b.count), through: 3, by: -1)
+        where a.suffix(k).map(normalizedKey) == b.prefix(k).map(normalizedKey) {
+            return cleanLine(a.prefix(a.count - k).joined(separator: " "))
+        }
+        return prev
     }
 
     /// The row holding both "Ingredients" and "Directions" side by side is a
