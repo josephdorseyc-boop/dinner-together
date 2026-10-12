@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 
 // The "add a recipe" screens: the Your Recipes section on Tonight, the
 // Add-a-recipe sheet, and the recipe page (Ingredients · Directions · Timing).
@@ -147,7 +148,10 @@ enum RecipeFormat {
 // MARK: - Add a recipe
 
 struct AddRecipeSheet: View {
-    enum Mode: String, CaseIterable, Identifiable { case link = "Link", text = "Text"; var id: String { rawValue } }
+    enum Mode: String, CaseIterable, Identifiable {
+        case link = "Link", screenshots = "Screenshots", text = "Text"
+        var id: String { rawValue }
+    }
 
     @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.dismiss) private var dismiss
@@ -158,6 +162,7 @@ struct AddRecipeSheet: View {
     @State private var text = ""
     @State private var working = false
     @State private var error: String?
+    @State private var picked: [PhotosPickerItem] = []
 
     private let service = RecipeImportService()
 
@@ -168,7 +173,7 @@ struct AddRecipeSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Add a recipe")
                             .font(.system(.largeTitle, design: .serif).weight(.medium))
-                        Text("Paste a recipe link or its text. Your saved recipe stays on this device.")
+                        Text("Paste a recipe link, choose screenshots, or paste the text. Your saved recipe stays on this device.")
                             .foregroundStyle(Theme.muted)
                     }
                     Picker("Source", selection: $mode) {
@@ -176,7 +181,11 @@ struct AddRecipeSheet: View {
                     }
                     .pickerStyle(.segmented)
 
-                    if mode == .link { linkInput } else { textInput }
+                    switch mode {
+                    case .link: linkInput
+                    case .screenshots: screenshotInput
+                    case .text: textInput
+                    }
 
                     if let error {
                         Label(error, systemImage: "exclamationmark.triangle")
@@ -192,7 +201,7 @@ struct AddRecipeSheet: View {
                         }
                     }
                     .buttonStyle(BigButtonStyle())
-                    .disabled(working || (mode == .link ? parsedLink == nil : text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
+                    .disabled(working || !canImport)
                     .accessibilityIdentifier("import-recipe")
 
                     Text("Link import needs internet access. Missing times are estimates, not cooking instructions. Review every step before planning dinner.")
@@ -207,6 +216,28 @@ struct AddRecipeSheet: View {
         }
         .tint(Theme.tomato)
         .interactiveDismissDisabled(working)
+    }
+
+    private var canImport: Bool {
+        switch mode {
+        case .link: return parsedLink != nil
+        case .screenshots: return !picked.isEmpty
+        case .text: return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    private var screenshotInput: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("For Apple News+ Food, cookbook apps, or a photo of a recipe card. Take screenshots of the title, the ingredients and every step — overlapping is fine, any order.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
+            PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
+                Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .accessibilityIdentifier("choose-screenshots")
+            Text("The text is read on this device. The screenshots aren’t saved.")
+                .font(.caption).foregroundStyle(Theme.muted)
+        }
     }
 
     private var linkInput: some View {
@@ -284,6 +315,14 @@ struct AddRecipeSheet: View {
                     let result = try await service.importLink(url)
                     recipe = result.recipe
                     imageData = result.imageData
+                } else if mode == .screenshots {
+                    var pages: [[OCRLine]] = []
+                    for item in picked {
+                        if let data = try await item.loadTransferable(type: Data.self) {
+                            pages.append(try await ScreenshotReader.lines(in: data))
+                        }
+                    }
+                    recipe = RecipeImporter.build(try RecipeImporter.parse(screenshots: pages), method: .photo)
                 } else {
                     recipe = try service.importText(text)
                 }
@@ -299,6 +338,7 @@ struct AddRecipeSheet: View {
                 dismiss()
                 onAdded(recipe.id)
             } catch let e as LocalizedError {
+                if case RecipeImportError.appleNewsOnly = e { mode = .screenshots }
                 error = e.errorDescription ?? "That didn’t work. Try pasting the recipe text instead."
             } catch {
                 self.error = "That didn’t work. Try pasting the recipe text instead."
