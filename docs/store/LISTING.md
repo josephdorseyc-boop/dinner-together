@@ -1,11 +1,11 @@
-# App Store listing — Dinner, Together 1.0 (Agent 2 review A2-5 applied)
+# App Store listing — Dinner, Together 1.0 (A2-17 recipe-import draft)
 
-Paste-ready. Character limits are App Store Connect's; counts are given so
-nothing gets truncated. Agent 2's A2-5 ("honest store listing") is applied:
-the copy claims only what 1.0 does (three preset menus, timing guides rather
-than recipes, no custom menus), and the keywords are single terms so the
-store can combine them. Lengths verified: subtitle 24/30, promotional text
-88/170, keywords 79/100, description 1,736/4,000.
+Public copy below reflects main `cb28c05` (build 9): ten preset timing guides,
+a Recipes library, link/text/screenshot import, and an optional cover crop.
+It does not advertise page-color customization until build 10 is the selected
+submission build. Verified lengths: name 16/30; subtitle 24/30; promotional text 88/170;
+keywords 74/100; description 2167/4,000.
+Submission fields marked for owner verification are not paste-ready answers.
 
 ## App Information
 
@@ -15,8 +15,8 @@ store can combine them. Lengths verified: subtitle 24/30, promotional text
 | Subtitle (30) | `Your whole dinner, timed` (24) |
 | Primary category | Food & Drink |
 | Secondary category | Utilities |
-| Content rights | Does not contain, show, or access third-party content |
-| Age rating | Answer **None** to every question → **4+** |
+| Content rights | Owner verification required: users can import publisher recipes/photos. Reconcile permissions with Apple's Content Rights question; do not reuse the old “no third-party content” answer. |
+| Age rating | Complete the current questionnaire for the shipping build; do not prescribe blanket answers from the earlier preset-only build. |
 | Privacy policy URL | `https://josephdorseyc-boop.github.io/dinner-together/privacy.html` |
 | Support URL | `https://josephdorseyc-boop.github.io/dinner-together/support.html` |
 | Marketing URL | (optional; leave blank for 1.0) |
@@ -24,9 +24,18 @@ store can combine them. Lengths verified: subtitle 24/30, promotional text
 
 ## App Privacy (the "nutrition label")
 
-**Data Not Collected.** No data types selected. Tracking: No. (The app has no
-network connection, no account, no analytics, no SDKs; see
-`DinnerTogether/PrivacyInfo.xcprivacy`.)
+**Proposed label: Data Not Collected; Tracking: No — A1/Joe to verify for the
+shipping build.** The app's local recipe/session storage is distinct from
+collection by the developer. Link import does make network requests: it
+fetches the chosen page, any followed redirect, and an available recipe photo.
+`URLSessionRecipeFetcher` uses an ephemeral session and refuses cookies.
+There is no app account or analytics service in the reviewed source.
+
+Do not justify the label with “no network connection.” Verify the actual data
+flows against [Apple's privacy definitions](https://developer.apple.com/app-store/app-privacy-details/)
+and reconcile the linked privacy page with recipe import before submission.
+The companion A2-17 patch supplies factual privacy-page wording for review;
+it does not change the privacy manifest or certify the final label.
 
 ## Pricing
 
@@ -43,9 +52,11 @@ Paid app, no in-app purchases, **$2.99** (Tier 3) at launch. Reasoning in
 ```
 Dinner, Together helps you time a multi-dish dinner, working backward from when you want to eat.
 
-Version 1.0 includes nine preset dinner menus, from steak night and salmon to lemon chicken, turkey tacos, tofu bowls, chickpea curry, skillet gnocchi, and Sunday pork tenderloin. Four menus are meat-free; use vegetarian ingredients in your chosen recipes. Choose a menu, review its timing estimates, and pick your serving time. The app brings the steps together in one timeline.
+Choose from ten preset dinner timing guides, including steak night, salmon, lemon chicken, turkey tacos, meat-free dinners, and Thanksgiving. Review the timing estimates and pick your serving time. The app brings each menu's dishes together in one timeline.
 
-These are timing guides, not complete recipes. Bring your own recipe for ingredients and cooking instructions. Adding or importing your own menus is not included in this release.
+The preset menus are timing guides, not complete recipes. Use your trusted recipes for ingredients and cooking instructions.
+
+Bring your own recipes into the Recipes tab: paste text, import a supported recipe link, or choose screenshots. Review the imported ingredients and directions, confirm the step estimates, and save a recipe to cook with a timed plan. Screenshot text is recognized on your device, and you can choose an optional cover crop. Import support varies by page; when a link cannot be read, use screenshots or pasted text instead.
 
 While you cook, see what needs your attention now, which timers are running, and what's coming next.
 
@@ -58,13 +69,13 @@ While you cook, see what needs your attention now, which timers are running, and
 
 Large times, a warm cream-and-tomato palette, Dark Mode, adjustable text sizes, and a two-column cooking layout on iPad help you follow the plan at the counter.
 
-Works offline. No account, ads, tracking, or subscription.
+Plan and cook with saved recipes offline. Importing a web link requires internet access. No account, ads, tracking, or subscription.
 
 Timing estimates help with planning; they cannot determine doneness. Follow your recipe and check food with a thermometer where appropriate.
 ```
 
 **Keywords** (100, comma-separated, no spaces after commas)
-`cooking,kitchen,timer,meal,planner,schedule,multiple,offline,steak,salmon,pasta` (79 bytes)
+`cooking,kitchen,timer,meal,planner,schedule,multiple,offline,recipe,import` (74 bytes)
 
 **What's New in This Version** (4000)
 `First release.`
@@ -85,6 +96,14 @@ iPad 13-inch 2064×2752. Upload in this order:
 | 5 | Nine dinners to choose from. | Tonight list scrolled, tofu selected (`09-tonight-menus`) |
 | 6 | A calmer counter, even after dark. | Dark Mode cooking screen (`on-schedule-dark`) |
 
+The table describes existing generated assets. Before submission, replace
+frame 5 with **“Your recipes. Your timing.”** using a real Recipes/detail
+capture with original or licensed sample content. The store-assets workflow
+and composer still need that change; this text patch does not generate it.
+Keep the other five frames focused on whole-dinner timing. Do not use the
+synthetic CI cover as consumer-facing food photography, or advertise build
+10's page colors in a build 9 listing.
+
 Run the workflow in the late afternoon Mountain Time so the clocks in the
 frames read like dinner (the runner is set to America/Denver); a run at
 4 AM UTC produced "Dinner at 5:03 AM" renders, usable for layout review only.
@@ -96,7 +115,9 @@ frames read like dinner (the runner is set to America/Denver); a run at
 - **Notes to the reviewer**:
 
 ```
-Dinner, Together is an offline cooking-timing planner. No account, no network. To see it work: on the Tonight tab pick "Steak night", choose a dinner time about 45 minutes from now, tap "Start cooking". The Cooking tab leads with the step to do now; tap "Start this step" to begin a timer. When a timer ends the app asks you to check the food and mark the step done — it never marks steps done by itself. If a step finishes late, a notice shows the new estimate next to the chosen dinner time; "Review dinner time" lets you move dinner to it, and Undo restores it. Notifications are optional local timer reminders.
+Dinner, Together is a cooking-timing planner with a local recipe library. No account is required. Planning and cooking work offline; importing a web link fetches the selected page and an available recipe photo. To see the timing planner: on the Tonight tab pick "Steak night", choose a dinner time comfortably later than the menu's displayed estimate, and tap "Build my cooking plan". If the selected time is too soon, the button reads "Build plan for <time>" and applies that feasible time. The Cooking tab leads with the step to do now; tap "Start this step" to begin a timer. When a timer ends the app asks you to check the food and mark the step done — it never marks steps done by itself. If a step finishes late, a notice shows the new estimate next to the chosen dinner time; "Review dinner time" lets you move dinner to it, and Undo restores it. Notifications are optional local timer reminders.
+
+To inspect recipe import, open Recipes and add a recipe using Link, Screenshots, or Text. Imported content is reviewed before saving; check directions and step estimates before cooking. Screenshot recognition runs on the device. If a recipe link has no readable recipe data (including some Apple News links), the app offers screenshots or pasted text instead. A screenshot cover crop is optional.
 ```
 
 - Export compliance: the Info.plist key `ITSAppUsesNonExemptEncryption = NO`
