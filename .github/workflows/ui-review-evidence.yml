@@ -4,7 +4,11 @@ name: ui-review-evidence
   workflow_dispatch:
     inputs:
       evidence_ref:
-        description: Immutable ci-results commit to package (or ci-results for latest)
+        # Only the current tip is fetchable: ci-results is force-pushed and
+        # GitHub refuses unreachable commits ("not our ref", run 38306740128).
+        # Every native-validation run now also uploads its own
+        # ui-review-evidence-<run_id> artifact, which is the durable copy.
+        description: ci-results (the latest run) or another reachable ref
         required: true
         default: ci-results
         type: string
