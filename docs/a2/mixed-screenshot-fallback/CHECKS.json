@@ -1,0 +1,8 @@
+{
+  "baseline": "724dc3b5bd182ba14ad9edf42d9ec1fbae8dfac0",
+  "patch_application": "PASS in isolated copy",
+  "test_delta": 2,
+  "native_execution": false,
+  "simulator_rendering": false,
+  "source_review": "guard runs before recipe sections are returned; no network/storage/scheduling changes"
+}

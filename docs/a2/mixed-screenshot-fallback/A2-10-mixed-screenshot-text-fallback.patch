@@ -1,0 +1,92 @@
+--- a/DinnerTogether/RecipeImporter.swift
++++ b/DinnerTogether/RecipeImporter.swift
+@@ -38,6 +38,7 @@
+     /// An apple.news link: News serves a placeholder page, never the recipe.
+     case appleNewsOnly(title: String?)
+     case noTextInScreenshots
++    case ambiguousScreenshotOrder
+ 
+     var errorDescription: String? {
+         switch self {
+@@ -48,6 +49,8 @@
+         case .appleNewsOnly(let title):
+             let name = title.map { "“\($0)” " } ?? "This recipe "
+             return name + "isn’t available through this Apple News link. Choose screenshots of the full recipe, or paste its text."
++        case .ambiguousScreenshotOrder:
++            return "These screenshots mix numbered and unnumbered directions, so their order is uncertain. Paste or type the full recipe in the Text tab, in recipe order."
+         case .noTextInScreenshots:
+             return "We couldn’t find recipe text in those images. Choose screenshots that show the ingredients and steps."
+         }
+@@ -683,7 +686,9 @@
+     /// number and survive any selection order; unnumbered directions are kept
+     /// in screenshot-selection order and overlapping unnumbered text is not
+     /// deduplicated. Callers must ask for images in recipe order and for a
+-    /// post-import check of missing or repeated text.
++    /// post-import check of missing or repeated text. Imports containing both
++    /// numbered and unnumbered directions require the Text fallback rather than
++    /// silently moving the unnumbered directions after every numbered step.
+     ///
+     /// - The title is the heading repeated at the top of several screenshots
+     ///   (a navigation bar), or else the tallest text.
+@@ -817,7 +822,11 @@
+             text = cleanLine(text)
+             if !text.isEmpty { steps.append(text) }
+         }
+-        steps.append(contentsOf: looseSteps.map(stripStepPrefix).filter { !$0.isEmpty })
++        let unnumberedDirections = looseSteps.map(stripStepPrefix).filter { !$0.isEmpty }
++        guard steps.isEmpty || unnumberedDirections.isEmpty else {
++            throw RecipeImportError.ambiguousScreenshotOrder
++        }
++        steps.append(contentsOf: unnumberedDirections)
+         if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
+ 
+         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
+--- a/DinnerTogetherTests/ScreenshotOrderTests.swift
++++ b/DinnerTogetherTests/ScreenshotOrderTests.swift
+@@ -8,7 +8,9 @@
+ // are kept in screenshot-selection order (PhotosPicker uses .ordered), and
+ // overlapping unnumbered text is not deduplicated. The supported contract
+ // (R9 copy) is: choose images in recipe order, then check for missing or
+-// repeated text after import. These tests pin that contract.
++// repeated text after import. Mixed numbered/unnumbered imports require
++// the Text fallback. Duplicate-overlap coverage characterizes a limitation;
++// it is not a permanent requirement to retain duplicate directions.
+ 
+ final class ScreenshotOrderTests: XCTestCase {
+     private func page(_ texts: String...) -> [OCRLine] {
+@@ -52,13 +54,30 @@
+                        "overlapping unnumbered text currently duplicates; copy must say to check")
+     }
+ 
+-    func testMixedNumberedAndUnnumbered() throws {
+-        // Numbered steps come first (sorted), unnumbered directions append
+-        // after — an unnumbered tip between steps 1 and 2 lands at the end.
++    func testMixedNumberedAndUnnumberedRequiresTextImport() {
+         let pages = [page("STEP 1", "Mix the ingredients"), page("Rest the dough"), page("STEP 2", "Bake the mixture")]
++        XCTAssertThrowsError(try RecipeImporter.parse(screenshots: pages)) { error in
++            XCTAssertEqual(error as? RecipeImportError, .ambiguousScreenshotOrder,
++                           "do not build a plan with resting silently moved after baking")
++        }
++    }
++
++    func testMixedOrderErrorExplainsTheTextFallback() {
++        let message = RecipeImportError.ambiguousScreenshotOrder.errorDescription ?? ""
++        XCTAssertTrue(message.contains("order is uncertain"))
++        XCTAssertTrue(message.contains("Text tab"))
++        XCTAssertTrue(message.contains("in recipe order"))
++    }
++
++    func testNumberedStepContinuationDoesNotTriggerMixedOrderFallback() throws {
++        let pages = [page("STEP 1", "Mix the ingredients"),
++                     page("Rest the dough", "STEP 2", "Bake the mixture")]
+         let recipe = try RecipeImporter.parse(screenshots: pages)
+-        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients", "Bake the mixture", "Rest the dough"],
+-                       "unnumbered directions append after numbered steps regardless of position")
++        let steps = directions(of: recipe)
++        XCTAssertEqual(steps.count, 2)
++        XCTAssertTrue(steps[0].contains("Mix the ingredients"))
++        XCTAssertTrue(steps[0].contains("Rest the dough"))
++        XCTAssertEqual(steps[1], "Bake the mixture")
+     }
+ }
+ 
