@@ -8,7 +8,9 @@ import XCTest
 // are kept in screenshot-selection order (PhotosPicker uses .ordered), and
 // overlapping unnumbered text is not deduplicated. The supported contract
 // (R9 copy) is: choose images in recipe order, then check for missing or
-// repeated text after import. These tests pin that contract.
+// repeated text after import. Mixed numbered/unnumbered imports keep their
+// visible order: an unnumbered direction is anchored after the numbered step
+// it followed (A2-10). These tests pin that contract.
 
 final class ScreenshotOrderTests: XCTestCase {
     private func page(_ texts: String...) -> [OCRLine] {
@@ -52,12 +54,30 @@ final class ScreenshotOrderTests: XCTestCase {
                        "overlapping unnumbered text currently duplicates; copy must say to check")
     }
 
-    func testMixedNumberedAndUnnumbered() throws {
-        // Numbered steps come first (sorted), unnumbered directions append
-        // after — an unnumbered tip between steps 1 and 2 lands at the end.
+    func testMixedNumberedAndUnnumberedKeepsVisibleOrder() throws {
+        // A2-10's fixture: an unnumbered direction between STEP 1 and STEP 2
+        // must stay between them — never be pushed after the last numbered step.
         let pages = [page("STEP 1", "Mix the ingredients"), page("Rest the dough"), page("STEP 2", "Bake the mixture")]
         let recipe = try RecipeImporter.parse(screenshots: pages)
-        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients", "Bake the mixture", "Rest the dough"],
-                       "unnumbered directions append after numbered steps regardless of position")
+        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients", "Rest the dough", "Bake the mixture"],
+                       "unnumbered directions are anchored after the numbered step they followed")
+    }
+
+    func testUnnumberedBeforeAnyNumberedStepComesFirst() throws {
+        let pages = [page("Preheat the oven"), page("STEP 1", "Mix the ingredients"), page("STEP 2", "Bake the mixture")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(directions(of: recipe), ["Preheat the oven", "Mix the ingredients", "Bake the mixture"])
+    }
+
+    func testNumberedStepContinuationJoinsItsStep() throws {
+        // A2-10: text above a STEP n marker on the same screenshot is the end
+        // of step n−1, not a separate direction.
+        let pages = [page("STEP 1", "Mix the ingredients"),
+                     page("Rest the dough", "STEP 2", "Bake the mixture")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        let steps = directions(of: recipe)
+        XCTAssertEqual(steps.count, 2)
+        XCTAssertTrue(steps[0].contains("Mix the ingredients") && steps[0].contains("Rest the dough"), steps[0])
+        XCTAssertEqual(steps[1], "Bake the mixture")
     }
 }

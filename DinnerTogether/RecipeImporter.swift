@@ -703,7 +703,12 @@ extension RecipeImporter {
         var ingredients: [String] = []
         var stepHeads: [Int: [String]] = [:]
         var stepTails: [Int: [String]] = [:]
-        var looseSteps: [String] = []
+        /// Unnumbered directions, each anchored to the numbered step most
+        /// recently seen (in selection order) when it was read — nil before
+        /// any. Mixed imports keep their visible order instead of pushing every
+        /// unnumbered direction after every numbered one (A2-10 finding).
+        var looseSteps: [(after: Int?, text: String)] = []
+        var lastStepSeen: Int?
 
         for page in cleaned {
             let tabRow = tabBarRow(page)
@@ -717,7 +722,7 @@ extension RecipeImporter {
             var i = 0
 
             func flushLoose() {
-                if !looseBlock.isEmpty { looseSteps.append(joinLines(looseBlock)); looseBlock = [] }
+                if !looseBlock.isEmpty { looseSteps.append((after: lastStepSeen, text: joinLines(looseBlock))); looseBlock = [] }
             }
 
             while i < page.count {
@@ -765,7 +770,7 @@ extension RecipeImporter {
 
                 if isIngredientsHeader(text) { flushLoose(); mode = .ingredients; continue }
                 if isDirectionsHeader(text) { flushLoose(); mode = .directions; continue }
-                if let n = stepNumber(text) { flushLoose(); mode = .step(n); stepHeads[n, default: []].append(""); continue }
+                if let n = stepNumber(text) { flushLoose(); mode = .step(n); lastStepSeen = n; stepHeads[n, default: []].append(""); continue }
 
                 switch mode {
                 case .unknown:
@@ -817,7 +822,20 @@ extension RecipeImporter {
             text = cleanLine(text)
             if !text.isEmpty { steps.append(text) }
         }
-        steps.append(contentsOf: looseSteps.map(stripStepPrefix).filter { !$0.isEmpty })
+        // Weave the unnumbered directions back in where they were seen.
+        let numbered = Set(stepHeads.keys).union(stepTails.keys).sorted()
+        var woven: [String] = []
+        func loose(after n: Int?) -> [String] {
+            looseSteps.filter { $0.after == n }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty }
+        }
+        woven.append(contentsOf: loose(after: nil))
+        for (i, n) in numbered.enumerated() {
+            woven.append(steps[i])
+            woven.append(contentsOf: loose(after: n))
+        }
+        // Anchored to a step number that never got a heading (unlikely): keep them, at the end.
+        woven.append(contentsOf: looseSteps.filter { a in a.after != nil && !numbered.contains(a.after!) }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty })
+        steps = woven
         if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
 
         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
