@@ -618,7 +618,11 @@ struct RecipeDetailView: View {
             }
             if recipe.needsTimingReview && !timingLocked {
                 Button {
-                    library.markTimingReviewed(id: recipe.id)
+                    guard library.markTimingReviewed(id: recipe.id) else {
+                        UIAccessibility.post(notification: .announcement,
+                                             argument: library.saveError ?? "Timing couldn’t be saved. Try again.")
+                        return
+                    }
                     UIAccessibility.post(notification: .announcement, argument: "Timing confirmed.")
                 } label: { Label("Timing looks right", systemImage: "checkmark") }
                 .buttonStyle(SecondaryButtonStyle())
