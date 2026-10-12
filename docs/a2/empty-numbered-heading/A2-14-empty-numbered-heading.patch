@@ -1,0 +1,84 @@
+--- a/DinnerTogether/RecipeImporter.swift
++++ b/DinnerTogether/RecipeImporter.swift
+@@ -813,14 +813,16 @@
+ 
+         // Directions: the longest copy of each numbered step, plus any tail
+         // that a later screenshot showed and the longest copy lacks.
+-        var steps: [String] = []
++        // Keep text keyed by its number: a heading with no recognized text
++        // must not shift later text to a different number or lose its anchor.
++        var numberedText: [Int: String] = [:]
+         for n in Set(stepHeads.keys).union(stepTails.keys).sorted() {
+             var text = (stepHeads[n] ?? []).max(by: { $0.count < $1.count }) ?? ""
+             for tail in stepTails[n] ?? [] where !normalizedKey(text).contains(normalizedKey(tail)) {
+                 text = mergeOverlapping(text, tail)
+             }
+             text = cleanLine(text)
+-            if !text.isEmpty { steps.append(text) }
++            if !text.isEmpty { numberedText[n] = text }
+         }
+         // Weave the unnumbered directions back in where they were seen.
+         let numbered = Set(stepHeads.keys).union(stepTails.keys).sorted()
+@@ -829,13 +831,15 @@
+             looseSteps.filter { $0.after == n }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty }
+         }
+         woven.append(contentsOf: loose(after: nil))
+-        for (i, n) in numbered.enumerated() {
+-            woven.append(steps[i])
++        for n in numbered {
++            if let text = numberedText[n] { woven.append(text) }
++            // An empty heading still has a position in the recipe: directions
++            // seen after it must stay here, before the next numbered step.
+             woven.append(contentsOf: loose(after: n))
+         }
+         // Anchored to a step number that never got a heading (unlikely): keep them, at the end.
+         woven.append(contentsOf: looseSteps.filter { a in a.after != nil && !numbered.contains(a.after!) }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty })
+-        steps = woven
++        let steps = woven
+         if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
+ 
+         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
+--- a/DinnerTogetherTests/ScreenshotOrderTests.swift
++++ b/DinnerTogetherTests/ScreenshotOrderTests.swift
+@@ -80,4 +80,41 @@
+         XCTAssertTrue(steps[0].contains("Mix the ingredients") && steps[0].contains("Rest the dough"), steps[0])
+         XCTAssertEqual(steps[1], "Bake the mixture")
+     }
++
++    func testEmptyFirstNumberedHeadingKeepsLaterText() throws {
++        let pages = [page("STEP 1"), page("STEP 2", "Bake the mixture")]
++        let recipe = try RecipeImporter.parse(screenshots: pages)
++        XCTAssertEqual(directions(of: recipe), ["Bake the mixture"],
++                       "an empty heading must not index beyond the recognized steps")
++    }
++
++    func testEmptyMiddleNumberedHeadingKeepsLaterText() throws {
++        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2"),
++                     page("STEP 3", "Bake the mixture")]
++        let recipe = try RecipeImporter.parse(screenshots: pages)
++        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients", "Bake the mixture"])
++    }
++
++    func testEmptyLastNumberedHeadingKeepsEarlierText() throws {
++        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2")]
++        let recipe = try RecipeImporter.parse(screenshots: pages)
++        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients"])
++    }
++
++    func testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor() throws {
++        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2"),
++                     page("Rest the dough"), page("STEP 3", "Bake the mixture")]
++        let recipe = try RecipeImporter.parse(screenshots: pages)
++        XCTAssertEqual(directions(of: recipe),
++                       ["Mix the ingredients", "Rest the dough", "Bake the mixture"],
++                       "loose directions after an empty heading stay before the following step")
++    }
++
++    func testOnlyEmptyNumberedHeadingsHaveNoRecipeData() {
++        XCTAssertThrowsError(try RecipeImporter.parse(screenshots: [page("STEP 1"), page("STEP 2")])) { error in
++            XCTAssertEqual(error as? RecipeImportError, .noTextInScreenshots,
++                           "empty headings cannot manufacture a recipe or crash the import")
++        }
++    }
++
+ }

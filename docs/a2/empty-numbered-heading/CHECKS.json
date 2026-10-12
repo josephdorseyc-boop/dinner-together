@@ -1,0 +1,13 @@
+{
+  "main_applies": true,
+  "main_applied_matches_proposal": true,
+  "main_new_test_methods": 5,
+  "palette_applies": true,
+  "palette_new_test_methods": 5,
+  "supplemental_failure_fixtures": 5,
+  "supplemental_nonempty_equivalence_cases": 54,
+  "evidence_scope": "Patch application + isolated assembly model only; no Swift/XCTest/simulator execution.",
+  "base_sha": "eb04d8288a995e88e9653df4c6206694e043c7c9",
+  "compatibility_sha": "8b70d05ff64977a4bf104b54d05f792b60f1d3ae",
+  "patch_sha256": "9c579bad4d0e0a252de983d5da4f2b17cd6b4cc6c22853ecfadf760d6425dc1d"
+}
