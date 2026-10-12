@@ -110,6 +110,11 @@ After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
 - **A3-U-F10** iPad presents the "Adjust time" confirmation dialog as a
   popover whose buttons report not hittable; `tapEvenInPopover` falls back
   to a coordinate tap at the button's center.
+- **A3-U-F11** A dialog or sheet opened from a Menu or popover action must be
+  deferred until that menu finishes dismissing. Presenting immediately races
+  the close animation: the delete-confirmation dialog opened while the More
+  menu was still closing, which looked like test flakiness but was an app
+  bug. Fix: present after a short delay (`DispatchQueue.main.asyncAfter`).
 - **Known limitation (iPad, Flow 3):** the "Adjust time" confirmation
   dialog is a popover on iPad, and its buttons report unlaid-out frames to
   XCUITest (runs 20–22: the popover's `Sheet` container has infinite/zero
