@@ -49,6 +49,7 @@ let package = Package(
                 "SessionStore.swift",
                 "RecipeImporter.swift",
                 "RecipeLibrary.swift",
+                "RecipePalette.swift",
                 "EngineTestSupport.swift",
             ]
         ),
