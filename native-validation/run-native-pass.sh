@@ -43,7 +43,7 @@ finish() {
 }
 
 # Expected test count comes from the source, so "0 tests executed" cannot pass.
-EXPECTED_TESTS=$(count_matches "$ROOT/DinnerTogetherTests/DinnerTogetherTests.swift" 'func test')
+EXPECTED_TESTS=$(cat "$ROOT"/DinnerTogetherTests/*.swift | grep -c 'func test' || true)
 EXPECTED_UI_IPHONE=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" 'func test')
 EXPECTED_UI_IPAD=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift" 'func test')
 

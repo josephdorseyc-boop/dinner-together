@@ -20,7 +20,9 @@ name: native-validation
 
 on:
   push:
-    branches-ignore: [ci-results, ci-results-linux, store-assets, release-results]
+    branches-ignore: [ci-results, ci-results-linux, store-assets, release-results, 'wip/**']
+    # wip/** branches get the 1-minute Linux harness on every push
+    # (engine-quick.yml); run this full workflow on them by hand when wanted.
     # Documentation-only pushes don't need a 20-minute macOS run.
     paths-ignore: ['docs/**', '**/*.md']
   workflow_dispatch:
@@ -54,7 +56,7 @@ jobs:
       - name: Verify the expected number of tests executed
         if: always()
         run: |
-          expected=$(grep -c 'func test' DinnerTogetherTests/DinnerTogetherTests.swift || true)
+          expected=$(cat DinnerTogetherTests/*.swift | grep -c 'func test' || true)
           executed=$(grep -oE 'Executed [0-9]+ tests' swift-test-linux.log | grep -oE '[0-9]+' | sort -n | tail -1)
           echo "expected=$expected executed=${executed:-0}"
           test -n "$executed" && [ "$executed" -ge "$expected" ] || { echo "::error::swift test executed ${executed:-0} of $expected expected tests"; exit 1; }
