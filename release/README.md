@@ -50,9 +50,31 @@ validation workflow is green for that exact commit.
 - First run: Xcode registers the certificate and profile automatically
   (cloud signing). If it fails, `SUMMARY.md` in the run's artifact says why;
   the usual causes are a secret pasted with a stray space, or an API key
-  that isn't Admin.
+  that isn't Admin. The same verdict lines are also check-run annotations
+  and the text outputs are pushed to the `release-results` branch
+  (`run-N/`), for anyone who cannot download artifacts.
 - When "uploaded build 1.0 (N)" appears, Apple processes the build for
   5–30 minutes; then it shows under **TestFlight** in App Store Connect.
+
+What the first five runs taught (October 11, 2026 — build 1.0 (5) was the
+first accepted upload):
+
+- **The archive is built unsigned; the export signs.** An automatic-signing
+  archive asks Apple for an *iOS App Development* profile, and the portal
+  refuses to generate one for a team with no registered devices (run 2).
+  Overriding the identity to Apple Distribution is rejected as a conflict
+  with automatic signing (run 3). So `build-release.sh` archives with
+  `CODE_SIGNING_ALLOWED=NO` and lets `-exportArchive`, which runs with cloud
+  signing, apply the Apple Distribution certificate and App Store profile —
+  no device needs to be registered, ever (run 4 onward).
+- **Xcode 26 is required.** App Store Connect refuses uploads built with the
+  iOS 18 SDK ("must be built with the iOS 26 SDK or later", run 4). The
+  macos-15 image's default Xcode is 16.4, so every macOS job selects
+  Xcode 26.2 via `DEVELOPER_DIR` (newest 26.x as fallback; override with
+  `DT_XCODE`). Validation and store-assets use the same selection so what is
+  tested and photographed is what ships. Validation run 30 was the first
+  on 26.2: 69/69 unit tests on both simulators, 10/10 + 3/3 UI flows (the
+  iPad popover case that was an expected failure on 16.4 passes outright).
 
 ## 5. Put it on your iPhone (TestFlight)
 
