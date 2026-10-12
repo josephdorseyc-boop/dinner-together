@@ -122,10 +122,12 @@ struct RecipePageBackground: View {
 /// A card on a recipe page: frosted glass on a colored page (solid with
 /// Reduce Transparency or Increase Contrast), the classic paper card otherwise.
 struct RecipeSurface: ViewModifier {
-    var cornerRadius: CGFloat
+    let cornerRadius: CGFloat
     @Environment(\.recipePalette) private var palette
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+
+    init(cornerRadius: CGFloat) { self.cornerRadius = cornerRadius }
 
     @ViewBuilder
     func body(content: Content) -> some View {
@@ -167,6 +169,8 @@ struct PageStyleSheet: View {
     @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.dismiss) private var dismiss
     @State private var problem: String?
+
+    init(recipeID: UUID) { self.recipeID = recipeID }
 
     private struct Option: Identifiable {
         let id: String
@@ -252,11 +256,12 @@ struct PageStyleSheet: View {
                         Image(systemName: symbol).font(.title3.weight(.semibold)).foregroundStyle(.white)
                     }
                     if selected {
+                        let disc: Color = option.palette == nil ? Theme.cream : Color.black.opacity(0.55)
+                        let mark: Color = option.palette == nil ? Theme.tomato : Color.white
                         Image(systemName: "checkmark.circle.fill")
                             .font(.title2)
                             .symbolRenderingMode(.palette)
-                            .foregroundStyle(option.palette == nil ? Theme.cream : Color.black.opacity(0.55),
-                                             option.palette == nil ? Theme.tomato : .white)
+                            .foregroundStyle(mark, disc)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
                             .padding(6)
                     }

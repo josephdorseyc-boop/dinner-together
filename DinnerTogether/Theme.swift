@@ -61,9 +61,11 @@ extension View {
 struct BigButtonStyle: ButtonStyle {
     /// On a colored recipe page the button is a light pill with dark text
     /// (12:1) rather than tomato on a deep, possibly red, gradient.
-    var onColoredPage = false
+    let onColoredPage: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled
+    // Explicit: private wrappers would make the memberwise init file-private.
+    init(onColoredPage: Bool = false) { self.onColoredPage = onColoredPage }
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.font(.headline.weight(.semibold))
             .padding(.horizontal, 18).padding(.vertical, 12)
