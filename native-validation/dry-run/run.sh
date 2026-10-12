@@ -5,7 +5,7 @@
 # Swift and proves nothing about the app; it exists so the harness itself
 # can't silently report success when something could not run.
 #
-#   bash native-validation/dry-run/run.sh          # expect: all 16 scenarios OK
+#   bash native-validation/dry-run/run.sh          # expect: all 17 scenarios OK
 set -u
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
@@ -50,5 +50,6 @@ run_case ui-no-executed         1    0     2    32   0    FAKE_UI_EXECUTED=0    
 run_case ui-one-failing         1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=1   # A1-U: one failing UI test per device
 run_case ui-attachments-missing 1    0     2    32   0    FAKE_UI_ATTACHMENTS_RC=1  # A1-U: export failure → the flows were not photographed
 run_case ui-skipped             1    0     2    32   $UPNG   FAKE_UI_SKIPPED=1      # A1-U: a skipped UI test on each device fails the gate
+run_case release-build-fails    1    0     1    32   $UPNG   FAKE_RELEASE_BUILD_RC=65  # build 9, release run 9: a DEBUG-only symbol must fail validation, not the archive
 rm -rf "$WORK"
-if [ "$bad" -eq 0 ]; then echo "PASS: 16 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
+if [ "$bad" -eq 0 ]; then echo "PASS: 17 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
