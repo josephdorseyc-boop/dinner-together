@@ -738,9 +738,19 @@ extension DinnerTogetherUITestCase {
         // Agent 2's R3 copy: the editor states long durations in hours.
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '3 hr' OR label CONTAINS '180'")).firstMatch.exists,
                       "it shows the three-hour freezer time")
+        // A2-R7: Save is pinned in view, disabled until the value changes,
+        // and Cancel discards a change.
+        let save = app.buttons["Save estimate"]
+        XCTAssertTrue(save.exists && save.isHittable, "Save is visible without scrolling")
+        XCTAssertFalse(save.isEnabled, "nothing to save yet")
         photograph("r04-duration-180")
+        app.steppers.firstMatch.buttons["Increment"].tap()
+        XCTAssertTrue(save.isEnabled, "a changed estimate can be saved")
+        photograph("r04b-duration-181")
         cancel.tap()
         waitForDisappearance(cancel, "editor closed")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch.exists,
+                      "Cancel discarded the change")
 
         scrollAndTap(confirm, "Timing looks right")
         waitForDisappearance(app.buttons["timing-looks-right"], "the review is recorded")

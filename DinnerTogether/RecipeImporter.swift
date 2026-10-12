@@ -47,7 +47,7 @@ enum RecipeImportError: Error, Equatable, LocalizedError {
             return "Paste the recipe’s ingredients and directions first."
         case .appleNewsOnly(let title):
             let name = title.map { "“\($0)” " } ?? "This recipe "
-            return name + "lives inside the Apple News app, so its link can’t be read. In News, take screenshots of the recipe — the title, ingredients and every step — then choose Screenshots above."
+            return name + "isn’t available through this Apple News link. Choose screenshots of the full recipe, or paste its text."
         case .noTextInScreenshots:
             return "We couldn’t find recipe text in those images. Choose screenshots that show the ingredients and steps."
         }

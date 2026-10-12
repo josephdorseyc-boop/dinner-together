@@ -223,15 +223,20 @@ struct DurationEditorView: View {
                     }.dtCard()
                     Text("The plan updates when you save. Started timers keep their original deadline.")
                         .font(.subheadline).foregroundStyle(Theme.muted)
-                    Button("Save estimate") {
-                        onSave(minutes)
-                        dismiss()
-                    }.buttonStyle(BigButtonStyle())
-                    .disabled(minutes == initialMinutes)
                 }.padding(24)
             }
             .foregroundStyle(Theme.ink)
             .background(Theme.cream)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button("Save estimate") {
+                    onSave(minutes)
+                    dismiss()
+                }
+                .buttonStyle(BigButtonStyle())
+                .disabled(minutes == initialMinutes)
+                .padding(.horizontal, 24).padding(.vertical, 12)
+                .background(Theme.cream)
+            }
             .navigationTitle("Timing estimate")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -240,6 +245,6 @@ struct DurationEditorView: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
     }
 }
