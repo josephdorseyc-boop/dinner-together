@@ -1,0 +1,12 @@
+{
+  "baseline": "aca699b882dc3bc8635d59b05e7dc80c0c3c7625",
+  "standalone_patch_application": "PASS; applied bytes match proposal",
+  "composition_with_A2_12": {
+    "navigation then crop": "PASS",
+    "crop then navigation": "PASS"
+  },
+  "both_orders_identical": true,
+  "new_swift_tests": 4,
+  "swift_tests_executed": false,
+  "native_UI_executed": false
+}
