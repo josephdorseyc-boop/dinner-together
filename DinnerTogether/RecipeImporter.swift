@@ -679,7 +679,11 @@ struct OCRLine: Equatable {
 extension RecipeImporter {
 
     /// Builds a recipe from screenshots of a recipe page — Apple News+ Food,
-    /// a cookbook app, a website — in any order, overlapping or not.
+    /// a cookbook app, a website. Directions labeled "STEP n" are keyed by
+    /// number and survive any selection order; unnumbered directions are kept
+    /// in screenshot-selection order and overlapping unnumbered text is not
+    /// deduplicated. Callers must ask for images in recipe order and for a
+    /// post-import check of missing or repeated text.
     ///
     /// - The title is the heading repeated at the top of several screenshots
     ///   (a navigation bar), or else the tallest text.
