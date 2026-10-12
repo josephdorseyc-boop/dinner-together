@@ -331,7 +331,7 @@ final class RecipeLibraryTests: XCTestCase {
         RecipeImporter.build(try RecipeImporter.parse(text: pastedText), method: .text, now: t0)
     }
 
-    func testAddPersistsAndReloads() throws {
+    func testAddPersistsAndReloads() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         XCTAssertTrue(library.isEmpty)
@@ -346,7 +346,7 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertNil(reloaded.menu(id: "recipe:" + UUID().uuidString))
     }
 
-    func testTimingEditsAndReview() throws {
+    func testTimingEditsAndReview() async throws {
         let library = RecipeLibrary(directory: tempDir())
         let recipe = try sampleRecipe()
         library.add(recipe)
@@ -363,7 +363,7 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertEqual(library.recipe(id: recipe.id)?.estimatedStepCount, 0)
     }
 
-    func testImagesAreStoredBesideTheLibrary() throws {
+    func testImagesAreStoredBesideTheLibrary() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         let recipe = try sampleRecipe()
@@ -376,7 +376,7 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appending(path: "recipe-images/\(name!)").path), "image removed with the recipe")
     }
 
-    func testStoreResolvesRecipeMenusAndFallsBackWhenDeleted() throws {
+    func testStoreResolvesRecipeMenusAndFallsBackWhenDeleted() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         let recipe = try sampleRecipe()
@@ -403,7 +403,7 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertEqual(again.menu.id, DinnerCatalog.menus[0].id)
     }
 
-    func testStoreWithoutProviderIsCatalogOnly() {
+    func testStoreWithoutProviderIsCatalogOnly() async {
         let store = SessionStore(fileURL: tempDir().appending(path: "s.json"), notifications: MockNotifications())
         store.chooseMenu("recipe:" + UUID().uuidString)
         XCTAssertTrue(store.menuIsMissing)
