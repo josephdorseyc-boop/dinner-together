@@ -859,7 +859,15 @@ struct RecipeDetailView: View {
                     ShareLink(item: url) { Label("Share link", systemImage: "square.and.arrow.up") }
                 }
                 Button(role: .destructive) {
-                    if timingLocked { cannotDelete = true } else { confirmingDelete = true }
+                    // Present after the menu has finished closing: a dialog
+                    // requested mid-dismissal is sometimes dropped (delete
+                    // flow, 3 runs on iPhone and iPad) — same cause and cure
+                    // as the delay sheet behind a closing popover.
+                    let locked = timingLocked
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        if locked { cannotDelete = true } else { confirmingDelete = true }
+                    }
                 } label: { Label("Delete recipe", systemImage: "trash") }
             } label: {
                 Image(systemName: "ellipsis.circle").accessibilityLabel("More")
