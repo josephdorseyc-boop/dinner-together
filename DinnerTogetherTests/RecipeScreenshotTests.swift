@@ -227,3 +227,49 @@ final class AppleNewsLinkTests: XCTestCase {
         }
     }
 }
+
+// What Joe's iPhone actually returned for screenshot 2 (build 8, October 12):
+// the line under News's blurred top bar came back half Cyrillic, and the
+// timer chip's icon came back as a bullet.
+final class DeviceOCRRegressionTests: XCTestCase {
+    private func L(_ text: String, _ top: Double, h: Double = 0.016) -> OCRLine { OCRLine(text: text, top: top, height: h) }
+
+    private var deviceStep2: [OCRLine] {
+        [L("cool, about плоагу. ou am апа ascdra", 0.170, h: 0.018), L("spices.", 0.198, h: 0.018),
+         L("STEP 2", 0.250, h: 0.015),
+         L("Pour the cider mixture evenly into 12 ice", 0.284, h: 0.018),
+         L("cube tray wells (about 2 tablespoons each).", 0.313, h: 0.018),
+         L("Freeze until solid, about 3 hours.", 0.341, h: 0.018),
+         L("STEP 3", 0.784, h: 0.015),
+         L("Place the frozen cider cubes and ½ cup", 0.817, h: 0.018),
+         L("coconut milk in a blender. Process until", 0.846, h: 0.018),
+         L("slushy, about • 30 seconds. Add up to", 0.874, h: 0.018)]
+    }
+    private var deviceStep1: [OCRLine] {
+        [L("Directions", 0.405, h: 0.022), L("STEP 1", 0.466, h: 0.015),
+         L("Combine 1½ cups cider, 1½ tablespoons", 0.500, h: 0.018),
+         L("maple syrup, 1 cinnamon stick, 1 tablespoon", 0.529, h: 0.018),
+         L("to a boil over medium heat.", 0.557, h: 0.018)]
+    }
+
+    func testBlurredCyrillicTailIsDroppedNotScheduled() throws {
+        let r = try RecipeImporter.parse(screenshots: [deviceStep1, deviceStep2])
+        XCTAssertEqual(r.directions.count, 3)
+        XCTAssertFalse(r.directions[0].contains("плоагу") || r.directions[0].contains("ascdra"), r.directions[0])
+        XCTAssertFalse(r.directions[0].hasSuffix("spices."), "the whole unreliable tail goes, not half of it")
+        XCTAssertTrue(r.directions[0].hasSuffix("medium heat."), r.directions[0])
+        let recipe = RecipeImporter.build(r, method: .photo)
+        XCTAssertEqual(recipe.steps[0].estimated, true, "with the time unreadable, step 1 stays an honest estimate")
+    }
+
+    func testTimerIconBulletBeforeANumberIsRemoved() throws {
+        let r = try RecipeImporter.parse(screenshots: [deviceStep1, deviceStep2])
+        XCTAssertTrue(r.directions[2].contains("about 30 seconds"), r.directions[2])
+        XCTAssertEqual(RecipeImporter.cleanOCR(L("EatingWell • Julia Levy", 0)).text, "EatingWell • Julia Levy", "a byline separator stays")
+    }
+
+    func testCyrillicRecipeIsNotFlagged() {
+        let page = [L("Борщ", 0.1, h: 0.03), L("Ингредиенты", 0.2), L("2 свёклы", 0.25), L("Способ приготовления", 0.3), L("Варите 40 минут.", 0.35)]
+        XCTAssertTrue(RecipeImporter.markUnreliable([page])[0].allSatisfy { !$0.unreliable }, "a page written in Cyrillic is not ‘mixed’")
+    }
+}

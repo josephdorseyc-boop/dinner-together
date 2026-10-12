@@ -673,6 +673,9 @@ struct OCRLine: Equatable {
     var top: Double
     var left: Double = 0.06
     var height: Double = 0.015
+    /// Set by `markUnreliable`: the line mixes writing systems on a page that
+    /// is otherwise one script — text read through a blur, not real words.
+    var unreliable = false
     var bottom: Double { top + height }
 }
 
@@ -693,7 +696,7 @@ extension RecipeImporter {
     ///   ingredient above it; a gap starts a new one.
     /// - App chrome (status bar, tabs, buttons) is dropped.
     static func parse(screenshots pages: [[OCRLine]]) throws -> ImportedRecipe {
-        let cleaned = pages.map { readingOrder($0.map(cleanOCR).filter { !$0.text.isEmpty }) }
+        let cleaned = markUnreliable(pages.map { readingOrder($0.map(cleanOCR).filter { !$0.text.isEmpty }) })
         guard cleaned.contains(where: { !$0.isEmpty }) else { throw RecipeImportError.noTextInScreenshots }
 
         let title = screenshotTitle(cleaned)
@@ -717,6 +720,7 @@ extension RecipeImporter {
             enum Mode { case unknown, ingredients, directions, step(Int) }
             var mode = Mode.unknown
             var preMarker: [String] = []
+            var preMarkerUnreliable = false
             var looseBlock: [String] = []
             var previous: OCRLine?
             var i = 0
@@ -729,6 +733,13 @@ extension RecipeImporter {
                 let line = page[i]
                 defer { previous = line; i += 1 }
                 let text = line.text
+                if line.unreliable {
+                    // Never schedule text read through a blur. A step's tail
+                    // with such a line is dropped whole: the step keeps what
+                    // was read cleanly and its time stays an honest estimate.
+                    if case .unknown = mode, firstMarker != nil { preMarkerUnreliable = true }
+                    continue
+                }
                 let key = normalizedKey(text)
                 if let row = tabRow, abs(line.top - row) < 0.012 { continue }
                 if isChrome(key) { continue }
@@ -798,7 +809,9 @@ extension RecipeImporter {
                 }
             }
             flushLoose()
-            if let m = firstMarker, m > 1, !preMarker.isEmpty { stepTails[m - 1, default: []].append(joinLines(preMarker)) }
+            if let m = firstMarker, m > 1, !preMarker.isEmpty, !preMarkerUnreliable {
+                stepTails[m - 1, default: []].append(joinLines(preMarker))
+            }
         }
 
         // Ingredients: drop fragments, collapse duplicates across screenshots.
@@ -844,11 +857,50 @@ extension RecipeImporter {
 
     // MARK: Screenshot helpers
 
+    /// Greek and Cyrillic letters look like Latin ones; a recognizer reading a
+    /// blurred English line can mix them in ("about плоагу. ou am апа").
+    static func scriptCounts(_ s: String) -> (latin: Int, confusable: Int) {
+        var latin = 0, other = 0
+        for u in s.unicodeScalars where CharacterSet.letters.contains(u) {
+            switch u.value {
+            case 0x0041...0x024F: latin += 1
+            case 0x0370...0x03FF, 0x0400...0x052F: other += 1
+            default: break
+            }
+        }
+        return (latin, other)
+    }
+
+    /// On screenshots that are overwhelmingly Latin script, a line containing
+    /// Greek or Cyrillic letters is unreliable (and vice versa).
+    static func markUnreliable(_ pages: [[OCRLine]]) -> [[OCRLine]] {
+        let totals = pages.joined().reduce((latin: 0, confusable: 0)) { acc, line in
+            let c = scriptCounts(line.text); return (acc.latin + c.latin, acc.confusable + c.confusable)
+        }
+        let all = totals.latin + totals.confusable
+        guard all > 0 else { return pages }
+        let latinPage = Double(totals.latin) / Double(all) >= 0.85
+        let otherPage = Double(totals.confusable) / Double(all) >= 0.85
+        guard latinPage || otherPage else { return pages }
+        return pages.map { page in
+            page.map { line in
+                let c = scriptCounts(line.text)
+                var out = line
+                out.unreliable = latinPage ? c.confusable > 0 : (c.latin > 0 && c.confusable > 0)
+                return out
+            }
+        }
+    }
+
     /// Removes recognition artifacts around Apple's inline timer chips
     /// ("about © 30 seconds ." → "about 30 seconds.").
     static func cleanOCR(_ line: OCRLine) -> OCRLine {
         var t = line.text
         t = t.replacingOccurrences(of: #"[©®⏱◷⌚⏲]"#, with: " ", options: .regularExpression)
+        // A timer chip's icon read as a bullet: "about • 30 seconds" (Joe's
+        // device, build 8). Only before a number, so "EatingWell • Julia Levy"
+        // keeps its separator.
+        t = t.replacingOccurrences(of: #"[•◦∙●○]\s*(?=\d)"#, with: "", options: .regularExpression)
         t = t.replacingOccurrences(of: #"\(\s*(\d[^()]{0,24}?(?:seconds?|minutes?|mins?|hours?|hrs?))\s*\)"#, with: "$1", options: [.regularExpression, .caseInsensitive])
         t = t.replacingOccurrences(of: #"\s+([.,;:!?)])"#, with: "$1", options: .regularExpression)
         var out = line

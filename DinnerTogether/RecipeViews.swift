@@ -304,7 +304,7 @@ struct AddRecipeSheet: View {
 
     private var screenshotInput: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step. Choose images in recipe order, then check for missing or repeated text after import.")
+            Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step, with each step fully visible below the top bar in at least one screenshot. Choose images in recipe order, then check for missing or repeated text after import.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if stubbed.isEmpty {
                 PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
