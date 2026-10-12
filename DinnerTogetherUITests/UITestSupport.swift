@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 
 // MARK: - Seeds
 
@@ -147,9 +148,10 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// would leak the previous test's seed into this one.
     @discardableResult
     func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true,
-                recipes: [String] = []) -> XCUIApplication {
+                recipes: [String] = [], heroPhoto: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["DT_SEED_JSON"] = seed
+        app.launchEnvironment["DT_SEED_RECIPE_PHOTO"] = heroPhoto ? "landscape" : ""
         // Always set, so recipes from one test never appear in another.
         let recipeData = (try? JSONSerialization.data(withJSONObject: recipes)) ?? Data("[]".utf8)
         app.launchEnvironment["DT_SEED_RECIPE_TEXTS"] = String(decoding: recipeData, as: UTF8.self)
@@ -698,31 +700,96 @@ enum RecipeFixtureText {
     static let beanSpreadTitle = "Bean spread with an untimed step"
 }
 
+/// How a recipe flow is rendered. Each variant is verified on screen before
+/// it is photographed: a file name alone is not evidence (A2 capture contract).
+struct RecipeCapture {
+    var suffix = ""
+    var typeSize: String?
+    var dark = false
+    static let standard = RecipeCapture()
+    static let ax3 = RecipeCapture(suffix: "-ax3", typeSize: "accessibility3")
+    static let darkMode = RecipeCapture(suffix: "-dark", dark: true)
+
+    var launchArguments: [String] {
+        (typeSize.map { ["-dt-type-size", $0] } ?? []) + (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"])
+    }
+}
+
 extension DinnerTogetherUITestCase {
+    private func launchRecipes(_ recipes: [String], _ capture: RecipeCapture, extra: [String] = [], heroPhoto: Bool = false) {
+        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: capture.launchArguments + extra,
+               openCooking: false, recipes: recipes, heroPhoto: heroPhoto)
+    }
+
     private func openRecipe(_ title: String) {
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
         scrollAndTap(row, "the recipe row for “\(title)”")
         waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
     }
 
+    /// Proves the forced type size took effect: at accessibility sizes the
+    /// recipe tabs stack vertically (A2-R2), at default size they sit in a row.
+    private func verifyTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
+        let a = app.buttons["recipe-tab-ingredients"], b = app.buttons["recipe-tab-directions"]
+        guard a.waitForExistence(timeout: 5), b.exists else { return XCTFail("recipe tabs not found", file: file, line: line) }
+        let stacked = abs(a.frame.minX - b.frame.minX) < 4 && b.frame.minY >= a.frame.maxY - 1
+        if capture.typeSize != nil {
+            XCTAssertTrue(stacked, "AX3 forced: tabs stack vertically (\(a.frame) / \(b.frame))", file: file, line: line)
+        } else {
+            XCTAssertFalse(stacked, "default type size: tabs share a row", file: file, line: line)
+        }
+    }
+
+    /// Proves Dark Mode took effect by measuring the screen: mean luminance of
+    /// the screenshot is low in dark, high in light (cream background).
+    private func verifyAppearance(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
+        let luminance = Self.meanLuminance(app.screenshot().image)
+        if capture.dark {
+            XCTAssertLessThan(luminance, 0.35, "Dark Mode forced: screen luminance \(luminance)", file: file, line: line)
+        } else {
+            XCTAssertGreaterThan(luminance, 0.6, "light appearance: screen luminance \(luminance)", file: file, line: line)
+        }
+    }
+
+    static func meanLuminance(_ image: UIImage) -> Double {
+        guard let cg = image.cgImage else { return -1 }
+        let w = 24, h = 48
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return -1 }
+        ctx.interpolationQuality = .medium
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        var total = 0.0
+        for i in stride(from: 0, to: px.count, by: 4) {
+            total += 0.2126 * Double(px[i]) + 0.7152 * Double(px[i + 1]) + 0.0722 * Double(px[i + 2])
+        }
+        return total / Double(w * h) / 255
+    }
+
+    private func onRecipePage(_ capture: RecipeCapture) {
+        verifyTypeSize(capture)
+        verifyAppearance(capture)
+    }
+
     /// r01 — Tonight with an empty recipe library.
     func flowRecipeLibraryEmpty() {
-        launch(seed: UISeed.tonight(now: Date()), openCooking: false, recipes: [])
+        launchRecipes([], .standard)
         let add = app.buttons["add-recipe"]
         scrollTo(add)
         XCTAssertTrue(app.staticTexts["Cook your own recipes, on time."].exists, "empty state explains the feature")
         photograph("r01-library-empty")
     }
 
-    /// r02–r05 — unreviewed recipe page, cook gate, estimate, duration editor, confirmation.
-    func flowRecipeReviewGate() {
-        launch(seed: UISeed.tonight(now: Date()), openCooking: false,
-               recipes: [RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread])
+    /// r02, r04, r04b, r05 — unreviewed page, cook gate, duration editor
+    /// (Save pinned, disabled until changed, Cancel discards), confirmation.
+    func flowRecipeReviewGate(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture)
         XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 10), "seeded dinner")
-
         openRecipe(RecipeFixtureText.frozenBerryTitle)
+        onRecipePage(capture)
         XCTAssertTrue(app.buttons["timing-review-banner"].exists, "an imported recipe asks for a timing check")
-        photograph("r02-recipe-unreviewed")
+        photograph("r02-recipe-unreviewed" + capture.suffix)
 
         let cook = app.buttons["cook-this-recipe"]
         XCTAssertTrue(cook.label.contains("Check timing"), "the primary action asks for the check first: \(cook.label)")
@@ -730,12 +797,13 @@ extension DinnerTogetherUITestCase {
         let confirm = app.buttons["timing-looks-right"]
         XCTAssertTrue(confirm.waitForExistence(timeout: 5), "the cook action opened the Timing tab")
         XCTAssertTrue(app.buttons["recipe-tab-timing"].isSelected, "Timing is the selected tab")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
+                       "opening Timing did not change tonight’s dinner")
 
         let freezer = app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch
         scrollAndTap(freezer, "the three-hour freezer step’s minutes")
         let cancel = app.buttons["Cancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "the duration editor opened")
-        // Agent 2's R3 copy: the editor states long durations in hours.
         XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '3 hr' OR label CONTAINS '180'")).firstMatch.exists,
                       "it shows the three-hour freezer time")
         // A2-R7: Save is pinned in view, disabled until the value changes,
@@ -743,67 +811,118 @@ extension DinnerTogetherUITestCase {
         let save = app.buttons["Save estimate"]
         XCTAssertTrue(save.exists && save.isHittable, "Save is visible without scrolling")
         XCTAssertFalse(save.isEnabled, "nothing to save yet")
-        photograph("r04-duration-180")
+        photograph("r04-duration-180" + capture.suffix)
         app.steppers.firstMatch.buttons["Increment"].tap()
         XCTAssertTrue(save.isEnabled, "a changed estimate can be saved")
-        photograph("r04b-duration-181")
+        photograph("r04b-duration-181" + capture.suffix)
         cancel.tap()
         waitForDisappearance(cancel, "editor closed")
         XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch.exists,
                       "Cancel discarded the change")
 
-        scrollAndTap(confirm, "Timing looks right")
+        scrollAndTap(app.buttons["timing-looks-right"], "Timing looks right")
         waitForDisappearance(app.buttons["timing-looks-right"], "the review is recorded")
         let cookNow = app.buttons["cook-this-recipe"]
         XCTAssertTrue(cookNow.label.contains("Cook this for dinner"), "after review the recipe can be cooked: \(cookNow.label)")
-        photograph("r05-timing-confirmed")
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 5),
-                      "opening, checking and confirming a recipe never changed tonight’s dinner")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
+                       "confirming did not choose the recipe as tonight’s dinner")
+        photograph("r05-timing-confirmed" + capture.suffix)
+    }
+
+    /// r03 — an untimed step stays marked as an estimate.
+    func flowRecipeEstimate(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.beanSpread], capture)
         openRecipe(RecipeFixtureText.beanSpreadTitle)
+        onRecipePage(capture)
         app.buttons["recipe-tab-timing"].tap()
         let estimated = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Estimated time'")).firstMatch
         scrollTo(estimated)
         XCTAssertTrue(estimated.exists, "the untimed step stays marked as an estimate")
-        photograph("r03-timing-estimate")
+        photograph("r03-timing-estimate" + capture.suffix)
+        let confirm = app.buttons["timing-looks-right"]
+        XCTAssertTrue(confirm.exists && confirm.isHittable, "the confirmation is reachable on Timing (pinned footer)")
+    }
+
+    /// r02 and r03 in another appearance, each from a fresh launch.
+    func flowRecipePageAndEstimate(_ capture: RecipeCapture) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture)
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        onRecipePage(capture)
+        photograph("r02-recipe-unreviewed" + capture.suffix)
+        flowRecipeEstimate(capture)
     }
 
     /// r06 — an Apple News link explains itself and switches to Screenshots.
-    func flowAppleNewsLink() {
-        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: ["-dt-stub-apple-news"], openCooking: false, recipes: [])
+    func flowAppleNewsLink(_ capture: RecipeCapture = .standard) {
+        launchRecipes([], capture, extra: ["-dt-stub-apple-news"])
         scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
         let field = app.textFields["recipe-link"]
         waitForExistence(field, timeout: 5, "the link field")
         field.tap()
         field.typeText("https://apple.news/KHuRjSBKDOACcBIjqE6y9tg")
-        app.buttons["import-recipe"].tap()
+        let importButton = app.buttons["import-recipe"]
+        if !importButton.isHittable { scrollTo(importButton) }
+        importButton.tap()
         let error = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Apple News'")).firstMatch
         XCTAssertTrue(error.waitForExistence(timeout: 10), "the Apple News explanation appears")
         XCTAssertTrue(app.descendants(matching: .any)["choose-screenshots"].exists, "the sheet switched to Screenshots and stayed open")
-        photograph("r06-apple-news-link")
+        if capture.typeSize != nil { scrollTo(error) }
+        photograph("r06-apple-news-link" + capture.suffix)
     }
 
     /// r07 — a confirmation that can’t be saved says so and stays unreviewed.
     func flowTimingSaveFailure() {
-        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: ["-dt-fail-recipe-saves"], openCooking: false,
-               recipes: [RecipeFixtureText.frozenBerry])
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         app.buttons["recipe-tab-timing"].tap()
-        let confirm = app.buttons["timing-looks-right"]
-        scrollAndTap(confirm, "Timing looks right")
+        scrollAndTap(app.buttons["timing-looks-right"], "Timing looks right")
         let problem = app.descendants(matching: .any)["recipe-save-error"]
         XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown")
+        XCTAssertTrue(app.buttons["timing-looks-right"].exists, "the recipe is still unreviewed and the action is still reachable")
         scrollToTop()
-        XCTAssertTrue(app.buttons["timing-looks-right"].exists, "the recipe is still unreviewed")
         photograph("r07-save-error")
     }
 
     /// r08 — the Thanksgiving card on Tonight.
     func flowThanksgivingCard() {
-        launch(seed: UISeed.tonight(now: Date()), openCooking: false, recipes: [])
+        launchRecipes([], .standard)
         let card = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Thanksgiving, together'")).firstMatch
         scrollTo(card)
         XCTAssertTrue(card.exists, "the holiday menu is on Tonight")
         photograph("r08-thanksgiving")
+    }
+
+    /// r09 — a delete that can’t be saved keeps the recipe and says so.
+    func flowDeleteFailure() {
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let more = app.buttons["More"]
+        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        tapEvenInPopover(more)
+        let deleteItem = app.buttons["Delete recipe"].firstMatch
+        waitForExistence(deleteItem, timeout: 5, "Delete recipe in the menu")
+        tapEvenInPopover(deleteItem)
+        let question = app.staticTexts["Delete this recipe?"]
+        waitForExistence(question, timeout: 5, "the delete confirmation")
+        let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
+        tapEvenInPopover(confirmDelete)
+        waitForDisappearance(question, "the confirmation closed")
+        XCTAssertTrue(app.staticTexts["recipe-title"].waitForExistence(timeout: 5), "still on the recipe page: nothing was deleted")
+        XCTAssertTrue(app.descendants(matching: .any)["recipe-save-error"].waitForExistence(timeout: 5), "the failure is explained")
+        scrollToTop()
+        photograph("r09-delete-failed")
+    }
+
+    /// r10 — a landscape hero photo stays screen-width; the page can’t scroll sideways.
+    func flowHeroPhoto(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture, heroPhoto: true)
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let title = app.staticTexts["recipe-title"]
+        let window = app.windows.firstMatch.frame
+        XCTAssertLessThanOrEqual(title.frame.maxX, window.maxX + 1, "the title fits the screen")
+        let before = title.frame.minX
+        title.swipeLeft()
+        XCTAssertEqual(title.frame.minX, before, accuracy: 1, "the page does not scroll sideways")
+        photograph("r10-hero-landscape" + capture.suffix)
     }
 }

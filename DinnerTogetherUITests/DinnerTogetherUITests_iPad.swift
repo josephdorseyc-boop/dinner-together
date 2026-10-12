@@ -20,4 +20,14 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test03_tonightNineMenus_iPad() {
         flowTonightNineMenus()
     }
+
+    // Recipes on iPad (A2 capture contract): r02–r10 and Dark Mode r02/r03.
+    func test04_recipeReviewGate_iPad() { flowRecipeReviewGate() }
+    func test05_recipeEstimate_iPad() { flowRecipeEstimate() }
+    func test06_appleNewsLink_iPad() { flowAppleNewsLink() }
+    func test07_timingSaveFailure_iPad() { flowTimingSaveFailure() }
+    func test08_thanksgivingCard_iPad() { flowThanksgivingCard() }
+    func test09_deleteFailure_iPad() { flowDeleteFailure() }
+    func test10_heroPhoto_iPad() { flowHeroPhoto() }
+    func test11_recipeDark_iPad() { flowRecipePageAndEstimate(.darkMode) }
 }

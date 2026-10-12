@@ -59,27 +59,27 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     }
 
     /// Recipes — r01: Tonight with an empty library.
-    func test10_recipeLibraryEmpty() {
-        flowRecipeLibraryEmpty()
-    }
-
-    /// Recipes — r02–r05: review gate, estimate, duration editor, confirmation.
-    func test11_recipeReviewGate() {
-        flowRecipeReviewGate()
-    }
-
+    func test10_recipeLibraryEmpty() { flowRecipeLibraryEmpty() }
+    /// Recipes — r02, r04, r04b, r05: review gate, duration editor, confirmation.
+    func test11_recipeReviewGate() { flowRecipeReviewGate() }
     /// Recipes — r06: an Apple News link explains itself.
-    func test12_appleNewsLink() {
-        flowAppleNewsLink()
-    }
-
-    /// Recipes — r07: a failed save stays honest.
-    func test13_timingSaveFailure() {
-        flowTimingSaveFailure()
-    }
-
+    func test12_appleNewsLink() { flowAppleNewsLink() }
+    /// Recipes — r07: a failed confirmation stays honest.
+    func test13_timingSaveFailure() { flowTimingSaveFailure() }
     /// Recipes — r08: Thanksgiving on Tonight.
-    func test14_thanksgivingCard() {
-        flowThanksgivingCard()
-    }
+    func test14_thanksgivingCard() { flowThanksgivingCard() }
+    /// Recipes — r03: the untimed step stays an estimate.
+    func test15_recipeEstimate() { flowRecipeEstimate() }
+    /// Recipes — r09: a failed delete keeps the recipe.
+    func test16_deleteFailure() { flowDeleteFailure() }
+    /// Recipes — r10: landscape hero photo, no sideways scroll.
+    func test17_heroPhoto() { flowHeroPhoto() }
+    /// Recipes at AX3 (verified: tabs stack) — r02, r04, r04b, r05.
+    func test18_recipeReviewGateAX3() { flowRecipeReviewGate(.ax3) }
+    /// Recipes at AX3 — r03.
+    func test19_recipeEstimateAX3() { flowRecipeEstimate(.ax3) }
+    /// Recipes at AX3 — r06.
+    func test20_appleNewsLinkAX3() { flowAppleNewsLink(.ax3) }
+    /// Recipes in Dark Mode (verified: screen luminance) — r02, r03.
+    func test21_recipeDark() { flowRecipePageAndEstimate(.darkMode) }
 }

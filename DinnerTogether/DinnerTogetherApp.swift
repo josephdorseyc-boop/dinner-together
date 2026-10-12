@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 @main
 struct DinnerTogetherApp: App {
@@ -39,6 +40,9 @@ struct DinnerTogetherApp: App {
                 .transformEnvironment(\.dynamicTypeSize) { size in
                     if let forced = LaunchOptions.forcedTypeSize { size = forced }
                 }
+                // UI-test forced appearance (-dt-appearance dark|light); nil
+                // otherwise, which leaves the system setting in charge.
+                .preferredColorScheme(LaunchOptions.forcedColorScheme)
                 #endif
                 .task { await store.refreshNotificationSettings() }
                 .onChange(of: scenePhase) { _, phase in
@@ -77,6 +81,17 @@ enum LaunchOptions {
     /// Link import answers apple.news URLs with the recorded "only available
     /// in Apple News" placeholder instead of the network.
     static var stubAppleNews: Bool { arguments.contains("-dt-stub-apple-news") }
+    /// -dt-appearance dark|light: Dark Mode captures without touching the
+    /// simulator's settings.
+    static var forcedColorScheme: ColorScheme? {
+        let args = ProcessInfo.processInfo.arguments
+        guard let i = args.firstIndex(of: "-dt-appearance"), i + 1 < args.count else { return nil }
+        switch args[i + 1].lowercased() {
+        case "dark": return .dark
+        case "light": return .light
+        default: return nil
+        }
+    }
     static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
 
     /// Forces a DynamicTypeSize for accessibility-size UI-test renders.
@@ -105,6 +120,7 @@ enum LaunchOptions {
     static var openCooking: Bool { false }
     static var failRecipeSaves: Bool { false }
     static var stubAppleNews: Bool { false }
+    static var forcedColorScheme: ColorScheme? { nil }
     static var inertReminders: Bool { false }
     static var forcedTypeSize: DynamicTypeSize? { nil }
     #endif
@@ -145,8 +161,42 @@ enum LaunchOptions {
             // Newest first in the library: the first text is listed first.
             return RecipeImporter.build(imported, method: .text, now: base.addingTimeInterval(-Double(i)))
         }
+        var seeded = recipes
+        // DT_SEED_RECIPE_PHOTO=landscape: give the first recipe a wide photo,
+        // drawn here so the test never depends on a publisher's image.
+        if ProcessInfo.processInfo.environment["DT_SEED_RECIPE_PHOTO"] == "landscape", !seeded.isEmpty {
+            let folder = URL.documentsDirectory.appending(path: "recipe-images", directoryHint: .isDirectory)
+            try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            let name = "\(seeded[0].id.uuidString).jpg"
+            if let jpeg = landscapeTestPhoto().jpegData(compressionQuality: 0.85),
+               (try? jpeg.write(to: folder.appending(path: name), options: .atomic)) != nil {
+                seeded[0].imageFilename = name
+            }
+        }
         let url = URL.documentsDirectory.appending(path: RecipeLibrary.fileName)
-        if let data = try? JSONEncoder().encode(recipes) { try? data.write(to: url, options: .atomic) }
+        if let data = try? JSONEncoder().encode(seeded) { try? data.write(to: url, options: .atomic) }
+    }
+
+    /// A 1800×1000 still life (table, two glasses, a bowl) in the app's own
+    /// palette. Wider than any screen on purpose: the hero must clip it.
+    static func landscapeTestPhoto() -> UIImage {
+        let size = CGSize(width: 1800, height: 1000)
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        return UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            let c = ctx.cgContext
+            let colors = [UIColor(red: 0.93, green: 0.80, blue: 0.62, alpha: 1).cgColor,
+                          UIColor(red: 0.66, green: 0.22, blue: 0.15, alpha: 1).cgColor] as CFArray
+            if let g = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
+                c.drawLinearGradient(g, start: .zero, end: CGPoint(x: size.width, y: size.height), options: [])
+            }
+            UIColor(red: 0.98, green: 0.96, blue: 0.93, alpha: 1).setFill()
+            c.fill(CGRect(x: 0, y: 640, width: size.width, height: 360))
+            UIColor(white: 1, alpha: 0.85).setFill()
+            c.fillEllipse(in: CGRect(x: 380, y: 300, width: 260, height: 420))
+            c.fillEllipse(in: CGRect(x: 1160, y: 300, width: 260, height: 420))
+            UIColor(red: 0.28, green: 0.34, blue: 0.22, alpha: 1).setFill()
+            c.fillEllipse(in: CGRect(x: 720, y: 600, width: 360, height: 180))
+        }
     }
 
     /// Writes the DT_SEED_JSON payload to the store's file, if the variable

@@ -95,7 +95,8 @@ jobs:
   native-ios:
     name: Xcode build, XCTest, simulator screenshots
     runs-on: macos-15
-    timeout-minutes: 60
+    # 33 UI flows since the recipe captures (October 12): ~55 min typical.
+    timeout-minutes: 80
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
     steps:
