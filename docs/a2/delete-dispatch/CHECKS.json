@@ -1,0 +1,11 @@
+{
+  "main_applies": true,
+  "palette_applies": true,
+  "preserves_A3_deferred_actions": true,
+  "palette_applied_matches_expected_exactly": true,
+  "new_test_methods": 0,
+  "base_sha": "eb04d8288a995e88e9653df4c6206694e043c7c9",
+  "compatibility_sha": "8b70d05ff64977a4bf104b54d05f792b60f1d3ae",
+  "patch_sha256": "9cec9b71cbedbfe9b1edd7f048c6b7ecc3d817d791fa5f24f3f05d9b21e70b6f",
+  "evidence": "Supplemental patch application only; Swift/XCUITest not executed."
+}

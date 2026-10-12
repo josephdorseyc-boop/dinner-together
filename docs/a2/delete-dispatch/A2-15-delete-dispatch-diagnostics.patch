@@ -1,0 +1,51 @@
+--- a/DinnerTogether/RecipeViews.swift
++++ b/DinnerTogether/RecipeViews.swift
+@@ -405,1 +405,4 @@
+     @State private var confirmingDelete = false
++    #if DEBUG
++    @State private var deleteMenuRequests = 0
++    #endif
+@@ -457,1 +460,2 @@
+                     Button("Delete recipe", role: .destructive) { delete(recipe) }
++                        .accessibilityIdentifier("recipe-delete-confirm")
+@@ -801,1 +805,4 @@
+                 Button(role: .destructive) {
++                    #if DEBUG
++                    deleteMenuRequests += 1
++                    #endif
+@@ -803,1 +810,2 @@
+                 } label: { Label("Delete recipe", systemImage: "trash") }
++                    .accessibilityIdentifier("recipe-delete-menu")
+@@ -805,1 +813,5 @@
+                 Image(systemName: "ellipsis.circle").accessibilityLabel("More")
++                    .accessibilityIdentifier("recipe-more")
++                    #if DEBUG
++                    .accessibilityValue("Delete requests: \(deleteMenuRequests); confirmation: \(confirmingDelete); locked alert: \(cannotDelete)")
++                    #endif
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -940,1 +940,13 @@
++        // DEBUG probe: records whether the menu action ran and whether its
++        // presentation binding changed. This does not replace the dialog or
++        // persistence assertions below.
++        func recordDeleteDispatch(_ phase: String) {
++            let value = more.exists ? String(describing: more.value) : "More absent from hierarchy"
++            XCTContext.runActivity(named: phase) { activity in
++                let attachment = XCTAttachment(string: "More value: \(value)\n\(app.debugDescription)")
++                attachment.name = phase
++                attachment.lifetime = .keepAlways
++                activity.add(attachment)
++            }
++        }
+         // iPad: the menu is a popover and a tap can be swallowed while it
+@@ -945,2 +957,8 @@
+-            if deleteItem.waitForExistence(timeout: 5) { tapEvenInPopover(deleteItem) }
+-            if question.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
++            if deleteItem.waitForExistence(timeout: 5) {
++                recordDeleteDispatch("r09-delete-before-action-\(attempt)")
++                tapEvenInPopover(deleteItem)
++            }
++            let appeared = question.waitForExistence(timeout: attempt == 0 ? 5 : 8)
++            recordDeleteDispatch("r09-delete-after-action-\(attempt)")
++            photograph("r09-delete-transition-\(attempt)")
++            if appeared { break }
