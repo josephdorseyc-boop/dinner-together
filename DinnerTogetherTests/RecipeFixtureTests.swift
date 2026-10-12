@@ -26,11 +26,15 @@ final class RecipeFixtureTests: XCTestCase {
     func testRealPages() throws {
         // file, expected title, ingredients, steps, totalMinutes
         let realPages: [(String, String, Int, Int, Int?)] = [
-            // 21h30m stated; the importer caps durations at 480 (8h).
-            ("nyt-no-knead-bread.html", "No-Knead Bread", 4, 4, 480),
+            // PT21H30M stated by the publisher: preserved as metadata. Step
+            // durations are capped separately for scheduling; the stated
+            // total is not.
+            ("nyt-no-knead-bread.html", "No-Knead Bread", 4, 4, 1290),
             ("bbcgoodfood-classic-lasagne.html", "Easy classic lasagne", 15, 5, 75),
             // totalTime is the raw string "40 minutes", not ISO 8601.
-            ("bonappetit-bas-best-chocolate-chip-cookies.html", "BA's Best Chocolate Chip Cookies", 10, 4, 40),
+            // The curly apostrophe is the source's own; the importer does
+            // not normalize it.
+            ("bonappetit-bas-best-chocolate-chip-cookies.html", "BA’s Best Chocolate Chip Cookies", 10, 4, 40),
             // No totalTime; the importer falls back to prep + cook (5 + 3).
             // WPRM emits 10 HowToSteps, including tip/note steps.
             ("recipetineats-hollandaise-sauce.html", "Hollandaise sauce", 6, 10, 8),
