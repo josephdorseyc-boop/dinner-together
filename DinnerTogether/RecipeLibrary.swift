@@ -97,7 +97,7 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
             dish.map { step in
                 guard step.id == stepID else { return step }
                 return CookingStep(id: step.id, dish: step.dish, title: step.title,
-                                   minutes: max(1, min(24 * 60, minutes ?? step.minutes)),
+                                   minutes: max(1, min(480, minutes ?? step.minutes)),
                                    detail: step.detail, handsOn: handsOn ?? step.handsOn,
                                    estimated: minutes == nil ? step.estimated : false)
             }

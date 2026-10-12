@@ -4,6 +4,7 @@ import SwiftUI
 struct DinnerTogetherApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store: SessionStore
+    @StateObject private var library: RecipeLibrary
     @StateObject private var timers = TimerCenter()
 
     init() {
@@ -11,13 +12,19 @@ struct DinnerTogetherApp: App {
         // UI-test seeding must land before SessionStore reads its file.
         LaunchOptions.writeSeedFileIfPresent()
         #endif
-        _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService()))
+        // The library is created first: the store resolves `recipe:` menu ids
+        // through it while loading the saved session.
+        let library = RecipeLibrary()
+        _library = StateObject(wrappedValue: library)
+        _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService(),
+                                                        menuProvider: library))
     }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .environmentObject(library)
                 .environmentObject(timers)
                 #if DEBUG
                 // UI-test forced type size (A1-T1); nil unless -dt-type-size

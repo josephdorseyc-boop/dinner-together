@@ -324,7 +324,7 @@ enum RecipeImporter {
         else if !found && t.range(of: #"\ba few minutes\b"#, options: .regularExpression) != nil { total += 3; found = true }
         else if !found && t.range(of: #"\ba couple of minutes\b"#, options: .regularExpression) != nil { total += 2; found = true }
         guard found else { return nil }
-        return max(1, min(Int(total.rounded(.up)), 24 * 60))
+        return max(1, min(Int(total.rounded(.up)), 480))
     }
 
     private static func numberValue(whole: String?, fracN: String?, fracD: String?, loneN: String?, loneD: String?, word: String?) -> Double? {

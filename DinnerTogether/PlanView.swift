@@ -21,6 +21,7 @@ struct PlanView: View {
                 header
                 servingTimeCard
                 feasibilityCard
+                YourRecipesSection()
                 SectionLabel(text: "ON THE MENU")
                 ForEach(DinnerCatalog.menus) { menu in
                     menuCard(menu)
