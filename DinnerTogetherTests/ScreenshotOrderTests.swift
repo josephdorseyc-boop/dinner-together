@@ -80,4 +80,41 @@ final class ScreenshotOrderTests: XCTestCase {
         XCTAssertTrue(steps[0].contains("Mix the ingredients") && steps[0].contains("Rest the dough"), steps[0])
         XCTAssertEqual(steps[1], "Bake the mixture")
     }
+
+    func testEmptyFirstNumberedHeadingKeepsLaterText() throws {
+        let pages = [page("STEP 1"), page("STEP 2", "Bake the mixture")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(directions(of: recipe), ["Bake the mixture"],
+                       "an empty heading must not index beyond the recognized steps")
+    }
+
+    func testEmptyMiddleNumberedHeadingKeepsLaterText() throws {
+        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2"),
+                     page("STEP 3", "Bake the mixture")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients", "Bake the mixture"])
+    }
+
+    func testEmptyLastNumberedHeadingKeepsEarlierText() throws {
+        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(directions(of: recipe), ["Mix the ingredients"])
+    }
+
+    func testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor() throws {
+        let pages = [page("STEP 1", "Mix the ingredients"), page("STEP 2"),
+                     page("Rest the dough"), page("STEP 3", "Bake the mixture")]
+        let recipe = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(directions(of: recipe),
+                       ["Mix the ingredients", "Rest the dough", "Bake the mixture"],
+                       "loose directions after an empty heading stay before the following step")
+    }
+
+    func testOnlyEmptyNumberedHeadingsHaveNoRecipeData() {
+        XCTAssertThrowsError(try RecipeImporter.parse(screenshots: [page("STEP 1"), page("STEP 2")])) { error in
+            XCTAssertEqual(error as? RecipeImportError, .noTextInScreenshots,
+                           "empty headings cannot manufacture a recipe or crash the import")
+        }
+    }
+
 }

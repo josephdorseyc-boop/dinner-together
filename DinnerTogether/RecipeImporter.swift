@@ -826,14 +826,16 @@ extension RecipeImporter {
 
         // Directions: the longest copy of each numbered step, plus any tail
         // that a later screenshot showed and the longest copy lacks.
-        var steps: [String] = []
+        // Keep text keyed by its number: a heading with no recognized text
+        // must not shift later text to a different number or lose its anchor.
+        var numberedText: [Int: String] = [:]
         for n in Set(stepHeads.keys).union(stepTails.keys).sorted() {
             var text = (stepHeads[n] ?? []).max(by: { $0.count < $1.count }) ?? ""
             for tail in stepTails[n] ?? [] where !normalizedKey(text).contains(normalizedKey(tail)) {
                 text = mergeOverlapping(text, tail)
             }
             text = cleanLine(text)
-            if !text.isEmpty { steps.append(text) }
+            if !text.isEmpty { numberedText[n] = text }
         }
         // Weave the unnumbered directions back in where they were seen.
         let numbered = Set(stepHeads.keys).union(stepTails.keys).sorted()
@@ -842,13 +844,15 @@ extension RecipeImporter {
             looseSteps.filter { $0.after == n }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty }
         }
         woven.append(contentsOf: loose(after: nil))
-        for (i, n) in numbered.enumerated() {
-            woven.append(steps[i])
+        for n in numbered {
+            if let text = numberedText[n] { woven.append(text) }
+            // An empty heading still has a position in the recipe: directions
+            // seen after it must stay here, before the next numbered step.
             woven.append(contentsOf: loose(after: n))
         }
         // Anchored to a step number that never got a heading (unlikely): keep them, at the end.
         woven.append(contentsOf: looseSteps.filter { a in a.after != nil && !numbered.contains(a.after!) }.map { stripStepPrefix($0.text) }.filter { !$0.isEmpty })
-        steps = woven
+        let steps = woven
         if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
 
         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
