@@ -29,7 +29,7 @@ struct YourRecipesSection: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Cook your own recipes, on time.")
                         .font(.headline)
-                    Text("Copy a recipe’s link from Safari, Apple News or any recipe site — or copy its text — and add it here. We’ll find the steps and the times.")
+                    Text("Bring a recipe link or paste its text. Review the steps and timing before you cook. Some sites may not support link import.")
                         .font(.subheadline)
                         .foregroundStyle(Theme.muted)
                 }
@@ -168,7 +168,7 @@ struct AddRecipeSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Add a recipe")
                             .font(.system(.largeTitle, design: .serif).weight(.medium))
-                        Text("From any recipe site, Apple News, Notes or a message. It stays on this iPhone.")
+                        Text("Paste a recipe link or its text. Your saved recipe stays on this device.")
                             .foregroundStyle(Theme.muted)
                     }
                     Picker("Source", selection: $mode) {
@@ -195,14 +195,14 @@ struct AddRecipeSheet: View {
                     .disabled(working || (mode == .link ? parsedLink == nil : text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
                     .accessibilityIdentifier("import-recipe")
 
-                    Text("We read the page’s recipe details and estimate any step without a time. You’ll check the timing before cooking.")
+                    Text("Link import needs internet access. Missing times are estimates, not cooking instructions. Review every step before planning dinner.")
                         .font(.caption).foregroundStyle(Theme.muted)
                 }
                 .padding(24)
             }
             .background(Theme.cream)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(working) }
             }
         }
         .tint(Theme.tomato)
@@ -287,7 +287,11 @@ struct AddRecipeSheet: View {
                 } else {
                     recipe = try service.importText(text)
                 }
-                library.add(recipe)
+                // A recipe that didn't reach disk is not "added" (A2 S1 finding).
+                guard library.add(recipe) else {
+                    error = library.saveError ?? "The recipe couldn’t be saved on this device. Try again."
+                    return
+                }
                 if let data = imageData, let jpeg = RecipeFormat.storableJPEG(data) {
                     library.saveImage(jpeg, for: recipe.id)
                 }
@@ -316,6 +320,7 @@ struct RecipeDetailView: View {
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var tab: Tab = .ingredients
     @State private var editingStep: CookingStep?
     @State private var confirmingReplace = false
@@ -366,7 +371,7 @@ struct RecipeDetailView: View {
                     Button("Delete recipe", role: .destructive) { delete(recipe) }
                     Button("Cancel", role: .cancel) { }
                 } message: {
-                    Text("It’s removed from this iPhone. The original page isn’t affected.")
+                    Text("It’s removed from this device. The original page isn’t affected.")
                 }
                 .alert("You’re cooking this right now", isPresented: $cannotDelete) {
                     Button("OK", role: .cancel) { }
@@ -387,17 +392,20 @@ struct RecipeDetailView: View {
     @ViewBuilder
     private func hero(_ recipe: Recipe) -> some View {
         if let url = library.imageURL(for: recipe), let image = UIImage(contentsOfFile: url.path) {
-            ZStack(alignment: .bottomLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                // Width comes from the screen, not the photo: a fill-scaled image
+                // framed only by height keeps its natural width and widens the page.
                 Color.clear
-                    .frame(height: 360)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: dynamicTypeSize.isAccessibilitySize ? 160 : 240)
                     .overlay(Image(uiImage: image).resizable().scaledToFill())
                     .clipped()
                     .accessibilityHidden(true)
-                LinearGradient(colors: [.clear, .black.opacity(0.62)], startPoint: .center, endPoint: .bottom)
-                    .allowsHitTesting(false)
-                titleBlock(recipe, onPhoto: true).padding(24)
+                titleBlock(recipe, onPhoto: false)
+                    .padding(.horizontal, 24).padding(.top, 20)
+                    .frame(maxWidth: 720, alignment: .leading)
+                    .frame(maxWidth: .infinity)
             }
-            .frame(height: 360)
         } else {
             titleBlock(recipe, onPhoto: false)
                 .padding(.horizontal, 24).padding(.top, 20)
@@ -422,13 +430,18 @@ struct RecipeDetailView: View {
     }
 
     private func stats(_ recipe: Recipe) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            stat("TOTAL TIME", recipe.totalMinutes.map(RecipeFormat.compact) ?? RecipeFormat.compact(recipe.plannedMinutes))
-            Divider().frame(height: 44).padding(.horizontal, 18)
-            stat("YIELD", recipe.yield ?? "—")
-            Divider().frame(height: 44).padding(.horizontal, 18)
-            stat("STEPS", "\(recipe.steps.count)")
-            Spacer(minLength: 0)
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: 18) {
+                stat("RECIPE TIME", recipe.totalMinutes.map(RecipeFormat.compact) ?? "Not stated")
+                stat("YIELD", recipe.yield ?? "Not stated")
+                stat("STEPS", "\(recipe.steps.count)")
+            }
+            .fixedSize(horizontal: true, vertical: false)
+            VStack(alignment: .leading, spacing: 14) {
+                stat("RECIPE TIME", recipe.totalMinutes.map(RecipeFormat.compact) ?? "Not stated")
+                stat("YIELD", recipe.yield ?? "Not stated")
+                stat("STEPS", "\(recipe.steps.count)")
+            }
         }
         .padding(.top, 4)
         .accessibilityElement(children: .combine)
@@ -438,7 +451,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 6) {
             SectionLabel(text: label)
             Text(value).font(.system(.title2, design: .rounded).weight(.medium)).monospacedDigit()
-                .lineLimit(1).minimumScaleFactor(0.7)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -449,7 +462,7 @@ struct RecipeDetailView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Check the timing before you cook").font(.headline)
                     Text(recipe.estimatedStepCount == 0
-                         ? "Every step had a time in the recipe. Take a quick look at what needs you."
+                         ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
                          : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them.")
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }
@@ -464,11 +477,14 @@ struct RecipeDetailView: View {
     }
 
     private var tabBar: some View {
-        HStack(spacing: 6) {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 6) {
             ForEach(Tab.allCases) { t in
                 Button { tab = t } label: {
                     Text(t.rawValue).font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 14).frame(minHeight: 40)
+                        .padding(.horizontal, 10).frame(minHeight: 44)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(tab == t ? Theme.ink : Theme.muted)
                         .background(tab == t ? Theme.paper : .clear, in: Capsule())
                 }
@@ -476,10 +492,26 @@ struct RecipeDetailView: View {
                 .accessibilityAddTraits(tab == t ? .isSelected : [])
                 .accessibilityIdentifier("recipe-tab-\(t.rawValue.lowercased())")
             }
-            Spacer(minLength: 0)
+                }
+            } else {
+                HStack(spacing: 6) {
+            ForEach(Tab.allCases) { t in
+                Button { tab = t } label: {
+                    Text(t.rawValue).font(.subheadline.weight(.semibold))
+                        .padding(.horizontal, 10).frame(minHeight: 44)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .foregroundStyle(tab == t ? Theme.ink : Theme.muted)
+                        .background(tab == t ? Theme.paper : .clear, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(tab == t ? .isSelected : [])
+                .accessibilityIdentifier("recipe-tab-\(t.rawValue.lowercased())")
+            }
+                }
+            }
         }
         .padding(4)
-        .background(Theme.ink.opacity(0.045), in: Capsule())
+        .background(Theme.ink.opacity(0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     // MARK: Tabs
@@ -519,7 +551,7 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 18) {
             Text(timingLocked
                  ? "You’re cooking this now, so the timing is locked. Reset tonight’s dinner to change it."
-                 : "This is what Dinner, Together will plan with. Set how long each step takes, and whether it needs you or can be left alone.")
+                 : "These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ForEach(recipe.dishes, id: \.self) { dish in
                 VStack(alignment: .leading, spacing: 10) {
@@ -530,13 +562,13 @@ struct RecipeDetailView: View {
                 }
             }
             HStack {
-                Text("Planned time").font(.headline)
+                Text("Timing plan").font(.headline)
                 Spacer()
                 Text(RecipeFormat.compact(recipe.plannedMinutes)).font(.headline).monospacedDigit()
             }
             .padding(.top, 4)
             if let total = recipe.totalMinutes, abs(total - recipe.plannedMinutes) >= 10 {
-                Text("The recipe says \(RecipeFormat.compact(total)) in total.")
+                Text("The recipe lists \(RecipeFormat.compact(total)) total; this plan uses \(RecipeFormat.compact(recipe.plannedMinutes)). Check for missing prep, resting time or overlapping steps.")
                     .font(.caption).foregroundStyle(Theme.muted)
             }
             if recipe.needsTimingReview && !timingLocked {
@@ -553,7 +585,27 @@ struct RecipeDetailView: View {
     private func timingRow(_ step: CookingStep) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(step.title).font(.subheadline.weight(.semibold))
-            HStack(spacing: 10) {
+            Text(step.detail).font(.subheadline).foregroundStyle(Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            if step.estimated == true {
+                Label("Estimated time - tap to edit", systemImage: "clock.badge.questionmark")
+                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
+            }
+            ViewThatFits(in: .horizontal) {
+                timingControls(step, stacked: false)
+                timingControls(step, stacked: true)
+            }
+            .disabled(timingLocked)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Theme.paper, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .accessibilityElement(children: .contain)
+    }
+
+    private func timingControls(_ step: CookingStep, stacked: Bool) -> some View {
+        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
+        return layout {
                 Button { editingStep = step } label: {
                     Label(RecipeFormat.compact(step.minutes), systemImage: "timer")
                         .monospacedDigit()
@@ -568,17 +620,8 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityHint("Switches between needs you and hands-off.")
-                Spacer(minLength: 0)
-                if step.estimated == true {
-                    Text("Estimated").font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
-                }
-            }
-            .disabled(timingLocked)
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Theme.paper, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .accessibilityElement(children: .contain)
+        .fixedSize(horizontal: !stacked, vertical: false)
     }
 
     @ViewBuilder
@@ -601,11 +644,12 @@ struct RecipeDetailView: View {
                     .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             }
             Button {
-                if isTonight { dismiss() }
+                if recipe.needsTimingReview { tab = .timing }
+                else if isTonight { dismiss() }
                 else if hasProgress { confirmingReplace = true }
                 else { choose(recipe) }
             } label: {
-                Label(isTonight ? "Back to Tonight" : "Cook this for dinner", systemImage: "frying.pan")
+                Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
             }
             .buttonStyle(BigButtonStyle())
             .disabled(recipe.steps.isEmpty)
@@ -633,6 +677,7 @@ struct RecipeDetailView: View {
     }
 
     private func choose(_ recipe: Recipe) {
+        guard !recipe.needsTimingReview else { tab = .timing; return }
         store.chooseMenu(recipe.menuID)
         dismiss()
     }

@@ -55,10 +55,15 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     // MARK: Changes (every one saves)
 
-    func add(_ recipe: Recipe) {
+    /// Adds and saves. If the file can't be written, the add is rolled back
+    /// so memory never shows a recipe that a relaunch would lose.
+    @discardableResult
+    func add(_ recipe: Recipe) -> Bool {
+        let before = recipes
         recipes.removeAll { $0.id == recipe.id }
         recipes.insert(recipe, at: 0)
-        save()
+        guard save() else { recipes = before; return false }
+        return true
     }
 
     func update(_ recipe: Recipe) {
@@ -132,14 +137,17 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     // MARK: Persistence
 
-    func save() {
+    @discardableResult
+    func save() -> Bool {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys]
             try encoder.encode(recipes).write(to: fileURL, options: .atomic)
             saveError = nil
+            return true
         } catch {
             saveError = "Your recipes couldn’t be saved. Keep the app open and try again."
+            return false
         }
     }
 }

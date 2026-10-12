@@ -403,6 +403,15 @@ final class RecipeLibraryTests: XCTestCase {
         XCTAssertEqual(again.menu.id, DinnerCatalog.menus[0].id)
     }
 
+    func testFailedSaveRollsBackTheAdd() async throws {
+        // A directory that doesn't exist: every write fails.
+        let missing = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: "dt-missing-\(UUID().uuidString)/nested", directoryHint: .isDirectory)
+        let library = RecipeLibrary(directory: missing)
+        XCTAssertFalse(library.add(try sampleRecipe()))
+        XCTAssertTrue(library.isEmpty, "nothing shown that a relaunch would lose")
+        XCTAssertNotNil(library.saveError)
+    }
+
     func testStoreWithoutProviderIsCatalogOnly() async {
         let store = SessionStore(fileURL: tempDir().appending(path: "s.json"), notifications: MockNotifications())
         store.chooseMenu("recipe:" + UUID().uuidString)

@@ -17,7 +17,7 @@ if [ "$1" = "xcresulttool" ]; then
   # counts (FAKE_EXECUTED / FAKE_FAIL_CASES / FAKE_SKIPPED, or the FAKE_UI_*
   # variants for a UI result bundle), like a real result bundle would.
   path=""; prev=""; for a in "$@"; do [ "$prev" = "--path" ] && path="$a"; prev="$a"; done
-  f="DinnerTogetherTests/DinnerTogetherTests.swift"; d=$([ -f "$f" ] && grep -c 'func test' "$f" || echo 60)
+  d=$(cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c 'func test')
   n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}; s=${FAKE_SKIPPED:-0}
   if [[ "$path" == *-ui* ]]; then
     fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)

@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-default_tests() { local f="DinnerTogetherTests/DinnerTogetherTests.swift"; [ -f "$f" ] && grep -c "func test" "$f" || echo 60; }
+default_tests() { cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c "func test"; }
 if [ "$1" = "--version" ]; then echo "fake swift 6.0"; exit 0; fi
 if [ "$1" = "test" ]; then n=${FAKE_SWIFT_EXECUTED:-$(default_tests)}; echo "Test Suite 'All tests' passed"; echo "Executed $n tests, with 0 failures (0 unexpected) in 1.0 (1.0) seconds"; exit ${FAKE_SWIFT_RC:-0}; fi

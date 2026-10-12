@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-default_tests() { local f="DinnerTogetherTests/DinnerTogetherTests.swift"; [ -f "$f" ] && grep -c "func test" "$f" || echo 60; }
+default_tests() { cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c "func test"; }
 args=("$@")
 case "$1" in
   -version) echo "Xcode 16.0 (fake)"; echo "Build version 16A000"; exit 0;;
