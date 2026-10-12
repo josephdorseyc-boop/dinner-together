@@ -81,6 +81,9 @@ enum LaunchOptions {
     static var failRecipeSaves: Bool { arguments.contains("-dt-fail-recipe-saves") }
     /// Only the photo save fails (the recipe itself saves): A2-13's retry path.
     static var failCoverSaves: Bool { arguments.contains("-dt-fail-cover-saves") }
+    /// The Add sheet's Screenshots option uses two drawn test screenshots
+    /// instead of the system photo picker, which XCUITest can't operate.
+    static var stubScreenshots: Bool { arguments.contains("-dt-stub-screenshots") }
     /// Link import answers apple.news URLs with the recorded "only available
     /// in Apple News" placeholder instead of the network.
     static var stubAppleNews: Bool { arguments.contains("-dt-stub-apple-news") }
@@ -123,6 +126,7 @@ enum LaunchOptions {
     static var openCooking: Bool { false }
     static var failRecipeSaves: Bool { false }
     static var failCoverSaves: Bool { false }
+    static var stubScreenshots: Bool { false }
     static var stubAppleNews: Bool { false }
     static var forcedColorScheme: ColorScheme? { nil }
     static var inertReminders: Bool { false }
@@ -179,6 +183,40 @@ enum LaunchOptions {
         }
         let url = URL.documentsDirectory.appending(path: RecipeLibrary.fileName)
         if let data = try? JSONEncoder().encode(seeded) { try? data.write(to: url, options: .atomic) }
+    }
+
+    /// Two drawn "screenshots" for -dt-stub-screenshots: a recipe page of text
+    /// (read by the real on-device recognizer) and a page with a food photo
+    /// at the top (for the cover crop). PNG, phone-sized.
+    static func stubScreenshotData() -> [Data] {
+        guard stubScreenshots else { return [] }
+        let size = CGSize(width: 1179, height: 2556)
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1; format.opaque = true
+        let textPage = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            UIColor.white.setFill(); UIRectFill(CGRect(origin: .zero, size: size))
+            var y: CGFloat = 220
+            func line(_ text: String, _ size: CGFloat, _ weight: UIFont.Weight = .regular, gap: CGFloat = 26) {
+                let attrs: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: size, weight: weight),
+                                                            .foregroundColor: UIColor.black]
+                (text as NSString).draw(at: CGPoint(x: 70, y: y), withAttributes: attrs)
+                y += size * 1.25 + gap
+            }
+            line("Stub Cider Slush", 96, .bold, gap: 80)
+            line("Ingredients", 64, .bold)
+            line("2 cups apple cider", 48)
+            line("1 cinnamon stick", 48, gap: 80)
+            line("Directions", 64, .bold)
+            line("STEP 1", 44, .bold, gap: 8)
+            line("Simmer the cider with the cinnamon", 48, gap: 4)
+            line("for 10 minutes.", 48, gap: 60)
+            line("STEP 2", 44, .bold, gap: 8)
+            line("Freeze until solid, about 3 hours.", 48)
+        }
+        let photoPage = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            UIColor.white.setFill(); UIRectFill(CGRect(origin: .zero, size: size))
+            landscapeTestPhoto().draw(in: CGRect(x: 0, y: 300, width: size.width, height: size.width * 1000 / 1800))
+        }
+        return [textPage, photoPage].compactMap { $0.pngData() }
     }
 
     /// A 1800×1000 still life (table, two glasses, a bowl) in the app's own

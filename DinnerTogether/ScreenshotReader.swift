@@ -23,6 +23,9 @@ enum ScreenshotReader {
             request.recognitionLevel = .accurate
             request.usesLanguageCorrection = true
             request.automaticallyDetectsLanguage = true
+            #if targetEnvironment(simulator)
+            request.usesCPUOnly = true // simulators have no Neural Engine
+            #endif
             try VNImageRequestHandler(cgImage: image, orientation: orientation, options: [:]).perform([request])
             return (request.results ?? []).compactMap { obs -> OCRLine? in
                 guard let best = obs.topCandidates(1).first else { return nil }

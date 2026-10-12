@@ -198,6 +198,19 @@ struct AddRecipeSheet: View {
     @State private var working = false
     @State private var error: String?
     @State private var picked: [PhotosPickerItem] = []
+    /// DEBUG UI tests only (-dt-stub-screenshots); always empty in release.
+    @State private var stubbed: [Data] = LaunchOptions.stubScreenshotData()
+    private var screenshotCount: Int { stubbed.isEmpty ? picked.count : stubbed.count }
+
+    /// The chosen screenshots' bytes, in selection order.
+    private func screenshotData() async throws -> [Data] {
+        if !stubbed.isEmpty { return stubbed }
+        var out: [Data] = []
+        for item in picked {
+            if let data = try await item.loadTransferable(type: Data.self) { out.append(data) }
+        }
+        return out
+    }
     @State private var choosingCover = false
     @State private var coverData: Data?
     @State private var pendingCoverSave: PendingCoverSave?
@@ -277,14 +290,14 @@ struct AddRecipeSheet: View {
         .interactiveDismissDisabled(working)
         .onChange(of: picked) { _, _ in coverData = nil }
         .sheet(isPresented: $choosingCover) {
-            ScreenshotCoverSheet(items: picked) { coverData = $0 }
+            ScreenshotCoverSheet(load: { try await screenshotData() }) { coverData = $0 }
         }
     }
 
     private var canImport: Bool {
         switch mode {
         case .link: return parsedLink != nil
-        case .screenshots: return !picked.isEmpty
+        case .screenshots: return screenshotCount > 0
         case .text: return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
@@ -293,12 +306,17 @@ struct AddRecipeSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step. Choose images in recipe order, then check for missing or repeated text after import.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
-            PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
-                Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
+            if stubbed.isEmpty {
+                PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
+                    Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("choose-screenshots")
+            } else {
+                Label("\(stubbed.count) test screenshots", systemImage: "photo.on.rectangle.angled")
+                    .accessibilityIdentifier("choose-screenshots")
             }
-            .buttonStyle(SecondaryButtonStyle())
-            .accessibilityIdentifier("choose-screenshots")
-            if !picked.isEmpty {
+            if screenshotCount > 0 {
                 Button(coverData == nil ? "Choose a cover from screenshots" : "Adjust cover crop") {
                     choosingCover = true
                 }
@@ -412,10 +430,8 @@ struct AddRecipeSheet: View {
                 } else if mode == .screenshots {
                     imageData = coverData
                     var pages: [[OCRLine]] = []
-                    for item in picked {
-                        if let data = try await item.loadTransferable(type: Data.self) {
-                            pages.append(try await ScreenshotReader.lines(in: data))
-                        }
+                    for data in try await screenshotData() {
+                        pages.append(try await ScreenshotReader.lines(in: data))
                     }
                     recipe = RecipeImporter.build(try RecipeImporter.parse(screenshots: pages), method: .photo)
                 } else {
@@ -552,7 +568,12 @@ struct RecipeDetailView: View {
                             .frame(height: 80)
                             .allowsHitTesting(false)
                     }
-                    .accessibilityHidden(true)
+                    // A content photo, not decoration: VoiceOver names it and
+                    // tests can find it (cover-crop flow).
+                    .accessibilityElement()
+                    .accessibilityLabel("Photo of \(recipe.title)")
+                    .accessibilityAddTraits(.isImage)
+                    .accessibilityIdentifier("recipe-hero")
                 titleBlock(recipe, onPhoto: false)
                     .padding(.horizontal, 24).padding(.top, 20)
                     .frame(maxWidth: 720, alignment: .leading)
@@ -923,7 +944,8 @@ enum TimedText {
 // MARK: - Optional screenshot cover (local pixels only)
 
 struct ScreenshotCoverSheet: View {
-    let items: [PhotosPickerItem]
+    /// Supplies the chosen screenshots' bytes (photo picker or UI-test stub).
+    let load: () async throws -> [Data]
     var onUse: (Data) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var images: [UIImage] = []
@@ -1023,10 +1045,9 @@ struct ScreenshotCoverSheet: View {
         defer { loading = false }
         do {
             var loaded: [UIImage] = []
-            for item in items {
+            for data in try await load() {
                 guard !Task.isCancelled else { return }
-                guard let data = try await item.loadTransferable(type: Data.self),
-                      let jpeg = RecipeFormat.storableJPEG(data),
+                guard let jpeg = RecipeFormat.storableJPEG(data),
                       let image = UIImage(data: jpeg) else {
                     problem = "A screenshot couldn’t be opened. Cancel and choose your screenshots again."
                     return
