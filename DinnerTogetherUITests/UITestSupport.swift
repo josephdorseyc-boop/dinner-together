@@ -960,21 +960,15 @@ extension DinnerTogetherUITestCase {
     }
 
     /// r09 — a delete that can’t be saved keeps the recipe and says so.
+    /// Delete is a button at the end of the page (not a ••• item: a dialog
+    /// from a closing menu was dropped on iPhone in every CI run).
     func flowDeleteFailure() {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
-        let more = app.buttons["More"]
-        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        XCTAssertFalse(app.buttons["Delete recipe"].exists, "Delete is no longer a menu item")
+        scrollAndTap(app.buttons["delete-recipe"], "Delete this recipe (end of the page)")
         let question = app.staticTexts["Delete this recipe?"]
-        // iPad: the menu is a popover and a tap can be swallowed while it
-        // animates (run 38266917187; passed in 38259705494). One retry.
-        for attempt in 0..<2 where !question.exists {
-            tapEvenInPopover(more)
-            let deleteItem = app.buttons["Delete recipe"].firstMatch
-            if deleteItem.waitForExistence(timeout: 5) { tapEvenInPopover(deleteItem) }
-            if question.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
-        }
-        waitForExistence(question, timeout: 1, "the delete confirmation")
+        waitForExistence(question, timeout: 5, "the delete confirmation")
         let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
         tapEvenInPopover(confirmDelete)
         waitForDisappearance(question, "the confirmation closed")
@@ -1089,6 +1083,19 @@ extension DinnerTogetherUITestCase {
 
     private func swatch(_ id: String) -> XCUIElement { app.buttons["page-style-\(id)"] }
 
+    /// Back to the top of a recipe page (the luminance check scrolls), so a
+    /// photograph shows the page as it opens: hero first.
+    private func scrollRecipeToTop() {
+        let title = app.staticTexts["recipe-title"]
+        for _ in 0..<6 {
+            let before = title.frame.minY
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+            Thread.sleep(forTimeInterval: 0.4)
+            if abs(title.frame.minY - before) < 1 { break }
+        }
+    }
+
     /// r14 — a photo recipe’s page takes the photo’s colors with frosted
     /// cards; ••• → Page color offers Match photo, seven colors and Classic
     /// cream, and Classic brings the light page back.
@@ -1096,9 +1103,9 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, heroPhoto: true)
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         XCTAssertTrue(app.descendants(matching: .any)["recipe-hero"].exists, "the photo is the hero")
+        photograph("r14a-photo-colors")   // as it opens: the photo dissolving into the page
         let colored = pageLuminance()
-        XCTAssertLessThan(colored, 0.35, "the page took the photo’s deep colors, not cream: lower-half luminance \(colored)")
-        photograph("r14a-photo-colors")
+        XCTAssertLessThan(colored, 0.35, "the page took the photo’s deep colors, not cream: luminance below the tabs \(colored)")
         app.buttons["recipe-tab-directions"].tap()
         XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the colored page")
         photograph("r14b-photo-colors-directions")
@@ -1113,7 +1120,8 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(swatch("classic").waitForSelection(), "Classic cream is now selected")
         closePageColorSheet()
         let cream = pageLuminance()
-        XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: lower-half luminance \(cream)")
+        XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: luminance below the tabs \(cream)")
+        scrollRecipeToTop()
         photograph("r14d-photo-classic")
     }
 
@@ -1122,11 +1130,12 @@ extension DinnerTogetherUITestCase {
     func flowTypedPageColor() {
         launchRecipes([RecipeFixtureText.beanSpread], .standard)
         openRecipe(RecipeFixtureText.beanSpreadTitle)
-        let light = pageLuminance()
-        XCTAssertGreaterThan(light, 0.6, "a typed recipe starts on the cream page: \(light)")
         let button = app.buttons["page-color-button"]
         waitForExistence(button, timeout: 5, "the Page color button on a typed recipe")
         photograph("r15a-typed-cream")
+        let light = pageLuminance()
+        XCTAssertGreaterThan(light, 0.6, "a typed recipe starts on the cream page: \(light)")
+        scrollRecipeToTop()
         button.tap()
         waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
         XCTAssertFalse(swatch("match-photo").exists, "no Match photo without a photo")
@@ -1137,6 +1146,7 @@ extension DinnerTogetherUITestCase {
         closePageColorSheet()
         let plum = pageLuminance()
         XCTAssertLessThan(plum, 0.35, "the page is plum: \(plum)")
+        scrollRecipeToTop()
         photograph("r15c-typed-plum")
         app.buttons["recipe-tab-directions"].tap()
         XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the plum page")
@@ -1152,7 +1162,9 @@ extension DinnerTogetherUITestCase {
         button.tap()
         waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
         swatch("lagoon").tap()
-        XCTAssertTrue(app.descendants(matching: .any)["page-style-error"].waitForExistence(timeout: 5), "the save problem is shown in the sheet")
+        let problem = app.descendants(matching: .any)["page-style-error"]
+        XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown in the sheet")
+        XCTAssertTrue(problem.isHittable, "…and it is visible without scrolling the sheet")
         XCTAssertFalse(swatch("lagoon").isSelected, "the failed choice is not shown as chosen")
         XCTAssertTrue(swatch("classic").isSelected, "the page’s real color stays selected")
         photograph("r16-page-color-save-failed")

@@ -110,6 +110,16 @@ After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
 - **A3-U-F10** iPad presents the "Adjust time" confirmation dialog as a
   popover whose buttons report not hittable; `tapEvenInPopover` falls back
   to a coordinate tap at the button's center.
+- **A3-U-F11** A confirmation dialog opened from a Menu action is not
+  reliable: the delete dialog requested from the More menu was dropped on
+  iPhone in five consecutive CI runs (38275025677 → 38290508810) and once on
+  iPad, with and without a 350 ms delay after the tap — the menu's dimming
+  overlay was still on screen and the More button not hittable. A *sheet*
+  from the same menu (Page color) presented every time, so the rule is:
+  from a Menu action, present sheets only; a confirmation dialog or alert
+  belongs on a plain button. Delete is now a button at the end of the recipe
+  page, which presents its dialog every time (the dialogs from the Cooking
+  screen's buttons have never been dropped).
 - **Known limitation (iPad, Flow 3):** the "Adjust time" confirmation
   dialog is a popover on iPad, and its buttons report unlaid-out frames to
   XCUITest (runs 20–22: the popover's `Sheet` container has infinite/zero

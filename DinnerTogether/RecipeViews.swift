@@ -520,6 +520,7 @@ struct RecipeDetailView: View {
                             case .timing: timing(recipe)
                             }
                             sourceLink(recipe)
+                            deleteButton
                         }
                         .padding(24)
                         .frame(maxWidth: 720)
@@ -537,8 +538,6 @@ struct RecipeDetailView: View {
                         .environment(\.recipePalette, pagePalette)
                         .environment(\.colorScheme, pageScheme)
                 }
-                .tint(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
-                .toolbarColorScheme(pagePalette == nil ? nil : .dark, for: .navigationBar)
                 .toolbar { moreMenu(recipe) }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID) }
                 .sheet(item: $editingStep) { step in
@@ -882,6 +881,7 @@ struct RecipeDetailView: View {
                 Label("View the original\(recipe.source.publisher.map { " on \($0)" } ?? "")", systemImage: "safari")
                     .font(.subheadline.weight(.semibold))
             }
+            .tint(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
             .padding(.top, 8)
         }
     }
@@ -944,28 +944,47 @@ struct RecipeDetailView: View {
                     ShareLink(item: url) { Label("Share link", systemImage: "square.and.arrow.up") }
                 }
                 Button {
-                    // Deferred like Delete below: a sheet requested while the
-                    // menu is still closing can be dropped (A3-U-F11).
+                    // A sheet from a Menu action presents reliably once the
+                    // menu has closed (4 runs of 4 on iPhone and iPad); a
+                    // dialog from one does not, which is why Delete is a
+                    // button on the page (A3-U-F11).
                     Task { @MainActor in
                         try? await Task.sleep(nanoseconds: 350_000_000)
                         choosingPageStyle = true
                     }
                 } label: { Label("Page color", systemImage: "paintpalette") }
-                Button(role: .destructive) {
-                    // Present after the menu has finished closing: a dialog
-                    // requested mid-dismissal is sometimes dropped (delete
-                    // flow, 3 runs on iPhone and iPad) — same cause and cure
-                    // as the delay sheet behind a closing popover.
-                    let locked = timingLocked
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 350_000_000)
-                        if locked { cannotDelete = true } else { confirmingDelete = true }
-                    }
-                } label: { Label("Delete recipe", systemImage: "trash") }
             } label: {
-                Image(systemName: "ellipsis.circle").accessibilityLabel("More")
+                // On a colored page the glyph carries its own dark disc, so
+                // it reads over a bright hero photo whatever the glass does
+                // (iPad run 38290508810: white dots on clear glass over the
+                // orange photo were nearly invisible).
+                if pagePalette == nil {
+                    Image(systemName: "ellipsis.circle").accessibilityLabel("More")
+                } else {
+                    Image(systemName: "ellipsis.circle.fill")
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(Color.white, Color.black.opacity(0.42))
+                        .accessibilityLabel("More")
+                }
             }
         }
+    }
+
+    /// Delete lives at the end of the page, not in the ••• menu: a
+    /// confirmation dialog requested from a closing Menu was dropped on
+    /// iPhone in five CI runs out of five (and once on iPad), with or
+    /// without a delay — the cook would have tapped Delete and seen
+    /// nothing. From a plain button the dialog presents every time.
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            if timingLocked { cannotDelete = true } else { confirmingDelete = true }
+        } label: {
+            Label("Delete this recipe", systemImage: "trash")
+                .foregroundStyle(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+        }
+        .buttonStyle(QuietButtonStyle())
+        .padding(.top, 12)
+        .accessibilityIdentifier("delete-recipe")
     }
 
     private func choose(_ recipe: Recipe) {

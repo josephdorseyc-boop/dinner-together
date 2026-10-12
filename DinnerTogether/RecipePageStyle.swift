@@ -213,16 +213,18 @@ struct PageStyleSheet: View {
                              : "Use the photo’s colors or pick one. Text stays easy to read on every color.")
                             .font(.subheadline).foregroundStyle(Theme.muted)
                             .fixedSize(horizontal: false, vertical: true)
+                        if let problem {
+                            // Above the grid: the sheet opens at half height.
+                            Label(problem, systemImage: "exclamationmark.triangle")
+                                .font(.subheadline).foregroundStyle(Theme.warning)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("page-style-error")
+                        }
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 12)], spacing: 14) {
                             let selected = current(recipe)
                             ForEach(options(recipe)) { option in
                                 swatch(option, selected: option.id == selected) { choose(option.style, for: recipe) }
                             }
-                        }
-                        if let problem {
-                            Label(problem, systemImage: "exclamationmark.triangle")
-                                .font(.subheadline).foregroundStyle(Theme.warning)
-                                .accessibilityIdentifier("page-style-error")
                         }
                     }
                     .padding(20)
