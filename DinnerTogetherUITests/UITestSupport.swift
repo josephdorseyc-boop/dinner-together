@@ -182,6 +182,32 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// Waits for an element to leave the hierarchy. Sheets and alerts
     /// dismiss with an animation, so `exists` checked right after a tap can
     /// still be true (A3-U-F4).
+    /// Taps a button on the frontmost alert and waits until the alert is gone,
+    /// retrying while iOS 26's alert animation is settling. Validation runs
+    /// 31–32 on Xcode 26.2: a tap during the morph-in was either swallowed
+    /// (test06: alert stayed up) or raced the alert's own re-layout (test05:
+    /// "no matches found for Alert" between the existence check and the tap).
+    func tapAlertButton(_ label: String, _ message: String,
+                        file: StaticString = #filePath, line: UInt = #line) {
+        guard app.alerts.firstMatch.waitForExistence(timeout: 5) else {
+            XCTFail("\(message): no alert to tap “\(label)” on", file: file, line: line); return
+        }
+        usleep(600_000) // let the presentation animation finish
+        for _ in 0..<3 {
+            let alert = app.alerts.firstMatch
+            if !alert.exists { return }
+            let button = alert.buttons[label]
+            if button.waitForExistence(timeout: 2) {
+                if button.isHittable { button.tap() }
+                else { button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+            }
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                 object: app.alerts.firstMatch)
+            if XCTWaiter().wait(for: [gone], timeout: 3) == .completed { return }
+        }
+        XCTFail("\(message): the alert is still showing after tapping “\(label)” three times", file: file, line: line)
+    }
+
     func waitForDisappearance(_ element: XCUIElement, timeout: TimeInterval = 10, _ message: String,
                               file: StaticString = #filePath, line: UInt = #line) {
         let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element)
@@ -507,24 +533,13 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(alert.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Prep the steak'"))
             .firstMatch.exists, "the alert names the unfinished prerequisite")
 
-        alert.buttons["Cancel"].tap()
-        waitForDisappearance(app.alerts.firstMatch, "Cancel dismisses the alert")
+        tapAlertButton("Cancel", "Cancel dismisses the alert")
         XCTAssertTrue(card.buttons["Review start"].waitForExistence(timeout: 5),
                       "Cancel changed nothing: the step is still blocked")
 
         scrollAndTap(card.buttons["Review start"], "Review start again")
         waitForExistence(app.alerts.firstMatch, timeout: 5, "blocked-start alert again")
-        let startAnywayAlert = app.alerts.firstMatch
-        startAnywayAlert.buttons["Start anyway"].tap()
-        // The tap can be swallowed while the alert is still animating in
-        // (run 24 flake: the step never started, heat card never appeared).
-        // If the alert is still up after a beat, tap once more at the
-        // button's center — the same retry shape as tapEvenInPopover.
-        let alertGone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: startAnywayAlert)
-        if XCTWaiter().wait(for: [alertGone], timeout: 3) != .completed {
-            startAnywayAlert.buttons["Start anyway"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        }
-        waitForDisappearance(startAnywayAlert, "Start anyway dismisses the alert")
+        tapAlertButton("Start anyway", "Start anyway dismisses the alert")
         // A cooking step appears in RUNNING TIMERS with a heat card whose button
         // is labeled "Mark <step> done" — unique to the cooking state. (The
         // timeline card's own "Mark done" was visible in run 20's render but did
@@ -553,8 +568,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(alert.staticTexts.matching(NSPredicate(format: "label CONTAINS 'never marked started'"))
             .firstMatch.exists, "the alert is honest about the unknown start")
 
-        alert.buttons["Mark done"].tap()
-        waitForDisappearance(app.alerts.firstMatch, "confirmation dismissed")
+        tapAlertButton("Mark done", "confirmation dismissed")
         let completedGroup = element(labelBeginning: "Completed (")
         scrollAndTap(completedGroup, "the step reached the Completed group")
         let note = app.descendants(matching: .any)
