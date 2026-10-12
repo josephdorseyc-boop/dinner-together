@@ -38,6 +38,8 @@ A203 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rec
 B203 = {isa = PBXBuildFile; fileRef = A203; };
 A204 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeFixtureTests.swift; sourceTree = "<group>"; };
 B204 = {isa = PBXBuildFile; fileRef = A204; };
+A206 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DurationPersistenceTests.swift; sourceTree = "<group>"; };
+B206 = {isa = PBXBuildFile; fileRef = A206; };
 A205 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotOrderTests.swift; sourceTree = "<group>"; };
 B205 = {isa = PBXBuildFile; fileRef = A205; };
 A202 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecipeTests.swift; sourceTree = "<group>"; };
@@ -54,7 +56,7 @@ A303 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIT
 B303 = {isa = PBXBuildFile; fileRef = A303; };
 G001 = {isa = PBXGroup; children = (G002, G003, G004, G005); sourceTree = "<group>"; };
 G002 = {isa = PBXGroup; children = (A101, A102, A103, A104, A105, A106, A107, A108, A109, A110, A111, A112, A113, A114, A115, A116, A117, A118); path = DinnerTogether; sourceTree = "<group>"; };
-G003 = {isa = PBXGroup; children = (A201, A202, A203, A204, A205); path = DinnerTogetherTests; sourceTree = "<group>"; };
+G003 = {isa = PBXGroup; children = (A201, A202, A203, A204, A205, A206); path = DinnerTogetherTests; sourceTree = "<group>"; };
 G005 = {isa = PBXGroup; children = (A301, A302, A303); path = DinnerTogetherUITests; sourceTree = "<group>"; };
 G004 = {isa = PBXGroup; children = (P001, P002, P003); name = Products; sourceTree = "<group>"; };
 P001 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DinnerTogether.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,7 +72,7 @@ D004 = {isa = PBXContainerItemProxy; containerPortal = G000; proxyType = 1; remo
 S001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B101, B102, B103, B104, B105, B106, B107, B108, B109, B110, B111, B112, B115, B116, B117, B118); runOnlyForDeploymentPostprocessing = 0; };
 F001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 R001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (B113, B114); runOnlyForDeploymentPostprocessing = 0; };
-S002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B201, B202, B203, B204, B205); runOnlyForDeploymentPostprocessing = 0; };
+S002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B201, B202, B203, B204, B205, B206); runOnlyForDeploymentPostprocessing = 0; };
 F002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 R002 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 S003 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B301, B302, B303); runOnlyForDeploymentPostprocessing = 0; };
