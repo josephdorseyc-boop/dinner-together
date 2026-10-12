@@ -406,7 +406,7 @@ struct RecipeDetailView: View {
                 .safeAreaInset(edge: .bottom, spacing: 0) { cookBar(recipe) }
                 .toolbar { moreMenu(recipe) }
                 .sheet(item: $editingStep) { step in
-                    DurationEditorView(step: step, initialMinutes: step.minutes) { minutes in
+                    DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
                         guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
                             return library.saveError ?? "The estimate couldn’t be saved. Try again."
                         }

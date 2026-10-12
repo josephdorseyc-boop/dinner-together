@@ -67,6 +67,7 @@ struct PlanView: View {
                 initialMinutes: store.session.durationOverrides[step.id] ?? step.minutes) { minutes in
                 store.setDuration(stepID: step.id, minutes: minutes)
                 recheckFeasibility()
+                return nil // the session store reports its own save problems
             }
         }
         .confirmationDialog(

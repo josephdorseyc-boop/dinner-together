@@ -192,14 +192,23 @@ struct ServingSheetView: View {
 struct DurationEditorView: View {
     let step: CookingStep
     let initialMinutes: Int
+    /// What saving does here. Tonight's plan (catalog menus) updates at once;
+    /// a library recipe only changes for future dinners (A1 PR #5 copy).
+    let note: String
+    /// Returns nil on success, or the message to show when the save failed.
     var onSave: (Int) -> String?
     @Environment(\.dismiss) private var dismiss
     @State private var minutes: Int
     @State private var saveError: String?
 
-    init(step: CookingStep, initialMinutes: Int, onSave: @escaping (Int) -> String?) {
+    static let planNote = "The plan updates when you save. Started timers keep their original deadline."
+    static let recipeNote = "Save this estimate to your recipe. Any timers already running keep their deadlines."
+
+    init(step: CookingStep, initialMinutes: Int, note: String = DurationEditorView.planNote,
+         onSave: @escaping (Int) -> String?) {
         self.step = step
         self.initialMinutes = initialMinutes
+        self.note = note
         self.onSave = onSave
         _minutes = State(initialValue: max(1, min(480, initialMinutes)))
     }
@@ -227,7 +236,7 @@ struct DurationEditorView: View {
                             .font(.subheadline).foregroundStyle(Theme.warning)
                             .accessibilityIdentifier("estimate-save-error")
                     }
-                    Text("Save this estimate to your recipe. Any timers already running keep their deadlines.")
+                    Text(note)
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }.padding(24)
             }
