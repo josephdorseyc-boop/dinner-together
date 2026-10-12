@@ -2,18 +2,56 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
-// The "add a recipe" screens: the Your Recipes section on Tonight, the
+// The Recipes destination, its collection, the
 // Add-a-recipe sheet, and the recipe page (Ingredients · Directions · Timing).
 // House style throughout: cream/paper surfaces, serif display type, tomato
 // accents — the reference is Apple News+ Food's layout, not its look.
 
-// MARK: - Tonight: Your recipes
+// MARK: - Recipes destination
+
+struct RecipesView: View {
+    @EnvironmentObject private var store: SessionStore
+    @Binding var path: [UUID]
+    var goTonight: () -> Void
+    var goCooking: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Your kitchen, collected.")
+                        .font(.system(.largeTitle, design: .serif).weight(.medium))
+                    Text("Your favorites, ready for dinner.")
+                        .foregroundStyle(Theme.muted)
+                }
+                if store.session.records.values.contains(where: { $0.state != .notStarted }) {
+                    Button(action: goCooking) {
+                        Label("Back to cooking", systemImage: "timer")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                }
+                YourRecipesSection(onOpenRecipe: { path.append($0) }, onChoose: goTonight)
+            }
+            .padding(24)
+            .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        }
+        .background(Theme.recipeBackground)
+        .foregroundStyle(Theme.ink)
+        .navigationTitle("Recipes")
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("recipe-library")
+    }
+}
+
+// MARK: - Your recipes
 
 struct YourRecipesSection: View {
+    var onOpenRecipe: (UUID) -> Void
+    var onChoose: () -> Void
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @State private var adding = false
-    @State private var openRecipe: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -46,13 +84,10 @@ struct YourRecipesSection: View {
             }
         }
         .navigationDestination(for: UUID.self) { id in
-            RecipeDetailView(recipeID: id)
-        }
-        .navigationDestination(item: $openRecipe) { id in
-            RecipeDetailView(recipeID: id)
+            RecipeDetailView(recipeID: id, onChoose: onChoose)
         }
         .sheet(isPresented: $adding) {
-            AddRecipeSheet { id in openRecipe = id }
+            AddRecipeSheet { id in onOpenRecipe(id) }
         }
     }
 }
@@ -358,6 +393,7 @@ struct RecipeDetailView: View {
     }
 
     let recipeID: UUID
+    var onChoose: (() -> Void)? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -402,7 +438,7 @@ struct RecipeDetailView: View {
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .background(Theme.cream)
+                .background(Theme.recipeBackground)
                 .safeAreaInset(edge: .bottom, spacing: 0) { cookBar(recipe) }
                 .toolbar { moreMenu(recipe) }
                 .sheet(item: $editingStep) { step in
@@ -450,6 +486,12 @@ struct RecipeDetailView: View {
                     .frame(height: dynamicTypeSize.isAccessibilitySize ? 160 : 240)
                     .overlay(Image(uiImage: image).resizable().scaledToFill())
                     .clipped()
+                    .overlay(alignment: .bottom) {
+                        LinearGradient(colors: [Theme.cream.opacity(0), Theme.cream],
+                                       startPoint: .top, endPoint: .bottom)
+                            .frame(height: 80)
+                            .allowsHitTesting(false)
+                    }
                     .accessibilityHidden(true)
                 titleBlock(recipe, onPhoto: false)
                     .padding(.horizontal, 24).padding(.top, 20)
@@ -457,10 +499,17 @@ struct RecipeDetailView: View {
                     .frame(maxWidth: .infinity)
             }
         } else {
-            titleBlock(recipe, onPhoto: false)
-                .padding(.horizontal, 24).padding(.top, 20)
-                .frame(maxWidth: 720, alignment: .leading)
-                .frame(maxWidth: .infinity)
+            VStack(alignment: .leading, spacing: 12) {
+                if !dynamicTypeSize.isAccessibilitySize {
+                    Label("FROM YOUR COLLECTION", systemImage: "book.closed")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Theme.olive)
+                }
+                titleBlock(recipe, onPhoto: false)
+            }
+            .padding(.horizontal, 24).padding(.top, 20)
+            .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
         }
     }
 
@@ -595,9 +644,11 @@ struct RecipeDetailView: View {
             }
             ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("STEP \(i + 1)").font(.footnote.weight(.bold)).tracking(0.8)
+                    Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
+                        .foregroundStyle(Theme.olive)
                         .accessibilityAddTraits(.isHeader)
-                    TimedText.make(line).font(.body).lineSpacing(3)
+                    TimedText.make(line).font(.title3).lineSpacing(7)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if let notes = recipe.notes, !notes.isEmpty {
@@ -759,7 +810,7 @@ struct RecipeDetailView: View {
     private func choose(_ recipe: Recipe) {
         guard !recipe.needsTimingReview else { tab = .timing; return }
         store.chooseMenu(recipe.menuID)
-        dismiss()
+        if let onChoose { onChoose() } else { dismiss() }
     }
 
     private func delete(_ recipe: Recipe) {

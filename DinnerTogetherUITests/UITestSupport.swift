@@ -744,7 +744,13 @@ extension DinnerTogetherUITestCase {
                openCooking: false, recipes: recipes, heroPhoto: heroPhoto)
     }
 
+    private func openRecipesLibrary() {
+        scrollAndTap(app.buttons["open-recipes"], "Choose from Recipes")
+        waitForExistence(app.buttons["add-recipe"], timeout: 5, "Recipes collection")
+    }
+
     private func openRecipe(_ title: String) {
+        openRecipesLibrary()
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
         scrollAndTap(row, "the recipe row for “\(title)”")
         waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
@@ -798,9 +804,10 @@ extension DinnerTogetherUITestCase {
         verifyAppearance(capture)
     }
 
-    /// r01 — Tonight with an empty recipe library.
+    /// r01 — the Recipes destination with an empty library.
     func flowRecipeLibraryEmpty() {
         launchRecipes([], .standard)
+        openRecipesLibrary()
         let add = app.buttons["add-recipe"]
         scrollTo(add)
         XCTAssertTrue(app.staticTexts["Cook your own recipes, on time."].exists, "empty state explains the feature")
@@ -853,6 +860,10 @@ extension DinnerTogetherUITestCase {
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
                        "confirming did not choose the recipe as tonight’s dinner")
         photograph("r05-timing-confirmed" + capture.suffix)
+        tapPinned(cookNow, "Choose the reviewed recipe for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
+                      "choosing a recipe routes to Tonight without starting cooking")
+        XCTAssertTrue(app.buttons["open-recipes"].exists, "Tonight keeps the Recipes shortcut")
     }
 
     /// r03 — an untimed step stays marked as an estimate.
@@ -881,6 +892,7 @@ extension DinnerTogetherUITestCase {
     /// r06 — an Apple News link explains itself and switches to Screenshots.
     func flowAppleNewsLink(_ capture: RecipeCapture = .standard) {
         launchRecipes([], capture, extra: ["-dt-stub-apple-news"])
+        openRecipesLibrary()
         scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
         let field = app.textFields["recipe-link"]
         waitForExistence(field, timeout: 5, "the link field")

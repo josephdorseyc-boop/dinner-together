@@ -18,6 +18,12 @@ enum Theme {
     static let line = adaptive((0.902, 0.875, 0.824), (0.270, 0.255, 0.220))
     // Filled buttons retain the darker tomato so white labels stay legible.
     static let buttonFill = Color(red: 0.659, green: 0.220, blue: 0.153)
+    // Restrained reading surface; opaque colors keep text contrast predictable.
+    static let recipeWash = adaptive((0.945, 0.920, 0.865), (0.135, 0.150, 0.115))
+    static var recipeBackground: LinearGradient {
+        LinearGradient(colors: [cream, recipeWash, cream],
+                       startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
     static let warning = adaptive((0.510, 0.300, 0.090), (0.950, 0.740, 0.430))
 }
 

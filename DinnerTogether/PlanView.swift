@@ -5,6 +5,7 @@ import SwiftUI
 struct PlanView: View {
     @EnvironmentObject private var store: SessionStore
     var goCooking: () -> Void
+    var goRecipes: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var feasibility: Feasibility = .ok
@@ -21,7 +22,11 @@ struct PlanView: View {
                 header
                 servingTimeCard
                 feasibilityCard
-                YourRecipesSection()
+                Button(action: goRecipes) {
+                    Label("Choose from Recipes", systemImage: "book.closed")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("open-recipes")
                 SectionLabel(text: "ON THE MENU")
                 ForEach(DinnerCatalog.menus) { menu in
                     menuCard(menu)

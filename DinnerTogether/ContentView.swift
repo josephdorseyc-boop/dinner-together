@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Root view. iPhone gets the familiar two tabs; iPad gets a sidebar with a
+/// Root view. iPhone gets the Tonight, Cooking and Recipes tabs; iPad gets a sidebar with a
 /// genuinely wider detail layout instead of a stretched phone screen.
 struct ContentView: View {
     @EnvironmentObject private var store: SessionStore
@@ -10,6 +10,8 @@ struct ContentView: View {
     @State private var tab = LaunchOptions.openCooking ? 1 : 0
     @State private var sidebarSelection: String? = LaunchOptions.openCooking ? "cooking" : "tonight"
 
+    @State private var recipePath: [UUID] = []
+
     var body: some View {
         Group {
             if horizontalSizeClass == .regular {
@@ -17,19 +19,27 @@ struct ContentView: View {
                     List(selection: $sidebarSelection) {
                         Label("Tonight", systemImage: "fork.knife").tag("tonight")
                         Label("Cooking", systemImage: "timer").tag("cooking")
+                        Label("Recipes", systemImage: "book.closed").tag("recipes")
                     }
                     .navigationTitle("Dinner, Together")
                 } detail: {
-                    NavigationStack { detailView }
+                    if sidebarSelection == "recipes" {
+                        recipeNavigation
+                    } else {
+                        NavigationStack { detailView }
+                    }
                 }
             } else {
                 TabView(selection: $tab) {
-                    NavigationStack { PlanView(goCooking: { tab = 1 }) }
+                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }) }
                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
                         .tag(0)
                     NavigationStack { CookingView() }
                         .tabItem { Label("Cooking", systemImage: "timer") }
                         .tag(1)
+                    recipeNavigation
+                        .tabItem { Label("Recipes", systemImage: "book.closed") }
+                        .tag(2)
                 }
                 .toolbarBackground(Theme.cream, for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
@@ -55,12 +65,26 @@ struct ContentView: View {
         }
     }
 
+    private var recipeNavigation: some View {
+        NavigationStack(path: $recipePath) {
+            RecipesView(path: $recipePath, goTonight: {
+                recipePath.removeAll()
+                tab = 0
+                sidebarSelection = "tonight"
+            }, goCooking: {
+                tab = 1
+                sidebarSelection = "cooking"
+            })
+        }
+    }
+
     @ViewBuilder
     private var detailView: some View {
         if sidebarSelection == "cooking" {
             CookingView()
         } else {
-            PlanView(goCooking: { sidebarSelection = "cooking" })
+            PlanView(goCooking: { sidebarSelection = "cooking" },
+                     goRecipes: { sidebarSelection = "recipes" })
         }
     }
 }
