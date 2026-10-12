@@ -813,7 +813,7 @@ final class LongRecipeServingTimeTests: XCTestCase {
         let recipe = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
         XCTAssertTrue(library.add(recipe))
         let store = SessionStore(fileURL: dir.appending(path: "s.json"), notifications: MockNotifications(), menuProvider: library)
-        let now = Date(timeIntervalSinceReferenceDate: 800_000_000) // a fixed instant on a 5-minute mark
+        let now = Date(timeIntervalSinceReferenceDate: 800_000_100) // a fixed instant on a 5-minute mark
         store.chooseMenu(recipe.menuID, now: now)
         let minutes = store.session.serveAt.timeIntervalSince(now) / 60
         XCTAssertGreaterThanOrEqual(minutes, 241, "dinner is at least the recipe’s length away")
@@ -824,8 +824,8 @@ final class LongRecipeServingTimeTests: XCTestCase {
         XCTAssertEqual(store.session.serveAt, now.addingTimeInterval(3600), "short menus keep the one-hour default")
     }
 
-    func testRoundUpToFiveMinutes() {
-        let base = Date(timeIntervalSinceReferenceDate: 800_000_000)
+    func testRoundUpToFiveMinutes() async {
+        let base = Date(timeIntervalSinceReferenceDate: 800_000_100)
         XCTAssertEqual(Scheduling.roundUp(base, toMinutes: 5), base)
         XCTAssertEqual(Scheduling.roundUp(base.addingTimeInterval(61), toMinutes: 5), base.addingTimeInterval(300))
     }
