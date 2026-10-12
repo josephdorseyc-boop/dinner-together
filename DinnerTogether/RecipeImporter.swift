@@ -420,7 +420,7 @@ enum RecipeImporter {
             let startsMeanwhile = raw.range(of: #"^\s*(?:meanwhile|while (?:the|that|it|this)\b|at the same time|in the meantime)"#,
                                             options: [.regularExpression, .caseInsensitive]) != nil
             if startsMeanwhile { inMeanwhile = true }
-            else if inMeanwhile, raw.range(of: #"^\s*(?:when|once|after|return|add the \w+ to|combine|serve|drain)"#,
+            else if inMeanwhile, raw.range(of: #"^\s*(?:when|once|after|return|add the \w+ to|combine|serve|drain|toss|plate|divide|top|spoon|pour|transfer|stir (?:in|together))\b"#,
                                            options: [.regularExpression, .caseInsensitive]) != nil { inMeanwhile = false }
             if inMeanwhile {
                 meanwhile.append(CookingStep(id: step.id, dish: dishLabel + " — meanwhile", title: step.title,

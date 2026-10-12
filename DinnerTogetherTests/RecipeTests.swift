@@ -237,7 +237,7 @@ final class RecipeImporterTextTests: XCTestCase {
                        "Pour the cider mixture evenly into 12 ice cube tray wells…")
         XCTAssertEqual(RecipeImporter.stepTitle(from: "3. Add the tomatoes and simmer, partially covered, 2 hours."),
                        "Add the tomatoes and simmer, partially covered, 2 hours")
-        XCTAssertEqual(RecipeImporter.stepTitle(from: "roast for 40 minutes, until crisp"), "Roast for 40 minutes, until crisp")
+        XCTAssertEqual(RecipeImporter.stepTitle(from: "roast for 40 minutes, until crisp"), "Roast for 40 minutes", "doneness cue stays in the detail")
         XCTAssertEqual(RecipeImporter.stepTitle(from: "Rest 5 minutes, then serve."), "Rest 5 minutes")
     }
 }
