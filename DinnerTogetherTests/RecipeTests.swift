@@ -800,3 +800,33 @@ final class RecipeCoverCropTests: XCTestCase {
         XCTAssertEqual(crop, RecipeCoverCrop.Rect(x: 0, y: 600, width: 800, height: 600))
     }
 }
+
+// Joe, build 8: choosing a 4-hour recipe left dinner an hour away, and the
+// plan button could not proceed.
+@MainActor
+final class LongRecipeServingTimeTests: XCTestCase {
+    func testChoosingALongRecipeStartsAtItsEarliestTime() async throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: "dt-long-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let library = RecipeLibrary(directory: dir)
+        let text = "Long cider\nDirections\n1. Simmer 60 minutes.\n2. Freeze 3 hours.\n3. Blend 1 minute."
+        let recipe = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
+        XCTAssertTrue(library.add(recipe))
+        let store = SessionStore(fileURL: dir.appending(path: "s.json"), notifications: MockNotifications(), menuProvider: library)
+        let now = Date(timeIntervalSinceReferenceDate: 800_000_000) // a fixed instant on a 5-minute mark
+        store.chooseMenu(recipe.menuID, now: now)
+        let minutes = store.session.serveAt.timeIntervalSince(now) / 60
+        XCTAssertGreaterThanOrEqual(minutes, 241, "dinner is at least the recipe’s length away")
+        XCTAssertLessThan(minutes, 246, "and no more than a 5-minute rounding later")
+        XCTAssertEqual(Scheduling.checkFeasibility(menu: store.menu, serveAt: store.session.serveAt, durations: [:], now: now), .ok)
+
+        store.chooseMenu("steak", now: now)
+        XCTAssertEqual(store.session.serveAt, now.addingTimeInterval(3600), "short menus keep the one-hour default")
+    }
+
+    func testRoundUpToFiveMinutes() {
+        let base = Date(timeIntervalSinceReferenceDate: 800_000_000)
+        XCTAssertEqual(Scheduling.roundUp(base, toMinutes: 5), base)
+        XCTAssertEqual(Scheduling.roundUp(base.addingTimeInterval(61), toMinutes: 5), base.addingTimeInterval(300))
+    }
+}

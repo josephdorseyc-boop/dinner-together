@@ -302,11 +302,18 @@ final class SessionStore: ObservableObject {
     }
 
     /// Changing menu starts a fresh session — and it IS undoable.
-    func chooseMenu(_ id: String) {
+    func chooseMenu(_ id: String, now: Date = Date()) {
         pushUndo("Changed menu")
         var fresh = DinnerSession()
         fresh.menuID = id
-        fresh.serveAt = Date().addingTimeInterval(3600)
+        // An hour from now, unless the menu needs longer: then the earliest
+        // time it can reach the table, on a 5-minute mark (Joe, build 8: a
+        // 4-hour recipe started at "dinner in an hour" and couldn't be planned).
+        fresh.serveAt = now.addingTimeInterval(3600)
+        let menu = Self.resolve(id, provider: menuProvider) ?? DinnerCatalog.menus[0]
+        if case .startsInPast(let earliest) = Scheduling.checkFeasibility(menu: menu, serveAt: fresh.serveAt, durations: [:], now: now) {
+            fresh.serveAt = Scheduling.roundUp(earliest, toMinutes: 5)
+        }
         session = fresh
         notifications.cancelAll()
         save()
