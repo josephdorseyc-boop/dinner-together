@@ -12,6 +12,9 @@ struct CookingStep: Codable, Identifiable, Hashable {
     /// True when the step needs the cook's hands and attention
     /// (vs. passive oven time, resting, or simmering).
     let handsOn: Bool
+    /// Imported recipes only: `minutes` was guessed (no time in the text) and
+    /// the cook has not confirmed it yet. Optional so older saves decode.
+    var estimated: Bool? = nil
 }
 
 struct DinnerMenu: Identifiable {
@@ -23,6 +26,62 @@ struct DinnerMenu: Identifiable {
 
     var steps: [CookingStep] { dishes.flatMap { $0 } }
     var longestDishMinutes: Int { dishes.map { $0.reduce(0) { $0 + $1.minutes } }.max() ?? 0 }
+}
+
+// MARK: - Recipes the cook brought in (the "add a recipe" feature)
+
+enum ImportMethod: String, Codable {
+    case link, text, photo, manual
+}
+
+struct RecipeSource: Codable, Hashable {
+    var url: URL?
+    var publisher: String?
+    var author: String?
+
+    /// "EatingWell · Julia Levy", "EatingWell", "Julia Levy", or nil.
+    var byline: String? {
+        let parts = [publisher, author].compactMap { $0 }.filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+}
+
+/// A recipe the cook added. Stored on this device only. Its `dishes` reuse
+/// `CookingStep`, so a recipe cooks exactly like a catalog menu: one dish
+/// normally; a second when the parser found a "meanwhile" section.
+struct Recipe: Codable, Identifiable, Hashable {
+    var id: UUID = UUID()
+    var title: String
+    var source: RecipeSource = RecipeSource()
+    /// File name inside the library's image folder, when a photo was saved.
+    var imageFilename: String?
+    var yield: String?
+    /// The recipe's own total time, when it stated one.
+    var totalMinutes: Int?
+    var ingredients: [String] = []
+    /// Directions as written, in order — what the Directions tab shows.
+    var directions: [String] = []
+    /// Timed steps for the engine (see `RecipeImporter.build`).
+    var dishes: [[CookingStep]] = []
+    var importedAt: Date = Date()
+    var importMethod: ImportMethod = .manual
+    /// True until the cook has looked at the Timing tab once.
+    var needsTimingReview: Bool = true
+    var notes: String?
+
+    static let menuIDPrefix = "recipe:"
+    var menuID: String { Recipe.menuIDPrefix + id.uuidString }
+    var steps: [CookingStep] { dishes.flatMap { $0 } }
+    var plannedMinutes: Int { dishes.map { $0.reduce(0) { $0 + $1.minutes } }.max() ?? 0 }
+    var estimatedStepCount: Int { steps.filter { $0.estimated == true }.count }
+
+    /// The menu the engine and the screens use. Subtitle shows the source
+    /// so a plan built from "Mom's lasagna" still says where it came from.
+    var menu: DinnerMenu {
+        let timing = plannedMinutes > 0 ? "About \(plannedMinutes) min" : "Timing not set"
+        let line = [source.byline, timing].compactMap { $0 }.joined(separator: " · ")
+        return DinnerMenu(id: menuID, title: title, subtitle: line, symbol: "book.closed", dishes: dishes)
+    }
 }
 
 // MARK: - Session types (one dinner: planned + actual)

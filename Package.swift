@@ -9,8 +9,8 @@
 // This does not replace the Xcode project. Keep opening
 // DinnerTogether.xcodeproj as before; Xcode ignores this file. What the
 // harness compiles is exactly the app's Models.swift, Scheduling.swift,
-// DinnerCatalog.swift and SessionStore.swift (no copies), plus
-// DinnerTogetherTests/DinnerTogetherTests.swift. The SwiftUI views,
+// DinnerCatalog.swift, SessionStore.swift, RecipeImporter.swift and
+// RecipeLibrary.swift (no copies), plus every file in DinnerTogetherTests/. The SwiftUI views,
 // TimerCenter and the UserNotifications-backed NotificationManager are not
 // compiled here; they stay Xcode-only. See ENGINE_TESTS.md.
 //
@@ -47,6 +47,8 @@ let package = Package(
                 "Scheduling.swift",
                 "DinnerCatalog.swift",
                 "SessionStore.swift",
+                "RecipeImporter.swift",
+                "RecipeLibrary.swift",
                 "EngineTestSupport.swift",
             ]
         ),

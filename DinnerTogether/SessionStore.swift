@@ -41,16 +41,20 @@ final class SessionStore: ObservableObject {
     // background. Moving dinner remains an explicit, undoable action.
 
     let notifications: NotificationService
+    /// Resolves menu ids beyond the catalog (the cook's own recipes). Nil
+    /// means catalog only, which is what every pre-recipe test constructs.
+    let menuProvider: MenuProviding?
     private let fileURL: URL
     private let maxUndo = 25
 
-    init(fileURL: URL? = nil, notifications: NotificationService? = nil) {
+    init(fileURL: URL? = nil, notifications: NotificationService? = nil, menuProvider: MenuProviding? = nil) {
         let resolvedURL = fileURL ?? URL.documentsDirectory.appending(path: "dinner-together-v2.json")
         self.fileURL = resolvedURL
         self.notifications = notifications ?? NotificationManager()
+        self.menuProvider = menuProvider
         if let data = try? Data(contentsOf: resolvedURL),
            let loaded = try? JSONDecoder().decode(DinnerSession.self, from: data),
-           DinnerCatalog.menus.contains(where: { $0.id == loaded.menuID })
+           Self.resolve(loaded.menuID, provider: menuProvider) != nil
         {
             session = loaded
         }
@@ -67,7 +71,16 @@ final class SessionStore: ObservableObject {
 
     // MARK: Derived
 
-    var menu: DinnerMenu { DinnerCatalog.menu(id: session.menuID) }
+    private static func resolve(_ id: String, provider: MenuProviding?) -> DinnerMenu? {
+        if let m = provider?.menu(id: id) { return m }
+        return DinnerCatalog.menus.first { $0.id == id }
+    }
+
+    /// The menu this session cooks. A recipe that no longer exists (deleted
+    /// while it was tonight's dinner) falls back to the first catalog menu;
+    /// `menuIsMissing` lets the UI say so instead of pretending.
+    var menu: DinnerMenu { Self.resolve(session.menuID, provider: menuProvider) ?? DinnerCatalog.menus[0] }
+    var menuIsMissing: Bool { Self.resolve(session.menuID, provider: menuProvider) == nil }
     var plan: [PlannedStep] { Scheduling.plan(menu: menu, session: session) }
 
     func record(_ id: String) -> StepRecord {
