@@ -735,7 +735,9 @@ extension DinnerTogetherUITestCase {
         scrollAndTap(freezer, "the three-hour freezer step’s minutes")
         let cancel = app.buttons["Cancel"]
         XCTAssertTrue(cancel.waitForExistence(timeout: 5), "the duration editor opened")
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '180'")).firstMatch.exists, "it shows 180 minutes")
+        // Agent 2's R3 copy: the editor states long durations in hours.
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '3 hr' OR label CONTAINS '180'")).firstMatch.exists,
+                      "it shows the three-hour freezer time")
         photograph("r04-duration-180")
         cancel.tap()
         waitForDisappearance(cancel, "editor closed")
