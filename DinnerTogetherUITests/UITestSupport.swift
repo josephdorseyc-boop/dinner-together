@@ -924,12 +924,16 @@ extension DinnerTogetherUITestCase {
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         let more = app.buttons["More"]
         waitForExistence(more, timeout: 5, "the recipe’s More menu")
-        tapEvenInPopover(more)
-        let deleteItem = app.buttons["Delete recipe"].firstMatch
-        waitForExistence(deleteItem, timeout: 5, "Delete recipe in the menu")
-        tapEvenInPopover(deleteItem)
         let question = app.staticTexts["Delete this recipe?"]
-        waitForExistence(question, timeout: 5, "the delete confirmation")
+        // iPad: the menu is a popover and a tap can be swallowed while it
+        // animates (run 38266917187; passed in 38259705494). One retry.
+        for attempt in 0..<2 where !question.exists {
+            tapEvenInPopover(more)
+            let deleteItem = app.buttons["Delete recipe"].firstMatch
+            if deleteItem.waitForExistence(timeout: 5) { tapEvenInPopover(deleteItem) }
+            if question.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
+        }
+        waitForExistence(question, timeout: 1, "the delete confirmation")
         let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
         tapEvenInPopover(confirmDelete)
         waitForDisappearance(question, "the confirmation closed")
