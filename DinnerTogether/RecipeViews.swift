@@ -508,6 +508,7 @@ struct RecipeDetailView: View {
                             case .timing: timing(recipe)
                             }
                             sourceLink(recipe)
+                            deleteButton
                         }
                         .padding(24)
                         .frame(maxWidth: 720)
@@ -875,25 +876,27 @@ struct RecipeDetailView: View {
     @ToolbarContentBuilder
     private func moreMenu(_ recipe: Recipe) -> some ToolbarContent {
         ToolbarItem(placement: .primaryAction) {
-            Menu {
-                if let url = recipe.source.url {
-                    ShareLink(item: url) { Label("Share link", systemImage: "square.and.arrow.up") }
-                }
-                Button(role: .destructive) {
-                    // Present after the menu has finished closing: a dialog
-                    // requested mid-dismissal is sometimes dropped (delete
-                    // flow, 3 runs on iPhone and iPad) — same cause and cure
-                    // as the delay sheet behind a closing popover.
-                    let locked = timingLocked
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 350_000_000)
-                        if locked { cannotDelete = true } else { confirmingDelete = true }
-                    }
-                } label: { Label("Delete recipe", systemImage: "trash") }
-            } label: {
-                Image(systemName: "ellipsis.circle").accessibilityLabel("More")
+            if let url = recipe.source.url {
+                ShareLink(item: url) { Image(systemName: "square.and.arrow.up").accessibilityLabel("Share link") }
             }
         }
+    }
+
+    /// Delete lives at the end of the page, not in the ••• menu: a
+    /// confirmation dialog requested from a closing Menu was dropped on
+    /// iPhone in five CI runs out of five (and once on iPad), with or
+    /// without a delay — the cook would have tapped Delete and seen
+    /// nothing. From a plain button the dialog presents every time.
+    private var deleteButton: some View {
+        Button(role: .destructive) {
+            if timingLocked { cannotDelete = true } else { confirmingDelete = true }
+        } label: {
+            Label("Delete this recipe", systemImage: "trash")
+                .foregroundStyle(Theme.tomato)
+        }
+        .buttonStyle(QuietButtonStyle())
+        .padding(.top, 12)
+        .accessibilityIdentifier("delete-recipe")
     }
 
     private func choose(_ recipe: Recipe) {

@@ -931,21 +931,15 @@ extension DinnerTogetherUITestCase {
     }
 
     /// r09 — a delete that can’t be saved keeps the recipe and says so.
+    /// Delete is a button at the end of the page (not a ••• item: a dialog
+    /// from a closing menu was dropped on iPhone in every CI run).
     func flowDeleteFailure() {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
-        let more = app.buttons["More"]
-        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        XCTAssertFalse(app.buttons["Delete recipe"].exists, "Delete is no longer a menu item")
+        scrollAndTap(app.buttons["delete-recipe"], "Delete this recipe (end of the page)")
         let question = app.staticTexts["Delete this recipe?"]
-        // iPad: the menu is a popover and a tap can be swallowed while it
-        // animates (run 38266917187; passed in 38259705494). One retry.
-        for attempt in 0..<2 where !question.exists {
-            tapEvenInPopover(more)
-            let deleteItem = app.buttons["Delete recipe"].firstMatch
-            if deleteItem.waitForExistence(timeout: 5) { tapEvenInPopover(deleteItem) }
-            if question.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
-        }
-        waitForExistence(question, timeout: 1, "the delete confirmation")
+        waitForExistence(question, timeout: 5, "the delete confirmation")
         let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
         tapEvenInPopover(confirmDelete)
         waitForDisappearance(question, "the confirmation closed")
