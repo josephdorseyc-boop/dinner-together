@@ -755,7 +755,10 @@ extension DinnerTogetherUITestCase {
     private func verifyTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
         let a = app.buttons["recipe-tab-ingredients"], b = app.buttons["recipe-tab-directions"]
         guard a.waitForExistence(timeout: 5), b.exists else { return XCTFail("recipe tabs not found", file: file, line: line) }
-        let stacked = abs(a.frame.minX - b.frame.minX) < 4 && b.frame.minY >= a.frame.maxY - 1
+        // Stacked = the second tab starts below the first one's middle. (Left
+        // edges differ by the selected tab's capsule padding — 28 vs 38 pt in
+        // run 38259705494 — so they aren't compared.)
+        let stacked = b.frame.minY > a.frame.midY
         if capture.typeSize != nil {
             XCTAssertTrue(stacked, "AX3 forced: tabs stack vertically (\(a.frame) / \(b.frame))", file: file, line: line)
         } else {
