@@ -1,0 +1,137 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "8F99D839-3028-4297-82B7-470856436C7C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-after-undo_0_D30CD0A3-4FBE-4F7F-B63D-8470B557724E.png",
+        "timestamp" : 1791766398.022
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "28B387BD-2E5F-417E-B0B4-9275BA090680.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-after-move_0_5F9E3EEE-6F34-45C1-A61B-C27069D8D7FC.png",
+        "timestamp" : 1791766362.893
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "12AFFCBE-0D63-42CA-B26F-9E5A3CD55340.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-review-sheet_0_8F70CF08-2FFC-45F0-B385-40032E1DE337.png",
+        "timestamp" : 1791766346.092
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test01_reviewDinnerTimeLatePrep_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test01_reviewDinnerTimeLatePrep_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "1C5FE219-8202-4A40-A6EC-ABFED289D30E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-after-undo_0_B94BD1A7-B330-4645-814E-92CC02394602.png",
+        "timestamp" : 1791766470.787
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "E88383DC-1841-49EC-ABCD-DDAFA1A05982.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-after-confirm_0_35771D81-C94B-48B9-ABE0-88C7B7DD372F.png",
+        "timestamp" : 1791766442.318
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "5005A229-B2C4-497D-9F41-45D7350BACF9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-sheet_0_DF802EDE-26D2-4179-B841-B05821D71943.png",
+        "timestamp" : 1791766426.771
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "53E3DBB9-50C7-4CFC-991B-60D51F91D0D1.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-choice-dialog-hierarchy_0_8600695F-A4B2-42AB-B043-8CF176322D9D.txt",
+        "timestamp" : 1791766418.47
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "0B773C79-1B9A-4CEB-B33F-2F2150DF182F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-choice-dialog_0_44713AAA-6F18-4739-A5C2-5383A9E21F85.png",
+        "timestamp" : 1791766417.437
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test02_adjustTimeOnSchedule_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test02_adjustTimeOnSchedule_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "111C8713-D769-4031-937C-5C4470A5EC8E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-into-cooking_0_7D008898-0222-48AC-97D0-6170A1781B7A.png",
+        "timestamp" : 1791766497.521
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "DA75E135-D80A-4311-B769-1C616D0CC1E9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-menus_0_05947A54-739C-484F-B96B-E685AC3AAF09.png",
+        "timestamp" : 1791766494.982
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "30F467C2-7C09-46BF-B7EF-690700C5FAE2.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-after-tap-hierarchy_0_37700A0F-666C-45AC-8E05-45D1B232080B.txt",
+        "timestamp" : 1791766489.185
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "4C236308-96E9-4445-9914-6E8F63EA2EB4.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-after-tap_0_6FAA6D86-4178-47E0-859E-630DFB529E88.png",
+        "timestamp" : 1791766483.504
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "0DE52589-6E0B-47D4-B4A7-7E4E3D9C1049",
+        "deviceName" : "iPad Pro 13-inch (M5)",
+        "exportedFileName" : "FB081091-A3FE-4E1F-92AB-70B8AF80B114.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-top_0_11BD5D1B-024C-47F6-A660-AFF90B340104.png",
+        "timestamp" : 1791766480.486
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test03_tonightNineMenus_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test03_tonightNineMenus_iPad"
+  }
+]

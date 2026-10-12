@@ -1,0 +1,182 @@
+Optional(Attributes: Application, 0x1058563f0, pid: 67541, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x1058563f0, pid: 67541, label: 'Dinner, Together'
+    Window (Main), 0x105874350, {{0.0, 0.0}, {1032.0, 1376.0}}
+      Other, 0x1058748c0, {{0.0, 0.0}, {1032.0, 1376.0}}
+        Other, 0x105874b90, {{0.0, 0.0}, {1032.0, 1376.0}}
+          Other, 0x105874770, {{0.0, 0.0}, {1032.0, 1376.0}}
+            Other, 0x105874470, {{0.0, 0.0}, {1032.0, 1376.0}}
+              Other, 0x105874cb0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                Other, 0x105874fb0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                  Other, 0x1058750d0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                    Other, 0x105873150, {{10.0, 32.0}, {320.0, 1334.0}}
+                      Other, 0x105873270, {{10.0, 32.0}, {320.0, 1334.0}}
+                        Other, 0x105873390, {{10.0, 32.0}, {320.0, 1334.0}}
+                          NavigationBar, 0x1058734b0, {{10.0, 32.0}, {320.0, 54.0}}, identifier: 'Dinner, Together'
+                            StaticText, 0x1058735d0, {{110.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                            Button, 0x103a9c160, {{271.5, 36.0}, {54.5, 36.0}}, label: 'Hide Sidebar'
+                          Other, 0x103a9c280, {{10.0, 32.0}, {320.0, 1334.0}}
+                            Other, 0x103a9c3a0, {{10.0, 32.0}, {320.0, 1334.0}}
+                              Other, 0x103a9c4c0, {{10.0, 32.0}, {320.0, 1334.0}}
+                                Other, 0x103a9c5e0, {{10.0, 32.0}, {320.0, 1334.0}}
+                                  CollectionView, 0x103a9c920, {{10.0, 32.0}, {320.0, 1334.0}}, label: 'Sidebar'
+                                    Other, 0x103a9ca40, {{-6.0, -2582.0}, {352.0, 5450.0}}
+                                    Other, 0x103a9cb60, {{10.0, 32.0}, {320.0, 1334.0}}
+                                      Other, 0x103a9cc80, {{10.0, 32.0}, {320.0, 108.8}}
+                                    Other, 0x103a9cda0, {{10.0, 32.0}, {320.0, 1334.0}}
+                                    Cell, 0x103a9cec0, {{26.0, 86.0}, {288.0, 52.0}}, Focused, Selected
+                                      Other, 0x103a9cfe0, {{26.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x103a9d100, {{26.0, 86.0}, {288.0, 52.0}}
+                                          Other, 0x103a9d220, {{26.0, 86.0}, {288.0, 52.0}}
+                                      Other, 0x103a9d340, {{26.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x103a9d460, {{26.0, 86.0}, {288.0, 52.0}}
+                                          Other, 0x103a9d580, {{26.0, 86.0}, {288.0, 52.0}}
+                                            Image, 0x103a9d6a0, {{46.5, 99.5}, {15.0, 25.5}}, identifier: 'fork.knife', label: 'Food', Selected
+                                            StaticText, 0x103a9d7c0, {{26.0, 86.0}, {288.0, 52.0}}, label: 'Tonight', Selected
+                                    Cell, 0x103a9d8e0, {{26.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x103a9da00, {{26.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x103a9db20, {{26.0, 138.0}, {288.0, 52.0}}
+                                        Other, 0x103a9dc40, {{26.0, 138.0}, {288.0, 52.0}}
+                                          Other, 0x103a9dd60, {{26.0, 138.0}, {288.0, 52.0}}
+                                            Image, 0x103a9de80, {{43.0, 153.0}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer'
+                                            StaticText, 0x103a9dfa0, {{26.0, 138.0}, {288.0, 52.0}}, label: 'Cooking'
+                                    Other, 0x103a9e0c0, {{297.0, 86.0}, {30.0, 1258.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x103a9e1e0, {{324.0, 1346.0}, {3.0, 7.0}}
+                                    Other, 0x103a9e300, {{297.0, 86.0}, {30.0, 1258.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x103a9e420, {{324.0, 1346.0}, {3.0, 7.0}}
+                          Other, 0x103a9e540, {{10.0, 32.0}, {320.0, 1334.0}}
+                            Other, 0x103a9e660, {{10.0, 32.0}, {320.0, 1334.0}}
+                      Other, 0x103a9e780, {{10.0, 32.0}, {320.0, 1334.0}}
+                        Other, 0x103a9e8a0, {{10.0, 32.0}, {320.0, 1334.0}}
+                          Other, 0x103a9e9c0, {{10.0, 32.0}, {320.0, 1334.0}}
+                            Other, 0x103a9eae0, {{10.0, 32.0}, {320.0, 1334.0}}
+                              Other, 0x103a9ec00, {{10.0, 32.0}, {320.0, 1334.0}}
+                                Other, 0x103a9ed20, {{10.0, 32.0}, {320.0, 1334.0}}
+                            Other, 0x103a9ee40, {{10.0, 32.0}, {320.0, 1334.0}}
+                              Other, 0x103a9ef60, {{10.0, 32.0}, {320.0, 1334.0}}
+                    Other, 0x103a9f080, {{0.0, 0.0}, {1032.0, 1376.0}}
+                      Other, 0x103a9f1a0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                        NavigationBar, 0x103a9f2c0, {{0.0, 32.0}, {1032.0, 54.0}}, identifier: 'Dinner, Together'
+                          StaticText, 0x103a9f3e0, {{620.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                        Other, 0x103a9f500, {{0.0, 0.0}, {1032.0, 1376.0}}
+                          Other, 0x103a9f620, {{0.0, 0.0}, {1032.0, 1376.0}}
+                            Other, 0x103a9f740, {{0.0, 0.0}, {1032.0, 1376.0}}
+                              Other, 0x103a9f860, {{0.0, 0.0}, {1032.0, 1376.0}}
+                                ScrollView, 0x103a9f980, {{0.0, 0.0}, {1032.0, 1376.0}}
+                                  Other, 0x103a9faa0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                                    Other, 0x103a9fbc0, {{0.0, 0.0}, {1032.0, 140.8}}
+                                  Other, 0x103a9fce0, {{0.0, 0.0}, {1032.0, 1376.0}}
+                                  Other, 0x103a9fe00, {{0.0, 86.0}, {1032.0, 1810.0}}
+                                    StaticText, 0x103a9ff20, {{354.0, 110.0}, {397.0, 69.5}}, label: 'Dinner, beautifully timed., Choose your dinner. We’ll bring the timing together.'
+                                      StaticText, 0x103aa0040, {{354.0, 110.0}, {397.0, 41.0}}, label: 'Dinner, beautifully timed.'
+                                      StaticText, 0x103aa0160, {{354.0, 159.0}, {390.5, 20.5}}, label: 'Choose your dinner. We’ll bring the timing together.'
+                                    StaticText, 0x103aa0280, {{376.0, 229.5}, {101.0, 14.5}}, label: 'AT THE TABLE'
+                                    StaticText, 0x103aa03a0, {{376.0, 256.0}, {130.5, 41.0}}, label: '7:44 PM'
+                                    StaticText, 0x103aa04c0, {{376.0, 316.8}, {87.5, 20.5}}, label: 'Dinner time'
+                                    DatePicker, 0x103aa05e0, {{775.5, 309.0}, {210.5, 36.0}}
+                                      Button, 0x103aa0700, {{775.5, 309.0}, {210.5, 36.0}}, label: 'Date and Time Picker', value: 7:44 PM, Oct 11, 2...
+                                        Button, 0x103aa0820, {{775.5, 309.0}, {120.0, 36.0}}, label: 'Oct 11, 2026'
+                                        Button, 0x103aa0940, {{899.5, 309.0}, {86.5, 36.0}}, label: '7:44 PM'
+                                    StaticText, 0x103aa0a60, {{354.0, 395.0}, {101.0, 14.5}}, label: 'ON THE MENU'
+                                    Button, 0x103aa0b80, {{370.0, 453.5}, {620.5, 57.5}}, label: 'Steak night, Steak au poivre · mash · green beans', Selected
+                                      Image, 0x103aa0ca0, {{384.5, 471.5}, {17.0, 21.5}}, identifier: 'flame', label: 'Flame'
+                                      StaticText, 0x103aa0dc0, {{432.0, 453.5}, {90.5, 20.5}}, label: 'Steak night'
+                                      StaticText, 0x103aa0ee0, {{432.0, 478.0}, {208.5, 14.5}}, label: 'Steak au poivre · mash · green beans'
+                                      StaticText, 0x103aa1000, {{432.0, 496.5}, {134.5, 14.5}}, label: 'About 40 min · 3 dishes'
+                                      Image, 0x103aa1120, {{970.5, 472.5}, {20.0, 20.0}}, identifier: 'checkmark.circle.fill', label: 'Selected', Selected
+                                    Button, 0x103aa1240, {{370.0, 527.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa1360, {{370.0, 527.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa1480, {{984.0, 534.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa15a0, {{370.0, 609.5}, {620.5, 57.5}}, label: 'A little pasta therapy, Garlic mushroom pasta · salad'
+                                      Image, 0x103aa16c0, {{382.5, 629.0}, {21.0, 19.0}}, identifier: 'leaf', label: 'leaf'
+                                      StaticText, 0x103aa17e0, {{432.0, 609.5}, {164.5, 20.5}}, label: 'A little pasta therapy'
+                                      StaticText, 0x103aa1900, {{432.0, 634.0}, {171.0, 14.5}}, label: 'Garlic mushroom pasta · salad'
+                                      StaticText, 0x103aa1a20, {{432.0, 652.5}, {134.0, 14.5}}, label: 'About 35 min · 2 dishes'
+                                      Image, 0x103aa1b40, {{970.5, 628.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa1c60, {{370.0, 683.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa1d80, {{370.0, 683.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa1ea0, {{984.0, 690.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa1fc0, {{370.0, 765.5}, {620.5, 57.5}}, label: 'An easy salmon evening, Salmon · rice · broccoli'
+                                      Image, 0x103aa20e0, {{382.0, 783.5}, {22.0, 22.0}}, identifier: 'sun.max', label: 'Brightness Higher'
+                                      StaticText, 0x103aa2200, {{432.0, 765.5}, {191.0, 20.5}}, label: 'An easy salmon evening'
+                                      StaticText, 0x103aa2320, {{432.0, 790.0}, {129.0, 14.5}}, label: 'Salmon · rice · broccoli'
+                                      StaticText, 0x103aa2440, {{432.0, 808.5}, {134.5, 14.5}}, label: 'About 35 min · 3 dishes'
+                                      Image, 0x103aa2560, {{970.5, 784.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa2680, {{370.0, 839.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa27a0, {{370.0, 839.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa28c0, {{984.0, 846.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa29e0, {{370.0, 921.5}, {620.5, 57.5}}, label: 'A lemon chicken evening, Lemon chicken · couscous · zucchini'
+                                      Image, 0x103aa2b00, {{382.0, 939.5}, {22.0, 22.0}}, identifier: 'sun.max', label: 'Brightness Higher'
+                                      StaticText, 0x103aa2c20, {{432.0, 921.5}, {197.0, 20.5}}, label: 'A lemon chicken evening'
+                                      StaticText, 0x103aa2d40, {{432.0, 946.0}, {207.0, 14.5}}, label: 'Lemon chicken · couscous · zucchini'
+                                      StaticText, 0x103aa2e60, {{432.0, 964.5}, {134.5, 14.5}}, label: 'About 50 min · 3 dishes'
+                                      Image, 0x103aa2f80, {{970.5, 940.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa30a0, {{370.0, 995.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa31c0, {{370.0, 995.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa32e0, {{984.0, 1002.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa3400, {{370.0, 1077.5}, {620.5, 57.5}}, label: 'A taco kind of night, Turkey tacos · black beans · crunchy slaw'
+                                      Image, 0x103aa3520, {{384.5, 1095.5}, {17.0, 21.5}}, identifier: 'flame', label: 'Flame'
+                                      StaticText, 0x103aa3640, {{432.0, 1077.5}, {154.0, 20.5}}, label: 'A taco kind of night'
+                                      StaticText, 0x103aa3760, {{432.0, 1102.0}, {234.5, 14.5}}, label: 'Turkey tacos · black beans · crunchy slaw'
+                                      StaticText, 0x103aa3880, {{432.0, 1120.5}, {134.5, 14.5}}, label: 'About 40 min · 3 dishes'
+                                      Image, 0x103aa39a0, {{970.5, 1096.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa3ac0, {{370.0, 1151.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa3be0, {{370.0, 1151.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa3d00, {{984.0, 1158.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa3e20, {{370.0, 1233.5}, {620.5, 57.5}}, label: 'Crisp tofu, cozy bowls, Roasted tofu · rice · cucumber slaw'
+                                      Image, 0x103aa3f40, {{382.5, 1253.0}, {21.0, 19.0}}, identifier: 'leaf', label: 'leaf'
+                                      StaticText, 0x103aa4060, {{432.0, 1233.5}, {176.5, 20.5}}, label: 'Crisp tofu, cozy bowls'
+                                      StaticText, 0x103aa4180, {{432.0, 1258.0}, {199.0, 14.5}}, label: 'Roasted tofu · rice · cucumber slaw'
+                                      StaticText, 0x103aa42a0, {{432.0, 1276.5}, {134.5, 14.5}}, label: 'About 45 min · 3 dishes'
+                                      Image, 0x103aa43c0, {{970.5, 1252.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa44e0, {{370.0, 1307.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa4600, {{370.0, 1307.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa4720, {{984.0, 1314.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa4840, {{370.0, 1389.5}, {620.5, 57.5}}, label: 'Chickpea comfort, Chickpea curry · rice · cucumber yogurt'
+                                      Image, 0x103aa4960, {{382.5, 1409.0}, {21.0, 19.0}}, identifier: 'leaf', label: 'leaf'
+                                      StaticText, 0x103aa4a80, {{432.0, 1389.5}, {142.0, 20.5}}, label: 'Chickpea comfort'
+                                      StaticText, 0x103aa4ba0, {{432.0, 1414.0}, {224.5, 14.5}}, label: 'Chickpea curry · rice · cucumber yogurt'
+                                      StaticText, 0x103aa4cc0, {{432.0, 1432.5}, {134.5, 14.5}}, label: 'About 45 min · 3 dishes'
+                                      Image, 0x103aa4de0, {{970.5, 1408.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa4f00, {{370.0, 1463.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa5020, {{370.0, 1463.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa5140, {{984.0, 1470.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa5260, {{370.0, 1545.5}, {620.5, 57.5}}, label: 'Golden gnocchi & greens, Skillet gnocchi · lemony salad'
+                                      Image, 0x103aa5380, {{382.5, 1565.0}, {21.0, 19.0}}, identifier: 'leaf', label: 'leaf'
+                                      StaticText, 0x103aa54a0, {{432.0, 1545.5}, {199.0, 20.5}}, label: 'Golden gnocchi & greens'
+                                      StaticText, 0x103aa55c0, {{432.0, 1570.0}, {167.0, 14.5}}, label: 'Skillet gnocchi · lemony salad'
+                                      StaticText, 0x103aa56e0, {{432.0, 1588.5}, {134.0, 14.5}}, label: 'About 35 min · 2 dishes'
+                                      Image, 0x103aa5800, {{970.5, 1564.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa5920, {{370.0, 1619.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa5a40, {{370.0, 1619.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa5b60, {{984.0, 1626.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x103aa5c80, {{370.0, 1701.5}, {620.5, 57.5}}, label: 'A slower Sunday supper, Pork tenderloin · mash · green beans'
+                                      Image, 0x103aa5da0, {{382.0, 1719.5}, {22.0, 22.0}}, identifier: 'sun.max', label: 'Brightness Higher'
+                                      StaticText, 0x103aa5ec0, {{432.0, 1701.5}, {192.0, 20.5}}, label: 'A slower Sunday supper'
+                                      StaticText, 0x103aa5fe0, {{432.0, 1726.0}, {207.0, 14.5}}, label: 'Pork tenderloin · mash · green beans'
+                                      StaticText, 0x103aa6100, {{432.0, 1744.5}, {134.5, 14.5}}, label: 'About 60 min · 3 dishes'
+                                      Image, 0x103aa6220, {{970.5, 1720.5}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    Button, 0x103aa6340, {{370.0, 1775.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      StaticText, 0x103aa6460, {{370.0, 1775.5}, {622.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x103aa6580, {{984.0, 1782.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    StaticText, 0x103aa66a0, {{354.0, 1841.5}, {608.0, 30.5}}, label: 'Timings are planning estimates, not complete tested recipes. Use your trusted recipes and verify doneness separately.'
+                                  Other, 0x103aa69c0, {{999.0, 86.0}, {30.0, 1169.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                    Other, 0x103f94db0, {{1026.0, 89.0}, {3.0, 794.0}}
+                                  Other, 0x103f94a40, {{999.0, 86.0}, {30.0, 1169.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                    Other, 0x103f96950, {{1026.0, 89.0}, {3.0, 794.0}}
+                                StaticText, 0x103f92120, {{620.5, 1267.5}, {121.0, 14.5}}, label: 'Selected: Steak night'
+                                Button, 0x103f946e0, {{354.0, 1288.0}, {654.0, 56.0}}, label: 'Build my cooking plan'
+                                  Image, 0x103f94000, {{582.0, 1309.0}, {16.0, 13.5}}, identifier: 'arrow.right', label: 'Right'
+                                  StaticText, 0x103aa6ae0, {{582.0, 1305.8}, {200.0, 20.5}}, label: 'Build my cooking plan'
+                        Other, 0x103aa6c00, {{0.0, 0.0}, {1032.0, 1376.0}}
+                          Other, 0x103f70e00, {{0.0, 0.0}, {1032.0, 1376.0}}
+                  Other, 0x103f72990, {{0.0, 0.0}, {1032.0, 1376.0}}
+                    Other, 0x103f95140, {{0.0, 0.0}, {1032.0, 1376.0}}
+Path to element:
+ →Application, 0x1058563f0, pid: 67541, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x103f64f50, pid: 67541, label: 'Dinner, Together'
+  }
+)
