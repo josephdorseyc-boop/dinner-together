@@ -1,0 +1,86 @@
+--- /dev/null
++++ b/.github/workflows/ui-review-evidence.yml
+@@ -0,0 +1,83 @@
++name: ui-review-evidence
++
++'on':
++  workflow_dispatch:
++    inputs:
++      evidence_ref:
++        description: Immutable ci-results commit to package (or ci-results for latest)
++        required: true
++        default: ci-results
++        type: string
++
++permissions:
++  contents: read
++
++jobs:
++  package:
++    runs-on: ubuntu-latest
++    timeout-minutes: 10
++    steps:
++      - name: Check out existing evidence
++        uses: actions/checkout@v4
++        with:
++          ref: ${{ inputs.evidence_ref }}
++          fetch-depth: 1
++          persist-credentials: false
++          sparse-checkout-cone-mode: false
++          sparse-checkout: |
++            /ui-screenshots/
++            /screenshots/
++            /RUN.txt
++            /SUMMARY.md
++            /25-ui-test-iphone.log
++            /25-ui-test-ipad.log
++
++      - name: Package original renders with provenance
++        env:
++          EVIDENCE_REF: ${{ inputs.evidence_ref }}
++        run: |
++          python3 - <<'PY'
++          from pathlib import Path
++          import hashlib, json, os, shutil, struct, subprocess
++
++          root = Path('.')
++          assert (root/'RUN.txt').is_file() and (root/'SUMMARY.md').is_file(), 'Evidence metadata is missing'
++          shots = sorted((root/'ui-screenshots').rglob('*.png'))
++          assert shots, 'No interactive screenshot PNGs in this evidence revision'
++          out = root/'review-evidence'
++          out.mkdir()
++          for folder in ['ui-screenshots', 'screenshots']:
++              if (root/folder).is_dir(): shutil.copytree(root/folder, out/folder)
++          for name in ['RUN.txt', 'SUMMARY.md', '25-ui-test-iphone.log', '25-ui-test-ipad.log']:
++              if (root/name).is_file(): shutil.copy2(root/name, out/name)
++          run = dict(line.split('=', 1) for line in (root/'RUN.txt').read_text().splitlines() if '=' in line)
++          assert run.get('sha') and run.get('run_id'), 'App source/run provenance is missing'
++          manifest = {
++              'evidence_ref_requested': os.environ['EVIDENCE_REF'],
++              'evidence_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
++              'app_source_commit': run['sha'],
++              'validation_run_id': run['run_id'],
++              'status_authority': 'SUMMARY.md (RUN.txt job_status_so_far is provisional)',
++              'images': []
++          }
++          for path in sorted(out.rglob('*.png')):
++              data = path.read_bytes()
++              assert data[:8] == b'\x89PNG\r\n\x1a\n', f'Invalid PNG: {path}'
++              width, height = struct.unpack('>II', data[16:24])
++              manifest['images'].append({'path': str(path.relative_to(out)), 'bytes': len(data),
++                                         'width': width, 'height': height, 'sha256': hashlib.sha256(data).hexdigest()})
++          total = sum(p.stat().st_size for p in out.rglob('*') if p.is_file())
++          assert total < 400 * 1024 * 1024, 'Review package exceeds 400 MiB; inspect unexpected evidence files'
++          manifest['payload_bytes_before_manifest'] = total
++          (out/'REVIEW_EVIDENCE.json').write_text(json.dumps(manifest, indent=2)+'\n')
++          print(f'Packaged {len(manifest["images"])} original PNGs ({total:,} bytes); no image transforms')
++          PY
++
++      - name: Upload review evidence only
++        uses: actions/upload-artifact@v4
++        with:
++          name: ui-review-evidence-${{ github.run_id }}
++          path: review-evidence/
++          if-no-files-found: error
++          compression-level: 0
++          retention-days: 14

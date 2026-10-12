@@ -1,0 +1,13 @@
+{
+  "yaml_parses": true,
+  "manual_only": true,
+  "read_only_repository_permissions": true,
+  "fixture_packaging_preserves_original_png_bytes": true,
+  "fixture_provenance_matches": true,
+  "fixture_failed_summary_preserved": true,
+  "patch_applies_as_new_file": true,
+  "no_native_test_run_started": true,
+  "actual_actions_execution": "Not performed",
+  "base_sha": "eb04d8288a995e88e9653df4c6206694e043c7c9",
+  "patch_sha256": "964b0ad8ba682ba240bad859c162a11fa49aa5a6787e5362d8ded8b17af428a1"
+}
