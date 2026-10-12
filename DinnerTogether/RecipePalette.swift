@@ -94,15 +94,20 @@ struct RecipePalette: Equatable {
 
     struct Preset: Identifiable { let id: String; let name: String; let palette: RecipePalette }
 
+    private static func make(_ id: String, _ name: String, _ hexes: [UInt32]) -> Preset {
+        let stops: [RGB] = hexes.map { RGB(hex: $0) }
+        return Preset(id: id, name: name, palette: RecipePalette(tuning: stops))
+    }
+
     static let presets: [Preset] = [
-        ("cider", "Cider", [0x8A4A22, 0x6B3A24, 0x3B2A22]),
-        ("tomato", "Tomato", [0x9C3A2A, 0x7A2B22, 0x3A1E1A]),
-        ("olive", "Olive", [0x5C6B3A, 0x45522E, 0x262B1E]),
-        ("saffron", "Saffron", [0xA0701E, 0x7D5418, 0x3D2C14]),
-        ("plum", "Plum", [0x6E3A5C, 0x532C47, 0x2A1A26]),
-        ("lagoon", "Lagoon", [0x2F6670, 0x254F57, 0x15292E]),
-        ("charcoal", "Charcoal", [0x4A4642, 0x35322F, 0x1C1B1A]),
-    ].map { Preset(id: $0.0, name: $0.1, palette: RecipePalette(tuning: $0.2.map { RGB(hex: $0) })) }
+        make("cider", "Cider", [0x8A4A22, 0x6B3A24, 0x3B2A22]),
+        make("tomato", "Tomato", [0x9C3A2A, 0x7A2B22, 0x3A1E1A]),
+        make("olive", "Olive", [0x5C6B3A, 0x45522E, 0x262B1E]),
+        make("saffron", "Saffron", [0xA0701E, 0x7D5418, 0x3D2C14]),
+        make("plum", "Plum", [0x6E3A5C, 0x532C47, 0x2A1A26]),
+        make("lagoon", "Lagoon", [0x2F6670, 0x254F57, 0x15292E]),
+        make("charcoal", "Charcoal", [0x4A4642, 0x35322F, 0x1C1B1A]),
+    ]
 
     static func preset(_ id: String) -> RecipePalette? { presets.first { $0.id == id }?.palette }
 
@@ -150,8 +155,12 @@ struct RecipePalette: Equatable {
     /// Deterministic k-means: seeds at luminance quantiles, so the same photo
     /// always yields the same page.
     static func kMeans(_ pixels: [RGB], k: Int, iterations: Int) -> [(center: RGB, count: Int)] {
-        let sorted = pixels.sorted { $0.luminance < $1.luminance }
-        var centers = (0..<k).map { i in sorted[min(sorted.count - 1, (sorted.count * (2 * i + 1)) / (2 * k))] }
+        let sorted: [RGB] = pixels.sorted { $0.luminance < $1.luminance }
+        var centers: [RGB] = []
+        for i in 0..<k {
+            let quantile: Int = (sorted.count * (2 * i + 1)) / (2 * k)
+            centers.append(sorted[min(sorted.count - 1, quantile)])
+        }
         var counts = Array(repeating: 0, count: k)
         for _ in 0..<iterations {
             var sums = Array(repeating: (0.0, 0.0, 0.0), count: k)
@@ -159,7 +168,8 @@ struct RecipePalette: Equatable {
             for p in pixels {
                 var best = 0, bestD = Double.infinity
                 for (i, c) in centers.enumerated() {
-                    let d = (p.r - c.r) * (p.r - c.r) + (p.g - c.g) * (p.g - c.g) + (p.b - c.b) * (p.b - c.b)
+                    let dr: Double = p.r - c.r, dg: Double = p.g - c.g, db: Double = p.b - c.b
+                    let d: Double = dr * dr + dg * dg + db * db
                     if d < bestD { bestD = d; best = i }
                 }
                 sums[best].0 += p.r; sums[best].1 += p.g; sums[best].2 += p.b; counts[best] += 1
