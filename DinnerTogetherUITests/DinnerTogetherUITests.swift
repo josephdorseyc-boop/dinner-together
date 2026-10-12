@@ -92,4 +92,14 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test25_typedPageColor() { flowTypedPageColor() }
     /// Page colors — r16: a color that can’t be saved.
     func test26_pageColorSaveFailure() { flowPageColorSaveFailure() }
+    // A2-17's capture requests: AX3 and Dark Mode of r14/r15, r16 at AX3, a
+    // Tomato Directions page, and the solid-card rendering.
+    func test27_photoPageColorsAX3() { flowPhotoPageColors(.ax3) }
+    func test28_typedPageColorAX3() { flowTypedPageColor(.ax3) }
+    func test29_photoPageColorsDark() { flowPhotoPageColors(.darkMode) }
+    func test30_typedPageColorDark() { flowTypedPageColor(.darkMode) }
+    func test31_pageColorSaveFailureAX3() { flowPageColorSaveFailure(.ax3) }
+    func test32_typedTomatoDirections() { flowTypedPageColor(preset: "tomato") }
+    /// The rendering Reduce Transparency and Increase Contrast select (-dt-solid-cards).
+    func test33_photoPageColorsSolidCards() { flowPhotoPageColors(.solidCards) }
 }

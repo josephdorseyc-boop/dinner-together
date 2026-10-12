@@ -489,6 +489,8 @@ struct RecipeDetailView: View {
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
     @State private var choosingPageStyle = false
+    /// A delete that didn't reach disk, in words about deleting (A2-17).
+    @State private var deleteProblem: String?
     @Environment(\.colorScheme) private var colorScheme
 
     private var recipe: Recipe? { library.recipe(id: recipeID) }
@@ -510,9 +512,10 @@ struct RecipeDetailView: View {
                     VStack(alignment: .leading, spacing: 0) {
                         hero(recipe)
                         VStack(alignment: .leading, spacing: 22) {
-                            if let problem = library.saveError {
+                            if let problem = deleteProblem ?? library.saveError {
                                 Label(problem, systemImage: "exclamationmark.triangle")
                                     .font(.subheadline).foregroundStyle(Theme.warning)
+                                    .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier("recipe-save-error")
                             }
                             stats(recipe)
@@ -542,6 +545,10 @@ struct RecipeDetailView: View {
                         .environment(\.recipePalette, pagePalette)
                         .environment(\.colorScheme, pageScheme)
                 }
+                // A colored page is dark whatever the phone's appearance, so
+                // the system chrome over it must be too: the status clock
+                // and the tab bar (A2-17: black clock on brown, 2.1:1).
+                .toolbarColorScheme(pagePalette == nil ? nil : .dark, for: .navigationBar, .tabBar)
                 .toolbar { moreMenu(recipe) }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID) }
                 .sheet(item: $editingStep) { step in
@@ -1002,7 +1009,12 @@ struct RecipeDetailView: View {
     private func delete(_ recipe: Recipe) {
         let wasTonight = isTonight
         // Delete first; only a delete that reached disk changes tonight's dinner.
-        guard library.remove(id: recipe.id) else { return } // saveError banner explains
+        guard library.remove(id: recipe.id) else {
+            deleteProblem = "This recipe couldn’t be deleted. It’s still in your recipes. Try deleting it again."
+            UIAccessibility.post(notification: .announcement, argument: deleteProblem)
+            return
+        }
+        deleteProblem = nil
         if wasTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
         dismiss()
     }

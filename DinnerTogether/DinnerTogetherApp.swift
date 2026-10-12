@@ -79,6 +79,9 @@ enum LaunchOptions {
     static var openCooking: Bool { arguments.contains("-dt-open-cooking") }
     /// Every recipe-library save fails (UI test of the unsaved-change states).
     static var failRecipeSaves: Bool { arguments.contains("-dt-fail-recipe-saves") }
+    /// -dt-solid-cards: the rendering Reduce Transparency and Increase
+    /// Contrast select (the environment values are read-only; same code path).
+    static var solidCards: Bool { arguments.contains("-dt-solid-cards") }
     /// Only the photo save fails (the recipe itself saves): A2-13's retry path.
     static var failCoverSaves: Bool { arguments.contains("-dt-fail-cover-saves") }
     /// The Add sheet's Screenshots option uses two drawn test screenshots
@@ -125,6 +128,7 @@ enum LaunchOptions {
     #else
     static var openCooking: Bool { false }
     static var failRecipeSaves: Bool { false }
+    static var solidCards: Bool { false }
     static var failCoverSaves: Bool { false }
     static var stubScreenshots: Bool { false }
     static var stubAppleNews: Bool { false }

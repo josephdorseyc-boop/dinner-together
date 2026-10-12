@@ -740,12 +740,15 @@ struct RecipeCapture {
     var suffix = ""
     var typeSize: String?
     var dark = false
+    /// Extra launch flags, e.g. the solid-card rendering of Reduce Transparency.
+    var extra: [String] = []
     static let standard = RecipeCapture()
     static let ax3 = RecipeCapture(suffix: "-ax3", typeSize: "accessibility3")
     static let darkMode = RecipeCapture(suffix: "-dark", dark: true)
+    static let solidCards = RecipeCapture(suffix: "-solid", extra: ["-dt-solid-cards"])
 
     var launchArguments: [String] {
-        (typeSize.map { ["-dt-type-size", $0] } ?? []) + (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"])
+        (typeSize.map { ["-dt-type-size", $0] } ?? []) + (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"]) + extra
     }
 }
 
@@ -992,14 +995,27 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         XCTAssertFalse(app.buttons["Delete recipe"].exists, "Delete is no longer a menu item")
-        scrollAndTap(app.buttons["delete-recipe"], "Delete this recipe (end of the page)")
+        let deleteButton = app.buttons["delete-recipe"]
+        scrollTo(deleteButton)
+        photograph("r09a-delete-button")   // the resting end-of-page action (A2-17)
+        deleteButton.tap()
         let question = app.staticTexts["Delete this recipe?"]
         waitForExistence(question, timeout: 5, "the delete confirmation")
+        photograph("r09b-delete-dialog")
+        // Cancel keeps the recipe and the page (A2-17).
+        tapEvenInPopover(app.buttons.matching(NSPredicate(format: "label == 'Cancel'")).firstMatch)
+        waitForDisappearance(question, "Cancel closed the confirmation")
+        XCTAssertTrue(app.staticTexts["recipe-title"].exists, "Cancel: still on the recipe page")
+        XCTAssertFalse(app.descendants(matching: .any)["recipe-save-error"].exists, "Cancel: nothing to explain")
+        scrollAndTap(deleteButton, "Delete this recipe, again")
+        waitForExistence(question, timeout: 5, "the delete confirmation, again")
         let confirmDelete = app.buttons.matching(NSPredicate(format: "label == 'Delete recipe'")).firstMatch
         tapEvenInPopover(confirmDelete)
         waitForDisappearance(question, "the confirmation closed")
         XCTAssertTrue(app.staticTexts["recipe-title"].waitForExistence(timeout: 5), "still on the recipe page: nothing was deleted")
-        XCTAssertTrue(app.descendants(matching: .any)["recipe-save-error"].waitForExistence(timeout: 5), "the failure is explained")
+        let problem = app.descendants(matching: .any)["recipe-save-error"]
+        XCTAssertTrue(problem.waitForExistence(timeout: 5), "the failure is explained")
+        XCTAssertTrue(problem.label.contains("couldn’t be deleted"), "…in words about deleting: \(problem.label)")
         scrollToTop()
         photograph("r09-delete-failed")
     }
@@ -1125,75 +1141,115 @@ extension DinnerTogetherUITestCase {
     /// r14 — a photo recipe’s page takes the photo’s colors with frosted
     /// cards; ••• → Page color offers Match photo, seven colors and Classic
     /// cream, and Classic brings the light page back.
-    func flowPhotoPageColors() {
-        launchRecipes([RecipeFixtureText.frozenBerry], .standard, heroPhoto: true)
+    func flowPhotoPageColors(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture, heroPhoto: true)
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         XCTAssertTrue(app.descendants(matching: .any)["recipe-hero"].exists, "the photo is the hero")
-        photograph("r14a-photo-colors")   // as it opens: the photo dissolving into the page
+        verifyTypeSize(capture)
+        photograph("r14a-photo-colors" + capture.suffix)   // as it opens: the photo dissolving into the page
         let colored = pageLuminance()
         XCTAssertLessThan(colored, 0.35, "the page took the photo’s deep colors, not cream: luminance below the tabs \(colored)")
         app.buttons["recipe-tab-directions"].tap()
         XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the colored page")
-        photograph("r14b-photo-colors-directions")
+        photograph("r14b-photo-colors-directions" + capture.suffix)
 
         openPageColorFromMenu()
+        verifySheetTypeSize(capture)
         XCTAssertTrue(swatch("match-photo").isSelected, "automatic shows as Match photo")
         for id in ["cider", "tomato", "olive", "saffron", "plum", "lagoon", "charcoal", "classic"] {
             XCTAssertTrue(swatch(id).exists, "the \(id) option is offered")
         }
-        photograph("r14c-page-color-sheet")
-        swatch("classic").tap()
+        photograph("r14c-page-color-sheet" + capture.suffix)
+        scrollAndTapSwatch("classic")
         XCTAssertTrue(swatch("classic").waitForSelection(), "Classic cream is now selected")
         closePageColorSheet()
         let cream = pageLuminance()
-        XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: luminance below the tabs \(cream)")
+        if capture.dark {
+            XCTAssertLessThan(cream, colored - 0.05, "Classic in Dark Mode: the dark cream page, darker than the photo's colors: \(cream) vs \(colored)")
+        } else {
+            XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: luminance below the tabs \(cream)")
+        }
         scrollRecipeToTop()
-        photograph("r14d-photo-classic")
+        photograph("r14d-photo-classic" + capture.suffix)
+    }
+
+    /// The sheet itself renders at the forced type size (A2-17): the helper
+    /// text wraps to several large lines at AX3 and two small ones otherwise.
+    private func verifySheetTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
+        let help = app.staticTexts["page-style-help"]
+        guard help.waitForExistence(timeout: 5) else { return XCTFail("the sheet's helper text", file: file, line: line) }
+        if capture.typeSize != nil {
+            XCTAssertGreaterThan(help.frame.height, 90, "AX3 inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
+        } else {
+            XCTAssertLessThan(help.frame.height, 70, "default type inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
+        }
+    }
+
+    /// At AX3 the grid is taller than the half-height sheet; scroll within it.
+    private func scrollAndTapSwatch(_ id: String) {
+        let target = swatch(id)
+        for _ in 0..<6 where !(target.exists && target.isHittable) {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
+            from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+        tapEvenInPopover(target)
     }
 
     /// r15 — a typed recipe (no photo) picks a color from the page’s own
     /// button; the timer chips and step labels switch to the light accent.
-    func flowTypedPageColor() {
-        launchRecipes([RecipeFixtureText.beanSpread], .standard)
+    func flowTypedPageColor(_ capture: RecipeCapture = .standard, preset: String = "plum") {
+        launchRecipes([RecipeFixtureText.beanSpread], capture)
         openRecipe(RecipeFixtureText.beanSpreadTitle)
         let button = app.buttons["page-color-button"]
         waitForExistence(button, timeout: 5, "the Page color button on a typed recipe")
-        photograph("r15a-typed-cream")
-        let light = pageLuminance()
-        XCTAssertGreaterThan(light, 0.6, "a typed recipe starts on the cream page: \(light)")
+        verifyTypeSize(capture)
+        photograph("r15a-typed-cream" + capture.suffix)
+        let start = pageLuminance()
+        if capture.dark {
+            XCTAssertLessThan(start, 0.35, "a typed recipe starts on the (dark) cream page: \(start)")
+        } else {
+            XCTAssertGreaterThan(start, 0.6, "a typed recipe starts on the cream page: \(start)")
+        }
         scrollRecipeToTop()
         button.tap()
         waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
+        verifySheetTypeSize(capture)
         XCTAssertFalse(swatch("match-photo").exists, "no Match photo without a photo")
         XCTAssertTrue(swatch("classic").isSelected, "automatic without a photo shows as Classic cream")
-        swatch("plum").tap()
-        XCTAssertTrue(swatch("plum").waitForSelection(), "Plum is now selected")
-        photograph("r15b-plum-sheet")
+        scrollAndTapSwatch(preset)
+        XCTAssertTrue(swatch(preset).waitForSelection(), "\(preset) is now selected")
+        photograph("r15b-\(preset)-sheet" + capture.suffix)
         closePageColorSheet()
-        let plum = pageLuminance()
-        XCTAssertLessThan(plum, 0.35, "the page is plum: \(plum)")
+        let colored = pageLuminance()
+        XCTAssertLessThan(colored, 0.35, "the page is \(preset): \(colored)")
+        if capture.dark {
+            XCTAssertGreaterThan(colored, start + 0.05, "\(preset) in Dark Mode is brighter than the dark cream page: \(colored) vs \(start)")
+        }
         scrollRecipeToTop()
-        photograph("r15c-typed-plum")
+        photograph("r15c-typed-\(preset)" + capture.suffix)
         app.buttons["recipe-tab-directions"].tap()
-        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the plum page")
-        photograph("r15d-typed-plum-directions")
+        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the \(preset) page")
+        photograph("r15d-typed-\(preset)-directions" + capture.suffix)
     }
 
     /// r16 — a color that can’t be saved says so and the page stays as it was.
-    func flowPageColorSaveFailure() {
-        launchRecipes([RecipeFixtureText.beanSpread], .standard, extra: ["-dt-fail-recipe-saves"])
+    func flowPageColorSaveFailure(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.beanSpread], capture, extra: ["-dt-fail-recipe-saves"])
         openRecipe(RecipeFixtureText.beanSpreadTitle)
         let button = app.buttons["page-color-button"]
         waitForExistence(button, timeout: 5, "the Page color button")
         button.tap()
         waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
-        swatch("lagoon").tap()
+        scrollAndTapSwatch("lagoon")
         let problem = app.descendants(matching: .any)["page-style-error"]
         XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown in the sheet")
-        XCTAssertTrue(problem.isHittable, "…and it is visible without scrolling the sheet")
+        XCTAssertTrue(problem.label.contains("page color couldn’t be saved"), "…in words about the page color: \(problem.label)")
+        if capture.typeSize == nil { XCTAssertTrue(problem.isHittable, "…and it is visible without scrolling the sheet") }
         XCTAssertFalse(swatch("lagoon").isSelected, "the failed choice is not shown as chosen")
         XCTAssertTrue(swatch("classic").isSelected, "the page’s real color stays selected")
-        photograph("r16-page-color-save-failed")
+        photograph("r16-page-color-save-failed" + capture.suffix)
         closePageColorSheet()
         XCTAssertGreaterThan(pageLuminance(), 0.6, "the page stayed cream")
     }

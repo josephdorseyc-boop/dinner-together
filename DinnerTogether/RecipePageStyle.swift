@@ -133,7 +133,7 @@ struct RecipeSurface: ViewModifier {
     func body(content: Content) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         if let palette {
-            if reduceTransparency || contrast == .increased {
+            if reduceTransparency || contrast == .increased || LaunchOptions.solidCards {
                 content.background(palette.solidCard.color, in: shape)
             } else {
                 content
@@ -209,10 +209,11 @@ struct PageStyleSheet: View {
                 if let recipe {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(RecipePhotos.load(recipe, from: library) == nil
-                             ? "Give this recipe a colored page. Text stays easy to read on every color."
-                             : "Use the photo’s colors or pick one. Text stays easy to read on every color.")
+                             ? "Choose a color for this recipe. Changes save as you select."
+                             : "Match the photo, or choose a color. Changes save as you select.")
                             .font(.subheadline).foregroundStyle(Theme.muted)
                             .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("page-style-help")
                         if let problem {
                             // Above the grid: the sheet opens at half height.
                             Label(problem, systemImage: "exclamationmark.triangle")
@@ -290,7 +291,7 @@ struct PageStyleSheet: View {
         if library.update(changed) {
             problem = nil
         } else {
-            problem = library.saveError ?? "The page color couldn’t be saved. Try again."
+            problem = "The page color couldn’t be saved. Your previous color is still selected. Choose another color to try again."
             UIAccessibility.post(notification: .announcement, argument: problem)
         }
     }
