@@ -40,4 +40,5 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test18_palePhotoPage_iPad() { flowPalePhotoPage() }
     func test19_swipeEditAndDelete_iPad() { flowSwipeEditAndDelete() }
     func test20_importWarningPersists_iPad() { flowImportWarningPersists() }
+    func test21_recipeCovers_iPad() { flowRecipeCovers(photo: "pastel") }
 }

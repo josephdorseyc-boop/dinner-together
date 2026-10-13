@@ -111,4 +111,8 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     /// Import warnings stay on every tab and after the timing check (A2-30).
     func test38_importWarningPersists() { flowImportWarningPersists() }
     func test39_importWarningPersistsAX3() { flowImportWarningPersists(.ax3) }
+    /// Tonight's recipe cover on Tonight and RIGHT NOW (A2-35): pale and deep covers, and AX3.
+    func test40_recipeCoversPale() { flowRecipeCovers(photo: "pastel") }
+    func test41_recipeCoversDeep() { flowRecipeCovers(photo: "landscape") }
+    func test42_recipeCoversAX3() { flowRecipeCovers(.ax3, photo: "landscape") }
 }

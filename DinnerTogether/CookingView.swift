@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// The cooking screen. Answers "what do I do right now?" first, then shows
 /// running timers, what's up next, attention warnings, and the full timeline
@@ -10,6 +11,10 @@ import SwiftUI
 struct CookingView: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var timers: TimerCenter
+    @EnvironmentObject private var library: RecipeLibrary
+    /// The scroll view's height: a photo strip on RIGHT NOW only when the
+    /// screen is tall enough that it cannot push the action down (A2-35).
+    @State private var viewportHeight: CGFloat = 0
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// Overlap warnings auto-expand when they appear so a mid-cook warning is
@@ -120,6 +125,11 @@ struct CookingView: View {
             }
         }
         .background(Theme.cream)
+        .background(GeometryReader { geo in
+            Color.clear
+                .onAppear { viewportHeight = geo.size.height }
+                .onChange(of: geo.size.height) { _, h in viewportHeight = h }
+        })
         .navigationTitle(store.menu.title)
         .sensoryFeedback(.success, trigger: completionFeedback)
         .navigationBarTitleDisplayMode(.inline)
@@ -334,7 +344,12 @@ struct CookingView: View {
 
     @ViewBuilder
     private var timelineColumn: some View {
-        SectionLabel(text: "TIMELINE")
+        HStack {
+            SectionLabel(text: "TIMELINE")
+            Spacer()
+            // Once per plan, not per step (A2-35).
+            if let cover = tonightCover { RecipeCoverThumbnail(image: cover.image, size: 32) }
+        }
         servingProgress
 
         ForEach(pendingSteps) { item in
@@ -506,6 +521,20 @@ struct CookingView: View {
         }
     }
 
+    /// Tonight's recipe cover, when tonight's dinner is one of the cook's
+    /// recipes with a photo. Cached by file name, so the timer's ticks never
+    /// decode it again. None at accessibility sizes: text first (A2-35).
+    private var tonightCover: (image: UIImage, palette: RecipePalette?)? {
+        guard !dynamicTypeSize.isAccessibilitySize,
+              let recipe = library.recipe(menuID: store.session.menuID) else { return nil }
+        return RecipePhotos.load(recipe, from: library)
+    }
+
+    /// A photo strip leads RIGHT NOW only for an ordinary start on a tall
+    /// enough screen with no readiness warning; otherwise a small thumbnail
+    /// in the header row, so the action never moves down (A2-35).
+    private var coverStripAllowed: Bool { viewportHeight >= 600 && readiness == nil }
+
     /// The featured card is the expired timer demanding attention right now —
     /// its "Mark done" is the primary action. Other running timers keep the
     /// quieter control.
@@ -518,6 +547,7 @@ struct CookingView: View {
                 Label(item.step.dish, systemImage: "timer").font(.caption.weight(.semibold))
                 Spacer()
                 Text(remaining <= 0 ? "Check the food" : "Running").font(.caption.weight(.medium))
+                if featured, let cover = tonightCover { RecipeCoverThumbnail(image: cover.image, size: 44) }
             }.foregroundStyle(remaining <= 0 ? Theme.warning : Theme.muted)
             Text(item.step.title).font(.headline).foregroundStyle(Theme.ink)
             Text(Scheduling.formatCountdown(remaining: remaining))
@@ -553,6 +583,22 @@ struct CookingView: View {
     }
 
     private func doNowCard(_ item: PlannedStep) -> some View {
+        let cover = tonightCover
+        let strip = cover != nil && coverStripAllowed
+        return VStack(alignment: .leading, spacing: 0) {
+            if strip, let cover {
+                RecipeCoverBand(image: cover.image, palette: cover.palette,
+                                height: horizontalSizeClass == .regular ? 96 : 64)
+            }
+            doNowContent(item, thumbnail: strip ? nil : cover?.image)
+                .padding(22)
+                .padding(.top, strip ? -8 : 0)
+        }
+        .background(Theme.paper)
+        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+    }
+
+    private func doNowContent(_ item: PlannedStep, thumbnail: UIImage?) -> some View {
         let overdue = now.timeIntervalSince(item.plannedStart) >= 60
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -560,6 +606,7 @@ struct CookingView: View {
                 Spacer()
                 Label("\(Scheduling.formatMinutes(item.minutes))", systemImage: item.step.handsOn ? "hand.raised" : "timer")
                     .font(.caption).foregroundStyle(Theme.muted)
+                if let thumbnail { RecipeCoverThumbnail(image: thumbnail, size: 44) }
             }
             Text(item.step.title).font(.title2.weight(.semibold)).foregroundStyle(Theme.ink)
             Text(item.step.handsOn ? "Needs your attention" : "Hands-off after you start")
@@ -570,7 +617,7 @@ struct CookingView: View {
             }
             Button { startTapped(item) } label: { Label("Start this step", systemImage: "play.fill") }
                 .buttonStyle(BigButtonStyle()).accessibilityLabel("Start \(item.step.title)")
-        }.dtCard()
+        }
     }
 
     private func stepCard(_ item: PlannedStep) -> some View {

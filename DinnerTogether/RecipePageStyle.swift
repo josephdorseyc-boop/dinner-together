@@ -119,6 +119,50 @@ struct RecipePageBackground: View {
     }
 }
 
+// MARK: - Covers on Tonight and Cooking (A2-35)
+
+/// A recipe cover as the top of a card: a cropped band that resolves into
+/// the card's opaque surface, borrowing the recipe's own color on the way
+/// (A2-35: no text over food; the transition, not the page, takes the
+/// recipe's wash). Decorative — the card already names the recipe.
+struct RecipeCoverBand: View {
+    let image: UIImage
+    let palette: RecipePalette?
+    let height: CGFloat
+    var surface: Color = Theme.paper
+
+    var body: some View {
+        Color.clear
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
+            .overlay(Image(uiImage: image).resizable().scaledToFill())
+            .clipped()
+            .overlay(alignment: .bottom) {
+                LinearGradient(stops: [
+                    .init(color: surface.opacity(0), location: 0),
+                    .init(color: (palette?.colors[0].color ?? surface).opacity(0.22), location: 0.55),
+                    .init(color: surface, location: 1),
+                ], startPoint: .top, endPoint: .bottom)
+                .frame(height: height * 0.55)
+                .allowsHitTesting(false)
+            }
+            .accessibilityHidden(true)
+    }
+}
+
+/// A small square crop of the cover, for header rows and the timeline.
+struct RecipeCoverThumbnail: View {
+    let image: UIImage
+    let size: CGFloat
+
+    var body: some View {
+        Image(uiImage: image).resizable().scaledToFill()
+            .frame(width: size, height: size)
+            .clipShape(RoundedRectangle(cornerRadius: size * 0.26, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
 /// A card on a recipe page: frosted glass on a colored page (shaded darker
 /// on a deep page, lighter on a pale one; solid with Reduce Transparency or
 /// Increase Contrast), the classic paper card otherwise.

@@ -1,10 +1,13 @@
 import SwiftUI
+import UIKit
 
 /// "Tonight": pick when dinner is, inspect each menu's dishes and steps,
 /// adjust estimates before cooking, then head to the kitchen.
 struct PlanView: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var library: RecipeLibrary
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     var goCooking: () -> Void
     var goRecipes: () -> Void
     /// Opens one of the cook's recipes on its page (Recipes tab / sidebar).
@@ -128,7 +131,15 @@ struct PlanView: View {
                 Button {
                     if let openRecipe { openRecipe(recipe.id) } else { goRecipes() }
                 } label: {
-                    RecipeRow(recipe: recipe, selected: true)
+                    // The cover leads when there is one (A2-35); accessibility
+                    // sizes keep the row with its small thumbnail, so the
+                    // title is never squeezed by a photo.
+                    if !dynamicTypeSize.isAccessibilitySize, let cover = RecipePhotos.load(recipe, from: library) {
+                        TonightCoverCard(recipe: recipe, image: cover.image, palette: cover.palette,
+                                         bandHeight: horizontalSizeClass == .regular ? 160 : 120)
+                    } else {
+                        RecipeRow(recipe: recipe, selected: true)
+                    }
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("tonight-recipe")

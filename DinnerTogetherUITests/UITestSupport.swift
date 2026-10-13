@@ -1378,6 +1378,41 @@ extension DinnerTogetherUITestCase {
         photograph("r19d-pale-to-plum" + capture.suffix)
     }
 
+    /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
+    /// (A2-35): a photo band on Tonight's card, a strip on an ordinary
+    /// start, a thumbnail on the timeline. At AX3 the row and plain cards
+    /// stay (text first); the actions are where they were either way.
+    func flowRecipeCovers(_ capture: RecipeCapture = .standard, photo: String = "pastel") {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture, photo: photo)
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let cook = app.buttons["cook-this-recipe"]
+        tapPinned(cook, "Check timing to continue")
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "the Timing tab")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the review is recorded")
+        tapPinned(cook, "Cook this for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5), "Tonight")
+
+        let card = app.buttons["tonight-recipe"]
+        scrollTo(card)
+        XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "the card names the recipe first: \(card.label)")
+        if capture.typeSize == nil {
+            XCTAssertGreaterThan(card.frame.height, 150, "the cover leads Tonight's card: height \(card.frame.height)")
+        }
+        photograph("r22a-tonight-cover-\(photo)" + capture.suffix)
+
+        let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
+        waitForExistence(build, timeout: 5, "the build action")
+        tapPinned(build, "Build the plan")
+        waitForExistence(app.staticTexts["serving-time"], timeout: 10, "the Cooking screen")
+        let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
+        XCTAssertTrue(start.waitForExistence(timeout: 10), "RIGHT NOW offers the first step")
+        scrollTo(start)
+        XCTAssertTrue(start.isHittable, "the photo never hides the primary action")
+        photograph("r22b-right-now-cover-\(photo)" + capture.suffix)
+    }
+
     /// r21 — what an import could not establish stays in view on every tab
     /// and after the timing check (A2-30; fixture A1 #20 / A2 PR #16).
     /// Positioning only scrolls; nothing is tapped to make the card appear.
