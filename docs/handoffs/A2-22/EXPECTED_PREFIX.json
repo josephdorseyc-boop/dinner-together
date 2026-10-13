@@ -58,5 +58,8 @@
     "Preserve short instructions (Set aside.) despite their length and lack of a stated duration.",
     "Run actual Vision recognition separately; no claim that this JSON reproduces the on-device recognizer output.",
     "Cover image/intro that contaminated the import are visible in app output but their original input screenshot is not attached here."
-  ]
+  ],
+  "import_mode": "Screenshots",
+  "user_confirmation": "Imported using the screenshot option in the Build 11 app installed on Joe's phone.",
+  "exact_selected_input_batch_confirmed": false
 }
