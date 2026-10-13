@@ -110,6 +110,16 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         return update(r)
     }
 
+    /// The recipe's own total time, entered by the cook when the import found
+    /// none (Joe, build 11). nil clears it. Shown on the page and compared
+    /// with the plan on the Timing tab; it never changes a step's estimate.
+    @discardableResult
+    func setTotalMinutes(recipeID: UUID, minutes: Int?) -> Bool {
+        guard var r = recipe(id: recipeID) else { return false }
+        r.totalMinutes = minutes.map { max(1, min(1440, $0)) }
+        return update(r)
+    }
+
     /// Edits one step's timing. Confirming a value clears its `estimated` mark.
     @discardableResult
     func setStep(recipeID: UUID, stepID: String, minutes: Int? = nil, handsOn: Bool? = nil) -> Bool {

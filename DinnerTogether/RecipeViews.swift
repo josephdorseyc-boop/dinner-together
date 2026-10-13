@@ -490,6 +490,7 @@ struct RecipeDetailView: View {
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
     @State private var choosingPageStyle = false
+    @State private var editingRecipeTime = false
     /// A delete that didn't reach disk, in words about deleting (A2-17).
     @State private var deleteProblem: String?
     @Environment(\.colorScheme) private var colorScheme
@@ -552,6 +553,9 @@ struct RecipeDetailView: View {
                 .toolbarColorScheme(pagePalette == nil ? nil : .dark, for: .navigationBar, .tabBar)
                 .toolbar { moreMenu(recipe) }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
+                .sheet(isPresented: $editingRecipeTime) {
+                    RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()
+                }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
                         guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
@@ -661,12 +665,12 @@ struct RecipeDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             ViewThatFits(in: .horizontal) {
                 HStack(alignment: .top, spacing: 32) {
-                    stat("RECIPE TIME", recipe.totalMinutes.map(RecipeFormat.compact) ?? "Not stated")
+                    recipeTimeStat(recipe)
                     stat("STEPS", "\(recipe.steps.count)")
                 }
                 .fixedSize(horizontal: true, vertical: false)
                 VStack(alignment: .leading, spacing: 14) {
-                    stat("RECIPE TIME", recipe.totalMinutes.map(RecipeFormat.compact) ?? "Not stated")
+                    recipeTimeStat(recipe)
                     stat("STEPS", "\(recipe.steps.count)")
                 }
             }
@@ -678,7 +682,29 @@ struct RecipeDetailView: View {
             }
         }
         .padding(.top, 4)
-        .accessibilityElement(children: .combine)
+    }
+
+    /// The recipe's own time, tappable: an import that found none shows
+    /// "Add time" (Joe, build 11: "warn users they didn't include the recipe
+    /// time… include the ability to manually enter it").
+    private func recipeTimeStat(_ recipe: Recipe) -> some View {
+        Button { editingRecipeTime = true } label: {
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(text: "RECIPE TIME")
+                HStack(spacing: 6) {
+                    Text(recipe.totalMinutes.map(RecipeFormat.compact) ?? "Add time")
+                        .font(.system(.title2, design: .rounded).weight(.medium)).monospacedDigit()
+                        .foregroundStyle(recipe.totalMinutes == nil ? (pagePalette == nil ? Theme.tomato : Theme.pageAccent) : Theme.ink)
+                    Image(systemName: recipe.totalMinutes == nil ? "plus.circle" : "pencil.circle")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(recipe.totalMinutes.map { "Recipe time, \(RecipeFormat.compact($0))" } ?? "Recipe time not stated")
+        .accessibilityHint(recipe.totalMinutes == nil ? "Adds the recipe’s total time." : "Edits the recipe’s total time.")
+        .accessibilityIdentifier("recipe-time")
     }
 
     private func stat(_ label: String, _ value: String) -> some View {
@@ -695,9 +721,7 @@ struct RecipeDetailView: View {
                 Image(systemName: "clock.badge.questionmark").font(.title3).foregroundStyle(Theme.warning)
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Check the timing before you cook").font(.headline)
-                    Text(recipe.estimatedStepCount == 0
-                         ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
-                         : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them.")
+                    Text(reviewBannerText(recipe))
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }
                 Spacer(minLength: 0)
@@ -709,6 +733,14 @@ struct RecipeDetailView: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("timing-review-banner")
+    }
+
+    private func reviewBannerText(_ recipe: Recipe) -> String {
+        var text = recipe.estimatedStepCount == 0
+            ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
+            : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them."
+        if recipe.totalMinutes == nil { text += " No total time was found — add it under Recipe time." }
+        return text
     }
 
     private var tabBar: some View {
@@ -820,6 +852,14 @@ struct RecipeDetailView: View {
             if let total = recipe.totalMinutes, abs(total - recipe.plannedMinutes) >= 10 {
                 Text("The recipe lists \(RecipeFormat.compact(total)) total; this plan uses \(RecipeFormat.compact(recipe.plannedMinutes)). Check for missing prep, resting time or overlapping steps.")
                     .font(.caption).foregroundStyle(Theme.muted)
+            } else if recipe.totalMinutes == nil {
+                Button { editingRecipeTime = true } label: {
+                    Label("No total time came with this recipe. Add it to compare with this plan.", systemImage: "clock.badge.questionmark")
+                        .font(.caption).multilineTextAlignment(.leading)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(Theme.warning)
+                .accessibilityIdentifier("recipe-time-missing")
             }
         }
     }

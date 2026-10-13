@@ -268,3 +268,89 @@ struct DurationEditorView: View {
         .presentationDetents([.large])
     }
 }
+
+// MARK: - The recipe's own total time
+
+/// When an import found no total time, the cook can enter it here (Joe,
+/// build 11). Hours and minutes, saved to the recipe; Clear removes it.
+struct RecipeTimeSheet: View {
+    let recipeID: UUID
+    let initialMinutes: Int?
+    @EnvironmentObject private var library: RecipeLibrary
+    @Environment(\.dismiss) private var dismiss
+    @State private var hours: Int
+    @State private var minutes: Int
+    @State private var saveError: String?
+
+    init(recipeID: UUID, initialMinutes: Int?) {
+        self.recipeID = recipeID
+        self.initialMinutes = initialMinutes
+        let total = initialMinutes ?? 0
+        _hours = State(initialValue: total / 60)
+        _minutes = State(initialValue: total % 60)
+    }
+
+    private var total: Int { hours * 60 + minutes }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text(initialMinutes == nil
+                         ? "The import found no total time. Enter the recipe’s own time so the plan can be checked against it."
+                         : "The recipe’s own total time, as written. The plan on the Timing tab is compared with it.")
+                        .foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text(total == 0 ? "No time" : Scheduling.formatMinutes(total))
+                            .font(.system(.largeTitle, design: .rounded).weight(.medium))
+                            .monospacedDigit()
+                            .accessibilityIdentifier("recipe-time-value")
+                        Stepper("Hours: \(hours)", value: $hours, in: 0...24)
+                            .accessibilityIdentifier("recipe-time-hours")
+                        Stepper("Minutes: \(minutes)", value: $minutes, in: 0...55, step: 5)
+                            .accessibilityIdentifier("recipe-time-minutes")
+                    }.dtCard()
+                    if let saveError {
+                        Text(saveError)
+                            .font(.subheadline).foregroundStyle(Theme.warning)
+                            .accessibilityIdentifier("recipe-time-save-error")
+                    }
+                    Text("This is the recipe’s number, not the plan’s. Step estimates are edited on the Timing tab.")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if initialMinutes != nil {
+                        Button("Clear the recipe time") { save(nil) }
+                            .buttonStyle(QuietButtonStyle())
+                            .accessibilityIdentifier("recipe-time-clear")
+                    }
+                }.padding(24)
+            }
+            .foregroundStyle(Theme.ink)
+            .background(Theme.cream)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button("Save recipe time") { save(total) }
+                    .buttonStyle(BigButtonStyle())
+                    .disabled(total == 0 || total == initialMinutes)
+                    .accessibilityIdentifier("recipe-time-save")
+                    .padding(.horizontal, 24).padding(.vertical, 12)
+                    .background(Theme.cream)
+            }
+            .navigationTitle("Recipe time")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private func save(_ value: Int?) {
+        if library.setTotalMinutes(recipeID: recipeID, minutes: value) {
+            dismiss()
+        } else {
+            saveError = library.saveError ?? "The recipe time couldn’t be saved. Try again."
+        }
+    }
+}
+

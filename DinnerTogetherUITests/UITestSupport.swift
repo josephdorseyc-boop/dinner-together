@@ -933,6 +933,23 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.beanSpread], capture)
         openRecipe(RecipeFixtureText.beanSpreadTitle)
         onRecipePage(capture)
+        // No total time came with the text: the stat says so and takes one
+        // (Joe, build 11). r18.
+        let timeStat = app.buttons["recipe-time"]
+        XCTAssertTrue(timeStat.waitForExistence(timeout: 5), "the recipe-time stat is a button")
+        XCTAssertTrue(timeStat.label.contains("not stated"), "no total time yet: \(timeStat.label)")
+        XCTAssertTrue(app.buttons["timing-review-banner"].label.contains("No total time"), "the review banner warns about the missing time")
+        scrollAndTap(timeStat, "Recipe time → Add time")
+        let save = app.buttons["recipe-time-save"]
+        waitForExistence(save, timeout: 5, "the Recipe time sheet")
+        XCTAssertFalse(save.isEnabled, "nothing to save at zero")
+        for _ in 0..<9 { app.steppers["recipe-time-minutes"].buttons["Increment"].tap() }
+        XCTAssertTrue(app.staticTexts["recipe-time-value"].label.contains("45"), "45 minutes entered: \(app.staticTexts["recipe-time-value"].label)")
+        photograph("r18-recipe-time-entry" + capture.suffix)
+        tapPinned(save, "Save recipe time")
+        waitForDisappearance(save, "the sheet closed")
+        XCTAssertTrue(timeStat.label.contains("45 min"), "the page shows the entered time: \(timeStat.label)")
+        XCTAssertFalse(app.buttons["timing-review-banner"].label.contains("No total time"), "the warning is gone")
         app.buttons["recipe-tab-timing"].tap()
         let estimated = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Estimated time'")).firstMatch
         scrollTo(estimated)

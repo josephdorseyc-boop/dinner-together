@@ -82,4 +82,31 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: image.path),
                       "the photo survives a failed delete")
     }
+
+    /// The recipe's own total time, entered by hand when the import found
+    /// none (Joe, build 11): persists, clamps, clears, and never touches the
+    /// step estimates; a failed save rolls back.
+    func testRecipeTimeEntryPersistsAndRollsBack() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try recipeAt180(in: library)
+        XCTAssertNil(recipe.totalMinutes, "the text had no total time")
+
+        XCTAssertTrue(library.setTotalMinutes(recipeID: recipe.id, minutes: 45))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.totalMinutes, 45)
+        XCTAssertEqual(library.recipe(id: recipe.id)?.steps[0].minutes, 180, "the step estimate is untouched")
+        XCTAssertEqual(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.totalMinutes, 45, "persists after relaunch")
+
+        XCTAssertTrue(library.setTotalMinutes(recipeID: recipe.id, minutes: 0))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.totalMinutes, 1, "clamped to at least a minute")
+        XCTAssertTrue(library.setTotalMinutes(recipeID: recipe.id, minutes: nil))
+        XCTAssertNil(library.recipe(id: recipe.id)?.totalMinutes, "cleared")
+
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.setTotalMinutes(recipeID: recipe.id, minutes: 90))
+        XCTAssertNil(library.recipe(id: recipe.id)?.totalMinutes, "a failed save changes nothing in memory")
+        XCTAssertNotNil(library.saveError)
+        XCTAssertFalse(library.setTotalMinutes(recipeID: UUID(), minutes: 10), "unknown recipe")
+    }
 }
+
