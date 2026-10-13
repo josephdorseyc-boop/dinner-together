@@ -26,10 +26,6 @@ struct PlanView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 header
-                WeekStrip(chooseToday: { id in
-                    guard id != store.session.menuID else { return }
-                    if hasProgress { pendingMenuID = id } else { store.chooseMenu(id); recheckFeasibility() }
-                })
                 servingTimeCard
                 feasibilityCard
                 tonightsRecipe
@@ -38,6 +34,12 @@ struct PlanView: View {
                 }
                 .buttonStyle(SecondaryButtonStyle())
                 .accessibilityIdentifier("open-recipes")
+                // The week sits below tonight's time and recipe choice, above
+                // the classics (Joe, October 13).
+                WeekStrip(chooseToday: { id in
+                    guard id != store.session.menuID else { return }
+                    if hasProgress { pendingMenuID = id } else { store.chooseMenu(id); recheckFeasibility() }
+                })
                 SectionLabel(text: "ON THE MENU")
                 ForEach(DinnerCatalog.menus) { menu in
                     menuCard(menu)

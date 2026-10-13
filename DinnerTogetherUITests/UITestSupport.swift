@@ -1395,6 +1395,10 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.frozenBerry], capture)
         let today = app.buttons["week-day-0"]
         waitForExistence(today, timeout: 10, "This week on Tonight")
+        // Below AT THE TABLE and Choose from Recipes, above the classics (Joe).
+        let recipesButton = app.buttons["open-recipes"]
+        XCTAssertGreaterThan(today.frame.minY, recipesButton.frame.maxY, "the week sits below Choose from Recipes")
+        scrollTo(today)
         XCTAssertTrue(today.label.hasPrefix("Today: Steak night"), "today shows tonight’s dinner: \(today.label)")
         photograph("r23a-week-strip" + capture.suffix)
 

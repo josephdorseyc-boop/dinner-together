@@ -6,7 +6,6 @@ import XCTest
 // choices for any day. These pin the rotation's arithmetic, the plan's
 // precedence, and when a planned day takes over tonight's dinner.
 
-@MainActor
 final class WeekPlanTests: XCTestCase {
     private var cal: Calendar = {
         var c = Calendar(identifier: .gregorian)
@@ -106,7 +105,8 @@ final class WeekPlanTests: XCTestCase {
                      "already tonight's dinner")
     }
 
-    func testStorePersistsAndRollsBack() throws {
+    @MainActor
+    func testStorePersistsAndRollsBack() async throws {
         let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("dt-week-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let store = WeekPlanStore(directory: dir)
