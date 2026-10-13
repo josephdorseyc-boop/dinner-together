@@ -282,6 +282,12 @@ class DinnerTogetherUITestCase: XCTestCase {
         if let barTop = pinnedBarTop(excluding: f), barTop < screen.maxY - bottomBand {
             bottomBand = screen.maxY - barTop + 8
         }
+        // An element taller than the zone (an AX3 paragraph) can never fit
+        // whole; its top inside the zone is what "on screen" can mean.
+        let zoneTop = screen.minY + 60, zoneBottom = screen.maxY - bottomBand
+        if f.height > zoneBottom - zoneTop {
+            return f.minY >= zoneTop && f.minY <= zoneBottom - 44
+        }
         // Top band: the status bar plus a little; a navigation bar that
         // actually covers the element already makes it non-hittable. (iPad's
         // "Adjust time" sits ~100 pt from the top and never scrolls higher —
@@ -361,6 +367,24 @@ class DinnerTogetherUITestCase: XCTestCase {
             let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
             from.press(forDuration: 0.05, thenDragTo: to)
             if app.staticTexts["serving-time"].exists && app.staticTexts["serving-time"].isHittable { break }
+        }
+    }
+
+    /// For a photograph only: a few drags until the element's top is in the
+    /// middle band of the screen. No assertion — a tall AX3 paragraph at the
+    /// end of a sheet can never be "comfortably" visible (run 38399682685).
+    func bringIntoView(_ element: XCUIElement) {
+        let screen = app.frame
+        for _ in 0..<6 {
+            guard element.exists else { return }
+            let top = element.frame.minY
+            if top >= screen.minY + 80 && top <= screen.midY + 40 { return }
+            let delta = max(-screen.height * 0.4, min(screen.height * 0.4, top - screen.midY + 60))
+            let startY = delta >= 0 ? 0.55 : 0.30
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: max(0.12, min(0.92, startY - Double(delta / screen.height))))),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
         }
     }
 
@@ -1029,7 +1053,7 @@ extension DinnerTogetherUITestCase {
         // The segmented control's selected segment is the switch itself; the
         // picker's own element is the usual proof.
         XCTAssertTrue(chooser.exists || app.buttons["Screenshots"].isSelected, "the sheet switched to Screenshots and stayed open")
-        if capture.typeSize != nil { scrollTo(error) }
+        if capture.typeSize != nil { bringIntoView(error) }
         photograph("r06-apple-news-link" + capture.suffix)
     }
 
@@ -1264,18 +1288,32 @@ extension DinnerTogetherUITestCase {
     /// At AX3 the grid is taller than the half-height sheet; scroll within it.
     private func scrollAndTapSwatch(_ id: String) {
         let target = swatch(id)
-        // Drag inside the sheet itself: on iPad the sheet floats mid-screen,
-        // so a screen-relative drag can miss it (run 38365885474, AX3).
+        // The sheet's own scroll viewport: on iPad at AX3 the sheet is a small
+        // form sheet, the grid continues below its edge, and XCTest still
+        // reports those swatches hittable (run 38388564793 tapped Classic
+        // through the sheet's bottom). Scroll until the swatch is inside the
+        // viewport, dragging inside the viewport.
         let anchor = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'page-style-'")).firstMatch
-        for _ in 0..<6 where !(target.exists && target.frame.maxY <= app.frame.maxY - 40 && target.frame.minY >= app.frame.minY + 100 && target.isHittable) {
-            guard anchor.exists else { break }
-            let a = anchor.frame
+        func viewport() -> CGRect {
+            guard anchor.exists else { return app.frame }
+            let c = CGPoint(x: anchor.frame.midX, y: anchor.frame.midY)
+            let hosts = app.scrollViews.allElementsBoundByIndex.filter { $0.frame.contains(c) && $0.frame.height < app.frame.height }
+            return hosts.min(by: { $0.frame.height < $1.frame.height })?.frame ?? app.frame
+        }
+        func inside() -> Bool {
+            guard target.exists else { return false }
+            let v = viewport().insetBy(dx: 0, dy: 30)
+            return v.contains(CGPoint(x: target.frame.midX, y: target.frame.midY))
+        }
+        for _ in 0..<8 where !inside() {
+            let v = viewport()
             let origin = app.coordinate(withNormalizedOffset: .zero)
-            let from = origin.withOffset(CGVector(dx: a.midX, dy: min(a.maxY + 40, app.frame.maxY - 60)))
-            let to = origin.withOffset(CGVector(dx: a.midX, dy: max(a.minY - 220, app.frame.minY + 120)))
+            let from = origin.withOffset(CGVector(dx: v.midX, dy: v.maxY - 24))
+            let to = origin.withOffset(CGVector(dx: v.midX, dy: v.minY + 24))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
+        XCTAssertTrue(inside(), "the \(id) swatch is inside the sheet's viewport \(viewport()) — frame \(target.frame)")
         tapEvenInPopover(target)
     }
 
