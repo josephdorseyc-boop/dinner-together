@@ -22,21 +22,22 @@ jobs:
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
     steps:
-      - name: Xcode installations
+      # Findings go out as annotations: run logs live in blob storage that not
+      # every environment can read; check-run annotations are plain API.
+      - name: Probe
         run: |
-          sw_vers
-          ls -1 /Applications | grep -i xcode || true
-          xcode-select -p
-          xcodebuild -version
-      - name: SDKs and simulator runtimes
-        run: |
-          xcodebuild -showsdks 2>/dev/null | grep -i ios || true
-          xcrun simctl list runtimes 2>/dev/null || true
-      - name: Device types (looking for iPhone Duo)
-        run: |
-          xcrun simctl list devicetypes 2>/dev/null | grep -iE "iphone|ipad" || true
-          echo "--- Duo?"
-          xcrun simctl list devicetypes 2>/dev/null | grep -i duo || echo "no iPhone Duo device type on this image"
-      - name: Newest Xcode on the image
-        run: |
-          for x in /Applications/Xcode*.app; do echo "$x: $("$x/Contents/Developer/usr/bin/xcodebuild" -version 2>/dev/null | tr '\n' ' ')"; done
+          os=$(sw_vers -productVersion)
+          echo "::notice title=macOS::$os on ${{ inputs.runner }}"
+          echo "::notice title=Default Xcode::$(xcodebuild -version | tr '\n' ' ')"
+          for x in /Applications/Xcode*.app; do
+            v=$("$x/Contents/Developer/usr/bin/xcodebuild" -version 2>/dev/null | tr '\n' ' ')
+            echo "::notice title=Xcode app::$(basename "$x") = $v"
+          done
+          sdks=$(xcodebuild -showsdks 2>/dev/null | grep -i "iphoneos" | tr -s ' ' | tr '\n' ';')
+          echo "::notice title=iOS SDKs (default Xcode)::$sdks"
+          for x in /Applications/Xcode*.app; do
+            rt=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list runtimes 2>/dev/null | grep -i "^iOS" | tr '\n' ';')
+            duo=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -i "duo" | tr '\n' ';')
+            echo "::notice title=$(basename "$x") runtimes::${rt:-none}"
+            echo "::notice title=$(basename "$x") iPhone Duo device types::${duo:-none}"
+          done
