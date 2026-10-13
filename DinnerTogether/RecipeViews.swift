@@ -206,9 +206,33 @@ struct AddRecipeSheet: View {
     @State private var working = false
     @State private var error: String?
     @State private var picked: [PhotosPickerItem] = []
-    /// DEBUG UI tests only (-dt-stub-screenshots); always empty in release.
-    @State private var stubbed: [Data] = LaunchOptions.stubScreenshotData()
+    /// Screenshot bytes supplied without the picker: shared from another app
+    /// (phase 1b), or the DEBUG UI-test stub (-dt-stub-screenshots).
+    @State private var stubbed: [Data]
+    /// A link or text that arrived through the share sheet starts importing
+    /// as soon as the sheet appears (Mela's behavior); images wait for Add.
+    private let autoImport: Bool
     private var screenshotCount: Int { stubbed.isEmpty ? picked.count : stubbed.count }
+
+    init(shared: PendingShare? = nil, onAdded: @escaping (UUID) -> Void) {
+        self.onAdded = onAdded
+        var initialMode = Mode.link
+        var initialLink = "", initialText = ""
+        var provided = LaunchOptions.stubScreenshotData()
+        var auto = false
+        if let shared {
+            switch shared.item.kind {
+            case .link: initialMode = .link; initialLink = shared.item.url?.absoluteString ?? ""; auto = !initialLink.isEmpty
+            case .text: initialMode = .text; initialText = shared.item.text ?? ""; auto = !initialText.isEmpty
+            case .images: initialMode = .screenshots; provided = shared.images
+            }
+        }
+        _mode = State(initialValue: initialMode)
+        _link = State(initialValue: initialLink)
+        _text = State(initialValue: initialText)
+        _stubbed = State(initialValue: provided)
+        autoImport = auto
+    }
 
     /// The chosen screenshots' bytes, in selection order.
     private func screenshotData() async throws -> [Data] {
@@ -297,6 +321,7 @@ struct AddRecipeSheet: View {
         .tint(Theme.tomato)
         .interactiveDismissDisabled(working)
         .onChange(of: picked) { _, _ in coverData = nil }
+        .task { if autoImport && !working { runImport() } }
         .sheet(isPresented: $choosingCover) {
             ScreenshotCoverSheet(load: { try await screenshotData() }) { coverData = $0 }
                 .uiTestTypeSize()

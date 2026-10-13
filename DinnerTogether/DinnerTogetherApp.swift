@@ -47,7 +47,10 @@ struct DinnerTogetherApp: App {
                 #endif
                 .task { await store.refreshNotificationSettings() }
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { Task { await store.refreshNotificationSettings() } }
+                    if phase == .active {
+                        Task { await store.refreshNotificationSettings() }
+                        library.checkSharedInbox()
+                    }
                 }
         }
     }

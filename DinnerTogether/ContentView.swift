@@ -4,6 +4,7 @@ import SwiftUI
 /// genuinely wider detail layout instead of a stretched phone screen.
 struct ContentView: View {
     @EnvironmentObject private var store: SessionStore
+    @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     // Debug launch option `-dt-open-cooking` starts on the Cooking screen
     // (simulator screenshots). Release builds always start on Tonight.
@@ -46,6 +47,12 @@ struct ContentView: View {
             }
         }
         .tint(Theme.tomato)
+        // Share → "Dinner, Together" from another app: the inbox item opens
+        // Add recipe already filled in; the new recipe's page follows.
+        .sheet(item: $library.pendingShare) { share in
+            AddRecipeSheet(shared: share) { id in openRecipe(id) }
+                .uiTestTypeSize()
+        }
         .sheet(isPresented: $store.needsStaleChoice) {
             StalePlanView()
                 .presentationDetents([.medium])

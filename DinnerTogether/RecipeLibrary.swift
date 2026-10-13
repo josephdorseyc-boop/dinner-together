@@ -16,10 +16,20 @@ protocol MenuProviding: AnyObject {
     func menu(id: String) -> DinnerMenu?
 }
 
+/// What the share extension left for the app, ready for the Add sheet.
+struct PendingShare: Identifiable, Equatable {
+    let id = UUID()
+    let item: SharedItem
+    let images: [Data]
+}
+
 @MainActor
 final class RecipeLibrary: ObservableObject, MenuProviding {
     @Published private(set) var recipes: [Recipe] = []
     @Published var saveError: String?
+    /// Set when the app comes to the front and the share extension's inbox
+    /// holds an item; ContentView opens Add recipe with it.
+    @Published var pendingShare: PendingShare?
 
     private let fileURL: URL
     private let imagesURL: URL
@@ -41,6 +51,17 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
            let loaded = try? JSONDecoder().decode([Recipe].self, from: data) {
             recipes = loaded.sorted { $0.importedAt > $1.importedAt }
         }
+    }
+
+    // MARK: The share extension's inbox
+
+    /// Looks in the App Group container (nil when the app is not entitled,
+    /// e.g. an unsigned simulator build without the group).
+    func checkSharedInbox(now: Date = Date()) {
+        guard pendingShare == nil, let bundle = Bundle.main.bundleIdentifier,
+              let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: SharedInbox.groupIdentifier(bundleIdentifier: bundle)),
+              let found = SharedInbox.take(from: container, now: now) else { return }
+        pendingShare = PendingShare(item: found.item, images: found.images)
     }
 
     // MARK: Lookup

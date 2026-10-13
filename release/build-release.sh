@@ -80,7 +80,7 @@ xcodebuild archive \
   -destination 'generic/platform=iOS' -archivePath "$ARCHIVE" \
   "${AUTH[@]}" \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-  PRODUCT_BUNDLE_IDENTIFIER="$DT_BUNDLE_ID" \
+  DT_APP_BUNDLE_ID="$DT_BUNDLE_ID" \
   MARKETING_VERSION="$DT_VERSION" \
   CURRENT_PROJECT_VERSION="$DT_BUILD" \
   CODE_SIGN_STYLE=Automatic \

@@ -217,3 +217,52 @@ final class SocialImportTests: XCTestCase {
         XCTAssertNil(SocialImport.recipeLink(inCaption: "no links here"))
     }
 }
+
+// MARK: - The share extension's inbox (phase 1b)
+
+final class SharedInboxTests: XCTestCase {
+    private func tempDir() -> URL {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appending(path: "dt-inbox-\(UUID().uuidString)", directoryHint: .isDirectory)
+        try? FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    func testGroupIdentifierIsTheAppsForBothTargets() {
+        XCTAssertEqual(SharedInbox.groupIdentifier(bundleIdentifier: "com.josephdorsey.dinnertogether"), "group.com.josephdorsey.dinnertogether")
+        XCTAssertEqual(SharedInbox.groupIdentifier(bundleIdentifier: "com.josephdorsey.dinnertogether.share"), "group.com.josephdorsey.dinnertogether")
+    }
+
+    func testLinkRoundTripAndTakeClears() throws {
+        let dir = tempDir()
+        let item = SharedItem(kind: .link, url: URL(string: "https://www.tiktok.com/@a/video/1")!, createdAt: Date(timeIntervalSince1970: 1_760_000_000))
+        try SharedInbox.write(item, images: [], in: dir)
+        let taken = SharedInbox.take(from: dir, now: Date(timeIntervalSince1970: 1_760_000_100))
+        XCTAssertEqual(taken?.item, item)
+        XCTAssertEqual(taken?.images.count, 0)
+        XCTAssertNil(SharedInbox.take(from: dir, now: Date(timeIntervalSince1970: 1_760_000_100)), "taken once")
+    }
+
+    func testImagesRoundTripInOrder() throws {
+        let dir = tempDir()
+        let a = Data(repeating: 0xA1, count: 3_000), b = Data(repeating: 0xB2, count: 2_000)
+        try SharedInbox.write(SharedItem(kind: .images, createdAt: Date()), images: [a, b], in: dir)
+        let taken = try XCTUnwrap(SharedInbox.take(from: dir))
+        XCTAssertEqual(taken.item.kind, .images)
+        XCTAssertEqual(taken.item.imageFiles, ["shared-1.img", "shared-2.img"])
+        XCTAssertEqual(taken.images, [a, b])
+        XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appending(path: SharedInbox.imagesFolder).path), "images are removed with the item")
+    }
+
+    func testStaleItemIsDropped() throws {
+        let dir = tempDir()
+        try SharedInbox.write(SharedItem(kind: .text, text: "old", createdAt: Date(timeIntervalSince1970: 1_760_000_000)), images: [], in: dir)
+        XCTAssertNil(SharedInbox.take(from: dir, now: Date(timeIntervalSince1970: 1_760_000_000 + 90_000)), "a day-old hand-off does not pop up")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: dir.appending(path: SharedInbox.fileName).path), "…and is cleaned up")
+    }
+
+    func testFirstURLInSharedText() {
+        XCTAssertEqual(SharedInbox.firstURL(in: "Check this out https://vm.tiktok.com/ZM8abc/ 🔥")?.absoluteString, "https://vm.tiktok.com/ZM8abc/")
+        XCTAssertNil(SharedInbox.firstURL(in: "2 cups flour\n1 egg"))
+    }
+}
+
