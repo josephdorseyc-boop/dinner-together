@@ -136,10 +136,15 @@ jobs:
               case "$line" in *❌*) echo "::error title=native-validation::${line}";; *) echo "::notice title=native-validation::${line}";; esac
             done
           fi
-          # First failing UI assertion per device, if any (also as annotations).
+          # Failing UI tests by name with their first assertion (ten
+          # annotations per step is the limit; the gate lines above use some).
           for d in iphone ipad; do
-            f="$RESULTS/25-ui-test-$d.log"
-            [ -f "$f" ] && grep -E 'error: -\[|failed - |Assertion Failure|XCTAssert' "$f" | head -3 | while IFS= read -r line; do echo "::error title=ui-$d::${line:0:400}"; done || true
+            f="$RESULTS/25-ui-test-$d.log"; [ -f "$f" ] || continue
+            grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$f" | sort -u | head -3 | while IFS= read -r line; do
+              t=$(printf '%s' "$line" | sed -E "s/.*\.[A-Za-z_]+ ([A-Za-z0-9_]+)\]' failed/\1/")
+              why=$(grep -m1 -E "\[DinnerTogetherUITests\.[A-Za-z_]+ $t\].*(error|failed)" "$f" | sed -E 's/^.*error: //' | cut -c1-220)
+              echo "::error title=ui-$d $t::${why:-failed}"
+            done
           done
       - name: Upload results
         if: always()

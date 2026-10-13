@@ -1188,6 +1188,10 @@ struct RecipeDetailView: View {
                         .accessibilityLabel("More")
                 }
             }
+            // The identifier is on the Menu itself: on iOS 27 the label's
+            // "More" did not reach XCTest on colored pages (duo-validation
+            // 38425944734, test12/test18/test27), while the identifier does.
+            .accessibilityIdentifier("recipe-more")
         }
     }
 

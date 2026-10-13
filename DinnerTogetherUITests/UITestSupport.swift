@@ -1254,7 +1254,11 @@ extension DinnerTogetherUITestCase {
     // MARK: Page colors (Joe, Oct 12): photo colors, a chosen color, frosted cards.
 
     private func openPageColorFromMenu() {
-        let more = app.buttons["More"]
+        // By identifier first (iOS 27 dropped the glyph's "More" label on
+        // colored pages), then by label; a Menu reports as a button on
+        // iPhone and sometimes as its own element type on iPad.
+        var more = app.descendants(matching: .any)["recipe-more"].firstMatch
+        if !more.waitForExistence(timeout: 5) { more = app.buttons["More"].firstMatch }
         waitForExistence(more, timeout: 5, "the recipe’s More menu")
         let sheetDone = app.buttons["page-style-done"]
         // iPad: the menu is a popover and a tap can be swallowed while it
