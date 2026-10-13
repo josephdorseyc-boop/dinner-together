@@ -24,7 +24,7 @@ on:
     # wip/** branches get the 1-minute Linux harness on every push
     # (engine-quick.yml); run this full workflow on them by hand when wanted.
     # Documentation-only pushes don't need a 20-minute macOS run.
-    paths-ignore: ['docs/**', '**/*.md', '.github/workflows/ui-review-evidence.yml', '.github/workflows/toolchain-probe.yml']
+    paths-ignore: ['docs/**', '**/*.md', '.github/workflows/ui-review-evidence.yml', '.github/workflows/toolchain-probe.yml', '.github/workflows/duo-validation.yml']
   workflow_dispatch:
 
 # Results are also pushed to the ci-results / ci-results-linux branches so
