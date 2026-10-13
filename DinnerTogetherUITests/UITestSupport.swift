@@ -1278,8 +1278,17 @@ extension DinnerTogetherUITestCase {
         // colored pages), then by label; a Menu reports as a button on
         // iPhone and sometimes as its own element type on iPad.
         var more = app.descendants(matching: .any)["recipe-more"].firstMatch
-        if !more.waitForExistence(timeout: 5) { more = app.buttons["More"].firstMatch }
-        waitForExistence(more, timeout: 5, "the recipe’s More menu")
+        if !more.waitForExistence(timeout: 5) {
+            // iOS 27 (duo-validation 38448870850): after the page has been
+            // scrolled the toolbar's More item was absent from the hierarchy
+            // in the Dark, AX3 and pale flows. Back at the top of the page it
+            // is there on iOS 26; try that before giving up, and leave the
+            // hierarchy as evidence if it still is not.
+            scrollRecipeToTop()
+            if !more.waitForExistence(timeout: 4) { more = app.buttons["More"].firstMatch }
+        }
+        if !more.waitForExistence(timeout: 5) { attachHierarchy("recipe-more-missing-hierarchy") }
+        waitForExistence(more, timeout: 1, "the recipe’s More menu")
         let sheetDone = app.buttons["page-style-done"]
         // iPad: the menu is a popover and a tap can be swallowed while it
         // animates (same retry as the delete flow).
