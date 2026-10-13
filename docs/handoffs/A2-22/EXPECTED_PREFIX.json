@@ -1,0 +1,62 @@
+{
+  "kind": "manual_transcription_for_parser_contract_not_actual_vision_output",
+  "reported_build": 11,
+  "title": "Lavender-Ginger Meringue Twists",
+  "pages": [
+    {
+      "source_file": "IMG_4586(1).jpeg",
+      "active_step_number": 1,
+      "active_instruction": "Preheat oven to 200°F with rack in lower third position.",
+      "header_location": "Recipe title below Ingredients/Directions tabs; Step n navigation label on pages 2–5.",
+      "next_step_is_dimmed": true
+    },
+    {
+      "source_file": "IMG_4587(1).jpeg",
+      "active_step_number": 2,
+      "active_instruction": "Spread about ⅛ teaspoon of the Basic Meringue into each corner of 2 unrimmed baking sheets; line each baking sheet with parchment paper, and press into meringue to hold parchment paper in place.",
+      "header_location": "Recipe title below Ingredients/Directions tabs; Step n navigation label on pages 2–5.",
+      "next_step_is_dimmed": true
+    },
+    {
+      "source_file": "IMG_4588(1).jpeg",
+      "active_step_number": 3,
+      "active_instruction": "Set aside.",
+      "header_location": "Recipe title below Ingredients/Directions tabs; Step n navigation label on pages 2–5.",
+      "next_step_is_dimmed": true
+    },
+    {
+      "source_file": "IMG_4589(1).jpeg",
+      "active_step_number": 4,
+      "active_instruction": "Gently stir ginger and lavender extract into remaining Basic Meringue in mixing bowl using a rubber spatula until evenly incorporated.",
+      "header_location": "Recipe title below Ingredients/Directions tabs; Step n navigation label on pages 2–5.",
+      "next_step_is_dimmed": true
+    },
+    {
+      "source_file": "IMG_4590(1).jpeg",
+      "active_step_number": 5,
+      "active_instruction": "Transfer one-fourth of the meringue mixture (about 1 cup) to a medium bowl, and stir in a very small amount of violet food coloring gel.",
+      "header_location": "Recipe title below Ingredients/Directions tabs; Step n navigation label on pages 2–5.",
+      "next_step_is_dimmed": true
+    }
+  ],
+  "expected_visible_prefix": [
+    "Preheat oven to 200°F with rack in lower third position.",
+    "Spread about ⅛ teaspoon of the Basic Meringue into each corner of 2 unrimmed baking sheets; line each baking sheet with parchment paper, and press into meringue to hold parchment paper in place.",
+    "Set aside.",
+    "Gently stir ginger and lavender extract into remaining Basic Meringue in mixing bowl using a rubber spatula until evenly incorporated.",
+    "Transfer one-fourth of the meringue mixture (about 1 cup) to a medium bowl, and stir in a very small amount of violet food coloring gel."
+  ],
+  "metadata": {
+    "total_minutes": null,
+    "yield": null
+  },
+  "notes": [
+    "Only first five active source instructions are supplied in full. This is not the complete recipe.",
+    "Do not derive cook duration from 200°F, teaspoon measurements, pan count or food-color amounts.",
+    "Do not promote repeated title, editorial teaser or Apple News navigation labels to cooking steps.",
+    "Next dimmed instruction is context; merge with its later active copy and avoid duplicate steps.",
+    "Preserve short instructions (Set aside.) despite their length and lack of a stated duration.",
+    "Run actual Vision recognition separately; no claim that this JSON reproduces the on-device recognizer output.",
+    "Cover image/intro that contaminated the import are visible in app output but their original input screenshot is not attached here."
+  ]
+}
