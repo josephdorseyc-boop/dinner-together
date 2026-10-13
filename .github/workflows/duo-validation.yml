@@ -88,7 +88,9 @@ jobs:
           # readable from every environment, and a name is what a fix needs.
           for d in iphone ipad; do
             f="$RESULTS/25-ui-test-$d.log"; [ -f "$f" ] || continue
-            grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$f" | sort -u | head -3 | while IFS= read -r line; do
+            # `|| true`: no failures means grep exits 1, and pipefail would fail
+            # the step on a green run (run 38466852602).
+            { grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$f" || true; } | sort -u | head -3 | while IFS= read -r line; do
               t=$(printf '%s' "$line" | sed -E "s/.*\.[A-Za-z_]+ ([A-Za-z0-9_]+)\]' failed/\1/")
               why=$(grep -m1 -E "\[DinnerTogetherUITests\.[A-Za-z_]+ $t\].*(error|failed)" "$f" | sed -E 's/^.*error: //' | cut -c1-220)
               echo "::error title=ui-$d $t::${why:-failed}"
