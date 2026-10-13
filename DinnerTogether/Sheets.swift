@@ -306,10 +306,12 @@ struct RecipeTimeSheet: View {
                             .font(.system(.largeTitle, design: .rounded).weight(.medium))
                             .monospacedDigit()
                             .accessibilityIdentifier("recipe-time-value")
+                        // No identifiers on the steppers: one collapses the
+                        // stepper into a single element and its Increment /
+                        // Decrement buttons disappear from the hierarchy
+                        // (run 38365885474). Tests find them by label.
                         Stepper("Hours: \(hours)", value: $hours, in: 0...24)
-                            .accessibilityIdentifier("recipe-time-hours")
                         Stepper("Minutes: \(minutes)", value: $minutes, in: 0...55, step: 5)
-                            .accessibilityIdentifier("recipe-time-minutes")
                     }.dtCard()
                     if let saveError {
                         Text(saveError)

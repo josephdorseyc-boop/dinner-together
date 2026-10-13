@@ -294,7 +294,11 @@ class DinnerTogetherUITestCase: XCTestCase {
     func pinnedBarTop(excluding target: CGRect) -> CGFloat? {
         let pinned = NSPredicate(format: "identifier IN %@ OR label BEGINSWITH 'Build ' OR label == 'Back to cooking' OR label BEGINSWITH 'Save '",
                                  ["cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"])
-        let bars = app.buttons.matching(pinned).allElementsBoundByIndex
+        // The captions above the pinned buttons are part of the bar too
+        // (at AX3 "Selected: …" is four lines tall — run 38365885474 tapped
+        // Tonight's recipe card under it).
+        let captions = NSPredicate(format: "label BEGINSWITH 'Selected: ' OR label BEGINSWITH 'This is tonight'")
+        let bars = app.buttons.matching(pinned).allElementsBoundByIndex + app.staticTexts.matching(captions).allElementsBoundByIndex
         // A pinned control sits in the bottom quarter and is never the target
         // itself (run 38341383318: the Add sheet's own button counted as a bar).
         let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1
@@ -965,7 +969,9 @@ extension DinnerTogetherUITestCase {
         let save = app.buttons["recipe-time-save"]
         waitForExistence(save, timeout: 5, "the Recipe time sheet")
         XCTAssertFalse(save.isEnabled, "nothing to save at zero")
-        for _ in 0..<9 { app.steppers["recipe-time-minutes"].buttons["Increment"].tap() }
+        let minutesStepper = app.steppers.matching(NSPredicate(format: "label BEGINSWITH 'Minutes'")).firstMatch
+        waitForExistence(minutesStepper, timeout: 5, "the minutes stepper")
+        for _ in 0..<9 { minutesStepper.buttons["Increment"].tap() }
         XCTAssertTrue(app.staticTexts["recipe-time-value"].label.contains("45"), "45 minutes entered: \(app.staticTexts["recipe-time-value"].label)")
         photograph("r18-recipe-time-entry" + capture.suffix)
         tapPinned(save, "Save recipe time")
@@ -1258,10 +1264,16 @@ extension DinnerTogetherUITestCase {
     /// At AX3 the grid is taller than the half-height sheet; scroll within it.
     private func scrollAndTapSwatch(_ id: String) {
         let target = swatch(id)
-        for _ in 0..<6 where !(target.exists && target.isHittable) {
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
-            from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)),
-                       withVelocity: .default, thenHoldForDuration: 0.3)
+        // Drag inside the sheet itself: on iPad the sheet floats mid-screen,
+        // so a screen-relative drag can miss it (run 38365885474, AX3).
+        let anchor = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'page-style-'")).firstMatch
+        for _ in 0..<6 where !(target.exists && target.frame.maxY <= app.frame.maxY - 40 && target.frame.minY >= app.frame.minY + 100 && target.isHittable) {
+            guard anchor.exists else { break }
+            let a = anchor.frame
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let from = origin.withOffset(CGVector(dx: a.midX, dy: min(a.maxY + 40, app.frame.maxY - 60)))
+            let to = origin.withOffset(CGVector(dx: a.midX, dy: max(a.minY - 220, app.frame.minY + 120)))
+            from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
         tapEvenInPopover(target)
