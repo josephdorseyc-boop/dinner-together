@@ -460,7 +460,12 @@ struct AddRecipeSheet: View {
                 }
                 finishImport(recipe)
             } catch let e as LocalizedError {
-                if case RecipeImportError.appleNewsOnly = e { mode = .screenshots }
+                // Links that can only be finished with screenshots switch the
+                // sheet there, with the explanation kept in view.
+                switch e as? RecipeImportError {
+                case .appleNewsOnly, .captionWithoutRecipe, .instagramLoginWall, .tiktokUnavailable: mode = .screenshots
+                default: break
+                }
                 error = e.errorDescription ?? "That didn’t work. Try pasting the recipe text instead."
             } catch {
                 self.error = "That didn’t work. Try pasting the recipe text instead."

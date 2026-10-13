@@ -38,9 +38,21 @@ enum RecipeImportError: Error, Equatable, LocalizedError {
     /// An apple.news link: News serves a placeholder page, never the recipe.
     case appleNewsOnly(title: String?)
     case noTextInScreenshots
+    /// A TikTok or Instagram post whose caption carries no recipe.
+    case captionWithoutRecipe(platform: String)
+    /// Instagram served its sign-in page instead of the post.
+    case instagramLoginWall
+    /// TikTok's endpoint had nothing for this link (private, removed, or not a video).
+    case tiktokUnavailable
 
     var errorDescription: String? {
         switch self {
+        case .captionWithoutRecipe(let platform):
+            return "This \(platform) post’s caption doesn’t include the recipe. If it’s in the comments or spoken in the video, take screenshots of it and choose them, or paste the text."
+        case .instagramLoginWall:
+            return "Instagram doesn’t let apps read posts without signing in. Take screenshots of the caption and recipe and choose them, or paste the caption text."
+        case .tiktokUnavailable:
+            return "TikTok couldn’t provide this video’s details — it may be private or removed. Take screenshots of the caption and choose them, or paste the text."
         case .noRecipeData:
             return "This page doesn’t include recipe data the app can read. Copy the recipe text and paste it instead."
         case .emptyText:

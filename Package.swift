@@ -50,6 +50,7 @@ let package = Package(
                 "RecipeImporter.swift",
                 "RecipeLibrary.swift",
                 "RecipePalette.swift",
+                "SocialImport.swift",
                 "EngineTestSupport.swift",
             ]
         ),

@@ -279,6 +279,9 @@ struct RecipeImportService {
     var fetcher: RecipePageFetcher = URLSessionRecipeFetcher()
 
     func importLink(_ url: URL, now: Date = Date()) async throws -> (recipe: Recipe, imageData: Data?) {
+        if let social = SocialLink.detect(url) {
+            return try await importSocial(social, now: now)
+        }
         let page = try await fetcher.fetch(url)
         var html = String(decoding: page.data, as: UTF8.self)
         var pageURL = page.finalURL
@@ -301,6 +304,48 @@ struct RecipeImportService {
             }
         }
         if imported.source.url == nil { imported.source.url = pageURL }
+        let recipe = RecipeImporter.build(imported, method: .link, now: now)
+        var imageData: Data?
+        if let imageURL = imported.imageURL, let fetched = try? await fetcher.fetch(imageURL), fetched.data.count > 1_000 {
+            imageData = fetched.data
+        }
+        return (recipe, imageData)
+    }
+
+    /// A TikTok or Instagram post: caption → recipe, cover from the post.
+    /// A caption that only links to the recipe elsewhere is followed once.
+    func importSocial(_ link: SocialLink, now: Date) async throws -> (recipe: Recipe, imageData: Data?) {
+        let post: SocialPost
+        switch link {
+        case .tiktok(var video):
+            if link.isShortLink {
+                // vm.tiktok.com/… → the video page; the oEmbed endpoint wants that.
+                video = (try? await fetcher.fetch(video).finalURL) ?? video
+            }
+            guard let endpoint = SocialLink.tiktokOEmbedURL(for: video) else { throw RecipeImportError.tiktokUnavailable }
+            let answer: (data: Data, finalURL: URL)
+            do { answer = try await fetcher.fetch(endpoint) } catch RecipeFetchError.badStatus { throw RecipeImportError.tiktokUnavailable }
+            guard let p = SocialImport.tiktokPost(fromOEmbed: answer.data, url: video) else { throw RecipeImportError.tiktokUnavailable }
+            post = p
+        case .instagram(let postURL):
+            let page = try await fetcher.fetch(postURL)
+            guard let p = SocialImport.instagramPost(fromHTML: String(decoding: page.data, as: UTF8.self), url: postURL) else {
+                throw RecipeImportError.instagramLoginWall
+            }
+            post = p
+        }
+        var imported: ImportedRecipe
+        do {
+            imported = try SocialImport.recipe(from: post)
+        } catch let captionError as RecipeImportError {
+            // "Full recipe: https://…" — the page the creator pointed at.
+            guard let linked = SocialImport.recipeLink(inCaption: post.caption) else { throw captionError }
+            let page = try await fetcher.fetch(linked)
+            do {
+                imported = try RecipeImporter.parse(html: String(decoding: page.data, as: UTF8.self), url: page.finalURL)
+            } catch { throw captionError }
+            if imported.imageURL == nil { imported.imageURL = post.imageURL }
+        }
         let recipe = RecipeImporter.build(imported, method: .link, now: now)
         var imageData: Data?
         if let imageURL = imported.imageURL, let fetched = try? await fetcher.fetch(imageURL), fetched.data.count > 1_000 {
