@@ -1387,6 +1387,56 @@ extension DinnerTogetherUITestCase {
         photograph("r19d-pale-to-plum" + capture.suffix)
     }
 
+    /// r23 — the week (Joe, October 13): Tonight's "This week" strip shows
+    /// tonight's dinner and the plan; a day can take a classic or an open
+    /// night; today's chip chooses tonight's dinner; Recipes → classics plans
+    /// a classic for a day.
+    func flowWeekPlan(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture)
+        let today = app.buttons["week-day-0"]
+        waitForExistence(today, timeout: 10, "This week on Tonight")
+        XCTAssertTrue(today.label.hasPrefix("Today: Steak night"), "today shows tonight’s dinner: \(today.label)")
+        photograph("r23a-week-strip" + capture.suffix)
+
+        func plan(day index: Int, choose identifier: String) {
+            let chip = app.buttons["week-day-\(index)"]
+            scrollTo(chip)
+            chip.tap()
+            let option = app.buttons[identifier].firstMatch
+            waitForExistence(option, timeout: 5, "the day’s plan sheet offers \(identifier)")
+            scrollTo(option)
+            option.tap()
+            waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
+        }
+        plan(day: 1, choose: "day-plan-open")
+        XCTAssertTrue(app.buttons["week-day-1"].label.hasSuffix("Your pick"), "an open night: \(app.buttons["week-day-1"].label)")
+        app.buttons["week-day-2"].tap()
+        waitForExistence(app.buttons["day-plan-done"], timeout: 5, "the plan sheet")
+        photograph("r23b-day-plan-sheet" + capture.suffix)
+        let salmon = app.buttons["day-plan-salmon"]
+        scrollTo(salmon)
+        salmon.tap()
+        waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
+        XCTAssertTrue(app.buttons["week-day-2"].label.hasSuffix("An easy salmon evening"), "\(app.buttons["week-day-2"].label)")
+
+        plan(day: 0, choose: "day-plan-pasta")
+        XCTAssertTrue(app.staticTexts["Selected: A little pasta therapy"].waitForExistence(timeout: 5), "today’s chip chose tonight’s dinner")
+        XCTAssertTrue(app.buttons["week-day-0"].label.hasPrefix("Today: A little pasta therapy"))
+        photograph("r23c-week-planned" + capture.suffix)
+
+        openRecipesLibrary()
+        scrollAndTap(app.buttons["open-classics"], "Dinner, Together classics")
+        let gnocchi = app.buttons["classic-gnocchi-greens"]
+        waitForExistence(gnocchi, timeout: 5, "the classics folder")
+        photograph("r23d-classics" + capture.suffix)
+        scrollAndTap(gnocchi, "plan the gnocchi")
+        let tomorrow = app.buttons["plan-day-1"]
+        waitForExistence(tomorrow, timeout: 5, "Plan it for…")
+        tomorrow.tap()
+        waitForDisappearance(tomorrow, "planning closes the sheet")
+        XCTAssertTrue(gnocchi.label.contains("This week"), "the classic says when it is planned: \(gnocchi.label)")
+    }
+
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
     /// (A2-35): a photo band on Tonight's card, a strip on an ordinary
     /// start, a thumbnail on the timeline. At AX3 the row and plain cards

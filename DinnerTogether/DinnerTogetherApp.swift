@@ -7,6 +7,7 @@ struct DinnerTogetherApp: App {
     @StateObject private var store: SessionStore
     @StateObject private var library: RecipeLibrary
     @StateObject private var timers = TimerCenter()
+    @StateObject private var weekPlan: WeekPlanStore
 
     init() {
         #if DEBUG
@@ -17,7 +18,9 @@ struct DinnerTogetherApp: App {
         // through it while loading the saved session.
         #if DEBUG
         LaunchOptions.writeRecipeSeedIfPresent()
+        LaunchOptions.writeWeekPlanSeedIfPresent()
         #endif
+        _weekPlan = StateObject(wrappedValue: WeekPlanStore())
         let library = RecipeLibrary()
         #if DEBUG
         library.simulateSaveFailure = LaunchOptions.failRecipeSaves
@@ -34,6 +37,7 @@ struct DinnerTogetherApp: App {
                 .environmentObject(store)
                 .environmentObject(library)
                 .environmentObject(timers)
+                .environmentObject(weekPlan)
                 #if DEBUG
                 // UI-test forced type size (A1-T1); nil unless -dt-type-size
                 // was passed, so release and ordinary debug builds are
@@ -44,13 +48,31 @@ struct DinnerTogetherApp: App {
                 // ContentView combines the forced appearance with the active
                 // recipe page's appearance at the presentation root.
                 #endif
-                .task { await store.refreshNotificationSettings() }
+                .task {
+                    adoptPlannedDinner()
+                    await store.refreshNotificationSettings()
+                }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
                         Task { await store.refreshNotificationSettings() }
                         library.checkSharedInbox()
+                        adoptPlannedDinner()
                     }
                 }
+        }
+    }
+}
+
+extension DinnerTogetherApp {
+    /// When a planned day arrives, its dinner becomes tonight's — only if
+    /// yesterday's choice is untouched and nothing is cooking (WeekPlan).
+    /// UI tests seed their own session and keep it.
+    @MainActor
+    private func adoptPlannedDinner() {
+        guard !LaunchOptions.seededSession, !store.needsStaleChoice else { return }
+        if let id = WeekPlan.menuToAdopt(session: store.session, hasProgress: store.hasProgress, plan: weekPlan.plan,
+                                         now: Date(), cookable: { PlannedDinners.cookable($0, library: library) }) {
+            store.chooseMenu(id)
         }
     }
 }
@@ -104,6 +126,18 @@ enum LaunchOptions {
         }
     }
     static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
+    /// A UI test seeded the session (DT_SEED_JSON): the week plan never
+    /// replaces it, and the plan file is reset for the test.
+    static var seededSession: Bool { ProcessInfo.processInfo.environment["DT_SEED_JSON"] != nil }
+
+    /// DT_SEED_WEEK_PLAN: a week-plan.json payload ("{}" when unset) written
+    /// whenever a UI test seeds the session, so no plan leaks between tests.
+    static func writeWeekPlanSeedIfPresent() {
+        guard seededSession else { return }
+        let json = ProcessInfo.processInfo.environment["DT_SEED_WEEK_PLAN"] ?? "{}"
+        let url = URL.documentsDirectory.appending(path: WeekPlanStore.fileName)
+        try? json.write(to: url, atomically: true, encoding: .utf8)
+    }
 
     /// Forces a DynamicTypeSize for accessibility-size UI-test renders.
     /// `-UIPreferredContentSizeCategoryName` is not honored by the app;
@@ -137,6 +171,7 @@ enum LaunchOptions {
     static var forcedColorScheme: ColorScheme? { nil }
     static var inertReminders: Bool { false }
     static var forcedTypeSize: DynamicTypeSize? { nil }
+    static var seededSession: Bool { false }
     #endif
 
     /// nil means "the real NotificationManager". Main-actor isolated because

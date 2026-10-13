@@ -7,6 +7,8 @@ import UIKit
 /// app never silently resumes or discards, and the sheet can't be swiped away.
 struct StalePlanView: View {
     @EnvironmentObject private var store: SessionStore
+    @EnvironmentObject private var library: RecipeLibrary
+    @EnvironmentObject private var weekPlan: WeekPlanStore
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -27,6 +29,11 @@ struct StalePlanView: View {
             .buttonStyle(BigButtonStyle())
             Button("Start fresh") {
                 store.resolveStale(resume: false)
+                // A fresh start takes today's planned dinner, if the plan has one.
+                if case .menu(let id) = weekPlan.dinner(on: Date(), exists: { PlannedDinners.exists($0, library: library) }),
+                   id != store.session.menuID, PlannedDinners.cookable(id, library: library) {
+                    store.chooseMenu(id)
+                }
                 dismiss()
             }
             .buttonStyle(SecondaryButtonStyle())

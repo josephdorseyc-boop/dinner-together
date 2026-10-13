@@ -16,6 +16,7 @@ struct RecipesView: View {
     var goTonight: () -> Void
     var goCooking: () -> Void
     @State private var adding = false
+    @State private var showingClassics = false
     @State private var editing: Recipe?
     @State private var deleting: Recipe?
     @State private var cannotDelete = false
@@ -43,6 +44,29 @@ struct RecipesView: View {
                 .buttonStyle(SecondaryButtonStyle())
                 .libraryRow()
             }
+            // The built-in dinners as a folder (Joe, October 13).
+            Button { showingClassics = true } label: {
+                HStack(spacing: 14) {
+                    HStack(spacing: -14) {
+                        ForEach(["steak", "salmon", "tofu-bowls"], id: \.self) { id in
+                            PlateIllustration(menuID: id).frame(width: 40, height: 40)
+                        }
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Dinner, Together classics").font(.headline)
+                        Text("\(DinnerCatalog.menus.count) dinners that rotate through your week")
+                            .font(.caption).foregroundStyle(Theme.muted)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
+                }
+                .padding(14)
+                .background(Theme.paper, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("open-classics")
+            .libraryRow(top: 12)
             HStack {
                 SectionLabel(text: "YOUR RECIPES")
                 Spacer()
@@ -102,6 +126,9 @@ struct RecipesView: View {
         .accessibilityIdentifier("recipe-library")
         .navigationDestination(for: UUID.self) { id in
             RecipeDetailView(recipeID: id, onChoose: goTonight)
+        }
+        .navigationDestination(isPresented: $showingClassics) {
+            ClassicsView(goTonight: goTonight)
         }
         .sheet(isPresented: $adding) {
             AddRecipeSheet { id in path.append(id) }.uiTestTypeSize()

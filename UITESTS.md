@@ -193,3 +193,15 @@ for tonight's recipe while it is being cooked. The swipe buttons are plain
 buttons tinted red/olive, not `role: .destructive`, which animates the row
 away before the cook confirms. Flow: `flowSwipeEditAndDelete` (test36 and
 test37 AX3 on iPhone, test19 on iPad), renders r20a–r20d.
+
+## The week (r23, October 13)
+
+Tonight opens with **THIS WEEK**: seven chips (`week-day-0` is today and
+shows tonight's actual dinner; 1–6 show the plan). A chip opens the day's
+plan sheet (`day-plan-<menuID>`, `day-plan-open`, `day-plan-rotation`,
+`day-plan-done`); today's choice goes through Tonight's own selection path.
+Recipes has a **Dinner, Together classics** folder (`open-classics` →
+`classic-<menuID>` → `plan-day-<0…6>`). UI tests get an empty plan on
+every seeded launch (`DT_SEED_WEEK_PLAN`, default `{}`), and a seeded
+session is never replaced by the plan. Flow `flowWeekPlan` — test43
+(iPhone), test22 (iPad).

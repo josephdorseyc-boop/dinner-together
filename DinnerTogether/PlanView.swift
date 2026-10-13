@@ -26,6 +26,10 @@ struct PlanView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 header
+                WeekStrip(chooseToday: { id in
+                    guard id != store.session.menuID else { return }
+                    if hasProgress { pendingMenuID = id } else { store.chooseMenu(id); recheckFeasibility() }
+                })
                 servingTimeCard
                 feasibilityCard
                 tonightsRecipe
@@ -212,11 +216,10 @@ struct PlanView: View {
                 if hasProgress { pendingMenuID = menu.id } else { store.chooseMenu(menu.id); recheckFeasibility() }
             } label: {
                 HStack(spacing: 16) {
-                    Image(systemName: menu.symbol)
-                        .font(.title3.weight(.medium))
-                        .foregroundStyle(selected ? Theme.tomato : Theme.muted)
-                        .frame(width: 46, height: 46)
-                        .background(Theme.cream, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                    // The classic's illustrated plate (Joe, October 13).
+                    PlateIllustration(menuID: menu.id)
+                        .frame(width: 50, height: 50)
+                        .overlay(Circle().stroke(selected ? Theme.tomato.opacity(0.7) : .clear, lineWidth: 2))
                     VStack(alignment: .leading, spacing: 4) {
                         Text(menu.title).font(.headline)
                         Text(menu.subtitle).font(.caption).foregroundStyle(Theme.muted)

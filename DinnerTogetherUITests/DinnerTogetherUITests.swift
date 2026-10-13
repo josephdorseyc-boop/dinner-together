@@ -115,4 +115,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test40_recipeCoversPale() { flowRecipeCovers(photo: "pastel") }
     func test41_recipeCoversDeep() { flowRecipeCovers(photo: "landscape") }
     func test42_recipeCoversAX3() { flowRecipeCovers(.ax3, photo: "landscape") }
+    /// The week: This week on Tonight, a day's plan, the classics folder (Joe, Oct 13).
+    func test43_weekPlan() { flowWeekPlan() }
 }
