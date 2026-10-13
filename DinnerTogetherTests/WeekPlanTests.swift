@@ -96,7 +96,11 @@ final class WeekPlanTests: XCTestCase {
         XCTAssertNil(WeekPlan.menuToAdopt(session: todays, hasProgress: false, plan: plan, now: now, calendar: cal, cookable: all),
                      "the cook already chose today")
         XCTAssertNil(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal, cookable: { $0 != "salmon" }),
-                     "not a dinner that can't be cooked (a recipe that still needs its timing check)")
+                     "a planned dinner that can't be cooked yet (a recipe that still needs its timing check) holds the day — no silent substitute")
+        XCTAssertEqual(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal,
+                                            exists: { $0 != "salmon" }, cookable: all),
+                       { if case .menu(let id) = WeekRotation.suggestion(for: now, calendar: cal) { return id }; return nil }(),
+                       "a deleted recipe falls back to the rotation")
         plan.set(.open, on: now, calendar: cal)
         XCTAssertNil(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal, cookable: all),
                      "an open night leaves tonight as it is")

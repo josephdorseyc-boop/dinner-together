@@ -58,10 +58,14 @@ struct WeekPlan: Codable, Equatable {
     /// When a planned day arrives: the menu to make tonight's, or nil to leave
     /// the session alone. Only a session chosen before today with nothing
     /// started gives way, and only to a menu that exists and can be cooked.
+    /// A planned recipe that is not ready (its timing unchecked) holds the
+    /// day — it never silently becomes a different dinner; only a deleted
+    /// one falls back to the rotation.
     static func menuToAdopt(session: DinnerSession, hasProgress: Bool, plan: WeekPlan, now: Date,
-                            calendar: Calendar = .current, cookable: (String) -> Bool) -> String? {
+                            calendar: Calendar = .current, exists: (String) -> Bool = { _ in true },
+                            cookable: (String) -> Bool) -> String? {
         guard !hasProgress, session.createdAt < calendar.startOfDay(for: now) else { return nil }
-        guard case .menu(let id) = plan.dinner(on: now, calendar: calendar, exists: cookable),
+        guard case .menu(let id) = plan.dinner(on: now, calendar: calendar, exists: exists),
               id != session.menuID, cookable(id) else { return nil }
         return id
     }

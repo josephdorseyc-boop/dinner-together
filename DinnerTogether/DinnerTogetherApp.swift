@@ -71,7 +71,8 @@ extension DinnerTogetherApp {
     private func adoptPlannedDinner() {
         guard !LaunchOptions.seededSession, !store.needsStaleChoice else { return }
         if let id = WeekPlan.menuToAdopt(session: store.session, hasProgress: store.hasProgress, plan: weekPlan.plan,
-                                         now: Date(), cookable: { PlannedDinners.cookable($0, library: library) }) {
+                                         now: Date(), exists: { PlannedDinners.exists($0, library: library) },
+                                         cookable: { PlannedDinners.cookable($0, library: library) }) {
             store.chooseMenu(id)
         }
     }
