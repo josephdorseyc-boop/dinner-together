@@ -46,13 +46,21 @@ final class RecipePaletteTests: XCTestCase {
     }
 
     func testExtremePhotosStayReadable() throws {
-        let cases: [(String, [RGB])] = [
-            ("all white", Array(repeating: .white, count: 50)),
-            ("all black", Array(repeating: RGB(0, 0, 0), count: 50)),
-            ("neon green", Array(repeating: RGB(0.2, 1, 0.1), count: 50)),
-            ("pale yellow", Array(repeating: RGB(1, 0.98, 0.7), count: 50)),
-            ("noise", (0..<400).map { i in RGB(Double((i * 37) % 255) / 255, Double((i * 91) % 255) / 255, Double((i * 13) % 255) / 255) }),
-        ]
+        // Built up in statements: as one literal, Xcode 27.1's type-checker
+        // gave up on it (duo-validation run 38341455566).
+        var noise: [RGB] = []
+        for i in 0..<400 {
+            let r: Double = Double((i * 37) % 255) / 255
+            let g: Double = Double((i * 91) % 255) / 255
+            let b: Double = Double((i * 13) % 255) / 255
+            noise.append(RGB(r, g, b))
+        }
+        var cases: [(String, [RGB])] = []
+        cases.append(("all white", Array(repeating: RGB.white, count: 50)))
+        cases.append(("all black", Array(repeating: RGB(0, 0, 0), count: 50)))
+        cases.append(("neon green", Array(repeating: RGB(0.2, 1, 0.1), count: 50)))
+        cases.append(("pale yellow", Array(repeating: RGB(1, 0.98, 0.7), count: 50)))
+        cases.append(("noise", noise))
         for (label, px) in cases { assertReadable(try XCTUnwrap(RecipePalette.fromPixels(px)), label) }
         XCTAssertNil(RecipePalette.fromPixels([]))
     }
