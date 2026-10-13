@@ -58,10 +58,12 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     /// Looks in the App Group container (nil when the app is not entitled,
     /// e.g. an unsigned simulator build without the group).
     func checkSharedInbox(now: Date = Date()) {
+        #if canImport(UIKit)
         guard pendingShare == nil, let bundle = Bundle.main.bundleIdentifier,
               let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: SharedInbox.groupIdentifier(bundleIdentifier: bundle)),
               let found = SharedInbox.take(from: container, now: now) else { return }
         pendingShare = PendingShare(item: found.item, images: found.images)
+        #endif
     }
 
     // MARK: Lookup
