@@ -1,0 +1,6 @@
+run_id=38425770086
+run_number=12
+sha=b940e68202474b6130d7b0ed63dc521e65c1823f
+version=1.0
+submit=true
+conclusion_so_far=success
