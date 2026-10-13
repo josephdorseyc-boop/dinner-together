@@ -1,0 +1,97 @@
+--- a/docs/store/LISTING.md
++++ b/docs/store/LISTING.md
+@@ -1,10 +1,9 @@
+-# App Store listing — Dinner, Together 1.0 (A2-17 recipe-import draft)
++# App Store listing — Dinner, Together 1.0 (A2-32 build 13 submission draft)
+ 
+-Public copy below reflects main `cb28c05` (build 9): ten preset timing guides,
+-a Recipes library, link/text/screenshot import, and an optional cover crop.
+-It does not advertise page-color customization until build 10 is the selected
+-submission build. Verified lengths: name 16/30; subtitle 24/30; promotional text 88/170;
+-keywords 74/100; description 2167/4,000.
++Public copy is a submission draft for build 13, reviewed against `fa04aa0`.
++Select and validate the actual submission build before using it. It includes
++custom recipes and page colors; it is not a build 9 listing. Field lengths:
++name 16/30; subtitle 24/30; promotional text 88/170; keywords 74/100.
+ Submission fields marked for owner verification are not paste-ready answers.
+ 
+ ## App Information
+@@ -56,7 +55,7 @@
+ 
+ The preset menus are timing guides, not complete recipes. Use your trusted recipes for ingredients and cooking instructions.
+ 
+-Bring your own recipes into the Recipes tab: paste text, import a supported recipe link, or choose screenshots. Review the imported ingredients and directions, confirm the step estimates, and save a recipe to cook with a timed plan. Screenshot text is recognized on your device, and you can choose an optional cover crop. Import support varies by page; when a link cannot be read, use screenshots or pasted text instead.
++Bring your own recipes into the Recipes tab: paste text, import a supported recipe link, or choose screenshots. After importing, review the saved ingredients and directions and confirm the step estimates before cooking with a timed plan. Screenshot text is recognized on your device, and you can choose an optional cover crop and a recipe page color. Import support varies by page; when a link cannot be read, use screenshots or pasted text instead.
+ 
+ While you cook, see what needs your attention now, which timers are running, and what's coming next.
+ 
+@@ -93,16 +92,16 @@
+ | 2 | Know what to do now. | Cooking, on schedule, timer running (`on-schedule-light`) |
+ | 3 | Running late? Review the plan. | The review sheet from the UI tests (`01-review-sheet`) |
+ | 4 | A timer ends. You check the food. | Expired-timer cooking screen (`expired-timer-light`) |
+-| 5 | Nine dinners to choose from. | Tonight list scrolled, tofu selected (`09-tonight-menus`) |
++| 5 | Your recipes. Your timing. | Typed sample recipe on a Plum page (`r15c-typed-plum`; fallback `r15d-typed-plum-directions`), standard text size |
+ | 6 | A calmer counter, even after dark. | Dark Mode cooking screen (`on-schedule-dark`) |
+ 
+-The table describes existing generated assets. Before submission, replace
+-frame 5 with **“Your recipes. Your timing.”** using a real Recipes/detail
+-capture with original or licensed sample content. The store-assets workflow
+-and composer still need that change; this text patch does not generate it.
+-Keep the other five frames focused on whole-dinner timing. Do not use the
+-synthetic CI cover as consumer-facing food photography, or advertise build
+-10's page colors in a build 9 listing.
++Frame 5 subcaption: **“Bring a recipe. Check the steps. Make a plan.”**
++Use the project's typed sample recipe; verify its provenance and resulting
++capture before publishing. No publisher photograph or synthetic CI food photo.
++The composer requires an exact standard-text capture for this frame, so an
++AX-only attachment cannot silently become the store screenshot. Run against
++the selected submission build and review all twelve composed frames before
++uploading. Keep the other five frames focused on whole-dinner timing.
+ 
+ Run the workflow in the late afternoon Mountain Time so the clocks in the
+ frames read like dinner (the runner is set to America/Denver); a run at
+@@ -117,7 +116,7 @@
+ ```
+ Dinner, Together is a cooking-timing planner with a local recipe library. No account is required. Planning and cooking work offline; importing a web link fetches the selected page and an available recipe photo. To see the timing planner: on the Tonight tab pick "Steak night", choose a dinner time comfortably later than the menu's displayed estimate, and tap "Build my cooking plan". If the selected time is too soon, the button reads "Build plan for <time>" and applies that feasible time. The Cooking tab leads with the step to do now; tap "Start this step" to begin a timer. When a timer ends the app asks you to check the food and mark the step done — it never marks steps done by itself. If a step finishes late, a notice shows the new estimate next to the chosen dinner time; "Review dinner time" lets you move dinner to it, and Undo restores it. Notifications are optional local timer reminders.
+ 
+-To inspect recipe import, open Recipes and add a recipe using Link, Screenshots, or Text. Imported content is reviewed before saving; check directions and step estimates before cooking. Screenshot recognition runs on the device. If a recipe link has no readable recipe data (including some Apple News links), the app offers screenshots or pasted text instead. A screenshot cover crop is optional.
++To inspect recipe import, open Recipes and add a recipe using Link, Screenshots, or Text. After import, the saved recipe opens for review. Check the ingredients and directions, then confirm the step estimates before cooking. Screenshot recognition runs on the device. If a recipe link has no readable recipe data (including some Apple News links), the app offers screenshots or pasted text instead. A screenshot cover crop is optional.
+ ```
+ 
+ - Export compliance: the Info.plist key `ITSAppUsesNonExemptEncryption = NO`
+--- a/release/compose-store-frames.py
++++ b/release/compose-store-frames.py
+@@ -24,7 +24,7 @@
+ FONT_REG = "/usr/share/fonts/opentype/inter/Inter-Regular.otf"
+ CREAM, INK, MUTED, TOMATO = (250, 246, 237), (48, 43, 37), (110, 103, 94), (168, 56, 39)
+ 
+-# (slug, caption, subcaption, candidates in order of preference: ("static"|"ui", name-prefix))
++# (slug, caption, subcaption, candidates in order of preference: ("static"|"ui"|"ui-exact", name-prefix))
+ STORY = [
+     ("pick-dinner", "Pick dinner. Pick a time.",
+      "Every dish gets its place in one timeline.",
+@@ -38,9 +38,9 @@
+     ("check-the-food", "A timer ends. You check the food.",
+      "The app never decides a step is done for you.",
+      [("static", "expired-timer-light")]),
+-    ("nine-dinners", "Nine dinners to choose from.",
+-     "Four of them meat-free. Your own recipes, our timing.",
+-     [("ui", "09-tonight-menus"), ("static", "tonight-steak-light")]),
++    ("your-recipes", "Your recipes. Your timing.",
++     "Bring a recipe. Check the steps. Make a plan.",
++     [("ui-exact", "r15c-typed-plum"), ("ui-exact", "r15d-typed-plum-directions")]),
+     ("after-dark", "A calmer counter, even after dark.",
+      "Dark Mode, large readable times, iPad two-column layout.",
+      [("static", "on-schedule-dark"), ("static", "late-prep-dark")]),
+@@ -49,6 +49,11 @@
+ 
+ def find(root, device, kind, prefix):
+     folder = "screenshots" if kind == "static" else "ui-screenshots"
++    exact = os.path.join(root, folder, device, prefix + ".png")
++    if os.path.isfile(exact):
++        return exact
++    if kind == "ui-exact":
++        return None  # AX/Dark variants are not a substitute for this store frame.
+     hits = sorted(glob.glob(os.path.join(root, folder, device, prefix + "*.png")))
+     return hits[0] if hits else None
+ 
