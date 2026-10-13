@@ -366,6 +366,24 @@ class DinnerTogetherUITestCase: XCTestCase {
         }
     }
 
+    /// For a photograph only: a few drags until the element's top is in the
+    /// middle band of the screen. No assertion — a tall AX3 paragraph at the
+    /// end of a sheet can never be "comfortably" visible (run 38399682685).
+    func bringIntoView(_ element: XCUIElement) {
+        let screen = app.frame
+        for _ in 0..<6 {
+            guard element.exists else { return }
+            let top = element.frame.minY
+            if top >= screen.minY + 80 && top <= screen.midY + 40 { return }
+            let delta = max(-screen.height * 0.4, min(screen.height * 0.4, top - screen.midY + 60))
+            let startY = delta >= 0 ? 0.55 : 0.30
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: max(0.12, min(0.92, startY - Double(delta / screen.height))))),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+    }
+
     /// Finds, scrolls to and taps a button by its accessibility label.
     func tapButton(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
         let button = app.buttons[name].firstMatch
@@ -1012,7 +1030,7 @@ extension DinnerTogetherUITestCase {
         // The segmented control's selected segment is the switch itself; the
         // picker's own element is the usual proof.
         XCTAssertTrue(chooser.exists || app.buttons["Screenshots"].isSelected, "the sheet switched to Screenshots and stayed open")
-        if capture.typeSize != nil { scrollTo(error) }
+        if capture.typeSize != nil { bringIntoView(error) }
         photograph("r06-apple-news-link" + capture.suffix)
     }
 
