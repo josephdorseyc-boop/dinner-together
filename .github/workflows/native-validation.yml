@@ -177,6 +177,9 @@ jobs:
       - name: Publish results to the ci-results branch (readable with plain git)
         if: always()
         continue-on-error: true
+        # A hung push must not hold the gate until the job's timeout (run
+        # 38425982728 sat in this step for 20+ minutes).
+        timeout-minutes: 6
         run: |
           tmp=$(mktemp -d)
           if [ -d "$RESULTS" ]; then
