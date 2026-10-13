@@ -979,11 +979,17 @@ extension DinnerTogetherUITestCase {
         waitForExistence(field, timeout: 5, "the link field")
         field.tap()
         field.typeText("https://apple.news/KHuRjSBKDOACcBIjqE6y9tg")
+        // Keyboard down first: at AX3 the Add button sat under it, XCTest
+        // still called it hittable, and the tap went to the keyboard
+        // (run 38350049136: the sheet never left Link).
+        let returnKey = app.keyboards.buttons.matching(NSPredicate(format: "label IN {'return', 'go', 'Return', 'Go', 'done', 'Done'}")).firstMatch
+        if returnKey.waitForExistence(timeout: 2) { returnKey.tap() }
         let importButton = app.buttons["import-recipe"]
-        if !importButton.isHittable { scrollTo(importButton) }
-        importButton.tap()
-        let error = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Apple News'")).firstMatch
-        XCTAssertTrue(error.waitForExistence(timeout: 10), "the Apple News explanation appears")
+        scrollAndTap(importButton, "Add recipe")
+        // The explanation itself, not the field's "Apple News" hint.
+        let error = app.descendants(matching: .any)["import-error"]
+        XCTAssertTrue(error.waitForExistence(timeout: 10), "the import explanation appears")
+        XCTAssertTrue(error.label.contains("Apple News"), "…and it is about Apple News: \(error.label)")
         // At AX3 the picker sits below a long paragraph; its UIKit-backed
         // button is only exposed once scrolled near (run 38335694569).
         let chooser = app.descendants(matching: .any)["choose-screenshots"]
