@@ -25,6 +25,11 @@ on:
         description: "Refuse unless native-validation passed for this exact commit"
         type: boolean
         default: true
+      toolchain:
+        description: "Xcode to archive with: 26 (macos-15 image, Xcode 26.2 — the proven path) or 27 (xcode-27 image, Xcode 27.1 — full-screen iPhone Duo needs the iOS 27.1 SDK; use once duo-validation is green for the commit)"
+        type: choice
+        options: ["26", "27"]
+        default: "26"
 
 # contents: write only so the summary and logs can be pushed to the
 # release-results branch (artifact and log downloads need blob-storage access
@@ -40,22 +45,28 @@ concurrency:
 
 jobs:
   release:
-    runs-on: macos-15
+    # Xcode 26.2 on macos-15 is the path every release so far has used;
+    # Xcode 27.1 on the xcode-27 image is the one iPhone Duo's full-screen
+    # inner display needs (iOS 27.1 SDK). The duo-validation workflow proves
+    # a commit on 27.1 first.
+    runs-on: ${{ inputs.toolchain == '27' && 'xcode-27' || 'macos-15' }}
     timeout-minutes: 45
     env:
       OUT: ${{ github.workspace }}/release/out
     steps:
       - uses: actions/checkout@v4
-      - name: Select Xcode 26 (App Store Connect requires the iOS 26 SDK)
+      - name: Select Xcode (App Store Connect requires the iOS 26 SDK or later)
         run: |
-          # The image's default Xcode (16.4, iOS 18.5 SDK) builds fine but App
-          # Store Connect refuses its uploads ("must be built with the iOS 26
-          # SDK or later" — release run 4). Pin one 26.x; fall back to the
-          # newest 26.x if the pinned one is ever dropped from the image.
-          app="/Applications/Xcode_${DT_XCODE:-26.2}.app"
-          [ -d "$app" ] || app=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          # The macos-15 image's default Xcode (16.4, iOS 18.5 SDK) builds fine
+          # but App Store Connect refuses its uploads ("must be built with the
+          # iOS 26 SDK or later" — release run 4). Pin one version; fall back
+          # to the newest of that major if the pinned one is dropped.
+          if [ "${{ inputs.toolchain }}" = "27" ]; then want="${DT_XCODE:-27.1}"; major=27; else want="${DT_XCODE:-26.2}"; major=26; fi
+          app="/Applications/Xcode_${want}.app"
+          [ -d "$app" ] || app=$(ls -d /Applications/Xcode_${major}*.app | sort -V | tail -1)
           echo "DEVELOPER_DIR=$app/Contents/Developer" >> "$GITHUB_ENV"
           echo "Selected $app"
+          "$app/Contents/Developer/usr/bin/xcodebuild" -version
 
       - name: Require a green native-validation run for this commit
         if: ${{ inputs.require_green }}
@@ -64,12 +75,20 @@ jobs:
         run: |
           # The validation workflow runs on every push; this release must sit on a
           # commit it has already approved (compile, 61 XCTest, UI flows, screenshots).
-          runs_json=$(gh api "repos/${{ github.repository }}/actions/workflows/native-validation.yml/runs?head_sha=${{ github.sha }}&per_page=5")
-          incomplete=$(printf '%s' "$runs_json" | jq '[.workflow_runs[] | select(.status != "completed")] | length')
-          conclusion=$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status=="completed")] | .[0].conclusion // "none"')
-          echo "native-validation for ${{ github.sha }}: $conclusion (incomplete runs: $incomplete)"
-          [ "$incomplete" = "0" ] || { echo "::error::native-validation is still running for this commit — wait for it to finish, or rerun with require_green=false"; exit 1; }
-          [ "$conclusion" = "success" ] || { echo "::error::native-validation is '$conclusion' for this commit — fix that first, or rerun with require_green=false"; exit 1; }
+          # A cancelled run is not a verdict: the newest completed run that
+          # was not cancelled speaks for the commit.
+          check() { # workflow-file label
+            local runs_json incomplete conclusion
+            runs_json=$(gh api "repos/${{ github.repository }}/actions/workflows/$1/runs?head_sha=${{ github.sha }}&per_page=10")
+            incomplete=$(printf '%s' "$runs_json" | jq '[.workflow_runs[] | select(.status != "completed")] | length')
+            conclusion=$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status=="completed" and .conclusion != "cancelled")] | .[0].conclusion // "none"')
+            echo "$2 for ${{ github.sha }}: $conclusion (incomplete runs: $incomplete)"
+            [ "$incomplete" = "0" ] || { echo "::error::$2 is still running for this commit — wait for it to finish, or rerun with require_green=false"; exit 1; }
+            [ "$conclusion" = "success" ] || { echo "::error::$2 is '$conclusion' for this commit — fix that first, or rerun with require_green=false"; exit 1; }
+          }
+          check native-validation.yml native-validation
+          # Archiving with Xcode 27.1 also needs the commit proven on that toolchain.
+          if [ "${{ inputs.toolchain }}" = "27" ]; then check duo-validation.yml duo-validation; fi
 
       - name: Xcode in use
         run: xcodebuild -version
