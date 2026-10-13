@@ -275,12 +275,31 @@ class DinnerTogetherUITestCase: XCTestCase {
         let f = element.frame
         // The tab bar only matters when it is actually on top (not under a sheet).
         let tabBar = app.tabBars.firstMatch
-        let bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
+        var bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
+        // A pinned bottom bar covers more than that at large type (AX3: the
+        // 120 pt cook button plus its caption; run 38335694569 tapped a step
+        // that sat under it). Measure the bar instead of assuming it.
+        if let barTop = pinnedBarTop(excluding: f), barTop < screen.maxY - bottomBand {
+            bottomBand = screen.maxY - barTop + 8
+        }
         // Top band: the status bar plus a little; a navigation bar that
         // actually covers the element already makes it non-hittable. (iPad's
         // "Adjust time" sits ~100 pt from the top and never scrolls higher —
         // run 16.)
         return f.minY >= screen.minY + 60 && f.maxY <= screen.maxY - bottomBand
+    }
+
+    /// The top edge of whichever pinned bottom control is on screen (the
+    /// recipe page's cook action, the editors' Save, Tonight's plan button).
+    func pinnedBarTop(excluding target: CGRect) -> CGFloat? {
+        let pinned = NSPredicate(format: "identifier IN %@ OR label BEGINSWITH 'Build ' OR label == 'Back to cooking' OR label BEGINSWITH 'Save '",
+                                 ["cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"])
+        let bars = app.buttons.matching(pinned).allElementsBoundByIndex
+        // A pinned control sits in the bottom quarter and is never the target
+        // itself (run 38341383318: the Add sheet's own button counted as a bar).
+        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1
+                                 && $0.frame.minY > app.frame.maxY * 0.6 && $0.frame != target }.map { $0.frame.minY }
+        return tops.min()
     }
 
     func scrollTo(_ element: XCUIElement, maxDrags: Int = 12,
@@ -980,12 +999,30 @@ extension DinnerTogetherUITestCase {
         waitForExistence(field, timeout: 5, "the link field")
         field.tap()
         field.typeText("https://apple.news/KHuRjSBKDOACcBIjqE6y9tg")
+        // Keyboard down first: at AX3 the Add button sat under it, XCTest
+        // still called it hittable, and the tap went to the keyboard
+        // (run 38350049136: the sheet never left Link).
+        let returnKey = app.keyboards.buttons.matching(NSPredicate(format: "label IN {'return', 'go', 'Return', 'Go', 'done', 'Done'}")).firstMatch
+        if returnKey.waitForExistence(timeout: 2) { returnKey.tap() }
         let importButton = app.buttons["import-recipe"]
-        if !importButton.isHittable { scrollTo(importButton) }
-        importButton.tap()
-        let error = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS 'Apple News'")).firstMatch
-        XCTAssertTrue(error.waitForExistence(timeout: 10), "the Apple News explanation appears")
-        XCTAssertTrue(app.descendants(matching: .any)["choose-screenshots"].exists, "the sheet switched to Screenshots and stayed open")
+        scrollAndTap(importButton, "Add recipe")
+        // The explanation itself, not the field's "Apple News" hint.
+        let error = app.descendants(matching: .any)["import-error"]
+        XCTAssertTrue(error.waitForExistence(timeout: 10), "the import explanation appears")
+        XCTAssertTrue(error.label.contains("Apple News"), "…and it is about Apple News: \(error.label)")
+        // At AX3 the picker sits below a long paragraph; its UIKit-backed
+        // button is only exposed once scrolled near (run 38335694569).
+        let chooser = app.descendants(matching: .any)["choose-screenshots"]
+        for _ in 0..<6 where !chooser.exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+        if !chooser.exists { attachHierarchy("r06-no-chooser-hierarchy" + capture.suffix); photograph("r06-no-chooser" + capture.suffix) }
+        // The segmented control's selected segment is the switch itself; the
+        // picker's own element is the usual proof.
+        XCTAssertTrue(chooser.exists || app.buttons["Screenshots"].isSelected, "the sheet switched to Screenshots and stayed open")
         if capture.typeSize != nil { scrollTo(error) }
         photograph("r06-apple-news-link" + capture.suffix)
     }
@@ -1209,10 +1246,12 @@ extension DinnerTogetherUITestCase {
     private func verifySheetTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
         let help = app.staticTexts["page-style-help"]
         guard help.waitForExistence(timeout: 5) else { return XCTFail("the sheet's helper text", file: file, line: line) }
+        // Two lines of AX3 subheadline on an iPad-width sheet measured 86 pt;
+        // iPhone default two lines 36 pt, iPad default one line 18 pt.
         if capture.typeSize != nil {
-            XCTAssertGreaterThan(help.frame.height, 90, "AX3 inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
+            XCTAssertGreaterThan(help.frame.height, 60, "AX3 inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
         } else {
-            XCTAssertLessThan(help.frame.height, 70, "default type inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
+            XCTAssertLessThan(help.frame.height, 50, "default type inside the sheet: helper text height \(help.frame.height)", file: file, line: line)
         }
     }
 
