@@ -49,8 +49,20 @@ jobs:
           xcrun simctl list devices available | grep -iE "iphone|ipad" || true
           if [ "${{ matrix.pass }}" = "duo" ]; then
             if ! xcrun simctl list devices available | grep -q "iPhone Duo"; then
-              runtime=$(xcrun simctl list runtimes available -j | python3 -c 'import json,sys; r=[x for x in json.load(sys.stdin)["runtimes"] if x["platform"]=="iOS"]; r.sort(key=lambda x: [int(p) for p in x["version"].split(".")]); print(r[-1]["identifier"])')
-              xcrun simctl create "iPhone Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo "$runtime"
+              # The image ships the iOS 27.0 runtime; the Duo device type may
+              # need 27.1. Try the newest runtime on the image first, then
+              # download the current iOS platform (several minutes) and retry.
+              pick() { xcrun simctl list runtimes available -j | python3 -c 'import json,sys; r=[x for x in json.load(sys.stdin)["runtimes"] if x["platform"]=="iOS"]; r.sort(key=lambda x: [int(p) for p in x["version"].split(".")]); print(r[-1]["identifier"] if r else "")'; }
+              runtime=$(pick)
+              echo "::notice title=Duo runtime attempt 1::$runtime"
+              if ! xcrun simctl create "iPhone Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo "$runtime" 2> create.err; then
+                echo "::warning title=simctl create (runtime $runtime)::$(tr '\n' ' ' < create.err | cut -c1-600)"
+                xcodebuild -downloadPlatform iOS 2>&1 | tail -3 || true
+                runtime=$(pick)
+                echo "::notice title=Duo runtime attempt 2::$runtime"
+                xcrun simctl create "iPhone Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo "$runtime" 2> create.err \
+                  || { echo "::error title=simctl create::$(tr '\n' ' ' < create.err | cut -c1-600)"; exit 1; }
+              fi
             fi
             xcrun simctl list devices available | grep "iPhone Duo"
             echo "DT_IPHONE_REGEX=^iPhone Duo$" >> "$GITHUB_ENV"
@@ -66,8 +78,12 @@ jobs:
         if: always()
         run: |
           cat "$RESULTS/SUMMARY.md" || true
-          grep -E '^- ❌' "$RESULTS/SUMMARY.md" | head -12 | sed 's/^- ❌ /::error::/' || true
-          grep -E 'first failure' "$RESULTS/SUMMARY.md" | head -12 | sed 's/^ *- first failure: /::error::/' || true
+          grep -E '^- ❌' "$RESULTS/SUMMARY.md" | head -6 | sed 's/^- ❌ /::error::/' || true
+          grep -E 'first failure' "$RESULTS/SUMMARY.md" | head -4 | sed 's/^ *- first failure: /::error::/' || true
+          # Compiler errors from the new toolchain, readable without the artifact.
+          for log in "$RESULTS"/10-build-*.log "$RESULTS"/11-build-*.log; do
+            [ -f "$log" ] && grep -E ' error: ' "$log" | sort -u | head -8 | sed "s|^|::error title=$(basename "$log")::|" || true
+          done
       - name: Upload review evidence (screenshots, summary, UI logs only)
         if: always()
         uses: actions/upload-artifact@v4
