@@ -80,17 +80,30 @@ enum PageStyle: Codable, Hashable {
     case preset(String)
 }
 
-/// Three gradient stops, top to bottom, each dark enough for light text.
+/// Three gradient stops, top to bottom. A deep palette is dark enough for
+/// light text on every stop; a pale one (a pastel photo — Joe's meringues,
+/// build 11) is light enough for the classic page's dark text, so the page
+/// takes the photo's wash instead of a slate it never had.
 struct RecipePalette: Equatable {
+    enum Tone { case deep, pale }
+
     let colors: [RGB]
+    let tone: Tone
 
     /// Luminance ceilings for the top, middle and bottom stops. 0.06 is about
     /// where Apple News's warm recipe gradients sit, and it keeps the app's
     /// muted caption color (dark-mode `Theme.muted`) above 4.5:1.
     static let ceilings: [Double] = [0.06, 0.045, 0.03]
+    /// Luminance floors for a pale page's stops: `PaleText.muted` stays
+    /// above 4.5:1 on the deepest, ink above 7:1.
+    static let floors: [Double] = [0.76, 0.73, 0.70]
 
-    /// The dimmest text on a page (`Theme.muted` in Dark Mode).
-    static let mutedText = PageText.muted
+    /// The dimmest text on this page.
+    var mutedText: RGB { tone == .deep ? PageText.muted : PaleText.muted }
+    /// The body text this page draws with.
+    var inkText: RGB { tone == .deep ? PageText.ink : PaleText.ink }
+    /// Every color body text may use on this page.
+    var textColors: [(name: String, color: RGB)] { tone == .deep ? PageText.all : PaleText.all }
 
     struct Preset: Identifiable { let id: String; let name: String; let palette: RecipePalette }
 
@@ -111,10 +124,35 @@ struct RecipePalette: Equatable {
 
     static func preset(_ id: String) -> RecipePalette? { presets.first { $0.id == id }?.palette }
 
-    /// Applies the ceilings to any three colors.
+    /// Applies the ceilings to any three colors: a deep page.
     init(tuning stops: [RGB]) {
         let s = stops + Array(repeating: stops.last ?? RGB(0.2, 0.2, 0.2), count: max(0, 3 - stops.count))
         colors = zip(s.prefix(3), Self.ceilings).map { Self.toned($0, maxLuminance: $1) }
+        tone = .deep
+    }
+
+    /// Applies the floors to any three colors: a pale page.
+    init(lightening stops: [RGB]) {
+        let s = stops + Array(repeating: stops.last ?? RGB(0.9, 0.9, 0.9), count: max(0, 3 - stops.count))
+        colors = zip(s.prefix(3), Self.floors).map { Self.lifted($0, minLuminance: $1) }
+        tone = .pale
+    }
+
+    /// The same hue as a wash: saturation kept visible but soft, brightness
+    /// raised until the luminance floor is met, then saturation given up
+    /// until it is.
+    static func lifted(_ c: RGB, minLuminance: Double) -> RGB {
+        var (h, s, b) = c.hsb
+        if s > 0.06 { s = min(0.28, max(0.12, s)) }   // greys stay grey
+        var out = RGB(h: h, s: s, b: b)
+        var guardrail = 0
+        while out.luminance < minLuminance && b < 1 && guardrail < 200 {
+            b = min(1, b * 1.03); out = RGB(h: h, s: s, b: b); guardrail += 1
+        }
+        while out.luminance < minLuminance && s > 0 && guardrail < 400 {
+            s = max(0, s - 0.01); out = RGB(h: h, s: s, b: b); guardrail += 1
+        }
+        return out
     }
 
     /// The same hue, saturation kept rich but not neon, brightness lowered
@@ -149,6 +187,14 @@ struct RecipePalette: Equatable {
             let dh = min(abs(a.h - b.h), 360 - abs(a.h - b.h))
             return dh > 20 || abs(first.luminance - other.center.luminance) > 0.08
         }?.center ?? RGB(h: first.hsb.h + 14, s: first.hsb.s, b: first.hsb.b * 0.8)
+        // A pastel photo — its color is light and most of it is light — gets
+        // a pale page. The cider's orange on white marble stays deep: the
+        // orange itself is dark.
+        let total = Double(clusters.reduce(0) { $0 + $1.count })
+        let lightShare = Double(clusters.filter { $0.center.luminance > 0.5 }.reduce(0) { $0 + $1.count }) / max(1, total)
+        if first.luminance > 0.40 && lightShare > 0.6 {
+            return RecipePalette(lightening: [first, second, RGB(h: first.hsb.h, s: min(1, first.hsb.s * 1.3), b: first.hsb.b)])
+        }
         return RecipePalette(tuning: [first, second, RGB(h: first.hsb.h, s: first.hsb.s, b: first.hsb.b * 0.45)])
     }
 
@@ -200,6 +246,24 @@ enum PageText {
     ]
 }
 
+/// The dark text a pale page (and the classic cream page) draws with.
+/// Theme.swift takes its Light Mode values from here, so the contrast tests
+/// cover exactly what the screen shows.
+enum PaleText {
+    static let ink = RGB(0.188, 0.169, 0.145)
+    /// Darker than the muted caption used to be (0.431, 0.404, 0.369): a
+    /// pale page's deepest stop is tinted, not cream, and 4.5:1 there needs
+    /// this (5.9:1 on cream, up from 4.9:1).
+    static let muted = RGB(0.390, 0.370, 0.340)
+    static let olive = RGB(0.282, 0.337, 0.224)
+    static let warning = RGB(0.510, 0.300, 0.090)
+    /// Timer chips and step labels: the classic page's tomato.
+    static let accent = RGB(0.659, 0.220, 0.153)
+    static let all: [(name: String, color: RGB)] = [
+        ("ink", ink), ("muted", muted), ("olive", olive), ("warning", warning), ("accent", accent),
+    ]
+}
+
 extension RecipePalette {
     /// Frosted cards: the system's thin material, then this much black, so a
     /// card is never lighter than the page behind it (text only gains contrast).
@@ -208,19 +272,29 @@ extension RecipePalette {
     static let selectedLift = 0.14
 
     private static let black = RGB(0, 0, 0)
+    /// The classic page's paper card, which a pale page's selected tab uses.
+    static let paper = RGB(0.999, 0.992, 0.973)
+
+    /// What the frosted cards are shaded with: black on a deep page (a card
+    /// is never lighter than the page), white on a pale one (never darker).
+    var glassTint: RGB { tone == .deep ? Self.black : RGB.white }
 
     /// Reduce Transparency / Increase Contrast: cards are this solid color.
-    var solidCard: RGB { Self.black.over(colors[1], alpha: 0.3) }
+    var solidCard: RGB { glassTint.over(colors[1], alpha: 0.3) }
 
     /// Every flat color text can sit on, modeled without blur (the blur of a
     /// smooth gradient is the gradient). Mixing stops in sRGB never raises
-    /// luminance above the brighter stop, so the stops bound the blended page.
+    /// luminance above the brighter stop (nor lowers it below the darker), so
+    /// the stops bound the blended page.
     var textSurfaces: [RGB] {
-        colors + colors.map { Self.black.over($0, alpha: Self.glassShade) } + [solidCard]
+        colors + colors.map { glassTint.over($0, alpha: Self.glassShade) } + [solidCard]
     }
 
-    /// Selected-tab capsules: white lifted over each stop.
-    var selectedSurfaces: [RGB] { colors.map { RGB.white.over($0, alpha: Self.selectedLift) } }
+    /// Selected-tab capsules: white lifted over each stop on a deep page; the
+    /// paper card on a pale one.
+    var selectedSurfaces: [RGB] {
+        tone == .deep ? colors.map { RGB.white.over($0, alpha: Self.selectedLift) } : [Self.paper]
+    }
 
     /// "#RRGGBB", for logs and test messages.
     var hexStops: [String] {

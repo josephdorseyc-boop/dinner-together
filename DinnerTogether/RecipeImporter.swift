@@ -23,6 +23,10 @@ struct ImportedRecipe: Equatable {
     /// "Do Ahead", "Editor's note", storage tips: kept with the recipe, never
     /// scheduled as a cooking step.
     var notes: [String] = []
+    /// What the screenshots could not establish: text left out because it
+    /// could not be read, step numbers never seen, a last step cut short.
+    /// Shown with the timing review; never silently absorbed into the plan.
+    var warnings: [String] = []
 
     var directions: [String] { sections.flatMap { $0.steps } }
 }
@@ -536,6 +540,7 @@ enum RecipeImporter {
         recipe.importedAt = now
         recipe.importMethod = method
         recipe.needsTimingReview = true
+        recipe.importWarnings = imported.warnings.isEmpty ? nil : imported.warnings
         return recipe
     }
 
@@ -724,19 +729,33 @@ extension RecipeImporter {
         /// unnumbered direction after every numbered one (A2-10 finding).
         var looseSteps: [(after: Int?, text: String)] = []
         var lastStepSeen: Int?
+        var unreadableLines = 0
+
+        /// The recipe's own title, wherever the page repeats it: the
+        /// navigation bar, Cook mode's subtitle under "Step n", the cover's
+        /// "Read the Story" card.
+        func isTitleLine(_ line: OCRLine) -> Bool {
+            let k = normalizedKey(line.text)
+            return k.count >= 4 && !titleKey.isEmpty && titleKey.contains(k)
+        }
 
         for page in cleaned {
             let tabRow = tabBarRow(page)
+            let chromeRows = chromeRowIndices(page)
             let firstMarker = page.compactMap { stepNumber($0.text) }.first
             let hasHeader = page.contains { isIngredientsHeader($0.text) || isDirectionsHeader($0.text) }
-            // A recipe's summary page — title, time/yield labels and the app's
-            // own buttons, no section or step — supplies metadata only. Its
-            // other text (a story teaser, "Saved", the row of tabs bleeding
-            // through the glass) is not a direction (Joe, build 10: "Saved"
-            // and a garbled teaser arrived as steps 1 and 2).
-            let isCover = firstMarker == nil && !hasHeader
-                && page.contains { metadataLabels.contains(normalizedKey($0.text)) }
-                && page.contains { coverButtons.contains(normalizedKey($0.text)) }
+            // A recipe's summary page — title, the app's own buttons and the
+            // time/yield labels or a byline, no section or step — supplies
+            // metadata only. Its other text (a story teaser, "Saved", the row
+            // of tabs bleeding through the glass) is not a direction (Joe,
+            // build 10: "Saved" and a garbled teaser arrived as steps 1 and
+            // 2; build 11: a Southern Living cover with no time or yield
+            // labels put the title twice and the teaser into the steps).
+            let buttonHits = Set(page.map { normalizedKey($0.text) }.filter { coverButtons.contains($0) })
+            let hasMetadata = page.contains { metadataLabels.contains(normalizedKey($0.text)) }
+            let hasByline = page.contains { firstMatch(#"^(.{2,40}?)\s+[•·∙●–]\s+(.{2,60})$"#, in: $0.text, group: 0) != nil }
+            let isCover = firstMarker == nil && !hasHeader && !buttonHits.isEmpty
+                && (hasMetadata || hasByline || buttonHits.count >= 2)
             enum Mode { case unknown, ingredients, directions, step(Int) }
             var mode = Mode.unknown
             var preMarker: [String] = []
@@ -757,13 +776,22 @@ extension RecipeImporter {
                     // Never schedule text read through a blur. A step's tail
                     // with such a line is dropped whole: the step keeps what
                     // was read cleanly and its time stays an honest estimate.
+                    // The cook is told (A1, build 11: a silent drop could
+                    // have hidden a whole short step).
+                    unreadableLines += 1
                     if case .unknown = mode, firstMarker != nil { preMarkerUnreliable = true }
                     continue
                 }
                 let key = normalizedKey(text)
                 if let row = tabRow, abs(line.top - row) < 0.012 { continue }
+                if chromeRows.contains(i) { continue }
                 if isChrome(key) { continue }
-                if key.count >= 4, !titleKey.isEmpty, titleKey.contains(key) { continue }
+                if isTitleLine(line) { continue }
+                // Cook mode's navigation header: a small "Step n" with the
+                // recipe title under it, above the real "STEP n". Not a step
+                // boundary — as one, it collected the title as a copy of the
+                // step, and the longer copy beat "Set aside." (Joe, build 11).
+                if stepNumber(text) != nil, i + 1 < page.count, isTitleLine(page[i + 1]) { continue }
 
                 // Metadata, inline ("Yield: 2") or as label/value rows.
                 if let v = firstMatch(#"^(?:total time|total)\s*[:：]\s*(.+)$"#, in: text, group: 1, caseInsensitive: true) {
@@ -885,6 +913,29 @@ extension RecipeImporter {
         let steps = woven
         if !steps.isEmpty { recipe.sections = [ImportedSection(name: nil, steps: steps)] }
 
+        // What the screenshots did not establish (A2 S2: a gap is told, never
+        // closed by renumbering; A1: dropped text is told, never silent).
+        if unreadableLines > 0 {
+            recipe.warnings.append(unreadableLines == 1
+                ? "One line couldn’t be read clearly and was left out."
+                : "\(unreadableLines) lines couldn’t be read clearly and were left out.")
+        }
+        if let first = numbered.first, let last = numbered.last {
+            var missing = numbered.filter { numberedText[$0] == nil }
+            missing.append(contentsOf: (first...last).filter { !numbered.contains($0) })
+            if first > 1 { missing.append(contentsOf: 1..<first) }
+            let gaps = Set(missing).sorted()
+            if !gaps.isEmpty {
+                let list = gaps.map(String.init).joined(separator: ", ")
+                recipe.warnings.append(gaps.count == 1
+                    ? "Step \(list) wasn’t found in the screenshots."
+                    : "Steps \(list) weren’t found in the screenshots.")
+            }
+            if let text = numberedText[last], text.range(of: #"[.!?)”"]$"#, options: .regularExpression) == nil {
+                recipe.warnings.append("The last step may be cut off — check it against your recipe.")
+            }
+        }
+
         guard !recipe.ingredients.isEmpty || !recipe.sections.isEmpty else { throw RecipeImportError.noTextInScreenshots }
         return recipe
     }
@@ -971,7 +1022,8 @@ extension RecipeImporter {
 
     static let metadataLabels: Set<String> = ["total time", "yield", "servings", "serves", "prep time", "cook time"]
     /// The buttons a recipe app shows under its title.
-    static let coverButtons: Set<String> = ["cook", "save", "saved", "share", "read the story", "start cooking", "jump to recipe", "print"]
+    static let coverButtons: Set<String> = ["cook", "save", "saved", "share", "cook save share", "cook saved share",
+                                            "read the story", "start cooking", "jump to recipe", "print"]
     /// Words a row of tabs is made of; a line of nothing else is a tab bar.
     static let tabWords: Set<String> = ["ingredients", "directions", "instructions", "method", "nutrition", "more", "notes",
                                         "reviews", "steps", "overview", "tips", "today", "news", "audio", "following", "search"]
@@ -986,7 +1038,8 @@ extension RecipeImporter {
         if key.count <= 2 && key.range(of: #"\d"#, options: .regularExpression) == nil { return true }
         let exact: Set<String> = ["nutrition", "more", "scale", "cook", "save", "saved", "share", "start cooking", "read the story",
                                   "customize units", "recipe units are from the publisher", "in reminders", "print",
-                                  "jump to recipe", "cook save share", "cook saved share", "show more", "see more", "notes", "reviews"]
+                                  "jump to recipe", "cook save share", "cook saved share", "show more", "see more", "notes", "reviews",
+                                  "mark as cooked", "done", "close"]
         if exact.contains(key) { return true }
         if key.contains("grocery list") || key.hasPrefix("add to grocery") { return true }
         let words = key.split(separator: " ").map(String.init)
@@ -994,6 +1047,25 @@ extension RecipeImporter {
         if words.count >= 2 && words.allSatisfy({ tabWords.contains($0) }) { return true }
         if words.filter({ newsTabs.contains($0) }).count >= 2 { return true }
         return false
+    }
+
+    /// Rows of two or more tab words recognized as separate lines: the News
+    /// tab bar read as "Today", "News+", "Audio", "Following", "Search"
+    /// (one line per tab) escapes `isChrome`, which sees one word at a time
+    /// (A1, build 11). The whole row is chrome; a single word on its own
+    /// row ("Search" in a sentence's line) is not.
+    static func chromeRowIndices(_ page: [OCRLine]) -> Set<Int> {
+        var out = Set<Int>()
+        var i = 0
+        while i < page.count {
+            var j = i + 1
+            while j < page.count, abs(page[j].top - page[i].top) < 0.012 { j += 1 }
+            let row = Array(i..<j)
+            let hits = row.filter { tabWords.contains(normalizedKey(page[$0].text)) }.count
+            if row.count >= 2, hits >= 2 { out.formUnion(row) }
+            i = j
+        }
+        return out
     }
 
     /// Removes from `prev` a suffix of three or more words that is also the
@@ -1018,22 +1090,63 @@ extension RecipeImporter {
         return nil
     }
 
-    /// The heading repeated at the top of two or more screenshots wins; else
-    /// the run of tallest text on any screenshot.
+    /// The heading repeated near the top of two or more screenshots wins —
+    /// above the tab bar (the Recipes view's navigation bar) or just below
+    /// it (Cook mode shows "Step n" and the recipe title under the tabs; the
+    /// "Step n" line splits the run so it never joins the title). A single
+    /// heading directly above a tab bar also counts. Otherwise the run of
+    /// tallest text on a screenshot, if it has letters and is not the step
+    /// under a "STEP n" label (Joe, build 11: "0001 -", read off the cover
+    /// photo, was the tallest text and became the title).
     static func screenshotTitle(_ pages: [[OCRLine]]) -> String? {
-        var counts: [String: (count: Int, text: String, underTabs: Bool)] = [:]
+        var counts: [String: (count: Int, text: String, aboveTabs: Bool)] = [:]
         for page in pages {
             let tab = tabBarRow(page)
-            let top = page.filter { $0.top < 0.16 && (tab == nil || $0.top < tab! - 0.012) && !isChrome(normalizedKey($0.text)) }
-            guard !top.isEmpty else { continue }
-            let joined = joinLines(top.map { $0.text })
-            let k = normalizedKey(joined)
-            guard k.count >= 4 else { continue }
-            counts[k] = ((counts[k]?.count ?? 0) + 1, joined, (counts[k]?.underTabs ?? false) || tab != nil)
+            let chromeRows = chromeRowIndices(page)
+            func chrome(_ i: Int) -> Bool {
+                chromeRows.contains(i) || isChrome(normalizedKey(page[i].text)) || (tab.map { abs(page[i].top - $0) < 0.012 } ?? false)
+            }
+            func excluded(_ i: Int) -> Bool {
+                chrome(i) || stepNumber(page[i].text) != nil || isIngredientsHeader(page[i].text) || isDirectionsHeader(page[i].text)
+            }
+            var runStart: Int?
+            func close(at end: Int) {
+                guard let start = runStart else { return }
+                runStart = nil
+                let lines = page[start..<end]
+                let joined = joinLines(lines.map { $0.text })
+                let k = normalizedKey(joined)
+                guard k.count >= 4, joined.filter({ $0.isLetter }).count >= 3 else { return }
+                // A heading directly under the tab bar with "STEP n" after it
+                // is Cook mode's subtitle; a single one still names the
+                // recipe. Only chrome and the small "Step n" label may sit
+                // between the tabs and it, so an ingredient list's "Yield: 2"
+                // under an Ingredients header never qualifies.
+                var nearTabs = false
+                let shortHeading = lines.count == 1 && k.split(separator: " ").count <= 8
+                    && joined.rangeOfCharacter(from: CharacterSet(charactersIn: ".;:")) == nil
+                if shortHeading, let t = tab, page[start].top > t, page[start].top - t < 0.10 {
+                    var j = start - 1, clean = true
+                    while j >= 0, page[j].top > t + 0.012 {
+                        if !(chrome(j) || stepNumber(page[j].text) != nil) { clean = false; break }
+                        j -= 1
+                    }
+                    var n = end
+                    while n < page.count, chrome(n) { n += 1 }
+                    nearTabs = clean && n < page.count && stepNumber(page[n].text) != nil
+                }
+                let above = tab.map { lines.last!.top < $0 } ?? false
+                let seen = counts[k]
+                let text = (seen?.text.count ?? 0) >= joined.count ? seen!.text : joined
+                counts[k] = ((seen?.count ?? 0) + 1, text, (seen?.aboveTabs ?? false) || above || nearTabs)
+            }
+            for i in page.indices {
+                if page[i].top >= 0.20 { close(at: i); break }
+                if excluded(i) { close(at: i) } else if runStart == nil { runStart = i }
+            }
+            close(at: page.count)
         }
-        // Repeated across screenshots, or a single navigation title sitting
-        // directly above an Ingredients/Directions tab bar.
-        if let best = counts.values.filter({ $0.count >= 2 || $0.underTabs })
+        if let best = counts.values.filter({ $0.count >= 2 || $0.aboveTabs })
             .max(by: { ($0.count, $0.text.count) < ($1.count, $1.text.count) }) { return best.text }
 
         for page in pages {
@@ -1041,22 +1154,35 @@ extension RecipeImporter {
             guard heights.count >= 3 else { continue }
             let median = heights[heights.count / 2]
             var run: [String] = []
+            var afterMarker = false
             for line in page {
                 let k = normalizedKey(line.text)
-                if line.height >= median * 1.35 && !isChrome(k) && !isIngredientsHeader(line.text) && !isDirectionsHeader(line.text) && stepNumber(line.text) == nil {
+                if stepNumber(line.text) != nil { afterMarker = true; if !run.isEmpty { break }; continue }
+                let tall = line.height >= median * 1.35 && !isChrome(k) && !isIngredientsHeader(line.text) && !isDirectionsHeader(line.text)
+                // Tall marks without letters are the photo, not words.
+                if tall, !line.text.contains(where: { $0.isLetter }) { continue }
+                if tall && !(afterMarker && run.isEmpty) {
                     run.append(line.text)
                 } else if !run.isEmpty { break }
+                if !tall { afterMarker = false }
             }
-            if !run.isEmpty { return joinLines(run) }
+            let joined = joinLines(run)
+            if joined.filter({ $0.isLetter }).count >= 3 { return joined }
         }
         return nil
     }
 
+    /// A hyphen ending a line is a word broken by the wrap ("show-" +
+    /// "stopper"), unless it follows a number: "½-" + "inch", "18-" +
+    /// "inch" keep it (Joe, build 11: "½inch hole").
     static func joinLines(_ parts: [String]) -> String {
         var out = ""
         for p in parts.map({ $0.trimmingCharacters(in: .whitespaces) }) where !p.isEmpty {
             if out.isEmpty { out = p }
-            else if out.hasSuffix("-") && !out.hasSuffix(" -") { out.removeLast(); out += p }
+            else if out.hasSuffix("-") && !out.hasSuffix(" -") {
+                let before = out.dropLast().last
+                if let c = before, c.isNumber || "½¼¾⅓⅔⅛".contains(c) { out += p } else { out.removeLast(); out += p }
+            }
             else { out += " " + p }
         }
         return out

@@ -108,5 +108,45 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertNotNil(library.saveError)
         XCTAssertFalse(library.setTotalMinutes(recipeID: UUID(), minutes: 10), "unknown recipe")
     }
+
+    /// A2 S2 (build 11): text the import mistook for a step leaves the plan
+    /// and the directions together; a second removal still finds its line.
+    func testRemovingAStepLeavesDirectionsAndPlanTogether() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try RecipeImporter.build(
+            try RecipeImporter.parse(text: "Meringue Twists\n\nIngredients\n- 4 egg whites\n\nDirections\nSTEP 1\nMeringue Twists Meringue Twists\nSTEP 2\nToday News+ Audio Following Search\nSTEP 3\nPreheat the oven to 200°F.\nSTEP 4\nSet aside."),
+            method: .photo, now: Date())
+        XCTAssertTrue(library.add(recipe))
+        XCTAssertEqual(recipe.directions.count, 4)
+        XCTAssertEqual(recipe.steps.count, 4)
+
+        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: recipe.steps[1].id))
+        var saved = library.recipe(id: recipe.id)!
+        XCTAssertEqual(saved.steps.map { $0.detail }, ["Meringue Twists Meringue Twists", "Preheat the oven to 200°F.", "Set aside."])
+        XCTAssertEqual(saved.directions.count, 3)
+        XCTAssertFalse(saved.directions.contains { $0.contains("Following Search") }, "\(saved.directions)")
+
+        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: saved.steps[0].id), "the first step, after one removal, is still found by its text")
+        saved = library.recipe(id: recipe.id)!
+        XCTAssertEqual(saved.steps.map { $0.detail }, ["Preheat the oven to 200°F.", "Set aside."])
+        XCTAssertEqual(saved.directions.map { RecipeImporter.stripStepPrefix($0) }, ["Preheat the oven to 200°F.", "Set aside."])
+        XCTAssertEqual(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.steps.count, 2, "persists after relaunch")
+
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: saved.steps[0].id))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.steps.count, 2, "a failed save changes nothing in memory")
+        XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: "nope"), "unknown step")
+    }
+
+    func testImportWarningsSurviveARelaunch() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        var imported = try RecipeImporter.parse(text: "Soup\n\nIngredients\n- 1 onion\n\nDirections\nSimmer for 20 minutes.")
+        imported.warnings = ["Step 2 wasn’t found in the screenshots."]
+        let recipe = RecipeImporter.build(imported, method: .photo, now: Date())
+        XCTAssertTrue(library.add(recipe))
+        XCTAssertEqual(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.importWarnings, ["Step 2 wasn’t found in the screenshots."])
+    }
 }
 

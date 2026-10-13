@@ -148,10 +148,11 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// would leak the previous test's seed into this one.
     @discardableResult
     func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true,
-                recipes: [String] = [], heroPhoto: Bool = false) -> XCUIApplication {
+                recipes: [String] = [], heroPhoto: Bool = false, photo: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["DT_SEED_JSON"] = seed
-        app.launchEnvironment["DT_SEED_RECIPE_PHOTO"] = heroPhoto ? "landscape" : ""
+        // "landscape" (the warm still life) or "pastel" (pale icing); empty = no photo.
+        app.launchEnvironment["DT_SEED_RECIPE_PHOTO"] = photo ?? (heroPhoto ? "landscape" : "")
         // Always set, so recipes from one test never appear in another.
         let recipeData = (try? JSONSerialization.data(withJSONObject: recipes)) ?? Data("[]".utf8)
         app.launchEnvironment["DT_SEED_RECIPE_TEXTS"] = String(decoding: recipeData, as: UTF8.self)
@@ -329,10 +330,10 @@ class DinnerTogetherUITestCase: XCTestCase {
             // button + tab bar) reaches up to ~0.68 of the screen, and a drag
             // that starts on it scrolls nothing (run 38330367116, test18:
             // twelve identical drags).
-            let startY = delta >= 0 ? 0.55 : 0.30
-            let endY = max(0.12, min(0.92, startY - Double(delta / screen.height)))
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
-            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY))
+            let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30)
+            let endY = max(0.12, min(0.92, start.dy - Double(delta / screen.height)))
+            let from = app.coordinate(withNormalizedOffset: start)
+            let to = app.coordinate(withNormalizedOffset: CGVector(dx: start.dx, dy: endY))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
@@ -380,12 +381,31 @@ class DinnerTogetherUITestCase: XCTestCase {
             let top = element.frame.minY
             if top >= screen.minY + 80 && top <= screen.midY + 40 { return }
             let delta = max(-screen.height * 0.4, min(screen.height * 0.4, top - screen.midY + 60))
-            let startY = delta >= 0 ? 0.55 : 0.30
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
-                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: max(0.12, min(0.92, startY - Double(delta / screen.height))))),
+            let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30)
+            app.coordinate(withNormalizedOffset: start)
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: start.dx, dy: max(0.12, min(0.92, start.dy - Double(delta / screen.height))))),
                        withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
+    }
+
+    /// A point to start a drag from that is not on a button: run
+    /// 38399682685's recording shows the Apple News AX3 positioning drag
+    /// starting on "Choose screenshots" and opening Photos instead of
+    /// scrolling (A2-25). Tries the preferred height first, then nearby ones,
+    /// at the center column and then to its left where cards have margins.
+    func dragStart(preferring y: Double) -> CGVector {
+        let screen = app.frame
+        let buttons = app.buttons.allElementsBoundByIndex.map { $0.frame }.filter { $0.height > 0 }
+        // The center column at other heights before a side column: on iPad a
+        // side column can fall outside a form sheet.
+        for dx in [0.5, 0.12, 0.88] {
+            for dy in [y, y - 0.08, y + 0.08, y - 0.16, y + 0.16] where dy > 0.1 && dy < 0.9 {
+                let p = CGPoint(x: screen.minX + screen.width * dx, y: screen.minY + screen.height * dy)
+                if !buttons.contains(where: { $0.contains(p) }) { return CGVector(dx: dx, dy: dy) }
+            }
+        }
+        return CGVector(dx: 0.5, dy: y)
     }
 
     /// Finds, scrolls to and taps a button by its accessibility label.
@@ -401,7 +421,26 @@ class DinnerTogetherUITestCase: XCTestCase {
                       file: StaticString = #filePath, line: UInt = #line) {
         waitForExistence(element, timeout: 10, message, file: file, line: line)
         scrollTo(element, file: file, line: line)
+        waitForStableFrame(element)
         element.tap()
+    }
+
+    /// Waits until the element's frame stops moving. After "Move dinner" the
+    /// notice leaves and the timeline re-lays out; run 38399682685's event
+    /// trace shows the Undo tap landing at the point where Undo had been a
+    /// moment earlier, which the Completed disclosure then occupied (A2-25,
+    /// issue #17). A tap on a settled frame cannot miss that way.
+    @discardableResult
+    func waitForStableFrame(_ element: XCUIElement, timeout: TimeInterval = 4) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        var last = element.frame
+        while Date() < deadline {
+            Thread.sleep(forTimeInterval: 0.25)
+            let now = element.frame
+            if element.exists, now == last, now.height > 0 { return true }
+            last = now
+        }
+        return false
     }
 
     /// The DINNER AT readout's accessibility label, e.g. "Chosen dinner time 6:23 PM".
@@ -476,9 +515,15 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         let undo = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Undo: '")).firstMatch
         scrollAndTap(undo, "undo is offered after the move")
+        // The readout is read before anything else moves: a wrong-control
+        // tap (the Completed disclosure) shows up here as the unchanged time,
+        // with the frame of what was tapped in the failure message.
+        let restored = XCTWaiter().wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(before)"),
+            object: app.staticTexts["serving-time"])], timeout: 10) == .completed
         scrollToTop()
         photograph("01-after-undo")  // before asserting: the failure state is evidence too (A2)
-        waitForServingTimeValue(before)
+        XCTAssertTrue(restored, "DINNER AT returned to \(before) right after the Undo tap (still '\(servingTimeValue)'; undo button now \(undo.exists ? "\(undo.frame)" : "gone"))")
         waitForExistence(app.buttons["Review dinner time"], timeout: 10, "the notice returns after undo")
     }
 
@@ -807,9 +852,10 @@ struct RecipeCapture {
 }
 
 extension DinnerTogetherUITestCase {
-    private func launchRecipes(_ recipes: [String], _ capture: RecipeCapture, extra: [String] = [], heroPhoto: Bool = false) {
+    private func launchRecipes(_ recipes: [String], _ capture: RecipeCapture, extra: [String] = [], heroPhoto: Bool = false,
+                               photo: String? = nil) {
         launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: capture.launchArguments + extra,
-               openCooking: false, recipes: recipes, heroPhoto: heroPhoto)
+               openCooking: false, recipes: recipes, heroPhoto: heroPhoto, photo: photo)
     }
 
     private func openRecipesLibrary() {
@@ -978,6 +1024,13 @@ extension DinnerTogetherUITestCase {
         XCTAssertFalse(app.buttons["add-recipe"].exists, "…not the recipe collection")
     }
 
+    /// The review banner's missing-time cue: the full sentence, or A2-21's
+    /// short form at accessibility sizes.
+    private func bannerMentionsMissingTime() -> Bool {
+        let label = app.buttons["timing-review-banner"].label
+        return label.contains("No total time") || label.contains("Add recipe time")
+    }
+
     /// r03 — an untimed step stays marked as an estimate.
     func flowRecipeEstimate(_ capture: RecipeCapture = .standard) {
         launchRecipes([RecipeFixtureText.beanSpread], capture)
@@ -988,7 +1041,7 @@ extension DinnerTogetherUITestCase {
         let timeStat = app.buttons["recipe-time"]
         XCTAssertTrue(timeStat.waitForExistence(timeout: 5), "the recipe-time stat is a button")
         XCTAssertTrue(timeStat.label.contains("not stated"), "no total time yet: \(timeStat.label)")
-        XCTAssertTrue(app.buttons["timing-review-banner"].label.contains("No total time"), "the review banner warns about the missing time")
+        XCTAssertTrue(bannerMentionsMissingTime(), "the review banner warns about the missing time: \(app.buttons["timing-review-banner"].label)")
         scrollAndTap(timeStat, "Recipe time → Add time")
         let save = app.buttons["recipe-time-save"]
         waitForExistence(save, timeout: 5, "the Recipe time sheet")
@@ -1001,7 +1054,7 @@ extension DinnerTogetherUITestCase {
         tapPinned(save, "Save recipe time")
         waitForDisappearance(save, "the sheet closed")
         XCTAssertTrue(timeStat.label.contains("45 min"), "the page shows the entered time: \(timeStat.label)")
-        XCTAssertFalse(app.buttons["timing-review-banner"].label.contains("No total time"), "the warning is gone")
+        XCTAssertFalse(bannerMentionsMissingTime(), "the warning is gone: \(app.buttons["timing-review-banner"].label)")
         app.buttons["recipe-tab-timing"].tap()
         let estimated = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Estimated time'")).firstMatch
         scrollTo(estimated)
@@ -1269,6 +1322,35 @@ extension DinnerTogetherUITestCase {
         }
         scrollRecipeToTop()
         photograph("r14d-photo-classic" + capture.suffix)
+    }
+
+    /// r19 — a pastel photo gives a pale page in its own wash with the
+    /// classic dark text (Joe, build 11: the meringues' slate gradient). Its
+    /// cards, tabs and cook bar are light; a deep preset still works from it.
+    func flowPalePhotoPage(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture, photo: "pastel")
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        XCTAssertTrue(app.descendants(matching: .any)["recipe-hero"].exists, "the photo is the hero")
+        verifyTypeSize(capture)
+        photograph("r19a-pale-page" + capture.suffix)
+        let pale = pageLuminance()
+        XCTAssertGreaterThan(pale, 0.55, "a pastel photo gives a pale page, not slate: luminance below the tabs \(pale)")
+        app.buttons["recipe-tab-directions"].tap()
+        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the pale page")
+        photograph("r19b-pale-directions" + capture.suffix)
+        app.buttons["recipe-tab-timing"].tap()
+        let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'remove-step-'")).firstMatch
+        XCTAssertTrue(remove.waitForExistence(timeout: 5), "each step offers Remove (A2 S2)")
+        photograph("r19c-pale-timing" + capture.suffix)
+        openPageColorFromMenu()
+        XCTAssertTrue(swatch("match-photo").isSelected, "automatic shows as Match photo")
+        scrollAndTapSwatch("plum")
+        XCTAssertTrue(swatch("plum").waitForSelection(), "Plum is now selected")
+        closePageColorSheet()
+        let plum = pageLuminance()
+        XCTAssertLessThan(plum, 0.35, "a deep preset over a pastel photo: \(plum)")
+        scrollRecipeToTop()
+        photograph("r19d-pale-to-plum" + capture.suffix)
     }
 
     /// The sheet itself renders at the forced type size (A2-17): the helper

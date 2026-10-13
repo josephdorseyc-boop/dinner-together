@@ -102,4 +102,7 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test32_typedTomatoDirections() { flowTypedPageColor(preset: "tomato") }
     /// The rendering Reduce Transparency and Increase Contrast select (-dt-solid-cards).
     func test33_photoPageColorsSolidCards() { flowPhotoPageColors(.solidCards) }
+    /// A pastel photo's pale page (Joe, build 11), with the step Remove button.
+    func test34_palePhotoPage() { flowPalePhotoPage() }
+    func test35_palePhotoPageAX3() { flowPalePhotoPage(.ax3) }
 }

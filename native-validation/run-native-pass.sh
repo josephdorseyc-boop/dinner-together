@@ -226,9 +226,6 @@ run_ui_tests() { # label udid only_testing expected
     -only-testing:"$only_testing" -resultBundlePath "$bundle" \
     -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
     > "$log" 2>&1; rc=$?
-  step_result "xcodebuild UI tests on $label ($only_testing)" $rc "$log"
-  # The first failure, verbatim, so the summary says what broke without the log.
-  grep -m1 -E 'error: -\[|XCTAssert|failed - ' "$log" | cut -c1-300 | sed 's/^/  - first failure: /' | tee -a "$SUMMARY" || true
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
   if [ -d "$bundle" ]; then
@@ -240,12 +237,52 @@ run_ui_tests() { # label udid only_testing expected
   else
     executed=0; passed=0; failed=0; skipped=0; source="unavailable"
   fi
+  # Up to three failing flows are run once more, alone (A1, issue #18: four
+  # consecutive runs each failed on a different flow; a 90-minute cycle per
+  # flake). A flow that passes alone is reported as flaky — in the summary,
+  # as an annotation and in FLAKY.txt — never hidden; one that fails again
+  # fails the gate as before. The first run's xcodebuild exit is judged
+  # after the retry, so a retried pass is a pass.
+  local retried="" flaky="" stillfailing="" retrylog="$RESULTS/25-ui-test-$label-retry.log" retrybundle="$RESULTS/$label-ui-retry.xcresult"
+  if [ "$failed" -gt 0 ] && [ "$failed" -le 3 ]; then
+    local names
+    names=$(grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$log" \
+      | sed -E "s/.*\.([A-Za-z_]+) ([A-Za-z0-9_]+)\]' failed/\1\/\2/" | sort -u)
+    if [ -n "$names" ]; then
+      local onlyargs=()
+      for t in $names; do onlyargs+=("-only-testing:DinnerTogetherUITests/$t"); done
+      rm -rf "$retrybundle"
+      xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+        "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
+        -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
+        > "$retrylog" 2>&1 || true
+      for t in $names; do
+        local m="${t##*/}"
+        if grep -qE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ $m\]' passed" "$retrylog"; then flaky="$flaky $t"; else stillfailing="$stillfailing $t"; fi
+      done
+      retried="$names"
+      [ -n "$flaky" ] && printf '%s %s:%s\n' "$(date -u +%FT%TZ)" "$label" "$flaky" >> "$RESULTS/FLAKY.txt"
+    fi
+  fi
+  local finalfailed=$failed
+  if [ -n "$retried" ]; then finalfailed=$(printf '%s' "$stillfailing" | wc -w | tr -d ' '); fi
+  if [ "$rc" -ne 0 ] && [ -n "$retried" ] && [ "$finalfailed" -eq 0 ]; then
+    pass "xcodebuild UI tests on $label ($only_testing) (exit $rc on the first run; every failing flow passed alone on retry) — \`$(basename "$log")\`, \`$(basename "$retrylog")\`"
+  else
+    step_result "xcodebuild UI tests on $label ($only_testing)" $rc "$log"
+  fi
+  # The first failure, verbatim, so the summary says what broke without the log.
+  grep -m1 -E 'error: -\[|XCTAssert|failed - ' "$log" | cut -c1-300 | sed 's/^/  - first failure: /' | tee -a "$SUMMARY" || true
   # Expected failures (XCTExpectFailure) are documented known issues; they are
   # reported here every run so they can never be forgotten, and never count as passes.
   note "  - UI cases on $label ($source): executed $executed (expected $expected), passed $passed, failed $failed, skipped $skipped, expected-failures $expectedfail — \`$(basename "$log")\`"
+  if [ -n "$retried" ]; then
+    note "  - retried alone on $label:$(printf ' %s' $retried) — passed on retry (flaky):${flaky:- none}; failed again:${stillfailing:- none} — \`$(basename "$retrylog")\`"
+    for t in $flaky; do echo "::warning title=flaky-ui-$label::$t failed in the full run and passed alone on retry (see FLAKY.txt; A1 lane)"; done
+  fi
   if [ "$expectedfail" -gt 0 ]; then note "    - ⚠️ $expectedfail expected failure(s) on $label — known issue(s) documented in UITESTS.md; see the test's XCTExpectFailure message in \`$(basename "$log")\`"; fi
   if [ "$executed" -lt "$expected" ]; then fail "$label UI: executed $executed of $expected expected UI tests"; fi
-  if [ "$failed" -gt 0 ]; then fail "$label UI: $failed failing UI test(s)"; fi
+  if [ "$finalfailed" -gt 0 ]; then fail "$label UI: $finalfailed failing UI test(s)$([ -n "$retried" ] && echo " after retry:$stillfailing")"; fi
   # A skipped test is a test that did not run; it cannot count toward "passed" (Agent 1, A1-4).
   if [ "$skipped" -gt 0 ]; then fail "$label UI: $skipped skipped UI test(s) — every test must execute"; fi
   local shots="$RESULTS/ui-screenshots/$label"
@@ -254,6 +291,13 @@ run_ui_tests() { # label udid only_testing expected
   if [ -d "$bundle" ]; then
     xcrun xcresulttool export attachments --path "$bundle" --output-path "$shots" \
       > "$RESULTS/25-ui-test-$label-attachments.log" 2>&1; arc=$?
+    # The retry's own renders, kept apart: the full run's failure state and
+    # the retry's pass are both evidence.
+    if [ -d "$retrybundle" ]; then
+      mkdir -p "$shots/retry"
+      xcrun xcresulttool export attachments --path "$retrybundle" --output-path "$shots/retry" \
+        >> "$RESULTS/25-ui-test-$label-attachments.log" 2>&1 || true
+    fi
   else
     arc=1
   fi
@@ -264,7 +308,8 @@ run_ui_tests() { # label udid only_testing expected
     # names (xcresulttool names them by UUID and describes them in
     # manifest.json), so Agent 2 can read "01-review-sheet.png" instead of a
     # hash. Unknown manifest shape → files keep their exported names. (A3-U-F7)
-    python3 - "$shots" >> "$RESULTS/25-ui-test-$label-attachments.log" 2>&1 <<'PY' || true
+    for shotdir in "$shots" "$shots/retry"; do [ -d "$shotdir" ] || continue
+    python3 - "$shotdir" >> "$RESULTS/25-ui-test-$label-attachments.log" 2>&1 <<'PY' || true
 import json, os, sys
 d = sys.argv[1]; m = os.path.join(d, "manifest.json")
 try:
@@ -285,6 +330,7 @@ for entry in (entries if isinstance(entries, list) else []):
         dst = base + ("" if n == 1 else "-%d" % n) + ext
         os.rename(os.path.join(d, src), os.path.join(d, dst)); print("rename: %s -> %s" % (src, dst))
 PY
+    done
     # Count what was exported, whatever the extension: the attachments are
     # all screenshots, and a wrong guess about naming must not fail a run
     # whose flows were photographed. Zero files with tests executed still fails.
@@ -296,6 +342,9 @@ PY
   fi
   if [ -d "$bundle" ]; then
     (cd "$RESULTS" && zip -q -r "$label-ui.xcresult.zip" "$(basename "$bundle")" && rm -rf "$bundle") || true
+  fi
+  if [ -d "$retrybundle" ]; then
+    (cd "$RESULTS" && zip -q -r "$label-ui-retry.xcresult.zip" "$(basename "$retrybundle")" && rm -rf "$retrybundle") || true
   fi
 }
 

@@ -11,12 +11,13 @@ enum Theme {
     }
     static let cream = adaptive((0.980, 0.965, 0.929), (0.102, 0.098, 0.086))
     static let paper = adaptive((0.999, 0.992, 0.973), (0.153, 0.145, 0.125))
-    // Dark Mode text colors come from PageText (RecipePalette.swift): colored
-    // recipe pages draw in Dark Mode, and the Linux tests check those values.
-    static let ink = adaptive((0.188, 0.169, 0.145), PageText.ink.tuple)
-    static let tomato = adaptive((0.659, 0.220, 0.153), (0.950, 0.540, 0.420))
-    static let olive = adaptive((0.282, 0.337, 0.224), PageText.olive.tuple)
-    static let muted = adaptive((0.431, 0.404, 0.369), PageText.muted.tuple)
+    // Text colors come from RecipePalette.swift — Dark Mode from PageText,
+    // Light Mode from PaleText: deep recipe pages draw in Dark Mode, pale
+    // ones in Light Mode, and the Linux tests check those values.
+    static let ink = adaptive(PaleText.ink.tuple, PageText.ink.tuple)
+    static let tomato = adaptive(PaleText.accent.tuple, (0.950, 0.540, 0.420))
+    static let olive = adaptive(PaleText.olive.tuple, PageText.olive.tuple)
+    static let muted = adaptive(PaleText.muted.tuple, PageText.muted.tuple)
     static let line = adaptive((0.902, 0.875, 0.824), (0.270, 0.255, 0.220))
     // Filled buttons retain the darker tomato so white labels stay legible.
     static let buttonFill = Color(red: 0.659, green: 0.220, blue: 0.153)
@@ -26,11 +27,11 @@ enum Theme {
         LinearGradient(colors: [cream, recipeWash, cream],
                        startPoint: .topLeading, endPoint: .bottomTrailing)
     }
-    static let warning = adaptive((0.510, 0.300, 0.090), PageText.warning.tuple)
+    static let warning = adaptive(PaleText.warning.tuple, PageText.warning.tuple)
     /// Timer chips and step labels on a colored recipe page (see PageText.accent).
     static let pageAccent = PageText.accent.color
-    /// Light-mode ink, fixed: text on the light button of a colored page.
-    static let inkOnLight = Color(red: 0.188, green: 0.169, blue: 0.145)
+    /// Light-mode ink, fixed: text on the light button of a deep page.
+    static let inkOnLight = PaleText.ink.color
 }
 
 extension RGB {
@@ -59,8 +60,9 @@ extension View {
 }
 
 struct BigButtonStyle: ButtonStyle {
-    /// On a colored recipe page the button is a light pill with dark text
-    /// (12:1) rather than tomato on a deep, possibly red, gradient.
+    /// On a deep recipe page the button is a light pill with dark text
+    /// (12:1) rather than tomato on a deep, possibly red, gradient. A pale
+    /// page keeps the classic tomato button.
     let onColoredPage: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.isEnabled) private var isEnabled

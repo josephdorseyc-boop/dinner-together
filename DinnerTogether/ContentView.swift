@@ -8,45 +8,71 @@ struct ContentView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     // Debug launch option `-dt-open-cooking` starts on the Cooking screen
     // (simulator screenshots). Release builds always start on Tonight.
-    @State private var tab = LaunchOptions.openCooking ? 1 : 0
-    @State private var sidebarSelection: String? = LaunchOptions.openCooking ? "cooking" : "tonight"
+    private enum Destination: Hashable {
+        case tonight, cooking, recipes
+    }
+    // One destination survives compact/regular layout changes. Separate tab
+    // and sidebar state could reopen the other layout on an older screen.
+    @State private var destination: Destination = LaunchOptions.openCooking ? .cooking : .tonight
+
+    private var sidebarSelection: Binding<Destination?> {
+        Binding(get: { destination }, set: { next in
+            if let next { destination = next }
+        })
+    }
 
     @State private var recipePath: [UUID] = []
+
+    /// A colored recipe page draws from its own colors — light text and dark
+    /// chrome on a deep page, dark text and light chrome on a pale one. Keep
+    /// the decision at the presentation root so the status bar, sidebar and
+    /// tab bar agree (A2-23); leaving the page returns to the system/test
+    /// appearance.
+    private var preferredPresentationScheme: ColorScheme? {
+        if destination == .recipes,
+           let id = recipePath.last,
+           let recipe = library.recipe(id: id),
+           let palette = RecipePhotos.palette(for: recipe, from: library) {
+            return palette.tone == .deep ? .dark : .light
+        }
+        return LaunchOptions.forcedColorScheme // nil in Release
+    }
 
     var body: some View {
         Group {
             if horizontalSizeClass == .regular {
                 NavigationSplitView {
-                    List(selection: $sidebarSelection) {
-                        Label("Tonight", systemImage: "fork.knife").tag("tonight")
-                        Label("Cooking", systemImage: "timer").tag("cooking")
-                        Label("Recipes", systemImage: "book.closed").tag("recipes")
+                    List(selection: sidebarSelection) {
+                        Label("Tonight", systemImage: "fork.knife").tag(Destination.tonight)
+                        Label("Cooking", systemImage: "timer").tag(Destination.cooking)
+                        Label("Recipes", systemImage: "book.closed").tag(Destination.recipes)
                     }
                     .navigationTitle("Dinner, Together")
                 } detail: {
-                    if sidebarSelection == "recipes" {
+                    if destination == .recipes {
                         recipeNavigation
                     } else {
                         NavigationStack { detailView }
                     }
                 }
             } else {
-                TabView(selection: $tab) {
-                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }, openRecipe: openRecipe) }
+                TabView(selection: $destination) {
+                    NavigationStack { PlanView(goCooking: { destination = .cooking }, goRecipes: { destination = .recipes }, openRecipe: openRecipe) }
                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
-                        .tag(0)
+                        .tag(Destination.tonight)
                     NavigationStack { CookingView() }
                         .tabItem { Label("Cooking", systemImage: "timer") }
-                        .tag(1)
+                        .tag(Destination.cooking)
                     recipeNavigation
                         .tabItem { Label("Recipes", systemImage: "book.closed") }
-                        .tag(2)
+                        .tag(Destination.recipes)
                 }
                 .toolbarBackground(Theme.cream, for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
             }
         }
         .tint(Theme.tomato)
+        .preferredColorScheme(preferredPresentationScheme)
         // Share → "Dinner, Together" from another app: the inbox item opens
         // Add recipe already filled in; the new recipe's page follows.
         .sheet(item: $library.pendingShare) { share in
@@ -76,30 +102,27 @@ struct ContentView: View {
     /// Tonight's recipe card → its page in the Recipes destination.
     private func openRecipe(_ id: UUID) {
         recipePath = [id]
-        tab = 2
-        sidebarSelection = "recipes"
+        destination = .recipes
     }
 
     private var recipeNavigation: some View {
         NavigationStack(path: $recipePath) {
             RecipesView(path: $recipePath, goTonight: {
                 recipePath.removeAll()
-                tab = 0
-                sidebarSelection = "tonight"
+                destination = .tonight
             }, goCooking: {
-                tab = 1
-                sidebarSelection = "cooking"
+                destination = .cooking
             })
         }
     }
 
     @ViewBuilder
     private var detailView: some View {
-        if sidebarSelection == "cooking" {
+        if destination == .cooking {
             CookingView()
         } else {
-            PlanView(goCooking: { sidebarSelection = "cooking" },
-                     goRecipes: { sidebarSelection = "recipes" },
+            PlanView(goCooking: { destination = .cooking },
+                     goRecipes: { destination = .recipes },
                      openRecipe: openRecipe)
         }
     }

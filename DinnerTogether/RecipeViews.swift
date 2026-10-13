@@ -341,7 +341,7 @@ struct AddRecipeSheet: View {
             Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step, with each step fully visible below the top bar in at least one screenshot. Choose images in recipe order, then check for missing or repeated text after import.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if stubbed.isEmpty {
-                PhotosPicker(selection: $picked, maxSelectionCount: 12, selectionBehavior: .ordered, matching: .images) {
+                PhotosPicker(selection: $picked, maxSelectionCount: 30, selectionBehavior: .ordered, matching: .images) {
                     Label(picked.isEmpty ? "Choose screenshots" : "\(picked.count) chosen — change", systemImage: "photo.on.rectangle.angled")
                 }
                 .buttonStyle(SecondaryButtonStyle())
@@ -516,6 +516,7 @@ struct RecipeDetailView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var tab: Tab = .ingredients
     @State private var editingStep: CookingStep?
+    @State private var removingStep: CookingStep?
     @State private var confirmingReplace = false
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
@@ -528,10 +529,14 @@ struct RecipeDetailView: View {
     private var recipe: Recipe? { library.recipe(id: recipeID) }
     /// The page's colors (photo or the cook's choice); nil = classic cream.
     private var pagePalette: RecipePalette? { recipe.flatMap { RecipePhotos.palette(for: $0, from: library) } }
-    /// A colored page always draws light text on its deep colors, whatever
-    /// the phone's appearance; the classic page follows the phone.
-    private var pageScheme: ColorScheme { pagePalette == nil ? colorScheme : .dark }
-    private var labelColor: Color { pagePalette == nil ? Theme.olive : Theme.pageAccent }
+    /// A colored page draws from its own colors whatever the phone's
+    /// appearance — light text on a deep page, the classic dark text on a
+    /// pale one; the classic page follows the phone.
+    private var pageScheme: ColorScheme { pagePalette.map { $0.tone == .deep ? .dark : .light } ?? colorScheme }
+    /// Deep pages swap the classic accents for ones that read on dark color.
+    private var deepPage: Bool { pagePalette?.tone == .deep }
+    private var labelColor: Color { deepPage ? Theme.pageAccent : Theme.olive }
+    private var accentColor: Color { deepPage ? Theme.pageAccent : Theme.tomato }
     private var isTonight: Bool { store.session.menuID == recipe?.menuID }
     private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
     /// Timing is frozen while this recipe is being cooked, same rule as the catalog.
@@ -580,7 +585,7 @@ struct RecipeDetailView: View {
                 // A colored page is dark whatever the phone's appearance, so
                 // the system chrome over it must be too: the status clock
                 // and the tab bar (A2-17: black clock on brown, 2.1:1).
-                .toolbarColorScheme(pagePalette == nil ? nil : .dark, for: .navigationBar, .tabBar)
+                .toolbarColorScheme(pagePalette.map { $0.tone == .deep ? .dark : .light }, for: .navigationBar, .tabBar)
                 .toolbar { moreMenu(recipe) }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
                 .sheet(isPresented: $editingRecipeTime) {
@@ -724,7 +729,7 @@ struct RecipeDetailView: View {
                 HStack(spacing: 6) {
                     Text(recipe.totalMinutes.map(RecipeFormat.compact) ?? "Add time")
                         .font(.system(.title2, design: .rounded).weight(.medium)).monospacedDigit()
-                        .foregroundStyle(recipe.totalMinutes == nil ? (pagePalette == nil ? Theme.tomato : Theme.pageAccent) : Theme.ink)
+                        .foregroundStyle(recipe.totalMinutes == nil ? accentColor : Theme.ink)
                     Image(systemName: recipe.totalMinutes == nil ? "plus.circle" : "pencil.circle")
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }
@@ -750,7 +755,7 @@ struct RecipeDetailView: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "clock.badge.questionmark").font(.title3).foregroundStyle(Theme.warning)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Check the timing before you cook").font(.headline)
+                    Text(dynamicTypeSize.isAccessibilitySize ? "Review timing" : "Check the timing before you cook").font(.headline)
                     Text(reviewBannerText(recipe))
                         .font(.subheadline).foregroundStyle(Theme.muted)
                 }
@@ -766,10 +771,21 @@ struct RecipeDetailView: View {
     }
 
     private func reviewBannerText(_ recipe: Recipe) -> String {
+        if dynamicTypeSize.isAccessibilitySize {
+            // A2-21: shorter at accessibility sizes; the import's own
+            // warnings are never shortened away.
+            let estimateCount = recipe.estimatedStepCount
+            var summary = estimateCount == 0 ? "Check step times." :
+                "\(estimateCount) estimated \(estimateCount == 1 ? "step" : "steps")."
+            if recipe.totalMinutes == nil { summary += " Add recipe time." }
+            for warning in recipe.importWarnings ?? [] { summary += " " + warning }
+            return summary
+        }
         var text = recipe.estimatedStepCount == 0
             ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
             : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them."
         if recipe.totalMinutes == nil { text += " No total time was found — add it under Recipe time." }
+        for warning in recipe.importWarnings ?? [] { text += " " + warning }
         return text
     }
 
@@ -812,7 +828,7 @@ struct RecipeDetailView: View {
     }
 
     private var selectedTabFill: Color {
-        pagePalette == nil ? Theme.paper : Color.white.opacity(RecipePalette.selectedLift)
+        deepPage ? Color.white.opacity(RecipePalette.selectedLift) : Theme.paper
     }
 
     // MARK: Tabs
@@ -843,7 +859,7 @@ struct RecipeDetailView: View {
                     Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
                         .foregroundStyle(labelColor)
                         .accessibilityAddTraits(.isHeader)
-                    TimedText.make(line, accent: pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+                    TimedText.make(line, accent: accentColor)
                         .font(.title3).lineSpacing(7)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -942,6 +958,29 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityHint("Switches between needs you and hands-off.")
+                // Text the import mistook for a step leaves the recipe here
+                // (A2 S2). The dialog hangs off its own button: on iOS 26 a
+                // dialog presented from a scrolling page shows as a bubble
+                // at the button, and tapping away cancels it.
+                Button(role: .destructive) { removingStep = step } label: {
+                    Label("Remove", systemImage: "minus.circle")
+                }
+                .buttonStyle(QuietButtonStyle())
+                .accessibilityIdentifier("remove-step-\(step.id)")
+                .accessibilityHint("Takes this step out of the directions and the plan.")
+                .confirmationDialog("Remove this step?",
+                                    isPresented: Binding(get: { removingStep?.id == step.id },
+                                                         set: { if !$0 { removingStep = nil } }),
+                                    titleVisibility: .visible) {
+                    Button("Remove step", role: .destructive) {
+                        if !library.removeStep(recipeID: recipeID, stepID: step.id) {
+                            UIAccessibility.post(notification: .announcement, argument: library.saveError)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) { removingStep = nil }
+                } message: {
+                    Text("It leaves the directions and the dinner plan. Use this for text that isn’t a cooking step.")
+                }
         }
         .fixedSize(horizontal: !stacked, vertical: false)
     }
@@ -953,7 +992,7 @@ struct RecipeDetailView: View {
                 Label("View the original\(recipe.source.publisher.map { " on \($0)" } ?? "")", systemImage: "safari")
                     .font(.subheadline.weight(.semibold))
             }
-            .tint(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+            .tint(accentColor)
             .padding(.top, 8)
         }
     }
@@ -976,7 +1015,7 @@ struct RecipeDetailView: View {
                     }
                     UIAccessibility.post(notification: .announcement, argument: "Timing confirmed.")
                 } label: { Label("Timing looks right", systemImage: "checkmark") }
-                .buttonStyle(BigButtonStyle(onColoredPage: pagePalette != nil))
+                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
                 .disabled(timingLocked || recipe.steps.isEmpty)
                 .accessibilityIdentifier("timing-looks-right")
             } else {
@@ -990,7 +1029,7 @@ struct RecipeDetailView: View {
                 } label: {
                     Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
                 }
-                .buttonStyle(BigButtonStyle(onColoredPage: pagePalette != nil))
+                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
                 .disabled(recipe.steps.isEmpty)
                 .accessibilityIdentifier("cook-this-recipe")
             }
@@ -1056,7 +1095,7 @@ struct RecipeDetailView: View {
                 if timingLocked { cannotDelete = true } else { confirmingDelete = true }
             } label: {
                 Label("Delete this recipe", systemImage: "trash")
-                    .foregroundStyle(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+                    .foregroundStyle(accentColor)
             }
             .buttonStyle(QuietButtonStyle())
             .padding(.top, 12)

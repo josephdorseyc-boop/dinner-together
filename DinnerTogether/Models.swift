@@ -71,6 +71,10 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// The cook's page color choice; nil = automatic (photo colors if the
     /// recipe has a photo, else the classic cream page).
     var pageStyle: PageStyle?
+    /// What a screenshot import could not establish (unreadable text, step
+    /// numbers never seen, a last step cut short); shown with the timing
+    /// review until the cook has looked. nil when the import was clean.
+    var importWarnings: [String]?
 
     static let menuIDPrefix = "recipe:"
     var menuID: String { Recipe.menuIDPrefix + id.uuidString }

@@ -20,8 +20,19 @@ case "$1" in
     if [ -n "${FAKE_RELEASE_BUILD_RC:-}" ]; then echo "DinnerTogether/RecipeViews.swift:1:1: error: type 'LaunchOptions' has no member 'fake' (fake)"; echo "** BUILD FAILED **"; exit "$FAKE_RELEASE_BUILD_RC"; fi
     echo "** BUILD SUCCEEDED **"; exit 0;;
   test-without-building)
-    bundle=""; only=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; [[ "${args[$i]}" == -only-testing:* ]] && only="${args[$i]#-only-testing:}"; done
+    bundle=""; only=""; onlys=(); for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; [[ "${args[$i]}" == -only-testing:* ]] && { only="${args[$i]#-only-testing:}"; onlys+=("$only"); }; done
     mkdir -p "$bundle"
+    if [[ "$bundle" == *-ui-retry* ]]; then
+      # The retry of failing UI flows, each named in full: pass them when
+      # FAKE_UI_RETRY_PASS is set (a flake), fail them again otherwise.
+      f=0
+      for t in "${onlys[@]}"; do
+        cls=$(basename "$(dirname "$t")"); m=$(basename "$t")
+        if [ -n "${FAKE_UI_RETRY_PASS:-}" ]; then echo "Test Case '-[DinnerTogetherUITests.$cls $m]' passed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherUITests.$cls $m]' failed (0.1 seconds)"; f=$((f+1)); fi
+      done
+      echo "Executed ${#onlys[@]} tests, with $f failures (0 unexpected) in 1.0 (1.0) seconds"
+      [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0
+    fi
     if [[ "$only" == *DinnerTogetherUITests* ]]; then
       # UI run: the class after the last "/" selects the expected count.
       class="${only##*/}"; ui_file="DinnerTogetherUITests/DinnerTogetherUITests.swift"

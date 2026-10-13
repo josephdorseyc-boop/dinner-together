@@ -47,9 +47,11 @@ run_case appearance-fails       0    1     1    4    $UPNG   FAKE_APPEARANCE_RC=
 run_case build-fails-partial    1    1     5    0    0    FAKE_BUILD_RC=65       # CI run 3: failed build leaves a partial .app → must not count as present
 run_case skipped-test           1    0     2    32   $UPNG   FAKE_SKIPPED=1         # A1-4: a skipped test on each device fails the gate
 run_case ui-no-executed         1    0     2    32   0    FAKE_UI_EXECUTED=0     # A1-U: no UI tests executed on either device fails the gate
-run_case ui-one-failing         1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=1   # A1-U: one failing UI test per device
+run_case ui-one-failing         1    0     4    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1   # A1-U: one failing UI test per device; it is retried alone (one retry render per device) and fails again
+run_case ui-flaky-passes-retry  0    0     0    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1 FAKE_UI_RETRY_PASS=1   # A1 #18: a flow that fails in the full run and passes alone is a flaky pass, reported, never a gate failure
+run_case ui-many-failing        1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=4 FAKE_UI_RETRY_PASS=1   # four failures are not retried: that is a broken build, not a flake
 run_case ui-attachments-missing 1    0     2    32   0    FAKE_UI_ATTACHMENTS_RC=1  # A1-U: export failure → the flows were not photographed
 run_case ui-skipped             1    0     2    32   $UPNG   FAKE_UI_SKIPPED=1      # A1-U: a skipped UI test on each device fails the gate
 run_case release-build-fails    1    0     1    32   $UPNG   FAKE_RELEASE_BUILD_RC=65  # build 9, release run 9: a DEBUG-only symbol must fail validation, not the archive
 rm -rf "$WORK"
-if [ "$bad" -eq 0 ]; then echo "PASS: 17 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
+if [ "$bad" -eq 0 ]; then echo "PASS: 19 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi

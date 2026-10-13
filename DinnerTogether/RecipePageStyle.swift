@@ -119,8 +119,9 @@ struct RecipePageBackground: View {
     }
 }
 
-/// A card on a recipe page: frosted glass on a colored page (solid with
-/// Reduce Transparency or Increase Contrast), the classic paper card otherwise.
+/// A card on a recipe page: frosted glass on a colored page (shaded darker
+/// on a deep page, lighter on a pale one; solid with Reduce Transparency or
+/// Increase Contrast), the classic paper card otherwise.
 struct RecipeSurface: ViewModifier {
     let cornerRadius: CGFloat
     @Environment(\.recipePalette) private var palette
@@ -139,7 +140,7 @@ struct RecipeSurface: ViewModifier {
                 content
                     .background {
                         shape.fill(.ultraThinMaterial)
-                            .overlay(shape.fill(Color.black.opacity(RecipePalette.glassShade)))
+                            .overlay(shape.fill(palette.glassTint.color.opacity(RecipePalette.glassShade)))
                     }
                     .overlay {
                         // The glass edge: a hairline that catches the light at the top.
@@ -168,6 +169,7 @@ struct PageStyleSheet: View {
     let recipeID: UUID
     @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var problem: String?
 
     init(recipeID: UUID) { self.recipeID = recipeID }
@@ -221,7 +223,7 @@ struct PageStyleSheet: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("page-style-error")
                         }
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 12)], spacing: 14) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 160 : 96), spacing: 12)], spacing: 14) {
                             let selected = current(recipe)
                             ForEach(options(recipe)) { option in
                                 swatch(option, selected: option.id == selected) { choose(option.style, for: recipe) }
@@ -241,7 +243,7 @@ struct PageStyleSheet: View {
                 }
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
         .tint(Theme.tomato)
     }
 

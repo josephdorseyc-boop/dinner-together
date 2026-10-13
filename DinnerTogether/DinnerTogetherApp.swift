@@ -41,9 +41,8 @@ struct DinnerTogetherApp: App {
                 .transformEnvironment(\.dynamicTypeSize) { size in
                     if let forced = LaunchOptions.forcedTypeSize { size = forced }
                 }
-                // UI-test forced appearance (-dt-appearance dark|light); nil
-                // otherwise, which leaves the system setting in charge.
-                .preferredColorScheme(LaunchOptions.forcedColorScheme)
+                // ContentView combines the forced appearance with the active
+                // recipe page's appearance at the presentation root.
                 #endif
                 .task { await store.refreshNotificationSettings() }
                 .onChange(of: scenePhase) { _, phase in
@@ -177,13 +176,16 @@ enum LaunchOptions {
             return RecipeImporter.build(imported, method: .text, now: base.addingTimeInterval(-Double(i)))
         }
         var seeded = recipes
-        // DT_SEED_RECIPE_PHOTO=landscape: give the first recipe a wide photo,
-        // drawn here so the test never depends on a publisher's image.
-        if ProcessInfo.processInfo.environment["DT_SEED_RECIPE_PHOTO"] == "landscape", !seeded.isEmpty {
+        // DT_SEED_RECIPE_PHOTO=landscape (a wide, warm still life) or
+        // =pastel (pale blue icing, a pale page): give the first recipe a
+        // photo drawn here, so the test never depends on a publisher's image.
+        let photoKind = ProcessInfo.processInfo.environment["DT_SEED_RECIPE_PHOTO"] ?? ""
+        if ["landscape", "pastel"].contains(photoKind), !seeded.isEmpty {
             let folder = URL.documentsDirectory.appending(path: "recipe-images", directoryHint: .isDirectory)
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             let name = "\(seeded[0].id.uuidString).jpg"
-            if let jpeg = landscapeTestPhoto().jpegData(compressionQuality: 0.85),
+            let photo = photoKind == "pastel" ? pastelTestPhoto() : landscapeTestPhoto()
+            if let jpeg = photo.jpegData(compressionQuality: 0.85),
                (try? jpeg.write(to: folder.appending(path: name), options: .atomic)) != nil {
                 seeded[0].imageFilename = name
             }
@@ -224,6 +226,28 @@ enum LaunchOptions {
             landscapeTestPhoto().draw(in: CGRect(x: 0, y: 300, width: size.width, height: size.width * 1000 / 1800))
         }
         return [textPage, photoPage].compactMap { $0.pngData() }
+    }
+
+    /// A 1200×1200 pastel: pale blue and lavender swirls on a white board,
+    /// like Joe's meringue photo (build 11). Its page is pale.
+    static func pastelTestPhoto() -> UIImage {
+        let size = CGSize(width: 1200, height: 1200)
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        return UIGraphicsImageRenderer(size: size, format: format).image { ctx in
+            let c = ctx.cgContext
+            UIColor(red: 0.90, green: 0.92, blue: 0.95, alpha: 1).setFill()
+            c.fill(CGRect(origin: .zero, size: size))
+            let tints = [UIColor(red: 0.60, green: 0.69, blue: 0.79, alpha: 1), UIColor(red: 0.71, green: 0.80, blue: 0.88, alpha: 1),
+                         UIColor(red: 0.71, green: 0.75, blue: 0.83, alpha: 1), UIColor(red: 0.81, green: 0.84, blue: 0.90, alpha: 1)]
+            for row in 0..<6 {
+                for col in 0..<4 {
+                    tints[(row + col) % tints.count].setFill()
+                    c.fillEllipse(in: CGRect(x: 40 + col * 290, y: 60 + row * 185, width: 250, height: 150))
+                }
+            }
+            UIColor(white: 1, alpha: 0.55).setFill()
+            for row in 0..<6 { c.fillEllipse(in: CGRect(x: 120, y: 95 + row * 185, width: 960, height: 60)) }
+        }
     }
 
     /// A 1800×1000 still life (table, two glasses, a bowl) in the app's own

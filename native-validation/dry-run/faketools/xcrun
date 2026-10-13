@@ -10,6 +10,8 @@ if [ "$1" = "xcresulttool" ]; then
     fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; [ "$(basename "$out")" = "ipad" ] && fu="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"
     dflt=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)
     n=${FAKE_UI_PNGS:-${FAKE_UI_EXECUTED:-$dflt}}
+    # A retry bundle photographs only the retried flows.
+    if [ "$(basename "$out")" = "retry" ]; then n=${FAKE_UI_FAIL_CASES:-0}; fi
     for ((k=1;k<=n;k++)); do printf 'PNGFAKE' > "$out/ui-shot-$k.png"; done
     exit 0
   fi

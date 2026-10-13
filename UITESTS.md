@@ -147,3 +147,23 @@ After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
 - The tests assume the simulator uses the host locale (the +10-minute
   assertion round-trips displayed times through the short-style
   `DateFormatter`); CI runners are en_US.
+
+## Flaky flows: one retry, always reported (October 13)
+
+`run-native-pass.sh` reruns up to three failing UI flows alone, once, after
+the full run (A1, issue #18: four consecutive build-12 runs each failed on a
+different flow, ninety minutes a cycle). A flow that passes alone is a
+**flaky pass**: the step is marked ✅ with the first run's exit code in the
+line, the summary lists it under "retried alone", the run carries a
+`::warning` annotation `flaky-ui-<device>`, and `FLAKY.txt` in the results
+accumulates them. It is never hidden, and it is A1's lane to make it stop
+flaking. A flow that fails alone too fails the gate exactly as before.
+Four or more failures are not retried: that is a broken build. The retry's
+own renders are exported under `ui-screenshots/<device>/retry/`, next to
+the full run's failure-state renders, so both are evidence.
+
+Two harness rules came out of the recordings of run 38399682685 (A2-25):
+`scrollAndTap` waits for the target's frame to stop moving before tapping
+(the Undo tap had landed where Undo was a moment earlier), and every scroll
+drag starts at a point that is not on a button (`dragStart`), after a
+positioning drag that began on "Choose screenshots" opened Photos.

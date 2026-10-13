@@ -37,4 +37,5 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test15_typedPageColorAX3_iPad() { flowTypedPageColor(.ax3) }
     func test16_photoPageColorsDark_iPad() { flowPhotoPageColors(.darkMode) }
     func test17_typedPageColorDark_iPad() { flowTypedPageColor(.darkMode) }
+    func test18_palePhotoPage_iPad() { flowPalePhotoPage() }
 }

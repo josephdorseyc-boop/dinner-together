@@ -66,6 +66,8 @@ P004 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; incl
 B404 = {isa = PBXBuildFile; fileRef = P004; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 A208 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialImportTests.swift; sourceTree = "<group>"; };
 B208 = {isa = PBXBuildFile; fileRef = A208; };
+A209 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CookModeScreenshotTests.swift; sourceTree = "<group>"; };
+B209 = {isa = PBXBuildFile; fileRef = A209; };
 A201 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerTogetherTests.swift; sourceTree = "<group>"; };
 B201 = {isa = PBXBuildFile; fileRef = A201; };
 A301 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DinnerTogetherUITests.swift; sourceTree = "<group>"; };
@@ -76,7 +78,7 @@ A303 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIT
 B303 = {isa = PBXBuildFile; fileRef = A303; };
 G001 = {isa = PBXGroup; children = (G002, G003, G004, G005, G006); sourceTree = "<group>"; };
 G002 = {isa = PBXGroup; children = (A101, A102, A103, A104, A105, A106, A107, A108, A109, A110, A111, A112, A113, A114, A115, A116, A117, A118, A119, A120, A121, A122, A123); path = DinnerTogether; sourceTree = "<group>"; };
-G003 = {isa = PBXGroup; children = (A201, A202, A203, A204, A205, A206, A207, A208); path = DinnerTogetherTests; sourceTree = "<group>"; };
+G003 = {isa = PBXGroup; children = (A201, A202, A203, A204, A205, A206, A207, A208, A209); path = DinnerTogetherTests; sourceTree = "<group>"; };
 G005 = {isa = PBXGroup; children = (A301, A302, A303); path = DinnerTogetherUITests; sourceTree = "<group>"; };
 G004 = {isa = PBXGroup; children = (P001, P002, P003, P004); name = Products; sourceTree = "<group>"; };
 G006 = {isa = PBXGroup; children = (A401, A402, A403); path = ShareExtension; sourceTree = "<group>"; };
@@ -100,7 +102,7 @@ E001 = {isa = PBXCopyFilesBuildPhase; buildActionMask = 2147483647; dstPath = ""
 S001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B101, B102, B103, B104, B105, B106, B107, B108, B109, B110, B111, B112, B115, B116, B117, B118, B119, B120, B121, B122); runOnlyForDeploymentPostprocessing = 0; };
 F001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 R001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (B113, B114); runOnlyForDeploymentPostprocessing = 0; };
-S002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B201, B202, B203, B204, B205, B206, B207, B208); runOnlyForDeploymentPostprocessing = 0; };
+S002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B201, B202, B203, B204, B205, B206, B207, B208, B209); runOnlyForDeploymentPostprocessing = 0; };
 F002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 R002 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 S003 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (B301, B302, B303); runOnlyForDeploymentPostprocessing = 0; };

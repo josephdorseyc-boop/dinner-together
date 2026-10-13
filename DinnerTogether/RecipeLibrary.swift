@@ -159,6 +159,21 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         return update(r)
     }
 
+    /// Takes a step out of the plan and the directions: text the import
+    /// mistook for a step (a story teaser, a repeated title) is the cook's
+    /// to remove (A2 S2, build 11). Directions are matched by text, so a
+    /// second removal still finds the right line.
+    @discardableResult
+    func removeStep(recipeID: UUID, stepID: String) -> Bool {
+        guard var r = recipe(id: recipeID),
+              let step = r.steps.first(where: { $0.id == stepID }) else { return false }
+        r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
+        if let i = r.directions.firstIndex(where: { RecipeImporter.stripStepPrefix($0) == step.detail }) {
+            r.directions.remove(at: i)
+        }
+        return update(r)
+    }
+
     // MARK: Images
 
     /// Writes a fresh image, commits its reference, then removes the old cover.
