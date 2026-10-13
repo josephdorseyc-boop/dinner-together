@@ -336,10 +336,13 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// back to a tap at the element's center (A3-U-F10).
     func tapEvenInPopover(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         waitForExistence(element, timeout: 10, "element to tap exists: \(element)", file: file, line: line)
-        let hittable = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isHittable == true"), object: element)
-        if XCTWaiter().wait(for: [hittable], timeout: 3) == .completed {
-            element.tap()
-        } else if waitForOnScreenFrame(element, timeout: 3) {
+        // Never ask isHittable of a menu item or popover button: XCTest records
+        // "Failed to determine hittability … Activation point invalid" as a
+        // failure while the menu animates (run 38356617072, the cover source
+        // menu; the build-7 alert before it). A finite on-screen frame is
+        // the condition a coordinate tap needs, so wait for that and tap.
+        if waitForOnScreenFrame(element, timeout: 6) {
+            usleep(250_000) // let the menu finish animating into place
             element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         } else {
             XCTFail("no finite on-screen frame for coordinate tap: \(element)", file: file, line: line)
