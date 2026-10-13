@@ -28,7 +28,10 @@ jobs:
   native:
     name: ${{ matrix.pass }} (Xcode ${{ inputs.xcode }})
     runs-on: xcode-27
-    timeout-minutes: 110
+    # The duo pass downloads the iOS 27.1 platform first and the Duo
+    # simulator is slower: run 38341872659 timed out at 110 min after the
+    # tests had passed.
+    timeout-minutes: 170
     strategy:
       fail-fast: false
       matrix:
@@ -72,7 +75,8 @@ jobs:
         run: bash native-validation/run-native-pass.sh "$RESULTS" || echo "native-pass-failed=true" >> "$GITHUB_OUTPUT"
       - name: Screenshots of seeded recovery states
         id: shots
-        if: always()
+        # Store-frame captures are not a Duo question; the ios27 pass keeps them.
+        if: always() && matrix.pass == 'ios27'
         run: bash native-validation/screenshots.sh "$RESULTS" || echo "screenshots-failed=true" >> "$GITHUB_OUTPUT"
       - name: Show summary
         if: always()
