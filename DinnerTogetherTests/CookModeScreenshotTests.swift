@@ -34,7 +34,8 @@ private func cookPage(_ n: Int, _ active: [String], next: (Int, [String])? = nil
     lines.append(L("STEP \(n)", 0.210, h: 0.018))
     var y = 0.260
     for line in active { lines.append(L(line, y, h: 0.035)); y += 0.051 }
-    if let (m, dimmed) = next {
+    if let next {
+        let (m, dimmed) = next
         y += 0.12
         lines.append(L("STEP \(m)", y, h: 0.018)); y += 0.05
         for line in dimmed where y < 0.98 { lines.append(L(line, y, h: 0.035)); y += 0.051 }
@@ -159,9 +160,10 @@ final class CookModeScreenshotTests: XCTestCase {
     }
 
     func testSelectionOrderDoesNotMatter() throws {
-        var pages = (1...meringueSteps.count).map(meringuePage).reversed() + [meringueIngredients, meringueCover]
+        var pages: [[OCRLine]] = Array((1...meringueSteps.count).map(meringuePage).reversed())
+        pages += [meringueIngredients, meringueCover]
         pages.swapAt(2, 9)
-        let r = try RecipeImporter.parse(screenshots: Array(pages))
+        let r = try RecipeImporter.parse(screenshots: pages)
         XCTAssertEqual(r.title, meringueTitle)
         XCTAssertEqual(r.directions, meringueExpected)
         XCTAssertEqual(r.warnings, [])
