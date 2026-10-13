@@ -25,19 +25,16 @@ jobs:
       # Findings go out as annotations: run logs live in blob storage that not
       # every environment can read; check-run annotations are plain API.
       - name: Probe
+        # At most ten notices per step are kept: the interesting ones only.
         run: |
-          os=$(sw_vers -productVersion)
-          echo "::notice title=macOS::$os on ${{ inputs.runner }}"
-          echo "::notice title=Default Xcode::$(xcodebuild -version | tr '\n' ' ')"
-          for x in /Applications/Xcode*.app; do
-            v=$("$x/Contents/Developer/usr/bin/xcodebuild" -version 2>/dev/null | tr '\n' ' ')
-            echo "::notice title=Xcode app::$(basename "$x") = $v"
-          done
-          sdks=$(xcodebuild -showsdks 2>/dev/null | grep -i "iphoneos" | tr -s ' ' | tr '\n' ';')
-          echo "::notice title=iOS SDKs (default Xcode)::$sdks"
-          for x in /Applications/Xcode*.app; do
-            rt=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list runtimes 2>/dev/null | grep -i "^iOS" | tr '\n' ';')
-            duo=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -i "duo" | tr '\n' ';')
-            echo "::notice title=$(basename "$x") runtimes::${rt:-none}"
-            echo "::notice title=$(basename "$x") iPhone Duo device types::${duo:-none}"
+          echo "::notice title=macOS::$(sw_vers -productVersion) on ${{ inputs.runner }}; default $(xcodebuild -version | tr '\n' ' ')"
+          apps=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tr '\n' ' ')
+          echo "::notice title=Xcode apps::$apps"
+          newest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tail -1)
+          for x in "$newest" /Applications/Xcode_27.1.app /Applications/Xcode_26.2.app; do
+            [ -d "$x" ] || continue
+            rt=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list runtimes 2>/dev/null | grep -i "^iOS" | sed 's/ - com.apple.*//' | tr '\n' ';')
+            duo=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "duo|fold" | tr '\n' ';')
+            phones=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "^iPhone 1[7-9]|^iPhone 2" | sed 's/ (com.apple.*//' | tr '\n' ';')
+            echo "::notice title=$(basename "$x")::runtimes ${rt:-none} | Duo ${duo:-none} | phones ${phones:-none}"
           done
