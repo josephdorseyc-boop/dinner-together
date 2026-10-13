@@ -274,7 +274,8 @@ struct CookingView: View {
                 Text("Every step is complete.").foregroundStyle(Theme.muted)
             }.dtCard().accessibilityElement(children: .combine)
         } else {
-            SectionLabel(text: "RIGHT NOW")
+            // With a hero picture the tag rides on the photo's edge instead.
+            if heroHeight == nil || (urgentTimer == nil && doNow.isEmpty) { SectionLabel(text: "RIGHT NOW") }
             if let urgent = urgentTimer {
                 heatCard(urgent, featured: true)
             } else if let next = doNow.first {
@@ -348,7 +349,7 @@ struct CookingView: View {
             SectionLabel(text: "TIMELINE")
             Spacer()
             // Once per plan, not per step (A2-35).
-            if let cover = tonightCover { RecipeCoverThumbnail(image: cover.image, size: 32) }
+            if let art = heroArt { DinnerHeroThumbnail(art: art, size: 32) }
         }
         servingProgress
 
@@ -521,24 +522,70 @@ struct CookingView: View {
         }
     }
 
-    /// Tonight's recipe cover, when tonight's dinner is one of the cook's
-    /// recipes with a photo. Cached by file name, so the timer's ticks never
-    /// decode it again. None at accessibility sizes: text first (A2-35).
-    private var tonightCover: (image: UIImage, palette: RecipePalette?)? {
-        guard !dynamicTypeSize.isAccessibilitySize,
-              let recipe = library.recipe(menuID: store.session.menuID) else { return nil }
-        return RecipePhotos.load(recipe, from: library)
+    /// Tonight's dinner as a picture (Joe, October 13, A2's Duo mock): the
+    /// recipe's cover, else the classic's illustrated plate. Cached by file
+    /// name, so the timer's ticks never decode it again. None at
+    /// accessibility sizes: text first (A2-35).
+    private var heroArt: DinnerHeroArt? {
+        guard !dynamicTypeSize.isAccessibilitySize else { return nil }
+        return DinnerHeroArt.of(store.session.menuID, library: library)
     }
 
-    /// A photo strip leads RIGHT NOW only for an ordinary start on a tall
-    /// enough screen with no readiness warning; otherwise a small thumbnail
-    /// in the header row, so the action never moves down (A2-35).
-    private var coverStripAllowed: Bool { viewportHeight >= 600 && readiness == nil }
+    /// The RIGHT NOW hero: about 140 pt on a phone or the Duo's outer
+    /// display, 220 pt on a wide, tall screen. Kept for an expired timer too
+    /// (Joe's call) — but on a short screen it becomes a header thumbnail
+    /// first, so the primary action never drops below the fold.
+    private var heroHeight: CGFloat? {
+        guard heroArt != nil, viewportHeight >= 620 else { return nil }
+        if horizontalSizeClass == .regular && viewportHeight >= 760 { return 220 }
+        // An expired timer's card is taller (countdown, deadline, the check
+        // note): a shorter photo keeps "Mark done after checking" on the
+        // first screen of a phone.
+        return urgentTimer != nil ? 110 : 140
+    }
+
+    /// The featured card's frame: the hero picture with the RIGHT NOW tag on
+    /// its bottom edge, then the card's content on its opaque surface — no
+    /// text over food.
+    @ViewBuilder
+    private func rightNowShell<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        if let height = heroHeight, let art = heroArt {
+            VStack(alignment: .leading, spacing: 0) {
+                DinnerHero(art: art, height: height)
+                    .overlay(alignment: .bottomLeading) {
+                        Text("RIGHT NOW")
+                            .font(.caption.weight(.bold)).tracking(1.2)
+                            .foregroundStyle(Theme.tomato)
+                            .padding(.horizontal, 10).padding(.vertical, 5)
+                            .background(Theme.paper, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .padding(.leading, 18).padding(.bottom, 10)
+                            .accessibilityAddTraits(.isHeader)
+                    }
+                content().padding(22)
+            }
+            .background(Theme.paper)
+            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        } else {
+            content().dtCard()
+        }
+    }
+
+    /// The header thumbnail when the hero does not fit.
+    private var heroThumbnail: DinnerHeroArt? { heroHeight == nil ? heroArt : nil }
 
     /// The featured card is the expired timer demanding attention right now —
     /// its "Mark done" is the primary action. Other running timers keep the
     /// quieter control.
+    @ViewBuilder
     private func heatCard(_ item: PlannedStep, featured: Bool = false) -> some View {
+        if featured {
+            rightNowShell { heatContent(item, featured: true) }
+        } else {
+            heatContent(item, featured: false).dtCard()
+        }
+    }
+
+    private func heatContent(_ item: PlannedStep, featured: Bool) -> some View {
         let record = store.record(item.id)
         let deadline = record.timerDeadline ?? item.end
         let remaining = timers.remaining(until: deadline)
@@ -547,7 +594,7 @@ struct CookingView: View {
                 Label(item.step.dish, systemImage: "timer").font(.caption.weight(.semibold))
                 Spacer()
                 Text(remaining <= 0 ? "Check the food" : "Running").font(.caption.weight(.medium))
-                if featured, let cover = tonightCover { RecipeCoverThumbnail(image: cover.image, size: 44) }
+                if featured, let art = heroThumbnail { DinnerHeroThumbnail(art: art, size: 44) }
             }.foregroundStyle(remaining <= 0 ? Theme.warning : Theme.muted)
             Text(item.step.title).font(.headline).foregroundStyle(Theme.ink)
             Text(Scheduling.formatCountdown(remaining: remaining))
@@ -579,26 +626,14 @@ struct CookingView: View {
                 Button { doneTapped(item) } label: { Label("Mark done", systemImage: "checkmark") }
                     .buttonStyle(QuietButtonStyle()).accessibilityLabel("Mark \(item.step.title) done")
             }
-        }.dtCard()
+        }
     }
 
     private func doNowCard(_ item: PlannedStep) -> some View {
-        let cover = tonightCover
-        let strip = cover != nil && coverStripAllowed
-        return VStack(alignment: .leading, spacing: 0) {
-            if strip, let cover {
-                RecipeCoverBand(image: cover.image, palette: cover.palette,
-                                height: horizontalSizeClass == .regular ? 96 : 64)
-            }
-            doNowContent(item, thumbnail: strip ? nil : cover?.image)
-                .padding(22)
-                .padding(.top, strip ? -8 : 0)
-        }
-        .background(Theme.paper)
-        .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+        rightNowShell { doNowContent(item, thumbnail: heroThumbnail) }
     }
 
-    private func doNowContent(_ item: PlannedStep, thumbnail: UIImage?) -> some View {
+    private func doNowContent(_ item: PlannedStep, thumbnail: DinnerHeroArt?) -> some View {
         let overdue = now.timeIntervalSince(item.plannedStart) >= 60
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -606,7 +641,7 @@ struct CookingView: View {
                 Spacer()
                 Label("\(Scheduling.formatMinutes(item.minutes))", systemImage: item.step.handsOn ? "hand.raised" : "timer")
                     .font(.caption).foregroundStyle(Theme.muted)
-                if let thumbnail { RecipeCoverThumbnail(image: thumbnail, size: 44) }
+                if let thumbnail { DinnerHeroThumbnail(art: thumbnail, size: 44) }
             }
             Text(item.step.title).font(.title2.weight(.semibold)).foregroundStyle(Theme.ink)
             Text(item.step.handsOn ? "Needs your attention" : "Hands-off after you start")

@@ -79,6 +79,12 @@ struct PlateIllustration: View {
         "thanksgiving": Look(main: c(0.70, 0.42, 0.22), side: c(0.62, 0.12, 0.20), garnish: c(0.76, 0.60, 0.38)),
     ]
 
+    /// The plate's own colors, for a backdrop behind it.
+    static func colors(_ menuID: String) -> [Color] {
+        let look = looks[menuID] ?? Look(main: Theme.tomato, side: Theme.olive, garnish: Theme.muted)
+        return [look.main, look.side, look.garnish]
+    }
+
     var body: some View {
         let look = Self.looks[menuID] ?? Look(main: Theme.tomato, side: Theme.olive, garnish: Theme.muted)
         GeometryReader { geo in
@@ -416,6 +422,65 @@ struct PlanClassicSheet: View {
             goTonight()
         } else if weekPlan.set(.menu(menu.id), on: day) {
             dismiss()
+        }
+    }
+}
+
+// MARK: - Tonight's dinner as a hero (Joe, October 13; A2's Duo mock)
+
+/// The best picture a dinner has: the recipe's cover, else the classic's
+/// illustrated plate. (Next: the cook's own plate photo, between the two.)
+enum DinnerHeroArt {
+    case cover(UIImage, RecipePalette?)
+    case plate(String)
+
+    @MainActor
+    static func of(_ menuID: String, library: RecipeLibrary) -> DinnerHeroArt? {
+        if let recipe = library.recipe(menuID: menuID) {
+            return RecipePhotos.load(recipe, from: library).map { .cover($0.image, $0.palette) }
+        }
+        return DinnerCatalog.menus.contains { $0.id == menuID } ? .plate(menuID) : nil
+    }
+}
+
+/// The hero band: a cover resolving into the card's surface, or the plate
+/// large on a soft wash of its own colors. Decorative; the card names the dish.
+struct DinnerHero: View {
+    let art: DinnerHeroArt
+    let height: CGFloat
+
+    var body: some View {
+        switch art {
+        case .cover(let image, let palette):
+            RecipeCoverBand(image: image, palette: palette, height: height)
+        case .plate(let id):
+            let c = PlateIllustration.colors(id)
+            ZStack {
+                LinearGradient(colors: [c[1].opacity(0.30), c[0].opacity(0.22), Theme.paper],
+                               startPoint: .topTrailing, endPoint: .bottomLeading)
+                Circle().fill(c[2].opacity(0.16)).frame(width: height * 1.1).blur(radius: 30)
+                    .offset(x: -height * 0.9, y: -height * 0.2)
+                PlateIllustration(menuID: id)
+                    .frame(width: height * 0.86, height: height * 0.86)
+                    .offset(x: height * 0.35)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: height)
+            .clipped()
+            .accessibilityHidden(true)
+        }
+    }
+}
+
+/// The same picture as a small square, for header rows and the timeline.
+struct DinnerHeroThumbnail: View {
+    let art: DinnerHeroArt
+    let size: CGFloat
+
+    var body: some View {
+        switch art {
+        case .cover(let image, _): RecipeCoverThumbnail(image: image, size: size)
+        case .plate(let id): PlateIllustration(menuID: id).frame(width: size, height: size)
         }
     }
 }

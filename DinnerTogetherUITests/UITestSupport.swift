@@ -638,6 +638,12 @@ class DinnerTogetherUITestCase: XCTestCase {
         launch(seed: UISeed.expiredTimer(now: Date()))
         let markDone = app.buttons["Mark Cook the steak done"]
         waitForExistence(markDone, timeout: 10, "featured expired-timer action")
+        // The dinner's picture leads RIGHT NOW, and still the urgent action
+        // is on the first screen, unscrolled (Joe and A2-35, October 13).
+        photograph("04-expired-hero-first-screen")
+        XCTAssertTrue(waitForOnScreenFrame(markDone), "Mark done after checking exists on screen: \(markDone.frame)")
+        XCTAssertLessThanOrEqual(markDone.frame.maxY, app.frame.maxY - 90,
+                                 "…above the tab bar on the first screen, with the hero: \(markDone.frame) in \(app.frame)")
         scrollTo(markDone)
         photograph("04-expired-featured")
 
