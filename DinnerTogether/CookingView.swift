@@ -591,6 +591,9 @@ struct CookingView: View {
         let remaining = timers.remaining(until: deadline)
         return VStack(alignment: .leading, spacing: 16) {
             HStack {
+                if !featured, !dynamicTypeSize.isAccessibilitySize {
+                    DishThumbnail(step: item.step, menuID: store.session.menuID, size: 36)
+                }
                 Label(item.step.dish, systemImage: "timer").font(.caption.weight(.semibold))
                 Spacer()
                 Text(remaining <= 0 ? "Check the food" : "Running").font(.caption.weight(.medium))
@@ -663,6 +666,10 @@ struct CookingView: View {
             Image(systemName: isCooking ? "circle.inset.filled" : "circle")
                 .font(.caption).foregroundStyle(isCooking ? Theme.tomato : Theme.muted)
                 .frame(width: 18).padding(.top, 4).accessibilityHidden(true)
+            // The dish, as in A2's mock: its illustration, or the recipe's cover.
+            if !dynamicTypeSize.isAccessibilitySize {
+                DishThumbnail(step: item.step, menuID: store.session.menuID, size: 40).padding(.top, 2)
+            }
             VStack(alignment: .leading, spacing: 10) {
                 Text(isCooking
                      ? "Timer deadline \(Scheduling.formatTime(item.end))"

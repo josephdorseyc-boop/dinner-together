@@ -85,9 +85,20 @@ struct PlateIllustration: View {
         return [look.main, look.side, look.garnish]
     }
 
+    @ViewBuilder
     var body: some View {
+        // A2's plate (A2-37) when the artwork pack is in the bundle and knows
+        // this classic; the drawn placeholder otherwise.
+        if A2CatalogArtworkStore.menu(menuID) != nil {
+            A2CatalogIllustration(menuID: menuID)
+        } else {
+            placeholder
+        }
+    }
+
+    private var placeholder: some View {
         let look = Self.looks[menuID] ?? Look(main: Theme.tomato, side: Theme.olive, garnish: Theme.muted)
-        GeometryReader { geo in
+        return GeometryReader { geo in
             let s = min(geo.size.width, geo.size.height)
             ZStack {
                 Circle().fill(Color(red: 0.999, green: 0.992, blue: 0.973))
@@ -481,6 +492,24 @@ struct DinnerHeroThumbnail: View {
         switch art {
         case .cover(let image, _): RecipeCoverThumbnail(image: image, size: size)
         case .plate(let id): PlateIllustration(menuID: id).frame(width: size, height: size)
+        }
+    }
+}
+
+/// A catalog dish's illustration (A2-37) by its exact catalog label, for
+/// timer and timeline rows; a recipe's steps show the recipe's cover
+/// instead, and anything unknown shows nothing.
+struct DishThumbnail: View {
+    @EnvironmentObject private var library: RecipeLibrary
+    let step: CookingStep
+    let menuID: String
+    let size: CGFloat
+
+    var body: some View {
+        if A2CatalogArtworkStore.dish(step.dish) != nil {
+            A2CatalogIllustration(dish: step.dish).frame(width: size, height: size)
+        } else if let recipe = library.recipe(menuID: menuID), let cover = RecipePhotos.load(recipe, from: library) {
+            RecipeCoverThumbnail(image: cover.image, size: size)
         }
     }
 }
