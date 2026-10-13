@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Green beans</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 58 91 Q 118.84 99.65 175 134" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 66 132 Q 129.44 121.95 188 141" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 77 167 Q 129.52 117.35 178 104" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 90 68 Q 140.44 103.05 187 159" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 60 159 Q 132.8 119.8 200 115" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 96 180 Q 140.2 117.7 181 94" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 50 113 Q 120.72 121.65 186 156" fill="none" stroke="#4A583B" stroke-width="12" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

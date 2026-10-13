@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Turkey</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="127" cy="120" rx="63" ry="79" fill="#885238" stroke="#5C392B" stroke-width="4" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 82 97 C 95 64 139 49 163 89 C 158 111 119 148 89 151 Z" fill="#D7A45B" stroke="none" stroke-width="0" opacity="0.55" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 73 125 Q 45 111 41 153 Q 44 187 77 178 L 95 151 Z" fill="#885238" stroke="#5C392B" stroke-width="4" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 125 Q 209 111 213 153 Q 212 187 179 178 L 161 151 Z" fill="#885238" stroke="#5C392B" stroke-width="4" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 49 170 L 37 185" fill="none" stroke="#F1E2BC" stroke-width="10" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 206 170 L 218 185" fill="none" stroke="#F1E2BC" stroke-width="10" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="34" cy="188" rx="7" ry="5" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="222" cy="188" rx="7" ry="5" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
