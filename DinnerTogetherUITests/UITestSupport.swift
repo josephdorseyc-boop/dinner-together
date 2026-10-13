@@ -1241,10 +1241,16 @@ extension DinnerTogetherUITestCase {
     /// At AX3 the grid is taller than the half-height sheet; scroll within it.
     private func scrollAndTapSwatch(_ id: String) {
         let target = swatch(id)
-        for _ in 0..<6 where !(target.exists && target.isHittable) {
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85))
-            from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)),
-                       withVelocity: .default, thenHoldForDuration: 0.3)
+        // Drag inside the sheet itself: on iPad the sheet floats mid-screen,
+        // so a screen-relative drag can miss it (run 38365885474, AX3).
+        let anchor = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'page-style-'")).firstMatch
+        for _ in 0..<6 where !(target.exists && target.frame.maxY <= app.frame.maxY - 40 && target.frame.minY >= app.frame.minY + 100 && target.isHittable) {
+            guard anchor.exists else { break }
+            let a = anchor.frame
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let from = origin.withOffset(CGVector(dx: a.midX, dy: min(a.maxY + 40, app.frame.maxY - 60)))
+            let to = origin.withOffset(CGVector(dx: a.midX, dy: max(a.minY - 220, app.frame.minY + 120)))
+            from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
         tapEvenInPopover(target)
