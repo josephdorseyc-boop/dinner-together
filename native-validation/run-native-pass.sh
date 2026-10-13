@@ -203,7 +203,10 @@ note ""
 note "## XCTest (required on both simulators)"
 if [ -n "$APP_PATH" ]; then
   if [ -n "$IPHONE_UDID" ]; then run_tests "iphone" "$IPHONE_UDID"; else fail "XCTest on iPhone skipped: no simulator"; fi
-  if [ -n "$IPAD_UDID" ];   then run_tests "ipad"   "$IPAD_UDID";   else fail "XCTest on iPad skipped: no simulator"; fi
+  # The unit tests are device-independent logic; the same binary ran on the
+  # iPhone simulator a moment ago, on Linux and on macOS. The iPad simulator
+  # runs the UI tests only (A1, issue #19: five minutes a cycle).
+  note "  - cases on ipad: not run — the same test binary ran on the iPhone simulator above (A1 #19)"
 else
   fail "XCTest skipped: app did not build"
 fi
@@ -239,34 +242,56 @@ run_ui_tests() { # label udid only_testing expected
   fi
   # Up to three failing flows are run once more, alone (A1, issue #18: four
   # consecutive runs each failed on a different flow; a 90-minute cycle per
-  # flake). A flow that passes alone is reported as flaky — in the summary,
-  # as an annotation and in FLAKY.txt — never hidden; one that fails again
-  # fails the gate as before. The first run's xcodebuild exit is judged
-  # after the retry, so a retried pass is a pass.
-  local retried="" flaky="" stillfailing="" retrylog="$RESULTS/25-ui-test-$label-retry.log" retrybundle="$RESULTS/$label-ui-retry.xcresult"
+  # flake). A flaky pass is credited only when everything agrees (A1 #18,
+  # A2-33: the first version could report green with a real failure):
+  #   - every xcresult failure has a name from the log (complete identity),
+  #   - the retry process exits 0,
+  #   - the retry's own xcresult executed exactly those tests, all passed,
+  #     none failed or skipped,
+  #   - the retry log shows each test passed and none failed.
+  # Anything else keeps the original failure verdict. A flaky pass is
+  # reported in the summary, as an annotation and in FLAKY.txt — never hidden.
+  local retried="" flaky="" stillfailing="" retrynote="" retrylog="$RESULTS/25-ui-test-$label-retry.log" retrybundle="$RESULTS/$label-ui-retry.xcresult"
+  local credit=0
   if [ "$failed" -gt 0 ] && [ "$failed" -le 3 ]; then
-    local names
+    local names namescount
     names=$(grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$log" \
       | sed -E "s/.*\.([A-Za-z_]+) ([A-Za-z0-9_]+)\]' failed/\1\/\2/" | sort -u)
-    if [ -n "$names" ]; then
+    namescount=$(printf '%s' "$names" | wc -w | tr -d ' ')
+    if [ "$namescount" -ne "$failed" ]; then
+      echo "::warning title=retry-identity-$label::xcresult reports $failed failed UI test(s) but the log names $namescount — no retry credit possible (A2-33)"
+      retrynote="the log named $namescount of $failed failures, so nothing was retried"
+    elif [ -n "$names" ]; then
       local onlyargs=()
       for t in $names; do onlyargs+=("-only-testing:DinnerTogetherUITests/$t"); done
       rm -rf "$retrybundle"
       xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
         -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
-        > "$retrylog" 2>&1 || true
-      for t in $names; do
-        local m="${t##*/}"
-        if grep -qE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ $m\]' passed" "$retrylog"; then flaky="$flaky $t"; else stillfailing="$stillfailing $t"; fi
-      done
+        > "$retrylog" 2>&1; local retryrc=$?
       retried="$names"
-      [ -n "$flaky" ] && printf '%s %s:%s\n' "$(date -u +%FT%TZ)" "$label" "$flaky" >> "$RESULTS/FLAKY.txt"
+      for t in $names; do
+        local m="${t##*/}" c="${t%%/*}"
+        if grep -qE "Test Case '-\[DinnerTogetherUITests\.$c $m\]' passed" "$retrylog" \
+           && ! grep -qE "Test Case '-\[DinnerTogetherUITests\.$c $m\]' failed" "$retrylog"; then flaky="$flaky $t"; else stillfailing="$stillfailing $t"; fi
+      done
+      local rsummary="$RESULTS/25-ui-test-$label-retry-summary.json" rcounts rexec=0 rpass=0 rfail=1 rskip=0
+      [ -d "$retrybundle" ] && { xcrun xcresulttool get test-results summary --path "$retrybundle" > "$rsummary" 2>/dev/null || rm -f "$rsummary"; }
+      if [ -s "$rsummary" ] && rcounts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0))' "$rsummary" 2>/dev/null); then
+        set -- $rcounts; rexec=$1; rpass=$2; rfail=$3; rskip=$4
+      fi
+      local flakycount; flakycount=$(printf '%s' "$flaky" | wc -w | tr -d ' ')
+      if [ "$retryrc" -eq 0 ] && [ -z "$stillfailing" ] && [ "$flakycount" -eq "$namescount" ] \
+         && [ "$rexec" -eq "$namescount" ] && [ "$rpass" -eq "$namescount" ] && [ "$rfail" -eq 0 ] && [ "$rskip" -eq 0 ]; then
+        credit=1
+        printf '%s %s:%s\n' "$(date -u +%FT%TZ)" "$label" "$flaky" >> "$RESULTS/FLAKY.txt"
+        retrynote="all $namescount passed alone (retry exit 0; retry xcresult $rexec executed, $rpass passed, $rfail failed, $rskip skipped)"
+      else
+        retrynote="no credit — retry exit $retryrc; log: passed [$flaky ], failed again [$stillfailing ]; retry xcresult $rexec executed, $rpass passed, $rfail failed, $rskip skipped"
+      fi
     fi
   fi
-  local finalfailed=$failed
-  if [ -n "$retried" ]; then finalfailed=$(printf '%s' "$stillfailing" | wc -w | tr -d ' '); fi
-  if [ "$rc" -ne 0 ] && [ -n "$retried" ] && [ "$finalfailed" -eq 0 ]; then
+  if [ "$credit" -eq 1 ]; then
     pass "xcodebuild UI tests on $label ($only_testing) (exit $rc on the first run; every failing flow passed alone on retry) — \`$(basename "$log")\`, \`$(basename "$retrylog")\`"
   else
     step_result "xcodebuild UI tests on $label ($only_testing)" $rc "$log"
@@ -276,13 +301,13 @@ run_ui_tests() { # label udid only_testing expected
   # Expected failures (XCTExpectFailure) are documented known issues; they are
   # reported here every run so they can never be forgotten, and never count as passes.
   note "  - UI cases on $label ($source): executed $executed (expected $expected), passed $passed, failed $failed, skipped $skipped, expected-failures $expectedfail — \`$(basename "$log")\`"
-  if [ -n "$retried" ]; then
-    note "  - retried alone on $label:$(printf ' %s' $retried) — passed on retry (flaky):${flaky:- none}; failed again:${stillfailing:- none} — \`$(basename "$retrylog")\`"
-    for t in $flaky; do echo "::warning title=flaky-ui-$label::$t failed in the full run and passed alone on retry (see FLAKY.txt; A1 lane)"; done
+  if [ -n "$retrynote" ]; then
+    note "  - retry on $label:$(printf ' %s' $retried) — $retrynote — \`$(basename "$retrylog")\`"
+    if [ "$credit" -eq 1 ]; then for t in $flaky; do echo "::warning title=flaky-ui-$label::$t failed in the full run and passed alone on retry (see FLAKY.txt; A1 lane)"; done; fi
   fi
   if [ "$expectedfail" -gt 0 ]; then note "    - ⚠️ $expectedfail expected failure(s) on $label — known issue(s) documented in UITESTS.md; see the test's XCTExpectFailure message in \`$(basename "$log")\`"; fi
   if [ "$executed" -lt "$expected" ]; then fail "$label UI: executed $executed of $expected expected UI tests"; fi
-  if [ "$finalfailed" -gt 0 ]; then fail "$label UI: $finalfailed failing UI test(s)$([ -n "$retried" ] && echo " after retry:$stillfailing")"; fi
+  if [ "$credit" -eq 0 ] && [ "$failed" -gt 0 ]; then fail "$label UI: $failed failing UI test(s)$([ -n "$retried" ] && echo " (retry gave no credit:$stillfailing)")"; fi
   # A skipped test is a test that did not run; it cannot count toward "passed" (Agent 1, A1-4).
   if [ "$skipped" -gt 0 ]; then fail "$label UI: $skipped skipped UI test(s) — every test must execute"; fi
   local shots="$RESULTS/ui-screenshots/$label"

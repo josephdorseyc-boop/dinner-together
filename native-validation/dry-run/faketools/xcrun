@@ -21,7 +21,12 @@ if [ "$1" = "xcresulttool" ]; then
   path=""; prev=""; for a in "$@"; do [ "$prev" = "--path" ] && path="$a"; prev="$a"; done
   d=$(cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c 'func test')
   n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}; s=${FAKE_SKIPPED:-0}
-  if [[ "$path" == *-ui* ]]; then
+  if [[ "$path" == *-ui-retry* ]]; then
+    # The retry bundle: exactly the retried tests; they pass only when the
+    # fake xcodebuild passed them (and did not then fail them).
+    n=${FAKE_UI_FAIL_CASES:-0}; s=0
+    if [ -n "${FAKE_UI_RETRY_PASS:-}" ] && [ -z "${FAKE_UI_RETRY_PASS_THEN_FAIL:-}" ]; then k=0; else k=$n; fi
+  elif [[ "$path" == *-ui* ]]; then
     fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)
     if [ "$(basename "$path")" = "ipad-ui.xcresult" ]; then fu="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 2); fi
     n=${FAKE_UI_EXECUTED:-$du}; k=${FAKE_UI_FAIL_CASES:-0}; s=${FAKE_UI_SKIPPED:-0}

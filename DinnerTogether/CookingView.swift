@@ -414,6 +414,11 @@ struct CookingView: View {
                 .monospacedDigit().foregroundStyle(Theme.ink)
                 .accessibilityLabel("Chosen dinner time \(Scheduling.formatTime(store.session.serveAt))")
                 .accessibilityIdentifier("serving-time") // UI tests read the DINNER AT value
+                // Identity follows the value: after an undo the session was
+                // restored (the RIGHT NOW card showed it) while this text
+                // kept the moved time — SwiftUI reused the stale view (A1,
+                // issue #17, runs 38290508810 and 38399682685).
+                .id(store.session.serveAt)
             Text(store.session.serveAt, format: .dateTime.weekday().month().day())
                 .font(.caption).foregroundStyle(Theme.muted)
         }.padding(.bottom, 8)

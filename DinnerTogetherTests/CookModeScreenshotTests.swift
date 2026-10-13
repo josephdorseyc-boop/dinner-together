@@ -156,7 +156,7 @@ final class CookModeScreenshotTests: XCTestCase {
         let r = try RecipeImporter.parse(screenshots: [meringueCover, meringuePage(3)])
         XCTAssertEqual(r.title, meringueTitle)
         XCTAssertEqual(r.directions.first, "Set aside.")
-        XCTAssertTrue(r.warnings.contains { $0.contains("Steps 1, 2 weren’t found") }, "\(r.warnings)")
+        XCTAssertTrue(r.warnings.contains { $0.contains("Source steps 1, 2 weren’t found") }, "\(r.warnings)")
     }
 
     func testSelectionOrderDoesNotMatter() throws {
@@ -176,7 +176,7 @@ final class CookModeScreenshotTests: XCTestCase {
         // instead of closing the gap.
         let r = try RecipeImporter.parse(screenshots: [meringueCover, meringuePage(1), meringuePage(2), meringuePage(5)])
         XCTAssertEqual(r.directions.map { String($0.prefix(12)) }, ["Preheat oven", "Spread about", "Set aside.", "Transfer one", "Repeat proce"])
-        XCTAssertTrue(r.warnings.contains("Step 4 wasn’t found in the screenshots."), "\(r.warnings)")
+        XCTAssertTrue(r.warnings.contains("Source step 4 wasn’t found in the screenshots."), "\(r.warnings)")
         XCTAssertTrue(r.warnings.contains("The last step may be cut off — check it against your recipe."),
                       "the dimmed, cut-off copy of step 6 is the last text: \(r.warnings)")
         let recipe = RecipeImporter.build(r, method: .photo)
@@ -196,7 +196,7 @@ final class CookModeScreenshotTests: XCTestCase {
         XCTAssertEqual(r.title, meringueTitle)
         XCTAssertEqual(r.directions, ["Preheat oven to 200°F with rack in lower third position."],
                        "the cover's teaser and buttons are not steps; the empty STEP 2 heading is told, not scheduled")
-        XCTAssertEqual(r.warnings, ["Step 2 wasn’t found in the screenshots."])
+        XCTAssertEqual(r.warnings, ["Source step 2 wasn’t found in the screenshots."])
     }
 
     func testSplitNewsTabRowIsChromeButASentenceIsNot() throws {
@@ -231,6 +231,25 @@ final class CookModeScreenshotTests: XCTestCase {
         let noHeading = meringuePage(4).filter { $0.text != meringueTitle }
         XCTAssertEqual(try RecipeImporter.parse(screenshots: [noHeading]).title, "Untitled recipe",
                        "without the heading, the tall step text under STEP 4 is still not a title")
+    }
+
+    /// A1 (PR #16): a short step that is a word of the title ("Roast." under
+    /// "Roast Chicken") is a step, not a repeat of the title — inside the
+    /// directions only the whole title is dropped. Cook mode's "Step n" +
+    /// title header is still recognized by the whole title.
+    func testStepSharingAWordWithTheTitleSurvives() throws {
+        let plain = [L("Roast Chicken", 0.06, h: 0.04), L("1 chicken", 0.14), L("STEP 1", 0.22, h: 0.014), L("Season the chicken.", 0.25),
+                     L("STEP 2", 0.32, h: 0.014), L("Roast.", 0.35), L("Roast Chicken", 0.40)]
+        let r = try RecipeImporter.parse(screenshots: [plain])
+        XCTAssertEqual(r.title, "Roast Chicken")
+        XCTAssertEqual(r.directions, ["Season the chicken.", "Roast."], "the whole title repeated under a step is dropped; the word is not")
+        var cook = cookChrome()
+        cook += [L("Step 2", 0.131, 0.42, h: 0.016), L("Roast Chicken", 0.154, 0.30, h: 0.013), L("STEP 2", 0.210, h: 0.018), L("Roast.", 0.260, h: 0.035)]
+        var first = cookChrome()
+        first += [L("Roast Chicken", 0.154, 0.30, h: 0.013), L("STEP 1", 0.210, h: 0.018), L("Season the chicken.", 0.260, h: 0.035)]
+        let c = try RecipeImporter.parse(screenshots: [first, cook])
+        XCTAssertEqual(c.title, "Roast Chicken")
+        XCTAssertEqual(c.directions, ["Season the chicken.", "Roast."], "\(c.warnings)")
     }
 
     func testHyphensAfterNumbersSurviveTheWrap() {

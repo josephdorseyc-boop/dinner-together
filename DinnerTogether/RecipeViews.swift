@@ -252,6 +252,17 @@ enum RecipeFormat {
 
 // MARK: - Add a recipe
 
+private enum ScreenshotReadError: LocalizedError {
+    case unavailable(number: Int)
+
+    nonisolated var errorDescription: String? {
+        switch self {
+        case .unavailable(let number):
+            return "Screenshot \(number) couldn’t be opened. Choose it again and retry."
+        }
+    }
+}
+
 struct AddRecipeSheet: View {
     enum Mode: String, CaseIterable, Identifiable {
         case link = "Link", screenshots = "Screenshots", text = "Text"
@@ -300,8 +311,11 @@ struct AddRecipeSheet: View {
     private func screenshotData() async throws -> [Data] {
         if !stubbed.isEmpty { return stubbed }
         var out: [Data] = []
-        for item in picked {
-            if let data = try await item.loadTransferable(type: Data.self) { out.append(data) }
+        for (index, item) in picked.enumerated() {
+            guard let data = try await item.loadTransferable(type: Data.self) else {
+                throw ScreenshotReadError.unavailable(number: index + 1)
+            }
+            out.append(data)
         }
         return out
     }
@@ -400,7 +414,7 @@ struct AddRecipeSheet: View {
 
     private var screenshotInput: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("For Apple News+ Food, cookbook apps, or recipe cards. Include the title, ingredients and every step, with each step fully visible below the top bar in at least one screenshot. Choose images in recipe order, then check for missing or repeated text after import.")
+            Text("Choose up to 30 screenshots, in recipe order. For Apple News Cook mode, include the cover, ingredients and every step. Make sure each instruction is fully visible below the top bar in at least one image. Check the imported text and timing before cooking.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             if stubbed.isEmpty {
                 PhotosPicker(selection: $picked, maxSelectionCount: 30, selectionBehavior: .ordered, matching: .images) {
@@ -621,6 +635,7 @@ struct RecipeDetailView: View {
                             stats(recipe)
                             if recipe.needsTimingReview && tab != .timing { reviewBanner(recipe) }
                             tabBar
+                            importWarningCard(recipe)
                             switch tab {
                             case .ingredients: ingredients(recipe)
                             case .directions: directions(recipe)
@@ -838,21 +853,41 @@ struct RecipeDetailView: View {
 
     private func reviewBannerText(_ recipe: Recipe) -> String {
         if dynamicTypeSize.isAccessibilitySize {
-            // A2-21: shorter at accessibility sizes; the import's own
-            // warnings are never shortened away.
+            // A2-21: shorter timing copy; content notes have their own surface.
             let estimateCount = recipe.estimatedStepCount
             var summary = estimateCount == 0 ? "Check step times." :
                 "\(estimateCount) estimated \(estimateCount == 1 ? "step" : "steps")."
             if recipe.totalMinutes == nil { summary += " Add recipe time." }
-            for warning in recipe.importWarnings ?? [] { summary += " " + warning }
             return summary
         }
         var text = recipe.estimatedStepCount == 0
             ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
             : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them."
         if recipe.totalMinutes == nil { text += " No total time was found — add it under Recipe time." }
-        for warning in recipe.importWarnings ?? [] { text += " " + warning }
         return text
+    }
+
+    /// Content uncertainty survives timing confirmation and remains visible on every tab.
+    @ViewBuilder
+    private func importWarningCard(_ recipe: Recipe) -> some View {
+        if let warnings = recipe.importWarnings, !warnings.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                Label("Check the imported text", systemImage: "exclamationmark.triangle")
+                    .font(.headline).foregroundStyle(Theme.warning)
+                ForEach(Array(warnings.enumerated()), id: \.offset) { _, warning in
+                    Text(warning).font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Text("Compare the imported instructions with your original recipe before cooking.")
+                    .font(.caption).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .recipeSurface(cornerRadius: 22)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("import-content-warning")
+        }
     }
 
     private var tabBar: some View {
@@ -1033,7 +1068,8 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityIdentifier("remove-step-\(step.id)")
-                .accessibilityHint("Takes this step out of the directions and the plan.")
+                .accessibilityLabel("Remove \(step.title)")
+                .accessibilityHint("Removes the step and its matching direction from this recipe and its timing plan.")
                 .confirmationDialog("Remove this step?",
                                     isPresented: Binding(get: { removingStep?.id == step.id },
                                                          set: { if !$0 { removingStep = nil } }),
@@ -1045,7 +1081,7 @@ struct RecipeDetailView: View {
                     }
                     Button("Cancel", role: .cancel) { removingStep = nil }
                 } message: {
-                    Text("It leaves the directions and the dinner plan. Use this for text that isn’t a cooking step.")
+                    Text("This removes the step and its matching direction from this saved recipe and its timing plan. Use this for text that isn’t a cooking instruction.")
                 }
         }
         .fixedSize(horizontal: !stacked, vertical: false)

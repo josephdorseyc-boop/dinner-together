@@ -1337,6 +1337,7 @@ extension DinnerTogetherUITestCase {
         XCTAssertGreaterThan(pale, 0.55, "a pastel photo gives a pale page, not slate: luminance below the tabs \(pale)")
         app.buttons["recipe-tab-directions"].tap()
         XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the pale page")
+        bringIntoView(app.staticTexts["STEP 1"])   // the render shows step text, not only the header (A2-33)
         photograph("r19b-pale-directions" + capture.suffix)
         app.buttons["recipe-tab-timing"].tap()
         let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'remove-step-'")).firstMatch
@@ -1439,6 +1440,19 @@ extension DinnerTogetherUITestCase {
     /// At AX3 the grid is taller than the half-height sheet; scroll within it.
     private func scrollAndTapSwatch(_ id: String) {
         let target = swatch(id)
+        revealSwatch(id)
+        // Settled and inside the viewport, the element's own tap lets XCTest
+        // resolve the true hit point; the blind center tap missed Classic at
+        // the bottom of the iPad AX3 form sheet (A1, issue #18). The
+        // coordinate tap stays as the fallback for a popover-hosted sheet.
+        Thread.sleep(forTimeInterval: 0.5)
+        if target.exists && target.isHittable { target.tap() } else { tapEvenInPopover(target) }
+    }
+
+    /// Scrolls the Page color sheet until the swatch is inside the sheet's
+    /// own viewport. Never taps.
+    private func revealSwatch(_ id: String) {
+        let target = swatch(id)
         // The sheet's own scroll viewport: on iPad at AX3 the sheet is a small
         // form sheet, the grid continues below its edge, and XCTest still
         // reports those swatches hittable (run 38388564793 tapped Classic
@@ -1465,7 +1479,6 @@ extension DinnerTogetherUITestCase {
             Thread.sleep(forTimeInterval: 0.4)
         }
         XCTAssertTrue(inside(), "the \(id) swatch is inside the sheet's viewport \(viewport()) — frame \(target.frame)")
-        tapEvenInPopover(target)
     }
 
     /// r15 — a typed recipe (no photo) picks a color from the page’s own
@@ -1519,7 +1532,11 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(problem.label.contains("page color couldn’t be saved"), "…in words about the page color: \(problem.label)")
         if capture.typeSize == nil { XCTAssertTrue(problem.isHittable, "…and it is visible without scrolling the sheet") }
         XCTAssertFalse(swatch("lagoon").isSelected, "the failed choice is not shown as chosen")
-        XCTAssertTrue(swatch("classic").isSelected, "the page’s real color stays selected")
+        // At AX3 the error pushes Classic, last in the lazy grid, below the
+        // sheet's viewport, where it does not exist yet (run 38425982728,
+        // A2-33). Scroll it into the viewport — never tap it — then look.
+        revealSwatch("classic")
+        XCTAssertTrue(swatch("classic").waitForSelection(), "the page’s real color stays selected")
         photograph("r16-page-color-save-failed" + capture.suffix)
         closePageColorSheet()
         XCTAssertGreaterThan(pageLuminance(), 0.6, "the page stayed cream")

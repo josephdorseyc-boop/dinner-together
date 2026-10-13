@@ -139,6 +139,39 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: "nope"), "unknown step")
     }
 
+    func testRemovingLaterDuplicatePreservesSourceDirectionOrder() async throws {
+        let library = RecipeLibrary(directory: tempDir())
+        var imported = ImportedRecipe(title: "Double stir")
+        imported.sections = [ImportedSection(name: nil, steps: ["Stir.", "Add salt.", "Stir."])]
+        let recipe = RecipeImporter.build(imported, method: .text)
+        XCTAssertTrue(library.add(recipe))
+
+        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: recipe.steps[2].id))
+        let saved = try XCTUnwrap(library.recipe(id: recipe.id))
+        XCTAssertEqual(saved.directions, ["Stir.", "Add salt."])
+        XCTAssertEqual(saved.steps.map { $0.detail }, ["Stir.", "Add salt."])
+    }
+
+    func testRemovingDuplicateFromParallelDishKeepsSourceOccurrence() async throws {
+        let directory = tempDir()
+        let library = RecipeLibrary(directory: directory)
+        var imported = ImportedRecipe(title: "Parallel stir")
+        imported.sections = [ImportedSection(name: nil, steps: ["Stir.", "Chop herbs.", "Stir.", "Plate.", "Stir."])]
+        var recipe = RecipeImporter.build(imported, method: .text)
+        let steps = recipe.steps
+        // Dish order differs from source order, as it can with meanwhile work.
+        recipe.dishes = [[steps[0], steps[3], steps[4]], [steps[1], steps[2]]]
+        XCTAssertTrue(library.add(recipe))
+        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: steps[2].id))
+        let saved = try XCTUnwrap(library.recipe(id: recipe.id))
+        XCTAssertEqual(saved.directions, ["Stir.", "Chop herbs.", "Plate.", "Stir."])
+        XCTAssertEqual(RecipeLibrary(directory: directory).recipe(id: recipe.id)?.directions, saved.directions)
+
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: steps[4].id))
+        XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed removal restores the whole recipe")
+    }
+
     /// Swipe → Edit (Joe, build 12): the title and yield change, the steps'
     /// dish labels follow, a blank title is refused, a failed save changes
     /// nothing.

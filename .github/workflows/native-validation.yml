@@ -150,6 +150,7 @@ jobs:
             native-validation/results/**
             !native-validation/results/build/**
           if-no-files-found: error
+          compression-level: 0   # PNGs and zipped xcresults do not compress; minutes saved (A1 #19)
       # A2-16: the renders alone, small enough to download (the full results
       # artifact is ~600 MB; this one is ~60 MB). Original PNG bytes, with
       # the summary, provenance and UI logs — per run, so a later run's

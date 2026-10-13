@@ -738,6 +738,11 @@ extension RecipeImporter {
             let k = normalizedKey(line.text)
             return k.count >= 4 && !titleKey.isEmpty && titleKey.contains(k)
         }
+        /// The title itself (or its first line when it wraps), never a word of it.
+        func isWholeTitle(_ line: OCRLine) -> Bool {
+            let k = normalizedKey(line.text)
+            return !titleKey.isEmpty && (k == titleKey || (titleKey.hasPrefix(k) && k.split(separator: " ").count >= 2))
+        }
 
         for page in cleaned {
             let tabRow = tabBarRow(page)
@@ -788,12 +793,19 @@ extension RecipeImporter {
                 if let row = tabRow, abs(line.top - row) < 0.012 { continue }
                 if chromeRows.contains(i) { continue }
                 if isChrome(key) { continue }
-                if isTitleLine(line) { continue }
+                if isTitleLine(line) {
+                    // Inside the directions only the whole title is a repeat:
+                    // "Roast." under "Roast Chicken" is a step (A1, PR #16).
+                    switch mode {
+                    case .step, .directions: if key == titleKey { continue }
+                    default: continue
+                    }
+                }
                 // Cook mode's navigation header: a small "Step n" with the
                 // recipe title under it, above the real "STEP n". Not a step
                 // boundary — as one, it collected the title as a copy of the
                 // step, and the longer copy beat "Set aside." (Joe, build 11).
-                if stepNumber(text) != nil, i + 1 < page.count, isTitleLine(page[i + 1]) { continue }
+                if stepNumber(text) != nil, i + 1 < page.count, isWholeTitle(page[i + 1]) { continue }
 
                 // Metadata, inline ("Yield: 2") or as label/value rows.
                 if let v = firstMatch(#"^(?:total time|total)\s*[:：]\s*(.+)$"#, in: text, group: 1, caseInsensitive: true) {
@@ -922,8 +934,8 @@ extension RecipeImporter {
             if !gaps.isEmpty {
                 let list = gaps.map(String.init).joined(separator: ", ")
                 recipe.warnings.append(gaps.count == 1
-                    ? "Step \(list) wasn’t found in the screenshots."
-                    : "Steps \(list) weren’t found in the screenshots.")
+                    ? "Source step \(list) wasn’t found in the screenshots."
+                    : "Source steps \(list) weren’t found in the screenshots.")
             }
             if let text = numberedText[last], text.range(of: #"[.!?)”"]$"#, options: .regularExpression) == nil {
                 recipe.warnings.append("The last step may be cut off — check it against your recipe.")

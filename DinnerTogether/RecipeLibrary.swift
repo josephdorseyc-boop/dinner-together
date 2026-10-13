@@ -189,16 +189,40 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     /// Takes a step out of the plan and the directions: text the import
     /// mistook for a step (a story teaser, a repeated title) is the cook's
-    /// to remove (A2 S2, build 11). Directions are matched by text, so a
-    /// second removal still finds the right line.
+    /// to remove (A2 S2, build 11). Repeated text is matched by source
+    /// occurrence, so removing a later duplicate preserves direction order.
     @discardableResult
     func removeStep(recipeID: UUID, stepID: String) -> Bool {
         guard var r = recipe(id: recipeID),
               let step = r.steps.first(where: { $0.id == stepID }) else { return false }
-        r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
-        if let i = r.directions.firstIndex(where: { RecipeImporter.stripStepPrefix($0) == step.detail }) {
-            r.directions.remove(at: i)
+        let matches = r.steps.filter { $0.detail == step.detail }
+        let directions = r.directions.indices.filter {
+            RecipeImporter.stripStepPrefix(r.directions[$0]) == step.detail
         }
+        var directionIndex: Int?
+        if matches.count == 1, directions.count == 1 {
+            directionIndex = directions[0]
+        } else if matches.count > 1, directions.count == matches.count {
+            // Imported IDs retain source order even when meanwhile work
+            // lives in another dish, or earlier directions were removed.
+            let prefix = "r\(String(r.id.uuidString.prefix(8)).lowercased())-"
+            let ranked = matches.compactMap { candidate -> (step: CookingStep, ordinal: Int)? in
+                guard candidate.id.hasPrefix(prefix),
+                      let ordinal = Int(candidate.id.dropFirst(prefix.count)), ordinal > 0 else { return nil }
+                return (candidate, ordinal)
+            }.sorted { $0.ordinal < $1.ordinal }
+            if ranked.count == matches.count,
+               Set(ranked.map { $0.ordinal }).count == matches.count,
+               let occurrence = ranked.firstIndex(where: { $0.step.id == stepID }) {
+                directionIndex = directions[occurrence]
+            }
+        }
+        guard let directionIndex else {
+            saveError = "This step couldn’t be matched to a direction. Re-import the recipe before removing it."
+            return false
+        }
+        r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
+        r.directions.remove(at: directionIndex)
         return update(r)
     }
 
