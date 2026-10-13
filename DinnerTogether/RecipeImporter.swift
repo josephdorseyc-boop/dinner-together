@@ -713,7 +713,7 @@ extension RecipeImporter {
     ///   ingredient above it; a gap starts a new one.
     /// - App chrome (status bar, tabs, buttons) is dropped.
     static func parse(screenshots pages: [[OCRLine]]) throws -> ImportedRecipe {
-        let cleaned = markUnreliable(pages.map { readingOrder($0.map(cleanOCR).filter { !$0.text.isEmpty }) })
+        let cleaned = markUnreliable(pages.map { dropStatusBar(readingOrder($0.map(cleanOCR).filter { !$0.text.isEmpty })) })
         guard cleaned.contains(where: { !$0.isEmpty }) else { throw RecipeImportError.noTextInScreenshots }
 
         let title = screenshotTitle(cleaned)
@@ -762,6 +762,7 @@ extension RecipeImporter {
             var preMarkerUnreliable = false
             var looseBlock: [String] = []
             var previous: OCRLine?
+            var takenValues = Set<Int>()
             var i = 0
 
             func flushLoose() {
@@ -772,6 +773,7 @@ extension RecipeImporter {
                 let line = page[i]
                 defer { previous = line; i += 1 }
                 let text = line.text
+                if takenValues.contains(i) { continue }
                 if line.unreliable {
                     // Never schedule text read through a blur. A step's tail
                     // with such a line is dropped whole: the step keeps what
@@ -799,25 +801,17 @@ extension RecipeImporter {
                 }
                 if let v = firstMatch(#"^(?:yield|serves|servings|makes)\s*[:：]?\s*(.+)$"#, in: text, group: 1, caseInsensitive: true),
                    !["yield", "serves", "servings", "makes"].contains(key) {
-                    recipe.yield = recipe.yield ?? cleanLine(v); continue
+                    assignMetadata("yield", cleanLine(v), to: &recipe); continue
                 }
                 if metadataLabels.contains(key) {
-                    // Labels side by side, values on the next row in the same order.
-                    var labels = [key]
-                    var j = i + 1
-                    while j < page.count, metadataLabels.contains(normalizedKey(page[j].text)) {
-                        labels.append(normalizedKey(page[j].text)); j += 1
+                    // Each label takes the value under it in its own column (or
+                    // beside it on its row), by position, not reading order:
+                    // "Yield" read a hair higher than "Total Time" came first,
+                    // and the time landed under Yield (Joe, build 11).
+                    if let j = metadataValue(for: i, in: page, taken: takenValues) {
+                        takenValues.insert(j)
+                        assignMetadata(key, page[j].text, to: &recipe)
                     }
-                    for label in labels where j < page.count {
-                        let value = page[j].text
-                        switch label {
-                        case "total time": recipe.totalMinutes = recipe.totalMinutes ?? minutes(in: value)
-                        case "yield", "servings", "serves": recipe.yield = recipe.yield ?? value
-                        default: break
-                        }
-                        j += 1
-                    }
-                    i = j - 1
                     continue
                 }
                 if case .unknown = mode,
@@ -1047,6 +1041,64 @@ extension RecipeImporter {
         if words.count >= 2 && words.allSatisfy({ tabWords.contains($0) }) { return true }
         if words.filter({ newsTabs.contains($0) }).count >= 2 { return true }
         return false
+    }
+
+    /// The phone's status bar: a line near the top edge that holds a clock,
+    /// and everything on its row. Recognized as one line it was
+    /// "10:08 1 ••ll 5GW" — clock, location arrow, signal bars, network —
+    /// and became the front of the title (Joe, build 12). The clock alone
+    /// was already dropped as chrome; the row it sits on now goes with it.
+    static func dropStatusBar(_ page: [OCRLine]) -> [OCRLine] {
+        let clocks = page.filter { line in
+            guard line.top < 0.05,
+                  let r = line.text.range(of: #"(?<![\d:])\d{1,2}[:.]\d{2}(?![\d:])"#, options: .regularExpression) else { return false }
+            // The rest of the line is status items (signal, network, battery,
+            // a date on iPad), not a sentence.
+            let rest = line.text.replacingCharacters(in: r, with: " ")
+            let words = rest.split(whereSeparator: { $0 == " " }).filter { $0.contains(where: { $0.isLetter || $0.isNumber }) }
+            return words.count <= 5 && !words.contains { $0.filter(\.isLetter).count >= 8 }
+        }
+        guard !clocks.isEmpty else { return page }
+        return page.filter { line in
+            !clocks.contains { c in abs(line.top - c.top) < max(0.012, c.height * 0.8) && line.top < 0.06 }
+        }
+    }
+
+    /// The value for the metadata label at `index`: the nearest unclaimed
+    /// line below it in its column, else the nearest to its right on its
+    /// row. Never another label.
+    static func metadataValue(for index: Int, in page: [OCRLine], taken: Set<Int>) -> Int? {
+        let label = page[index]
+        // Not `isChrome`: a yield of "2" looks like a battery level to it.
+        func usable(_ k: Int) -> Bool {
+            k != index && !taken.contains(k) && !metadataLabels.contains(normalizedKey(page[k].text))
+                && !coverButtons.contains(normalizedKey(page[k].text)) && stepNumber(page[k].text) == nil
+        }
+        let below = page.indices.filter { k in
+            usable(k) && page[k].top > label.top + label.height * 0.5 && page[k].top - label.bottom < 0.05
+                && abs(page[k].left - label.left) < 0.15
+        }
+        if let k = below.min(by: { (page[$0].top, abs(page[$0].left - label.left)) < (page[$1].top, abs(page[$1].left - label.left)) }) {
+            return k
+        }
+        let beside = page.indices.filter { k in
+            usable(k) && abs(page[k].top - label.top) < max(0.012, label.height * 0.6) && page[k].left > label.left
+        }
+        return beside.min(by: { page[$0].left < page[$1].left })
+    }
+
+    /// A duration is never a yield: under "Yield" it is the recipe's time.
+    static func assignMetadata(_ label: String, _ value: String, to recipe: inout ImportedRecipe) {
+        let looksLikeTime = value.range(of: #"^\s*\d+(?:\s*[½¼¾⅓⅔])?\s*(?:hr|hrs|hour|hours|h|min|mins|minutes|m)\b"#,
+                                        options: [.regularExpression, .caseInsensitive]) != nil
+        switch label {
+        case "total time", "total":
+            recipe.totalMinutes = recipe.totalMinutes ?? minutes(in: value)
+        case "yield", "servings", "serves", "makes":
+            if looksLikeTime { recipe.totalMinutes = recipe.totalMinutes ?? minutes(in: value) }
+            else { recipe.yield = recipe.yield ?? value }
+        default: break
+        }
     }
 
     /// Rows of two or more tab words recognized as separate lines: the News

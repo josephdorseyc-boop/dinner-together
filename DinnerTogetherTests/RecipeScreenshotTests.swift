@@ -406,6 +406,54 @@ final class RecipesViewScreenshotTests: XCTestCase {
         XCTAssertEqual(r.directions, ["Whisk the eggs into the flour and rest the batter for 20 minutes."])
     }
 
+    /// Joe's build-12 import of the same recipe: the status bar came back as
+    /// one line — clock, location arrow, signal bars, "5GW" — and opened the
+    /// title ("10:08 1 ••ll 5GW Whipped Frozen Apple Cider"); and "Yield"
+    /// read a hair above "Total Time", so the time landed under Yield and
+    /// Recipe time said "Not stated".
+    func testMergedStatusBarAndShiftedLabels() throws {
+        func merged(_ page: [OCRLine]) -> [OCRLine] {
+            page.filter { $0.top > 0.03 } + [L("10:08 1 ••ll 5GW", 0.020, 0.08, h: 0.016), L("63", 0.022, 0.88, h: 0.012)]
+        }
+        var cover = merged(rvCover)
+        cover = cover.map { line in
+            var l = line
+            if l.text == "Yield" { l.top = 0.637 }          // 0.008 above "Total Time"
+            if l.text == "2" { l.top = 0.663 }
+            return l
+        }
+        let pages = [cover, merged(rvIngredients), merged(rvStep1), merged(rvStep2), merged(rvStep3)]
+        let r = try RecipeImporter.parse(screenshots: pages)
+        XCTAssertEqual(r.title, "Whipped Frozen Apple Cider", "no status bar in the title")
+        XCTAssertEqual(r.totalMinutes, 250, "4 hr 10 min is the recipe time")
+        XCTAssertEqual(r.yield, "2")
+        XCTAssertEqual(r.directions.count, 3, "\(r.directions)")
+        XCTAssertFalse(r.directions.joined(separator: " ").contains("5GW"), "\(r.directions)")
+    }
+
+    func testStatusBarRules() {
+        let page = [L("10:08 1 ••ll 5GW", 0.020, 0.08), L("63", 0.022, 0.88), L("Whipped Frozen Apple Cider", 0.075, 0.21)]
+        XCTAssertEqual(RecipeImporter.dropStatusBar(page).map(\.text), ["Whipped Frozen Apple Cider"])
+        let ipad = [L("10:08 Tue Oct 13", 0.012, 0.03), L("100%", 0.012, 0.92), L("Soup", 0.06)]
+        XCTAssertEqual(RecipeImporter.dropStatusBar(ipad).map(\.text), ["Soup"], "iPad: clock and date")
+        let photo = [L("Bake at 350 until golden, about 10:00 on the timer", 0.02), L("2 eggs", 0.10)]
+        XCTAssertEqual(RecipeImporter.dropStatusBar(photo).count, 2, "a sentence with a time in it is not a status bar")
+        let lower = [L("Rest the dough until 10:30.", 0.30)]
+        XCTAssertEqual(RecipeImporter.dropStatusBar(lower).count, 1, "only at the top edge")
+    }
+
+    func testDurationUnderYieldIsTheTime() throws {
+        var r = ImportedRecipe(title: "x")
+        RecipeImporter.assignMetadata("yield", "4 hr 10 min", to: &r)
+        XCTAssertEqual(r.totalMinutes, 250); XCTAssertNil(r.yield)
+        RecipeImporter.assignMetadata("yield", "12 muffins", to: &r)
+        XCTAssertEqual(r.yield, "12 muffins")
+        let inline = try RecipeImporter.parse(screenshots: [[L("Soup", 0.05, h: 0.04), L("Yield: 45 minutes", 0.12), L("1 onion", 0.2),
+                                                             L("Simmer the onion in stock.", 0.3)]])
+        XCTAssertEqual(inline.totalMinutes, 45)
+        XCTAssertNil(inline.yield)
+    }
+
     func testOverlapTrimAndChromeRows() {
         XCTAssertEqual(RecipeImporter.trimOverlap("Strain and discard spices. Pour the cider mixture evenly into 12 ice",
                                                   next: "Pour the cider mixture evenly into 12 ice cube tray wells."),

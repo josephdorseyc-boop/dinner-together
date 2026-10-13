@@ -159,6 +159,34 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         return update(r)
     }
 
+    /// The cook's fix for a title or yield the import got wrong (Joe, build
+    /// 12: the status bar in the title). The steps' dish labels follow the
+    /// new title, so the Cooking screen shows it too. A blank title is
+    /// refused; a blank yield clears it.
+    @discardableResult
+    func rename(recipeID: UUID, title: String, yield: String?) -> Bool {
+        guard var r = recipe(id: recipeID) else { return false }
+        let newTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newTitle.isEmpty else { return false }
+        let oldLabel = RecipeImporter.shortLabel(r.title, max: 32)
+        let newLabel = RecipeImporter.shortLabel(newTitle, max: 32)
+        func relabel(_ dish: String) -> String {
+            if dish == oldLabel { return newLabel }
+            if dish == oldLabel + " — meanwhile" { return newLabel + " — meanwhile" }
+            return dish
+        }
+        r.title = String(newTitle.prefix(200))
+        let y = yield?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        r.yield = y.isEmpty ? nil : String(y.prefix(120))
+        r.dishes = r.dishes.map { dish in
+            dish.map { s in
+                CookingStep(id: s.id, dish: relabel(s.dish), title: s.title, minutes: s.minutes,
+                            detail: s.detail, handsOn: s.handsOn, estimated: s.estimated)
+            }
+        }
+        return update(r)
+    }
+
     /// Takes a step out of the plan and the directions: text the import
     /// mistook for a step (a story teaser, a repeated title) is the cook's
     /// to remove (A2 S2, build 11). Directions are matched by text, so a

@@ -139,6 +139,39 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: "nope"), "unknown step")
     }
 
+    /// Swipe → Edit (Joe, build 12): the title and yield change, the steps'
+    /// dish labels follow, a blank title is refused, a failed save changes
+    /// nothing.
+    func testRenamingARecipe() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        let junk = "10:08 1 ••ll 5GW Whipped Frozen Apple Cider"
+        var imported = ImportedRecipe(title: junk)
+        imported.ingredients = ["2 cups cider"]
+        imported.sections = [ImportedSection(name: nil, steps: ["Freeze for 3 hours.", "Blend until slushy, about 30 seconds."])]
+        let recipe = RecipeImporter.build(imported, method: .photo, now: Date())
+        XCTAssertTrue(library.add(recipe))
+        let oldLabel = recipe.steps[0].dish
+        XCTAssertTrue(junk.hasPrefix(oldLabel.replacingOccurrences(of: "…", with: "")), oldLabel)
+
+        XCTAssertTrue(library.rename(recipeID: recipe.id, title: "  Whipped Frozen Apple Cider ", yield: "2 glasses"))
+        let saved = try XCTUnwrap(RecipeLibrary(directory: dir).recipe(id: recipe.id))
+        XCTAssertEqual(saved.title, "Whipped Frozen Apple Cider")
+        XCTAssertEqual(saved.yield, "2 glasses")
+        XCTAssertEqual(Set(saved.steps.map(\.dish)), ["Whipped Frozen Apple Cider"], "the cooking screen's dish label follows")
+        XCTAssertEqual(saved.steps.map(\.minutes), recipe.steps.map(\.minutes), "timing untouched")
+        XCTAssertEqual(saved.menu.title, "Whipped Frozen Apple Cider")
+
+        XCTAssertFalse(library.rename(recipeID: recipe.id, title: "   ", yield: nil), "a recipe needs a title")
+        XCTAssertTrue(library.rename(recipeID: recipe.id, title: "Cider slush", yield: " "))
+        XCTAssertNil(library.recipe(id: recipe.id)?.yield, "a blank yield clears it")
+
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.rename(recipeID: recipe.id, title: "Something else", yield: nil))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.title, "Cider slush", "a failed save changes nothing in memory")
+        XCTAssertFalse(library.rename(recipeID: UUID(), title: "x", yield: nil), "unknown recipe")
+    }
+
     func testImportWarningsSurviveARelaunch() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)

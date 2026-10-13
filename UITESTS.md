@@ -167,3 +167,16 @@ Two harness rules came out of the recordings of run 38399682685 (A2-25):
 (the Undo tap had landed where Undo was a moment earlier), and every scroll
 drag starts at a point that is not on a button (`dragStart`), after a
 positioning drag that began on "Choose screenshots" opened Photos.
+
+## Your Recipes: swipe Edit / Delete (r20, October 13)
+
+The collection is a `List` (rows keep their card look) so rows swipe left
+for **Edit** and **Delete** (Joe, build 12). Edit opens the Edit recipe
+sheet (title with a clear button, yield; `recipe-edit-*` identifiers); the
+same sheet is ••• → Edit title and yield on the recipe page. Delete asks
+with an alert (not a confirmation dialog — alerts present reliably after a
+swipe or menu closes), and is refused with "You're cooking this right now"
+for tonight's recipe while it is being cooked. The swipe buttons are plain
+buttons tinted red/olive, not `role: .destructive`, which animates the row
+away before the cook confirms. Flow: `flowSwipeEditAndDelete` (test36 and
+test37 AX3 on iPhone, test19 on iPad), renders r20a–r20d.

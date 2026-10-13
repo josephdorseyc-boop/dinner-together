@@ -1353,6 +1353,75 @@ extension DinnerTogetherUITestCase {
         photograph("r19d-pale-to-plum" + capture.suffix)
     }
 
+    /// r20 — Your Recipes: swipe left for Edit and Delete (Joe, build 12).
+    /// Edit fixes a title the import got wrong; Delete asks first, Cancel
+    /// keeps the recipe, Delete removes it.
+    func flowSwipeEditAndDelete(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture)
+        openRecipesLibrary()
+        func row(_ title: String) -> XCUIElement {
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
+        }
+        let berry = row(RecipeFixtureText.frozenBerryTitle)
+        scrollTo(berry)
+        let edit = app.buttons["Edit"].firstMatch
+        for _ in 0..<2 where !edit.exists {
+            berry.swipeLeft()
+            _ = edit.waitForExistence(timeout: 3)
+        }
+        waitForExistence(edit, timeout: 2, "swipe left shows Edit")
+        XCTAssertTrue(app.buttons["Delete"].firstMatch.exists, "…and Delete")
+        photograph("r20a-swipe-actions" + capture.suffix)
+        edit.tap()
+
+        let field = app.descendants(matching: .any)["recipe-edit-title"]
+        waitForExistence(field, timeout: 5, "the Edit recipe sheet")
+        let save = app.buttons["recipe-edit-save"]
+        XCTAssertFalse(save.isEnabled, "nothing to save before a change")
+        // Clear the old title, then type the new one.
+        tapPinned(app.buttons["recipe-edit-title-clear"], "the title's clear button")
+        XCTAssertTrue(app.staticTexts["A recipe needs a title."].waitForExistence(timeout: 3), "a blank title is refused")
+        XCTAssertFalse(save.isEnabled, "…and cannot be saved")
+        field.tap()
+        field.typeText("Berry lime slush")
+        photograph("r20b-edit-recipe" + capture.suffix)
+        tapPinned(save, "Save changes")
+        waitForDisappearance(save, "the Edit sheet closed")
+        XCTAssertTrue(row("Berry lime slush").waitForExistence(timeout: 5), "the list shows the new title")
+        XCTAssertFalse(row(RecipeFixtureText.frozenBerryTitle).exists, "…not the old one")
+
+        let bean = row(RecipeFixtureText.beanSpreadTitle)
+        scrollTo(bean)
+        let delete = app.buttons["Delete"].firstMatch
+        func swipeToDelete() {
+            for _ in 0..<2 where !delete.exists {
+                bean.swipeLeft()
+                _ = delete.waitForExistence(timeout: 3)
+            }
+            waitForExistence(delete, timeout: 2, "swipe left shows Delete")
+            delete.tap()
+        }
+        swipeToDelete()
+        let alert = app.alerts["Delete this recipe?"]
+        waitForExistence(alert, timeout: 5, "Delete asks first")
+        photograph("r20c-delete-alert" + capture.suffix)
+        alert.buttons["Cancel"].tap()
+        waitForDisappearance(alert, "Cancel closes the question")
+        XCTAssertTrue(bean.waitForExistence(timeout: 3), "Cancel keeps the recipe")
+        if app.buttons["Delete"].firstMatch.exists { bean.swipeRight() }   // close the open swipe, if it stayed open
+        swipeToDelete()
+        waitForExistence(alert, timeout: 5, "Delete asks again")
+        alert.buttons["Delete recipe"].tap()
+        waitForDisappearance(bean, "the recipe is gone from the list")
+        XCTAssertTrue(row("Berry lime slush").exists, "the other recipe stays")
+        photograph("r20d-after-delete" + capture.suffix)
+
+        // The renamed recipe's page carries the new title.
+        scrollAndTap(row("Berry lime slush"), "open the renamed recipe")
+        XCTAssertTrue(app.staticTexts["recipe-title"].waitForExistence(timeout: 10), "the recipe page")
+        XCTAssertEqual(app.staticTexts["recipe-title"].label, "Berry lime slush")
+    }
+
     /// The sheet itself renders at the forced type size (A2-17): the helper
     /// text wraps to several large lines at AX3 and two small ones otherwise.
     private func verifySheetTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {

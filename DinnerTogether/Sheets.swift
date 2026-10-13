@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Stale plan: resume or start fresh
 
@@ -356,3 +357,105 @@ struct RecipeTimeSheet: View {
     }
 }
 
+/// Edit a recipe's title and yield: swipe → Edit in Your Recipes, or ••• →
+/// Edit title and yield on its page (Joe, build 12). Saves through the
+/// library's rollback; a failed save keeps the sheet open with the edit.
+struct RecipeEditSheet: View {
+    let recipeID: UUID
+    @EnvironmentObject private var library: RecipeLibrary
+    @Environment(\.dismiss) private var dismiss
+    @State private var title: String
+    @State private var yield: String
+    @State private var saveError: String?
+    private let originalTitle: String
+    private let originalYield: String
+
+    init(recipe: Recipe) {
+        recipeID = recipe.id
+        originalTitle = recipe.title
+        originalYield = recipe.yield ?? ""
+        _title = State(initialValue: recipe.title)
+        _yield = State(initialValue: recipe.yield ?? "")
+    }
+
+    private var trimmedTitle: String { title.trimmingCharacters(in: .whitespacesAndNewlines) }
+    private var changed: Bool {
+        trimmedTitle != originalTitle || yield.trimmingCharacters(in: .whitespacesAndNewlines) != originalYield
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    Text("Fix anything the import got wrong. Steps are timed and removed on the Timing tab.")
+                        .foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                    field("TITLE", text: $title, prompt: "Recipe title", identifier: "recipe-edit-title")
+                    if trimmedTitle.isEmpty {
+                        Text("A recipe needs a title.")
+                            .font(.subheadline).foregroundStyle(Theme.warning)
+                    }
+                    field("YIELD", text: $yield, prompt: "Optional — for example, 4 servings", identifier: "recipe-edit-yield")
+                    if let saveError {
+                        Text(saveError)
+                            .font(.subheadline).foregroundStyle(Theme.warning)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("recipe-edit-error")
+                    }
+                }
+                .padding(24)
+            }
+            .foregroundStyle(Theme.ink)
+            .background(Theme.cream)
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                Button("Save changes") { save() }
+                    .buttonStyle(BigButtonStyle())
+                    .disabled(trimmedTitle.isEmpty || !changed)
+                    .accessibilityIdentifier("recipe-edit-save")
+                    .padding(.horizontal, 24).padding(.vertical, 12)
+                    .background(Theme.cream)
+            }
+            .navigationTitle("Edit recipe")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+        }
+        .presentationDetents([.large])
+    }
+
+    private func field(_ label: String, text: Binding<String>, prompt: String, identifier: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SectionLabel(text: label)
+            HStack(alignment: .top, spacing: 8) {
+                TextField(prompt, text: text, axis: .vertical)
+                    .font(.title3)
+                    .lineLimit(1...4)
+                    .accessibilityLabel(label.capitalized)
+                    .accessibilityIdentifier(identifier)
+                if !text.wrappedValue.isEmpty {
+                    // Clearing and retyping is quicker than editing a title
+                    // full of status-bar debris.
+                    Button { text.wrappedValue = "" } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(Theme.muted)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Clear \(label.lowercased())")
+                    .accessibilityIdentifier(identifier + "-clear")
+                }
+            }
+            .padding(14)
+            .background(Theme.paper, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
+        }
+    }
+
+    private func save() {
+        guard library.rename(recipeID: recipeID, title: title, yield: yield) else {
+            saveError = "Your changes couldn’t be saved. The recipe is unchanged. Try saving again."
+            UIAccessibility.post(notification: .announcement, argument: saveError)
+            return
+        }
+        dismiss()
+    }
+}

@@ -105,4 +105,7 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     /// A pastel photo's pale page (Joe, build 11), with the step Remove button.
     func test34_palePhotoPage() { flowPalePhotoPage() }
     func test35_palePhotoPageAX3() { flowPalePhotoPage(.ax3) }
+    /// Your Recipes: swipe left for Edit and Delete (Joe, build 12).
+    func test36_swipeEditAndDelete() { flowSwipeEditAndDelete() }
+    func test37_swipeEditAndDeleteAX3() { flowSwipeEditAndDelete(.ax3) }
 }

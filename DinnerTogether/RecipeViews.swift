@@ -11,50 +11,38 @@ import PhotosUI
 
 struct RecipesView: View {
     @EnvironmentObject private var store: SessionStore
+    @EnvironmentObject private var library: RecipeLibrary
     @Binding var path: [UUID]
     var goTonight: () -> Void
     var goCooking: () -> Void
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Your kitchen, collected.")
-                        .font(.system(.largeTitle, design: .serif).weight(.medium))
-                    Text("Your favorites, ready for dinner.")
-                        .foregroundStyle(Theme.muted)
-                }
-                if store.session.records.values.contains(where: { $0.state != .notStarted }) {
-                    Button(action: goCooking) {
-                        Label("Back to cooking", systemImage: "timer")
-                    }
-                    .buttonStyle(SecondaryButtonStyle())
-                }
-                YourRecipesSection(onOpenRecipe: { path.append($0) }, onChoose: goTonight)
-            }
-            .padding(24)
-            .frame(maxWidth: 720, alignment: .leading)
-            .frame(maxWidth: .infinity)
-        }
-        .background(Theme.recipeBackground)
-        .foregroundStyle(Theme.ink)
-        .navigationTitle("Recipes")
-        .navigationBarTitleDisplayMode(.inline)
-        .accessibilityIdentifier("recipe-library")
-    }
-}
-
-// MARK: - Your recipes
-
-struct YourRecipesSection: View {
-    var onOpenRecipe: (UUID) -> Void
-    var onChoose: () -> Void
-    @EnvironmentObject private var library: RecipeLibrary
-    @EnvironmentObject private var store: SessionStore
     @State private var adding = false
+    @State private var editing: Recipe?
+    @State private var deleting: Recipe?
+    @State private var cannotDelete = false
+    /// A delete that didn't reach disk, in words about deleting (A2-17).
+    @State private var deleteProblem: String?
 
+    private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
+
+    // A List, not a stack in a scroll view: rows swipe left for Edit and
+    // Delete (Joe, build 12). The rows keep the card look — no separators,
+    // clear row backgrounds, the page's own margins and 720-pt column.
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        List {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Your kitchen, collected.")
+                    .font(.system(.largeTitle, design: .serif).weight(.medium))
+                Text("Your favorites, ready for dinner.")
+                    .foregroundStyle(Theme.muted)
+            }
+            .libraryRow(top: 24, bottom: 12)
+            if hasProgress {
+                Button(action: goCooking) {
+                    Label("Back to cooking", systemImage: "timer")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .libraryRow()
+            }
             HStack {
                 SectionLabel(text: "YOUR RECIPES")
                 Spacer()
@@ -63,6 +51,14 @@ struct YourRecipesSection: View {
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityIdentifier("add-recipe")
+            }
+            .libraryRow(top: 12)
+            if let deleteProblem {
+                Label(deleteProblem, systemImage: "exclamationmark.triangle")
+                    .font(.subheadline).foregroundStyle(Theme.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("recipe-list-error")
+                    .libraryRow()
             }
             if library.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
@@ -74,21 +70,87 @@ struct YourRecipesSection: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .dtCard()
+                .libraryRow()
             } else {
                 ForEach(library.recipes) { recipe in
-                    NavigationLink(value: recipe.id) {
+                    Button { path.append(recipe.id) } label: {
                         RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete.")
+                    .libraryRow()
+                    // Plain buttons, not role: .destructive — that role
+                    // animates the row away before the cook has confirmed.
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button { requestDelete(recipe) } label: { Label("Delete", systemImage: "trash") }
+                            .tint(.red)
+                            .accessibilityIdentifier("swipe-delete")
+                        Button { editing = recipe } label: { Label("Edit", systemImage: "pencil") }
+                            .tint(Theme.olive)
+                            .accessibilityIdentifier("swipe-edit")
+                    }
                 }
             }
+            Color.clear.frame(height: 24).libraryRow(top: 0, bottom: 0)
         }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(Theme.recipeBackground)
+        .foregroundStyle(Theme.ink)
+        .navigationTitle("Recipes")
+        .navigationBarTitleDisplayMode(.inline)
+        .accessibilityIdentifier("recipe-library")
         .navigationDestination(for: UUID.self) { id in
-            RecipeDetailView(recipeID: id, onChoose: onChoose)
+            RecipeDetailView(recipeID: id, onChoose: goTonight)
         }
         .sheet(isPresented: $adding) {
-            AddRecipeSheet { id in onOpenRecipe(id) }.uiTestTypeSize()
+            AddRecipeSheet { id in path.append(id) }.uiTestTypeSize()
         }
+        .sheet(item: $editing) { recipe in
+            RecipeEditSheet(recipe: recipe).uiTestTypeSize()
+        }
+        // An alert, not a confirmation dialog: alerts present reliably after
+        // the swipe closes (dialogs from closing menus did not, A3-U-F11).
+        .alert("Delete this recipe?", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } }),
+               presenting: deleting) { recipe in
+            Button("Delete recipe", role: .destructive) { delete(recipe) }
+            Button("Cancel", role: .cancel) { }
+        } message: { recipe in
+            Text("“\(recipe.title)” is removed from this device. The original page isn’t affected.")
+        }
+        .alert("You’re cooking this right now", isPresented: $cannotDelete) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Finish or reset tonight’s dinner first, then delete the recipe.")
+        }
+    }
+
+    /// Same rule as the page's Delete button: not while it's being cooked.
+    private func requestDelete(_ recipe: Recipe) {
+        if store.session.menuID == recipe.menuID && hasProgress { cannotDelete = true } else { deleting = recipe }
+    }
+
+    private func delete(_ recipe: Recipe) {
+        let wasTonight = store.session.menuID == recipe.menuID
+        // Delete first; only a delete that reached disk changes tonight's dinner.
+        guard library.remove(id: recipe.id) else {
+            deleteProblem = "“\(recipe.title)” couldn’t be deleted. It’s still in your recipes. Try deleting it again."
+            UIAccessibility.post(notification: .announcement, argument: deleteProblem)
+            return
+        }
+        deleteProblem = nil
+        if wasTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
+    }
+}
+
+private extension View {
+    /// A list row that looks like the page around it.
+    func libraryRow(top: CGFloat = 7, bottom: CGFloat = 7) -> some View {
+        frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .listRowInsets(EdgeInsets(top: top, leading: 24, bottom: bottom, trailing: 24))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
     }
 }
 
@@ -522,6 +584,7 @@ struct RecipeDetailView: View {
     @State private var cannotDelete = false
     @State private var choosingPageStyle = false
     @State private var editingRecipeTime = false
+    @State private var editingDetails = false
     /// A delete that didn't reach disk, in words about deleting (A2-17).
     @State private var deleteProblem: String?
     @Environment(\.colorScheme) private var colorScheme
@@ -590,6 +653,9 @@ struct RecipeDetailView: View {
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
                 .sheet(isPresented: $editingRecipeTime) {
                     RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()
+                }
+                .sheet(isPresented: $editingDetails) {
+                    RecipeEditSheet(recipe: recipe).uiTestTypeSize()
                 }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
@@ -1066,6 +1132,12 @@ struct RecipeDetailView: View {
                         choosingPageStyle = true
                     }
                 } label: { Label("Page color", systemImage: "paintpalette") }
+                Button {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        editingDetails = true
+                    }
+                } label: { Label("Edit title and yield", systemImage: "pencil") }
             } label: {
                 // On a colored page the glyph carries its own dark disc, so
                 // it reads over a bright hero photo whatever the glass does
