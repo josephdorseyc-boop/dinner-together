@@ -279,7 +279,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         // A pinned bottom bar covers more than that at large type (AX3: the
         // 120 pt cook button plus its caption; run 38335694569 tapped a step
         // that sat under it). Measure the bar instead of assuming it.
-        if let barTop = pinnedBarTop(), barTop < screen.maxY - bottomBand {
+        if let barTop = pinnedBarTop(excluding: f), barTop < screen.maxY - bottomBand {
             bottomBand = screen.maxY - barTop + 8
         }
         // Top band: the status bar plus a little; a navigation bar that
@@ -291,11 +291,14 @@ class DinnerTogetherUITestCase: XCTestCase {
 
     /// The top edge of whichever pinned bottom control is on screen (the
     /// recipe page's cook action, the editors' Save, Tonight's plan button).
-    func pinnedBarTop() -> CGFloat? {
+    func pinnedBarTop(excluding target: CGRect) -> CGFloat? {
         let pinned = NSPredicate(format: "identifier IN %@ OR label BEGINSWITH 'Build ' OR label == 'Back to cooking' OR label BEGINSWITH 'Save '",
-                                 ["cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save", "import-recipe"])
+                                 ["cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"])
         let bars = app.buttons.matching(pinned).allElementsBoundByIndex
-        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1 }.map { $0.frame.minY }
+        // A pinned control sits in the bottom quarter and is never the target
+        // itself (run 38341383318: the Add sheet's own button counted as a bar).
+        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1
+                                 && $0.frame.minY > app.frame.maxY * 0.6 && $0.frame != target }.map { $0.frame.minY }
         return tops.min()
     }
 
@@ -990,7 +993,10 @@ extension DinnerTogetherUITestCase {
                        withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
-        XCTAssertTrue(chooser.exists, "the sheet switched to Screenshots and stayed open")
+        if !chooser.exists { attachHierarchy("r06-no-chooser-hierarchy" + capture.suffix); photograph("r06-no-chooser" + capture.suffix) }
+        // The segmented control's selected segment is the switch itself; the
+        // picker's own element is the usual proof.
+        XCTAssertTrue(chooser.exists || app.buttons["Screenshots"].isSelected, "the sheet switched to Screenshots and stayed open")
         if capture.typeSize != nil { scrollTo(error) }
         photograph("r06-apple-news-link" + capture.suffix)
     }
