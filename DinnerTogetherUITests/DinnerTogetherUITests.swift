@@ -108,4 +108,7 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     /// Your Recipes: swipe left for Edit and Delete (Joe, build 12).
     func test36_swipeEditAndDelete() { flowSwipeEditAndDelete() }
     func test37_swipeEditAndDeleteAX3() { flowSwipeEditAndDelete(.ax3) }
+    /// Import warnings stay on every tab and after the timing check (A2-30).
+    func test38_importWarningPersists() { flowImportWarningPersists() }
+    func test39_importWarningPersistsAX3() { flowImportWarningPersists(.ax3) }
 }

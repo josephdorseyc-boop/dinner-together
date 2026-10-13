@@ -148,9 +148,13 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// would leak the previous test's seed into this one.
     @discardableResult
     func launch(seed: String, extraLaunchArguments: [String] = [], openCooking: Bool = true,
-                recipes: [String] = [], heroPhoto: Bool = false, photo: String? = nil) -> XCUIApplication {
+                recipes: [String] = [], heroPhoto: Bool = false, photo: String? = nil,
+                recipeWarnings: [[String]] = []) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchEnvironment["DT_SEED_JSON"] = seed
+        // Always set, like the texts, so warnings never leak between tests.
+        let warningData = (try? JSONSerialization.data(withJSONObject: recipeWarnings)) ?? Data("[]".utf8)
+        app.launchEnvironment["DT_SEED_RECIPE_WARNINGS"] = String(decoding: warningData, as: UTF8.self)
         // "landscape" (the warm still life) or "pastel" (pale icing); empty = no photo.
         app.launchEnvironment["DT_SEED_RECIPE_PHOTO"] = photo ?? (heroPhoto ? "landscape" : "")
         // Always set, so recipes from one test never appear in another.
@@ -814,6 +818,22 @@ enum RecipeFixtureText {
         2. Freeze the mixture for 3 hours; check that it is solid before continuing.
         3. Blend and pour the frozen drink for 2 minutes.
         """
+    /// A2's fixture (PR #16): two visible directions standing for source
+    /// steps 1 and 3; the seeded warning says step 2 was not found.
+    static let missingTextTitle = "Missing text review"
+    static let missingText = """
+        Missing text review
+        Total time: 3 minutes
+
+        Ingredients
+        - 1 cup water
+
+        Directions
+        1. Mix for 2 minutes.
+        2. Serve for 1 minute.
+        """
+    static let missingTextWarning = "Source step 2 wasn’t found in the screenshots."
+
     static let beanSpread = """
         Bean spread with an untimed step
         Yield: 2 snack portions
@@ -853,9 +873,9 @@ struct RecipeCapture {
 
 extension DinnerTogetherUITestCase {
     private func launchRecipes(_ recipes: [String], _ capture: RecipeCapture, extra: [String] = [], heroPhoto: Bool = false,
-                               photo: String? = nil) {
+                               photo: String? = nil, warnings: [[String]] = []) {
         launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: capture.launchArguments + extra,
-               openCooking: false, recipes: recipes, heroPhoto: heroPhoto, photo: photo)
+               openCooking: false, recipes: recipes, heroPhoto: heroPhoto, photo: photo, recipeWarnings: warnings)
     }
 
     private func openRecipesLibrary() {
@@ -1356,6 +1376,34 @@ extension DinnerTogetherUITestCase {
         XCTAssertLessThan(plum, 0.35, "a deep preset over a pastel photo: \(plum)")
         scrollRecipeToTop()
         photograph("r19d-pale-to-plum" + capture.suffix)
+    }
+
+    /// r21 — what an import could not establish stays in view on every tab
+    /// and after the timing check (A2-30; fixture A1 #20 / A2 PR #16).
+    /// Positioning only scrolls; nothing is tapped to make the card appear.
+    func flowImportWarningPersists(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.missingText], capture, warnings: [[RecipeFixtureText.missingTextWarning]])
+        openRecipe(RecipeFixtureText.missingTextTitle)
+        let card = app.descendants(matching: .any)["import-content-warning"]
+        func cardShowsWarning(_ place: String) {
+            waitForExistence(card, timeout: 5, "the import warning card on \(place)")
+            let text = app.staticTexts[RecipeFixtureText.missingTextWarning]
+            XCTAssertTrue(text.exists, "…with its exact warning, on \(place)")
+        }
+        cardShowsWarning("Ingredients")
+        app.buttons["recipe-tab-directions"].tap()
+        cardShowsWarning("Directions")
+        app.buttons["recipe-tab-timing"].tap()
+        cardShowsWarning("Timing")
+        bringIntoView(card)
+        photograph("r21a-warning-on-timing" + capture.suffix)
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "Timing looks right")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the timing check is done")
+        cardShowsWarning("the page after the timing check")
+        bringIntoView(card)
+        photograph("r21b-warning-after-check" + capture.suffix)
     }
 
     /// r20 — Your Recipes: swipe left for Edit and Delete (Joe, build 12).

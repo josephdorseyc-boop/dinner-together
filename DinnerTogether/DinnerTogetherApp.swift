@@ -176,6 +176,15 @@ enum LaunchOptions {
             return RecipeImporter.build(imported, method: .text, now: base.addingTimeInterval(-Double(i)))
         }
         var seeded = recipes
+        // DT_SEED_RECIPE_WARNINGS: a JSON array of warning lists, parallel to
+        // the texts — the text path never produces import warnings, so the
+        // warning card's persistence is tested from a seed (A1 #20, A2 PR #16).
+        if let wjson = ProcessInfo.processInfo.environment["DT_SEED_RECIPE_WARNINGS"],
+           let lists = try? JSONDecoder().decode([[String]].self, from: Data(wjson.utf8)) {
+            for (i, list) in lists.enumerated() where i < seeded.count && !list.isEmpty {
+                seeded[i].importWarnings = list
+            }
+        }
         // DT_SEED_RECIPE_PHOTO=landscape (a wide, warm still life) or
         // =pastel (pale blue icing, a pale page): give the first recipe a
         // photo drawn here, so the test never depends on a publisher's image.

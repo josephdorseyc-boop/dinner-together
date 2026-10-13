@@ -387,7 +387,7 @@ struct RecipeEditSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text("Fix anything the import got wrong. Steps are timed and removed on the Timing tab.")
+                    Text("Change the title or yield. Review timing or remove steps on the Timing tab.")
                         .foregroundStyle(Theme.muted)
                         .fixedSize(horizontal: false, vertical: true)
                     field("TITLE", text: $title, prompt: "Recipe title", identifier: "recipe-edit-title")
@@ -415,7 +415,7 @@ struct RecipeEditSheet: View {
                     .padding(.horizontal, 24).padding(.vertical, 12)
                     .background(Theme.cream)
             }
-            .navigationTitle("Edit recipe")
+            .navigationTitle("Title and yield")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

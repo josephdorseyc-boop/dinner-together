@@ -200,7 +200,7 @@ run_tests() { # label udid
 }
 
 note ""
-note "## XCTest (required on both simulators)"
+note "## XCTest (required; iPhone simulator — the iPad simulator runs the UI tests, A1 #19)"
 if [ -n "$APP_PATH" ]; then
   if [ -n "$IPHONE_UDID" ]; then run_tests "iphone" "$IPHONE_UDID"; else fail "XCTest on iPhone skipped: no simulator"; fi
   # The unit tests are device-independent logic; the same binary ran on the
