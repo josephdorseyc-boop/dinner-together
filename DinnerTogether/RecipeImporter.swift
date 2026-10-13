@@ -1054,8 +1054,7 @@ extension RecipeImporter {
             // One word is the clock ("10:08", "9:41"); the rest are status
             // items (signal, network, battery, a date on iPad), not a sentence.
             let words = line.text.split(whereSeparator: { $0 == " " }).map(String.init)
-            guard let c = words.firstIndex(where: { $0.range(of: #"^\d{1,2}[:.]\d{2}[^0-9:]{0,2}$"#, options: .regularExpression) != nil })
-            else { return false }
+            guard let c = words.firstIndex(where: isClockWord) else { return false }
             let rest = words.enumerated().filter { $0.offset != c }.map(\.element)
                 .filter { $0.contains(where: { $0.isLetter || $0.isNumber }) }
             return rest.count <= 5 && !rest.contains { $0.filter(\.isLetter).count >= 8 }
@@ -1064,6 +1063,18 @@ extension RecipeImporter {
         return page.filter { line in
             !clocks.contains { c in abs(line.top - c.top) < max(0.012, c.height * 0.8) && line.top < 0.06 }
         }
+    }
+
+    /// "10:08", "9:41", "9.41", with at most two marks after it (a location
+    /// arrow read as a glyph). Plain character checks, no pattern.
+    static func isClockWord(_ word: String) -> Bool {
+        var chars = Array(word)
+        var trailing = 0
+        while let last = chars.last, !last.isASCII || !last.isNumber { chars.removeLast(); trailing += 1 }
+        guard trailing <= 2, let sep = chars.firstIndex(where: { $0 == ":" || $0 == "." }) else { return false }
+        let hours = chars[..<sep], minutes = chars[(sep + 1)...]
+        func digits<C: Collection>(_ c: C) -> Bool where C.Element == Character { c.allSatisfy { $0.isASCII && $0.isNumber } }
+        return (1...2).contains(hours.count) && minutes.count == 2 && digits(hours) && digits(minutes)
     }
 
     /// The value for the metadata label at `index`: the nearest unclaimed

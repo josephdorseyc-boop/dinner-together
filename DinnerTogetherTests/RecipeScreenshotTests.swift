@@ -432,6 +432,8 @@ final class RecipesViewScreenshotTests: XCTestCase {
     }
 
     func testStatusBarRules() {
+        for w in ["10:08", "9:41", "9.41", "10:08↗"] { XCTAssertTrue(RecipeImporter.isClockWord(w), w) }
+        for w in ["1008", "10:8", "100:08", "10:08:30", "5GW", "3/4", "10:08abc"] { XCTAssertFalse(RecipeImporter.isClockWord(w), w) }
         let page = [L("10:08 1 ••ll 5GW", 0.020, 0.08), L("63", 0.022, 0.88), L("Whipped Frozen Apple Cider", 0.075, 0.21)]
         XCTAssertEqual(RecipeImporter.dropStatusBar(page).map(\.text), ["Whipped Frozen Apple Cider"])
         let ipad = [L("10:08 Tue Oct 13", 0.012, 0.03), L("100%", 0.012, 0.92), L("Soup", 0.06)]
