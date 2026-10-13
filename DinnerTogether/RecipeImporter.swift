@@ -1050,13 +1050,15 @@ extension RecipeImporter {
     /// was already dropped as chrome; the row it sits on now goes with it.
     static func dropStatusBar(_ page: [OCRLine]) -> [OCRLine] {
         let clocks = page.filter { line in
-            guard line.top < 0.05,
-                  let r = line.text.range(of: #"(?<![\d:])\d{1,2}[:.]\d{2}(?![\d:])"#, options: .regularExpression) else { return false }
-            // The rest of the line is status items (signal, network, battery,
-            // a date on iPad), not a sentence.
-            let rest = line.text.replacingCharacters(in: r, with: " ")
-            let words = rest.split(whereSeparator: { $0 == " " }).filter { $0.contains(where: { $0.isLetter || $0.isNumber }) }
-            return words.count <= 5 && !words.contains { $0.filter(\.isLetter).count >= 8 }
+            guard line.top < 0.05 else { return false }
+            // One word is the clock ("10:08", "9:41"); the rest are status
+            // items (signal, network, battery, a date on iPad), not a sentence.
+            let words = line.text.split(whereSeparator: { $0 == " " }).map(String.init)
+            guard let c = words.firstIndex(where: { $0.range(of: #"^\d{1,2}[:.]\d{2}[^0-9:]{0,2}$"#, options: .regularExpression) != nil })
+            else { return false }
+            let rest = words.enumerated().filter { $0.offset != c }.map(\.element)
+                .filter { $0.contains(where: { $0.isLetter || $0.isNumber }) }
+            return rest.count <= 5 && !rest.contains { $0.filter(\.isLetter).count >= 8 }
         }
         guard !clocks.isEmpty else { return page }
         return page.filter { line in
