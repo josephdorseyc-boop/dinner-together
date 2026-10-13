@@ -27,7 +27,6 @@ struct PlanView: View {
             VStack(alignment: .leading, spacing: 28) {
                 header
                 servingTimeCard
-                feasibilityCard
                 tonightsRecipe
                 Button(action: goRecipes) {
                     Label(tonightRecipe == nil ? "Choose from Recipes" : "Choose a different recipe", systemImage: "book.closed")
@@ -164,14 +163,62 @@ struct PlanView: View {
         .accessibilityElement(children: .combine)
     }
 
+    /// The app's promise, first and loudest (Joe, October 13): when dinner
+    /// is on the table, and whether that time is realistic for this menu.
+    /// A deep warm card on the cream page — fixed colors, so it stands out
+    /// in Light and Dark alike — with the time large, when to start, or the
+    /// earliest realistic time with a one-tap fix.
     private var servingTimeCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            SectionLabel(text: "AT THE TABLE")
-            Text(store.session.serveAt, format: .dateTime.hour().minute())
-                .font(.system(.largeTitle, design: .rounded).weight(.medium))
-                .monospacedDigit().foregroundStyle(Theme.ink)
+        let cream = Color(red: 0.965, green: 0.945, blue: 0.890)
+        let apricot = PageText.accent.color
+        let minutes = menuMinutes(store.menu)
+        let startBy = store.session.serveAt.addingTimeInterval(-Double(minutes) * 60)
+        return VStack(alignment: .leading, spacing: 14) {
+            Text("DINNER ON THE TABLE")
+                .font(.caption.weight(.semibold)).tracking(1.4)
+                .foregroundStyle(cream.opacity(0.85))
+                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(store.session.serveAt, format: .dateTime.hour().minute())
+                    .font(.system(size: 60, weight: .semibold, design: .serif))
+                    .minimumScaleFactor(0.6).lineLimit(1)
+                    .monospacedDigit()
+                    .foregroundStyle(cream)
+                    .accessibilityIdentifier("table-time")
+                Text(store.session.serveAt, format: .dateTime.weekday(.wide).month().day())
+                    .font(.subheadline).foregroundStyle(cream.opacity(0.85))
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Dinner on the table at \(Scheduling.formatMoment(store.session.serveAt))")
+
+            if hasProgress {
+                Label("You’re cooking. Change the time from Cooking with Adjust time or Review dinner time.", systemImage: "flame")
+                    .font(.subheadline).foregroundStyle(cream)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if case .startsInPast(let earliest) = feasibility {
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Too soon for this menu. Starting now, the earliest realistic time is \(Scheduling.formatMoment(earliest)).",
+                          systemImage: "exclamationmark.triangle")
+                        .font(.subheadline.weight(.semibold)).foregroundStyle(apricot)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Use \(Scheduling.formatMoment(earliest))") {
+                        store.setServeAt(earliest)
+                        recheckFeasibility()
+                    }
+                    .buttonStyle(BigButtonStyle(onColoredPage: true))
+                    .accessibilityIdentifier("use-earliest-time")
+                }
+                .accessibilityIdentifier("table-time-too-soon")
+            } else {
+                Label("Start cooking by \(Scheduling.formatMoment(startBy)) · about \(Scheduling.formatMinutes(minutes)) of cooking",
+                      systemImage: "clock")
+                    .font(.subheadline.weight(.medium)).foregroundStyle(apricot)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("table-time-start-by")
+            }
+
             DatePicker(
-                "Dinner time",
+                "Change dinner time",
                 selection: Binding(
                     get: { store.session.serveAt },
                     set: { store.setServeAt($0); recheckFeasibility() }
@@ -179,36 +226,23 @@ struct PlanView: View {
                 in: Date()...,
                 displayedComponents: [.date, .hourAndMinute]
             )
+            .foregroundStyle(cream)
+            .tint(apricot)
+            .environment(\.colorScheme, .dark)
             .disabled(hasProgress)
-            if hasProgress {
-                Text("Use “Adjust time” or “Review dinner time” while cooking, or reset progress to choose a new time.")
-                    .font(.caption)
-                    .foregroundStyle(Theme.muted)
-            }
         }
-        .dtCard()
+        .padding(24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Self.tableSurface, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
-    @ViewBuilder
-    private var feasibilityCard: some View {
-        if !hasProgress, case .startsInPast(let earliest) = feasibility {
-            VStack(alignment: .leading, spacing: 10) {
-                Label("Let’s give dinner enough time", systemImage: "exclamationmark.triangle")
-                    .font(.headline)
-                    .foregroundStyle(Theme.warning)
-                Text("Starting now, this menu can reach the table at \(Scheduling.formatMoment(earliest)).")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.ink)
-                Button("Use \(Scheduling.formatMoment(earliest))") {
-                    store.setServeAt(earliest)
-                    recheckFeasibility()
-                }
-                .buttonStyle(SecondaryButtonStyle())
-            }
-            .dtCard()
-            .accessibilityElement(children: .combine)
-        }
-    }
+    /// Deep espresso in Light Mode, a lifted warm brown in Dark Mode (so it
+    /// still stands off the dark page). Cream text ≥ 9:1 on both.
+    private static let tableSurface = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.30, green: 0.20, blue: 0.15, alpha: 1)
+            : UIColor(red: 0.188, green: 0.169, blue: 0.145, alpha: 1)
+    })
 
     private func menuCard(_ menu: DinnerMenu) -> some View {
         let selected = store.session.menuID == menu.id
