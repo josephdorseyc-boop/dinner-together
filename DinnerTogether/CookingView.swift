@@ -174,11 +174,12 @@ struct CookingView: View {
                 store.confirmDelay(proposal)
                 delayProposal = nil
             }
+            .uiTestTypeSize()
         }
         // Routine lateness never opens a sheet on its own. The cook opens
         // this review from the inline notice; it reads live state.
         .sheet(isPresented: $showReadinessReview) {
-            ServingSheetView()
+            ServingSheetView().uiTestTypeSize()
         }
         // The modern alert API (iOS 15+): the legacy `Alert` value's buttons
         // reached XCUITest as "Button from legacy attributes vs

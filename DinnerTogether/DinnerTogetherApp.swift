@@ -292,3 +292,21 @@ struct AppleNewsPlaceholderFetcher: RecipePageFetcher {
     }
 }
 #endif
+
+extension View {
+    /// Sheet content under UI test: the forced type size is an environment
+    /// value the root sets, and a presented sheet does not inherit it (run
+    /// 38330367116: the Page color sheet rendered at the default size under
+    /// -dt-type-size). A cook's real Dynamic Type setting reaches sheets on
+    /// its own; this only makes the test flag honest. No-op in release.
+    @ViewBuilder
+    func uiTestTypeSize() -> some View {
+        #if DEBUG
+        transformEnvironment(\.dynamicTypeSize) { size in
+            if let forced = LaunchOptions.forcedTypeSize { size = forced }
+        }
+        #else
+        self
+        #endif
+    }
+}

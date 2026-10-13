@@ -296,8 +296,12 @@ class DinnerTogetherUITestCase: XCTestCase {
                 delta = element.frame.midY - screen.midY
                 delta = max(-screen.height * 0.45, min(screen.height * 0.45, delta))
             }
-            let startY = delta >= 0 ? 0.70 : 0.30
-            let endY = startY - Double(delta / screen.height)
+            // Start above the pinned bottom bar: at AX3 the bar (caption +
+            // button + tab bar) reaches up to ~0.68 of the screen, and a drag
+            // that starts on it scrolls nothing (run 38330367116, test18:
+            // twelve identical drags).
+            let startY = delta >= 0 ? 0.55 : 0.30
+            let endY = max(0.12, min(0.92, startY - Double(delta / screen.height)))
             let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
             let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
@@ -1002,9 +1006,16 @@ extension DinnerTogetherUITestCase {
         let question = app.staticTexts["Delete this recipe?"]
         waitForExistence(question, timeout: 5, "the delete confirmation")
         photograph("r09b-delete-dialog")
-        // Cancel keeps the recipe and the page (A2-17).
-        tapEvenInPopover(app.buttons.matching(NSPredicate(format: "label == 'Cancel'")).firstMatch)
-        waitForDisappearance(question, "Cancel closed the confirmation")
+        // Cancel keeps the recipe and the page (A2-17). iOS 26 shows this
+        // dialog as a popover-style bubble with no Cancel button on iPhone
+        // either (run 38330367116): tapping away is the cancel.
+        let cancel = app.buttons.matching(NSPredicate(format: "label == 'Cancel'")).firstMatch
+        if cancel.waitForExistence(timeout: 2) {
+            tapEvenInPopover(cancel)
+        } else {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
+        }
+        waitForDisappearance(question, "Cancel (or tapping away) closed the confirmation")
         XCTAssertTrue(app.staticTexts["recipe-title"].exists, "Cancel: still on the recipe page")
         XCTAssertFalse(app.descendants(matching: .any)["recipe-save-error"].exists, "Cancel: nothing to explain")
         scrollAndTap(deleteButton, "Delete this recipe, again")

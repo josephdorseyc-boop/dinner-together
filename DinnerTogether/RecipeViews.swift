@@ -87,7 +87,7 @@ struct YourRecipesSection: View {
             RecipeDetailView(recipeID: id, onChoose: onChoose)
         }
         .sheet(isPresented: $adding) {
-            AddRecipeSheet { id in onOpenRecipe(id) }
+            AddRecipeSheet { id in onOpenRecipe(id) }.uiTestTypeSize()
         }
     }
 }
@@ -299,6 +299,7 @@ struct AddRecipeSheet: View {
         .onChange(of: picked) { _, _ in coverData = nil }
         .sheet(isPresented: $choosingCover) {
             ScreenshotCoverSheet(load: { try await screenshotData() }) { coverData = $0 }
+                .uiTestTypeSize()
         }
     }
 
@@ -550,7 +551,7 @@ struct RecipeDetailView: View {
                 // and the tab bar (A2-17: black clock on brown, 2.1:1).
                 .toolbarColorScheme(pagePalette == nil ? nil : .dark, for: .navigationBar, .tabBar)
                 .toolbar { moreMenu(recipe) }
-                .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID) }
+                .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
                         guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
@@ -558,21 +559,11 @@ struct RecipeDetailView: View {
                         }
                         return nil
                     }
+                    .uiTestTypeSize()
                 }
                 .confirmationDialog("Change dinner and clear progress?", isPresented: $confirmingReplace, titleVisibility: .visible) {
                     Button("Cook \(recipe.title) instead", role: .destructive) { choose(recipe) }
                     Button("Cancel", role: .cancel) { }
-                }
-                .confirmationDialog("Delete this recipe?", isPresented: $confirmingDelete, titleVisibility: .visible) {
-                    Button("Delete recipe", role: .destructive) { delete(recipe) }
-                    Button("Cancel", role: .cancel) { }
-                } message: {
-                    Text("It’s removed from this device. The original page isn’t affected.")
-                }
-                .alert("You’re cooking this right now", isPresented: $cannotDelete) {
-                    Button("OK", role: .cancel) { }
-                } message: {
-                    Text("Finish or reset tonight’s dinner first, then delete the recipe.")
                 }
             } else {
                 ContentUnavailableView("Recipe not found", systemImage: "book.closed",
@@ -988,16 +979,33 @@ struct RecipeDetailView: View {
     /// iPhone in five CI runs out of five (and once on iPad), with or
     /// without a delay — the cook would have tapped Delete and seen
     /// nothing. From a plain button the dialog presents every time.
+    @ViewBuilder
     private var deleteButton: some View {
-        Button(role: .destructive) {
-            if timingLocked { cannotDelete = true } else { confirmingDelete = true }
-        } label: {
-            Label("Delete this recipe", systemImage: "trash")
-                .foregroundStyle(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+        if let recipe {
+            Button(role: .destructive) {
+                if timingLocked { cannotDelete = true } else { confirmingDelete = true }
+            } label: {
+                Label("Delete this recipe", systemImage: "trash")
+                    .foregroundStyle(pagePalette == nil ? Theme.tomato : Theme.pageAccent)
+            }
+            .buttonStyle(QuietButtonStyle())
+            .padding(.top, 12)
+            .accessibilityIdentifier("delete-recipe")
+            // On the button, so iOS 26's popover-style dialog points at it
+            // (attached to the page it pointed at the review banner, run
+            // 38330367116). That style shows no Cancel; tapping away cancels.
+            .confirmationDialog("Delete this recipe?", isPresented: $confirmingDelete, titleVisibility: .visible) {
+                Button("Delete recipe", role: .destructive) { delete(recipe) }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("It’s removed from this device. The original page isn’t affected.")
+            }
+            .alert("You’re cooking this right now", isPresented: $cannotDelete) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Finish or reset tonight’s dinner first, then delete the recipe.")
+            }
         }
-        .buttonStyle(QuietButtonStyle())
-        .padding(.top, 12)
-        .accessibilityIdentifier("delete-recipe")
     }
 
     private func choose(_ recipe: Recipe) {

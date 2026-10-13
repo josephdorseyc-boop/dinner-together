@@ -51,6 +51,7 @@ struct ContentView: View {
                 .presentationDetents([.medium])
                 // The stale-plan choice is explicit: no swipe-to-dismiss bypass.
                 .interactiveDismissDisabled()
+                .uiTestTypeSize()
         }
         .alert("Couldn't save",
                isPresented: Binding(

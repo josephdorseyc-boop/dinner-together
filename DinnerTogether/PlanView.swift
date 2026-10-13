@@ -85,6 +85,7 @@ struct PlanView: View {
                 recheckFeasibility()
                 return nil // the session store reports its own save problems
             }
+            .uiTestTypeSize()
         }
         .confirmationDialog(
             "Change dinner and clear progress?",
