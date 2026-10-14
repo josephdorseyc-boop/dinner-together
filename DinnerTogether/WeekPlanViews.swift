@@ -196,11 +196,18 @@ struct WeekStrip: View {
             .background(index == 0 ? Theme.paper : Color.clear, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(index == 0 ? Theme.tomato.opacity(0.55) : Theme.line, lineWidth: 1))
+            // The whole chip takes the tap. Without this a plain-style
+            // Button is hit-testable only where its label draws: the plate
+            // is drawn with hit testing off and the chip's background is
+            // clear, so a tap at the chip's center — where a finger and
+            // XCTest both land — fell through to the strip (runs
+            // 38508449584, 38519974627, 38532632676: chips were Buttons
+            // with finite frames, nothing presented, no sheet).
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
         .buttonStyle(.plain)
         // The Button's own element, untouched: `.ignore` dropped the button
-        // trait (run 38484344610) and `.combine` left a chip whose taps never
-        // opened the sheet (runs 38508449584, 38519974627).
+        // trait (run 38484344610).
         .accessibilityLabel("\(index == 0 ? "Today" : day.formatted(.dateTime.weekday(.wide))): \(title)")
         .accessibilityHint(index == 0 ? "Choose tonight’s dinner." : "Plan this day’s dinner.")
         .accessibilityIdentifier("week-day-\(index)")
@@ -289,6 +296,7 @@ struct DayPlanSheet: View {
                     Image(systemName: "checkmark").foregroundStyle(Theme.tomato).accessibilityLabel("Planned")
                 }
             }
+            .contentShape(Rectangle())
         }
         .disabled(disabled)
         .listRowBackground(Theme.paper)
@@ -334,6 +342,7 @@ struct ClassicsView: View {
                         Spacer(minLength: 0)
                         Image(systemName: "calendar.badge.plus").foregroundStyle(Theme.tomato)
                     }
+                    .contentShape(Rectangle()) // the row's gaps take the tap too
                 }
                 .buttonStyle(.plain)
                 .listRowBackground(Theme.paper)

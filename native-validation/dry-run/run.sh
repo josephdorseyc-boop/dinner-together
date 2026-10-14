@@ -17,7 +17,7 @@ run_case() { # name expect_pass_rc expect_shots_rc expect_required_failures expe
   local name="$1" e_pass="$2" e_shots="$3" e_fail="$4" e_png="$5" e_upng="$6"; shift 6
   local R="$WORK/$name"; rm -rf "$R"; mkdir -p "$R"
   local pass_rc shots_rc
-  ( export PATH="$HERE/faketools:$PATH" FAKE_CONTAINER="$R/container" SHOT_SETTLE_SECONDS=0
+  ( export PATH="$HERE/faketools:$PATH" FAKE_CONTAINER="$R/container" SHOT_SETTLE_SECONDS=0 DT_UI_WARMUP_SECONDS=0
     env "$@" bash "$ROOT/native-validation/run-native-pass.sh" "$R" >/dev/null 2>&1; echo $? > "$R/pass.rc"
     env "$@" bash "$ROOT/native-validation/screenshots.sh" "$R" >/dev/null 2>&1; echo $? > "$R/shots.rc" )
   pass_rc=$(cat "$R/pass.rc"); shots_rc=$(cat "$R/shots.rc")

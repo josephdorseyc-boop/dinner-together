@@ -283,6 +283,7 @@ struct PlanView: View {
                 }
                 .foregroundStyle(Theme.ink)
                 .padding(16)
+                .contentShape(Rectangle()) // the gap before the check takes the tap too
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(menu.title), \(menu.subtitle)")

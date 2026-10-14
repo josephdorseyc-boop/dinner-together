@@ -223,6 +223,23 @@ run_ui_tests() { # label udid only_testing expected
   local bundle="$RESULTS/$label-ui.xcresult"
   local log="$RESULTS/25-ui-test-$label.log"
   rm -rf "$bundle"
+  # Warm the simulator before XCTest asks it to launch the app: on a cold
+  # boot the first flows time out waiting for launch progress (run
+  # 38532632676: iPad test01–test03, "Timed out while requesting launch
+  # progress", five minutes lost and a false failure). Boot, wait for the
+  # boot to finish, install the app and launch it once, then let the tests
+  # start against a simulator that has already run it. Best effort: a
+  # warm-up problem is logged, never a verdict.
+  {
+    echo "== warm-up $label ($udid) $(date -u +%H:%M:%S)"
+    xcrun simctl boot "$udid" 2>&1 || true
+    xcrun simctl bootstatus "$udid" -b 2>&1 || true
+    xcrun simctl install "$udid" "$APP_PATH" 2>&1 || true
+    xcrun simctl launch "$udid" com.example.dinnertogether 2>&1 || true
+    sleep "${DT_UI_WARMUP_SECONDS:-8}"
+    xcrun simctl terminate "$udid" com.example.dinnertogether 2>&1 || true
+    echo "== warm-up done $(date -u +%H:%M:%S)"
+  } > "$RESULTS/24-ui-warmup-$label.log" 2>&1 || true
   # Per-test time allowance: a flow stuck on a missing element fails in
   # minutes instead of running the job into its timeout (run 12: 45 min).
   # XCTest allowances did not stop the 95-minute silent runner hang in
