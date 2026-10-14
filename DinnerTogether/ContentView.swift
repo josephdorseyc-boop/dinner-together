@@ -38,7 +38,12 @@ struct ContentView: View {
            let palette = RecipePhotos.palette(for: recipe, from: library) {
             return palette.tone == .deep ? .dark : .light
         }
-        return LaunchOptions.forcedColorScheme // nil in Release
+        // The UI tests' forced Light/Dark is a window setting, like the
+        // system's (`LaunchOptions.applyForcedAppearance`): as a root color
+        // scheme it overrode the top bar's say over the clock, which then
+        // stayed black over Tonight's photo in every forced-Light capture
+        // (A2-54, run 38628522264).
+        return nil
     }
 
     var body: some View {
@@ -76,6 +81,12 @@ struct ContentView: View {
         }
         .tint(Theme.tomato)
         .preferredColorScheme(preferredPresentationScheme)
+        .onAppear { LaunchOptions.applyForcedAppearance() }
+        // Leaving a colored recipe page resets the window's style; put the
+        // tests' forced appearance back (Debug only; nothing in Release).
+        .onChange(of: preferredPresentationScheme) { _, scheme in
+            if scheme == nil { LaunchOptions.applyForcedAppearance() }
+        }
         // Share → "Dinner, Together" from another app: the inbox item opens
         // Add recipe already filled in; the new recipe's page follows.
         .sheet(item: $library.pendingShare) { share in

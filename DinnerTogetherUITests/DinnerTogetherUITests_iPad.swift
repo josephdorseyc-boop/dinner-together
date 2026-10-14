@@ -8,6 +8,10 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
 
     /// Flow 1 on iPad — Review dinner time from a late-prep notice.
     func test01_reviewDinnerTimeLatePrep_iPad() {
+        // Run 38628522264 was still exercising Undo at 271 s on a slow
+        // simulator. Use the existing 360 s cap for this complete flow;
+        // the command-line default is 240 s, not the maximum allowance.
+        executionTimeAllowance = 360
         flowReviewDinnerTimeLatePrep()
     }
 

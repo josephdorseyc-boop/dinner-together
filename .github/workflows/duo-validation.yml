@@ -31,7 +31,8 @@ jobs:
     # The duo pass downloads the iOS 27.1 platform first and the Duo
     # simulator is slower: run 38341872659 timed out at 110 min after the
     # tests had passed.
-    timeout-minutes: 170
+    # Two sequential UI passes of up to 110 min each (A1, issue #15).
+    timeout-minutes: 300
     strategy:
       fail-fast: false
       matrix:
@@ -102,6 +103,8 @@ jobs:
           done
       - name: Upload review evidence (screenshots, summary, UI logs only)
         if: always()
+        # This step once hung 171 minutes and ate the job (A1, issue #15).
+        timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
           name: duo-${{ matrix.pass }}-evidence-${{ github.run_id }}

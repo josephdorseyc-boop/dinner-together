@@ -117,6 +117,17 @@ enum LaunchOptions {
     static var stubAppleNews: Bool { arguments.contains("-dt-stub-apple-news") }
     /// -dt-appearance dark|light: Dark Mode captures without touching the
     /// simulator's settings.
+    /// -dt-appearance as the window's own style, the way the system's
+    /// Light/Dark setting applies (see ContentView).
+    @MainActor
+    static func applyForcedAppearance() {
+        guard let scheme = forcedColorScheme else { return }
+        let style: UIUserInterfaceStyle = scheme == .dark ? .dark : .light
+        for scene in UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }) {
+            for window in scene.windows { window.overrideUserInterfaceStyle = style }
+        }
+    }
+
     static var forcedColorScheme: ColorScheme? {
         let args = ProcessInfo.processInfo.arguments
         guard let i = args.firstIndex(of: "-dt-appearance"), i + 1 < args.count else { return nil }
@@ -170,6 +181,7 @@ enum LaunchOptions {
     static var stubScreenshots: Bool { false }
     static var stubAppleNews: Bool { false }
     static var forcedColorScheme: ColorScheme? { nil }
+    @MainActor static func applyForcedAppearance() {}
     static var inertReminders: Bool { false }
     static var forcedTypeSize: DynamicTypeSize? { nil }
     static var seededSession: Bool { false }
