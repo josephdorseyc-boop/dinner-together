@@ -16,7 +16,19 @@ struct PlanView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var feasibility: Feasibility = .ok
     @State private var pendingMenuID: String?
-    @State private var editingStep: CookingStep?
+    /// One sheet presenter for the page: the duration editor or the week's
+    /// day sheet. A second `.sheet` — on this view or inside its scroll
+    /// view — never appeared (runs 38497304286 and 38508449584).
+    enum PageSheet: Identifiable {
+        case step(CookingStep), day(PlanDay)
+        var id: String {
+            switch self {
+            case .step(let s): return "step-" + s.id
+            case .day(let d): return "day-" + d.date.description
+            }
+        }
+    }
+    @State private var sheet: PageSheet?
 
     private var hasProgress: Bool {
         store.session.records.values.contains { $0.state != .notStarted }
@@ -35,10 +47,7 @@ struct PlanView: View {
                 .accessibilityIdentifier("open-recipes")
                 // The week sits below tonight's time and recipe choice, above
                 // the classics (Joe, October 13).
-                WeekStrip(chooseToday: { id in
-                    guard id != store.session.menuID else { return }
-                    if hasProgress { pendingMenuID = id } else { store.chooseMenu(id); recheckFeasibility() }
-                })
+                WeekStrip(chooseToday: chooseFromWeek, openDay: { sheet = .day($0) })
                 SectionLabel(text: "ON THE MENU")
                 ForEach(DinnerCatalog.menus) { menu in
                     menuCard(menu)
@@ -86,14 +95,19 @@ struct PlanView: View {
         .onAppear { recheckFeasibility() }
         .sensoryFeedback(.selection, trigger: store.session.menuID)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: store.session.menuID)
-        .sheet(item: $editingStep) { step in
-            DurationEditorView(step: step,
-                initialMinutes: store.session.durationOverrides[step.id] ?? step.minutes) { minutes in
-                store.setDuration(stepID: step.id, minutes: minutes)
-                recheckFeasibility()
-                return nil // the session store reports its own save problems
+        .sheet(item: $sheet) { which in
+            switch which {
+            case .step(let step):
+                DurationEditorView(step: step,
+                    initialMinutes: store.session.durationOverrides[step.id] ?? step.minutes) { minutes in
+                    store.setDuration(stepID: step.id, minutes: minutes)
+                    recheckFeasibility()
+                    return nil // the session store reports its own save problems
+                }
+                .uiTestTypeSize()
+            case .day(let day):
+                DayPlanSheet(day: day, chooseToday: chooseFromWeek).uiTestTypeSize()
             }
-            .uiTestTypeSize()
         }
         .confirmationDialog(
             "Change dinner and clear progress?",
@@ -329,7 +343,7 @@ struct PlanView: View {
             // controls on an unselected menu used to silently do nothing
             // useful. Select the menu first, then adjust.
             if selected {
-                Button { editingStep = step } label: {
+                Button { sheet = .step(step) } label: {
                     Label("\(Scheduling.formatMinutes(minutes))", systemImage: "pencil")
                 }
                     .buttonStyle(QuietButtonStyle())
@@ -351,6 +365,11 @@ struct PlanView: View {
                 total + Scheduling.effectiveMinutes(step, durations: store.session.durationOverrides)
             }
         }.max() ?? menu.longestDishMinutes
+    }
+
+    private func chooseFromWeek(_ id: String) {
+        guard id != store.session.menuID else { return }
+        if hasProgress { pendingMenuID = id } else { store.chooseMenu(id); recheckFeasibility() }
     }
 
     private func recheckFeasibility() {

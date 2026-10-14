@@ -145,7 +145,8 @@ struct WeekStrip: View {
     /// Choosing today's dinner goes through Tonight's own path (it asks
     /// before replacing a dinner in progress).
     var chooseToday: (String) -> Void
-    @State private var editing: PlanDay?
+    /// The page presents the day sheet (PlanView.planningDay).
+    var openDay: (PlanDay) -> Void
 
     private var days: [Date] { WeekRotation.days(from: Date()) }
 
@@ -165,9 +166,6 @@ struct WeekStrip: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .sheet(item: $editing) { day in
-            DayPlanSheet(day: day, chooseToday: chooseToday).uiTestTypeSize()
-        }
     }
 
     private func dinner(on day: Date, index: Int) -> PlannedDinner {
@@ -184,7 +182,7 @@ struct WeekStrip: View {
         }()
         let dayName = index == 0 ? "Today" : day.formatted(.dateTime.weekday(.abbreviated))
         let width: CGFloat = dynamicTypeSize.isAccessibilitySize ? 150 : 88
-        return Button { editing = PlanDay(date: day, isToday: index == 0) } label: {
+        return Button { openDay(PlanDay(date: day, isToday: index == 0)) } label: {
             VStack(spacing: 6) {
                 Text(dayName).font(.caption.weight(.semibold))
                     .foregroundStyle(index == 0 ? Theme.tomato : Theme.muted)
