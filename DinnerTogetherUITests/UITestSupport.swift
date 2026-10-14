@@ -1502,25 +1502,41 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(today.label.hasPrefix("Today: Steak night"), "today shows tonight’s dinner: \(today.label)")
         photograph("r23a-week-strip" + capture.suffix)
 
-        func plan(day index: Int, choose identifier: String) {
+        func openDay(_ index: Int) {
             let chip = app.descendants(matching: .any)["week-day-\(index)"].firstMatch
             scrollTo(chip)
-            chip.tap()
-            let option = app.buttons[identifier].firstMatch
-            waitForExistence(option, timeout: 5, "the day’s plan sheet offers \(identifier)")
+            waitForStableFrame(chip)
+            let done = app.buttons["day-plan-done"]
+            // A combined element's tap can miss (run 38497304286: the sheet
+            // never opened); a second tap at its center, with evidence.
+            for attempt in 0..<2 where !done.exists {
+                if attempt == 0 { chip.tap() } else {
+                    photograph("r23-day-chip-tap-missed")
+                    chip.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                }
+                _ = done.waitForExistence(timeout: 5)
+            }
+            if !done.exists { attachHierarchy("r23-day-sheet-missing-hierarchy") }
+            waitForExistence(done, timeout: 1, "the day’s plan sheet")
+        }
+        func plan(day index: Int, choose identifier: String) {
+            openDay(index)
+            let option = app.descendants(matching: .any)[identifier].firstMatch
+            if !option.waitForExistence(timeout: 5) { attachHierarchy("r23-day-sheet-hierarchy-\(identifier)") }
+            waitForExistence(option, timeout: 1, "the day’s plan sheet offers \(identifier)")
             scrollTo(option)
-            option.tap()
+            tapEvenInPopover(option)
             waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         }
         plan(day: 1, choose: "day-plan-open")
         let day1 = app.descendants(matching: .any)["week-day-1"].firstMatch
         XCTAssertTrue(day1.label.hasSuffix("Your pick"), "an open night: \(day1.label)")
-        app.descendants(matching: .any)["week-day-2"].firstMatch.tap()
-        waitForExistence(app.buttons["day-plan-done"], timeout: 5, "the plan sheet")
+        openDay(2)
         photograph("r23b-day-plan-sheet" + capture.suffix)
-        let salmon = app.buttons["day-plan-salmon"]
+        let salmon = app.descendants(matching: .any)["day-plan-salmon"].firstMatch
+        waitForExistence(salmon, timeout: 5, "the classics in the day sheet")
         scrollTo(salmon)
-        salmon.tap()
+        tapEvenInPopover(salmon)
         waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         let day2 = app.descendants(matching: .any)["week-day-2"].firstMatch
         XCTAssertTrue(day2.label.hasSuffix("An easy salmon evening"), "\(day2.label)")
