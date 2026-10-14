@@ -145,8 +145,8 @@ struct WeekStrip: View {
     }
 }
 
-/// One day of the plan: a classic, one of the cook's recipes, an open night,
-/// or Thanksgiving. Today goes through Tonight's own choice.
+/// One day of the plan: one of the cook's recipes, an open night, or
+/// Thanksgiving. Today goes through Tonight's own choice.
 struct DayPlanSheet: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var library: RecipeLibrary

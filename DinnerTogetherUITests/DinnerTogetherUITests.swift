@@ -118,4 +118,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test42_recipeCoversAX3() { flowRecipeCovers(.ax3, photo: "landscape") }
     /// The week: This week on Tonight, a day's plan, the classics folder (Joe, Oct 13).
     func test43_weekPlan() { flowWeekPlan() }
+    /// r24 — A2-44 checks 2 and 3: imported but not chosen, A with a photo → B without → A.
+    func test44_coverSwitching() { flowCoverSwitching() }
 }

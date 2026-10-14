@@ -117,8 +117,12 @@ struct PlanView: View {
         // photo starts below the clock there and the bar stays as it is.)
         .navigationTitle("Dinner, Together")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Theme.cream, for: .navigationBar)
-        .toolbarBackground(photoUnderBar ? .hidden : .visible, for: .navigationBar)
+        // The bar's background stays *visible* — clear over the photo — because
+        // SwiftUI applies the bar's color scheme (and so the light clock) only
+        // while its background is visible (A2-47: with it hidden, the clock
+        // stayed dark over the recipe covers in run 38588198150).
+        .toolbarBackground(photoUnderBar ? Color.clear : Theme.cream, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(photoUnderBar ? .dark : nil, for: .navigationBar)
         .onAppear { recheckFeasibility() }
         .sensoryFeedback(.selection, trigger: store.session.menuID)
@@ -221,6 +225,15 @@ struct PlanView: View {
         return UIImage(named: "TonightCover")
     }
 
+    /// Which picture the cover shows — for UI tests of A2-44's priority
+    /// (plate, then cover, then the notebook), as the cover's value.
+    private var coverSource: String {
+        guard let recipe = tonightRecipe else { return "notebook" }
+        if RecipePhotos.loadPlate(recipe, from: library) != nil { return "plate" }
+        if RecipePhotos.load(recipe, from: library) != nil { return "cover" }
+        return "notebook"
+    }
+
     /// The photo from the very top of the screen (Joe, October 14: "all
     /// the way to the top"): the cover lays out below the bar, and on iPhone
     /// its photo draws upward behind the bar and the clock (the scroll view
@@ -285,6 +298,7 @@ struct PlanView: View {
         })
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("tonight-cover")
+        .accessibilityValue(coverSource)
     }
 
     /// Choosing: the first recipe when the cookbook is empty, otherwise the

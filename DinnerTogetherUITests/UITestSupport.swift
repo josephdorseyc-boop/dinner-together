@@ -1618,6 +1618,66 @@ extension DinnerTogetherUITestCase {
         photograph("r23c-week-planned" + capture.suffix)
     }
 
+    /// r24 — A2-44 checks 2 and 3 (A1's priority): recipes imported but none
+    /// chosen keep the notebook and no dinner; choosing A (with a photo)
+    /// shows A's photo, choosing B (without one) shows B's title on the
+    /// notebook and nothing of A's, and back to A shows A's photo again.
+    /// Then Tonight's first launch in Dark Mode and with solid cards, for
+    /// the frosted card's review (A2, PR #14).
+    func flowCoverSwitching() {
+        launch(seed: UISeed.tonight(now: Date(), menuID: ""), extraLaunchArguments: RecipeCapture.standard.launchArguments,
+               openCooking: false, recipes: [RecipeFixtureText.frozenBerry, RecipeFixtureText.missingText], photo: "pastel")
+        let cover = app.descendants(matching: .any)["tonight-cover"].firstMatch
+        func coverShows(_ expected: String, _ why: String) {
+            waitForExistence(cover, timeout: 10, "Tonight's cover")
+            scrollToTop(maxDrags: 3)
+            let shown = NSPredicate(format: "value == %@", expected)
+            if XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: shown, object: cover)], timeout: 5) != .completed {
+                attachHierarchy("r24-cover-\(expected)-hierarchy")
+                XCTFail("Tonight's cover shows '\(cover.value as? String ?? "nil")', expected '\(expected)': \(why)")
+            }
+        }
+        func cookTonight(_ title: String, reviewed: Bool) {
+            openRecipe(title)
+            let cook = app.buttons["cook-this-recipe"]
+            if !reviewed {
+                tapPinned(cook, "Check timing to continue")
+                let confirm = app.buttons["timing-looks-right"]
+                waitForExistence(confirm, timeout: 5, "the Timing tab")
+                tapPinned(confirm, "Timing looks right")
+                waitForDisappearance(confirm, "the review is recorded")
+            }
+            tapPinned(cook, "Cook this for dinner")
+            XCTAssertTrue(app.staticTexts["Selected: \(title)"].waitForExistence(timeout: 5), "Tonight with \(title)")
+        }
+
+        // Check 2: imported, nothing chosen.
+        coverShows("notebook", "recipes in the cookbook are not tonight's dinner until chosen")
+        XCTAssertTrue(app.staticTexts["Nothing chosen for tonight yet"].exists, "no dinner is selected by importing")
+        XCTAssertFalse(app.buttons["tonight-recipe"].exists, "no recipe is named as tonight's")
+        photograph("r24a-imported-not-chosen")
+
+        // Check 3: A with a photo, B without, back to A.
+        cookTonight(RecipeFixtureText.frozenBerryTitle, reviewed: false)
+        coverShows("cover", "A's photo")
+        photograph("r24b-a-with-photo")
+        cookTonight(RecipeFixtureText.missingTextTitle, reviewed: false)
+        coverShows("notebook", "B has no photo: the notebook, never A's photo")
+        let named = app.buttons["tonight-recipe"]
+        XCTAssertTrue(named.waitForExistence(timeout: 5) && named.label.hasPrefix(RecipeFixtureText.missingTextTitle),
+                      "B's own title under the cover: \(named.label)")
+        photograph("r24c-b-without-photo")
+        cookTonight(RecipeFixtureText.frozenBerryTitle, reviewed: true)
+        coverShows("cover", "back to A: A's photo again")
+
+        // Tonight's frosted card in Dark Mode and as a solid card.
+        for capture in [RecipeCapture.darkMode, RecipeCapture.solidCards] {
+            launch(seed: UISeed.tonight(now: Date(), menuID: ""), extraLaunchArguments: capture.launchArguments, openCooking: false)
+            waitForExistence(app.descendants(matching: .any)["tonight-cover"].firstMatch, timeout: 10, "Tonight")
+            photograph("r24d-tonight-first-launch" + capture.suffix)
+        }
+    }
+
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
     /// (A2-35): a photo band on Tonight's card, a strip on an ordinary
     /// start, a thumbnail on the timeline. At AX3 the row and plain cards

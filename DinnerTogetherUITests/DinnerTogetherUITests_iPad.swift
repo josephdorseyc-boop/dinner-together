@@ -42,4 +42,5 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test20_importWarningPersists_iPad() { flowImportWarningPersists() }
     func test21_recipeCovers_iPad() { flowRecipeCovers(photo: "pastel") }
     func test22_weekPlan_iPad() { flowWeekPlan() }
+    func test23_coverSwitching_iPad() { flowCoverSwitching() }
 }

@@ -541,7 +541,7 @@ struct CookingView: View {
     }
 
     /// Tonight's dinner as a picture (Joe, October 13, A2's Duo mock): the
-    /// recipe's cover, else the classic's illustrated plate. Cached by file
+    /// recipe's plate photo, else its cover; nothing otherwise. Cached by file
     /// name, so the timer's ticks never decode it again. None at
     /// accessibility sizes: text first (A2-35).
     private var heroArt: DinnerHeroArt? {
