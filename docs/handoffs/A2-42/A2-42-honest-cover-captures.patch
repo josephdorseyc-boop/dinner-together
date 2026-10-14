@@ -1,0 +1,21 @@
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -1551,11 +1551,15 @@
+         waitForExistence(build, timeout: 5, "the build action")
+         tapPinned(build, "Build the plan")
+         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "the Cooking screen")
++        // Capture the actual arrival viewport before any helper scrolls it.
++        // A future start can show breathing room; this image records that
++        // honestly and does not certify a featured or expired-step state.
++        photograph("r22b-cooking-initial-\(photo)" + capture.suffix)
+         let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
+-        XCTAssertTrue(start.waitForExistence(timeout: 10), "RIGHT NOW offers the first step")
++        XCTAssertTrue(start.waitForExistence(timeout: 10), "a step-start action is available")
+         scrollTo(start)
+-        XCTAssertTrue(start.isHittable, "the photo never hides the primary action")
+-        photograph("r22b-right-now-cover-\(photo)" + capture.suffix)
++        XCTAssertTrue(start.isHittable, "the step-start action is reachable after scrolling")
++        photograph("r22c-start-action-revealed-\(photo)" + capture.suffix)
+     }
+ 
+     /// r21 — what an import could not establish stays in view on every tab
