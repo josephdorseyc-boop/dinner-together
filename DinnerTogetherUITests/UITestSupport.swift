@@ -531,10 +531,14 @@ class DinnerTogetherUITestCase: XCTestCase {
         // The readout is read before anything else moves: a wrong-control
         // tap (the Completed disclosure) shows up here as the unchanged time,
         // with the frame of what was tapped in the failure message.
+        // A1 #21: `.id(serveAt)` recreates the DINNER AT element on undo; on
+        // iPad under full-run load that can take longer than 10 s. Settle,
+        // then wait 15 s there; the expected value is unchanged.
         func restoredNow() -> Bool {
-            XCTWaiter().wait(for: [XCTNSPredicateExpectation(
+            Thread.sleep(forTimeInterval: 1)
+            return XCTWaiter().wait(for: [XCTNSPredicateExpectation(
                 predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(before)"),
-                object: app.staticTexts["serving-time"])], timeout: 10) == .completed
+                object: app.staticTexts["serving-time"])], timeout: app.frame.width > 700 ? 15 : 10) == .completed
         }
         var restored = restoredNow()
         if !restored, undo.exists {
@@ -1391,6 +1395,15 @@ extension DinnerTogetherUITestCase {
             if sheetDone.waitForExistence(timeout: attempt == 0 ? 5 : 8) { return }
             photograph("page-color-after-menu-tap-\(attempt)")
             attachHierarchy("page-color-after-menu-tap-\(attempt)-hierarchy")
+            // iPad (run 38497304286, A2's read): the menu stays open and the
+            // item's tap does nothing while the popover is still settling.
+            // Close it through More and open it again — the retry that
+            // passed on iPad in every run before A2-39.
+            let more = app.descendants(matching: .any)["recipe-more"].firstMatch
+            if item.exists, more.exists {
+                tapEvenInPopover(more)
+                waitForDisappearance(item, timeout: 3, "the stale menu closed")
+            }
         }
         waitForExistence(sheetDone, timeout: 1, "the Page color sheet")
     }
@@ -1587,11 +1600,15 @@ extension DinnerTogetherUITestCase {
         waitForExistence(build, timeout: 5, "the build action")
         tapPinned(build, "Build the plan")
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "the Cooking screen")
+        // Capture the actual arrival viewport before any helper scrolls it.
+        // A future start can show breathing room; this image records that
+        // honestly and does not certify a featured or expired-step state.
+        photograph("r22b-cooking-initial-\(photo)" + capture.suffix)
         let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
-        XCTAssertTrue(start.waitForExistence(timeout: 10), "RIGHT NOW offers the first step")
+        XCTAssertTrue(start.waitForExistence(timeout: 10), "a step-start action is available")
         scrollTo(start)
-        XCTAssertTrue(start.isHittable, "the photo never hides the primary action")
-        photograph("r22b-right-now-cover-\(photo)" + capture.suffix)
+        XCTAssertTrue(start.isHittable, "the step-start action is reachable after scrolling")
+        photograph("r22c-start-action-revealed-\(photo)" + capture.suffix)
     }
 
     /// r21 — what an import could not establish stays in view on every tab
