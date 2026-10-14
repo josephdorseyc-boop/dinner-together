@@ -15,8 +15,8 @@ struct RecipesView: View {
     @Binding var path: [UUID]
     var goTonight: () -> Void
     var goCooking: () -> Void
-    @State private var adding = false
-    @State private var showingClassics = false
+    /// Owned by the root so Tonight's "Add your first recipe" can open it.
+    @Binding var adding: Bool
     @State private var editing: Recipe?
     @State private var deleting: Recipe?
     @State private var cannotDelete = false
@@ -44,29 +44,6 @@ struct RecipesView: View {
                 .buttonStyle(SecondaryButtonStyle())
                 .libraryRow()
             }
-            // The built-in dinners as a folder (Joe, October 13).
-            Button { showingClassics = true } label: {
-                HStack(spacing: 14) {
-                    HStack(spacing: -14) {
-                        ForEach(["steak", "salmon", "tofu-bowls"], id: \.self) { id in
-                            PlateIllustration(menuID: id).frame(width: 40, height: 40)
-                        }
-                    }
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Dinner, Together classics").font(.headline)
-                        Text("\(DinnerCatalog.menus.count) dinners that rotate through your week")
-                            .font(.caption).foregroundStyle(Theme.muted)
-                    }
-                    Spacer(minLength: 0)
-                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
-                }
-                .padding(14)
-                .background(Theme.paper, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("open-classics")
-            .libraryRow(top: 12)
             HStack {
                 SectionLabel(text: "YOUR RECIPES")
                 Spacer()
@@ -85,12 +62,20 @@ struct RecipesView: View {
                     .libraryRow()
             }
             if library.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
+                // The app starts empty (Joe, October 14): the cook's own
+                // recipes are the whole cookbook, so the first thing to do
+                // is bring one in.
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Cook your own recipes, on time.")
                         .font(.headline)
                     Text("Add a recipe link, screenshots, or text. Check the imported steps and timing before cooking.")
                         .font(.subheadline)
                         .foregroundStyle(Theme.muted)
+                    Button { adding = true } label: {
+                        Label("Add your first recipe", systemImage: "plus")
+                    }
+                    .buttonStyle(BigButtonStyle())
+                    .accessibilityIdentifier("add-first-recipe")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .dtCard()
@@ -126,9 +111,6 @@ struct RecipesView: View {
         .accessibilityIdentifier("recipe-library")
         .navigationDestination(for: UUID.self) { id in
             RecipeDetailView(recipeID: id, onChoose: goTonight)
-        }
-        .navigationDestination(isPresented: $showingClassics) {
-            ClassicsView(goTonight: goTonight)
         }
         .sheet(isPresented: $adding) {
             AddRecipeSheet { id in path.append(id) }.uiTestTypeSize()
@@ -166,7 +148,7 @@ struct RecipesView: View {
             return
         }
         deleteProblem = nil
-        if wasTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
+        if wasTonight { store.clearDinner() }
     }
 }
 
@@ -669,6 +651,7 @@ struct RecipeDetailView: View {
     @State private var choosingPageStyle = false
     @State private var editingRecipeTime = false
     @State private var editingDetails = false
+    @State private var editingCover = false
     /// A delete that didn't reach disk, in words about deleting (A2-17).
     @State private var deleteProblem: String?
     @Environment(\.colorScheme) private var colorScheme
@@ -741,6 +724,9 @@ struct RecipeDetailView: View {
                 }
                 .sheet(isPresented: $editingDetails) {
                     RecipeEditSheet(recipe: recipe).uiTestTypeSize()
+                }
+                .sheet(isPresented: $editingCover) {
+                    EditCoverSheet(recipe: recipe).uiTestTypeSize()
                 }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
@@ -1244,6 +1230,12 @@ struct RecipeDetailView: View {
                         editingDetails = true
                     }
                 } label: { Label("Edit title and yield", systemImage: "pencil") }
+                Button {
+                    Task { @MainActor in
+                        try? await Task.sleep(nanoseconds: 350_000_000)
+                        editingCover = true
+                    }
+                } label: { Label(recipe.imageFilename == nil ? "Add cover photo" : "Edit cover photo", systemImage: "photo") }
             } label: {
                 // On a colored page the glyph carries its own dark disc, so
                 // it reads over a bright hero photo whatever the glass does
@@ -1314,7 +1306,7 @@ struct RecipeDetailView: View {
             return
         }
         deleteProblem = nil
-        if wasTonight { store.chooseMenu(DinnerCatalog.menus[0].id) }
+        if wasTonight { store.clearDinner() }
         dismiss()
     }
 }
@@ -1498,5 +1490,97 @@ private struct TabTrack: ViewModifier {
         } else {
             content.background(Theme.ink.opacity(0.045), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
+    }
+}
+
+// MARK: - Edit cover photo (Joe, October 14)
+
+/// The recipe's cover after import: crop the current one again, choose a
+/// screenshot or photo from Photos, use the plate photo, or remove it. The
+/// crop step is the import's own cover sheet.
+struct EditCoverSheet: View {
+    @EnvironmentObject private var library: RecipeLibrary
+    @Environment(\.dismiss) private var dismiss
+    let recipe: Recipe
+    @State private var picked: [PhotosPickerItem] = []
+    @State private var candidates: [Data] = []
+    @State private var cropping = false
+    @State private var loading = false
+    @State private var saved = false
+    @State private var problem: String?
+
+    private var current: Recipe { library.recipe(id: recipe.id) ?? recipe }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    Text("Cover photo")
+                        .font(.system(.title2, design: .serif).weight(.semibold))
+                    Text("The cover leads the recipe’s page and sets its colors. Choose a screenshot or photo, then crop it to the food.")
+                        .foregroundStyle(Theme.muted)
+                    if let cover = RecipePhotos.load(current, from: library) {
+                        Image(uiImage: cover.image).resizable().scaledToFit()
+                            .frame(maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .accessibilityLabel("Current recipe cover")
+                            .accessibilityIdentifier("current-cover")
+                        Button("Crop the current cover again") { candidates = [cover.image.jpegData(compressionQuality: 0.95)].compactMap { $0 }; cropping = true }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .accessibilityIdentifier("recrop-cover")
+                    } else {
+                        Text("No cover yet.").font(.subheadline).foregroundStyle(Theme.muted)
+                    }
+                    PhotosPicker(selection: $picked, maxSelectionCount: 10, selectionBehavior: .ordered, matching: .images) {
+                        Label(loading ? "Loading…" : "Choose from Photos", systemImage: "photo.on.rectangle.angled")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .disabled(loading)
+                    .accessibilityIdentifier("cover-from-photos")
+                    if let plate = RecipePhotos.loadPlate(current, from: library) {
+                        Button("Use your plate photo") { candidates = [plate.jpegData(compressionQuality: 0.95)].compactMap { $0 }; cropping = true }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .accessibilityIdentifier("cover-from-plate")
+                    }
+                    if current.imageFilename != nil {
+                        Button("Remove cover") {
+                            if library.removeCover(for: recipe.id) { dismiss() } else { problem = library.saveError }
+                        }
+                        .buttonStyle(QuietButtonStyle())
+                        .accessibilityIdentifier("remove-cover")
+                    }
+                    if let problem {
+                        Text(problem).font(.subheadline).foregroundStyle(Theme.warning)
+                            .accessibilityIdentifier("cover-edit-error")
+                    }
+                }
+                .padding(24)
+            }
+            .background(Theme.cream)
+            .navigationTitle("Cover photo")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("cover-edit-done") } }
+        }
+        .tint(Theme.tomato)
+        .onChange(of: picked) { _, items in
+            guard !items.isEmpty else { return }
+            loading = true
+            Task {
+                var loaded: [Data] = []
+                for item in items { if let data = try? await item.loadTransferable(type: Data.self) { loaded.append(data) } }
+                loading = false
+                picked = []
+                if loaded.isEmpty { problem = "Those photos couldn’t be loaded. Try choosing them again." }
+                else { candidates = loaded; cropping = true }
+            }
+        }
+        .sheet(isPresented: $cropping) {
+            ScreenshotCoverSheet(load: { candidates }) { data in
+                if library.saveImage(data, for: recipe.id) == nil { problem = library.saveError } else { problem = nil; saved = true }
+            }
+            .uiTestTypeSize()
+        }
+        // Close once the crop sheet has gone, not underneath it.
+        .onChange(of: cropping) { _, open in if !open && saved { dismiss() } }
     }
 }

@@ -16,9 +16,9 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
         flowAdjustTimeOnSchedule()
     }
 
-    /// Flow 9 on iPad — the planning screen with nine menus and its footer.
-    func test03_tonightNineMenus_iPad() {
-        flowTonightNineMenus()
+    /// Flow 9 on iPad — Tonight on first launch, Cooking empty, Thanksgiving.
+    func test03_tonightFirstLaunch_iPad() {
+        flowTonightFirstLaunch()
     }
 
     // Recipes on iPad (A2 capture contract): r02–r10 and Dark Mode r02/r03.

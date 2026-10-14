@@ -372,7 +372,8 @@ final class RecipeLibraryTests: XCTestCase {
         let reloaded = RecipeLibrary(directory: dir)
         XCTAssertEqual(reloaded.recipes, [recipe])
         XCTAssertEqual(reloaded.menu(id: recipe.menuID)?.title, "Grandma's Sunday Sauce")
-        XCTAssertEqual(reloaded.menu(id: "steak")?.id, "steak", "catalog ids still resolve")
+        XCTAssertEqual(reloaded.menu(id: "thanksgiving")?.id, "thanksgiving", "the one built-in dinner still resolves")
+        XCTAssertNil(reloaded.menu(id: "steak"), "the former built-in dinners are gone (Joe, October 14)")
         XCTAssertNil(reloaded.menu(id: "recipe:not-a-uuid"))
         XCTAssertNil(reloaded.menu(id: "recipe:" + UUID().uuidString))
     }
@@ -473,7 +474,8 @@ final class RecipeLibraryTests: XCTestCase {
 
         // Deleted mid-session: the store says so instead of pretending.
         XCTAssertTrue(again.menuIsMissing)
-        XCTAssertEqual(again.menu.id, DinnerCatalog.menus[0].id)
+        XCTAssertTrue(again.menu.isUnchosen, "no silent substitute dinner")
+        XCTAssertFalse(again.hasDinner)
     }
 
     func testFailedSaveRollsBackTheAdd() async throws {
@@ -512,9 +514,17 @@ final class RecipeLibraryTests: XCTestCase {
 
     func testStoreWithoutProviderIsCatalogOnly() async {
         let store = SessionStore(fileURL: tempDir().appending(path: "s.json"), notifications: MockNotifications())
+        XCTAssertFalse(store.hasDinner, "the app starts with nothing chosen")
+        XCTAssertTrue(store.menu.isUnchosen)
+        XCTAssertFalse(store.menuIsMissing, "nothing chosen is not a missing dinner")
         store.chooseMenu("recipe:" + UUID().uuidString)
         XCTAssertTrue(store.menuIsMissing)
-        XCTAssertEqual(store.menu.id, DinnerCatalog.menus[0].id)
+        XCTAssertTrue(store.menu.isUnchosen)
+        store.chooseMenu("thanksgiving")
+        XCTAssertTrue(store.hasDinner)
+        store.clearDinner()
+        XCTAssertFalse(store.hasDinner)
+        XCTAssertTrue(store.canUndo, "clearing is undoable")
     }
 
     func testImportServiceFollowsWrapperAndFetchesImage() async throws {
@@ -820,7 +830,9 @@ final class LongRecipeServingTimeTests: XCTestCase {
         XCTAssertLessThan(minutes, 246, "and no more than a 5-minute rounding later")
         XCTAssertEqual(Scheduling.checkFeasibility(menu: store.menu, serveAt: store.session.serveAt, durations: [:], now: now), .ok)
 
-        store.chooseMenu("steak", now: now)
+        let short = RecipeImporter.build(try RecipeImporter.parse(text: "Toast\nDirections\n1. Toast 5 minutes."), method: .text)
+        XCTAssertTrue(library.add(short))
+        store.chooseMenu(short.menuID, now: now)
         XCTAssertEqual(store.session.serveAt, now.addingTimeInterval(3600), "short menus keep the one-hour default")
     }
 

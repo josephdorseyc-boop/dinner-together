@@ -189,6 +189,9 @@ final class RecipeScreenshotTests: XCTestCase {
     func testCleanOCRAndOverlapMerge() {
         XCTAssertEqual(RecipeImporter.cleanOCR(L("slushy, about © 30 seconds . Add", 0)).text, "slushy, about 30 seconds. Add")
         XCTAssertEqual(RecipeImporter.cleanOCR(L("Freeze until solid, about (3 hours).", 0)).text, "Freeze until solid, about 3 hours.")
+        XCTAssertEqual(RecipeImporter.cleanOCR(L("arrange 14(6-inch) lollipop sticks", 0)).text, "arrange 14 (6-inch) lollipop sticks",
+                       "a dropped space before a parenthesized size (Joe's meringue import, 1.0 (17))")
+        XCTAssertEqual(RecipeImporter.cleanOCR(L("Serves 4(see note)", 0)).text, "Serves 4(see note)", "only before a digit")
         XCTAssertEqual(RecipeImporter.mergeOverlapping("bring to a boil over medium heat. Remove from", "Remove from heat; let cool."),
                        "bring to a boil over medium heat. Remove from heat; let cool.")
         XCTAssertEqual(RecipeImporter.joinLines(["Pre-", "heat the oven"]), "Preheat the oven")

@@ -85,7 +85,7 @@ app_running() { # udid → 0 if the app process is alive in the simulator
 launch_args_for() { # scenario → launch arguments
   # "tonight-*" scenarios photograph the planning screen; everything else
   # opens straight on Cooking.
-  case "$1" in tonight-*) printf '%s' "-dt-inert-reminders";; *) printf '%s' "-dt-open-cooking -dt-inert-reminders";; esac
+  case "$1" in tonight-*) printf '%s' "-dt-inert-reminders -dt-sample-menus";; *) printf '%s' "-dt-open-cooking -dt-inert-reminders -dt-sample-menus";; esac
 }
 
 capture() { # udid out.png label [scenario]
@@ -113,7 +113,7 @@ shoot_device() { # label udid
   xcrun simctl bootstatus "$udid" -b >> "$LOG" 2>&1 || true
   xcrun simctl install "$udid" "$APP_PATH" >> "$LOG" 2>&1 || { fail "$label: install failed"; return; }
   # Launch once so the data container exists, then stop it.
-  xcrun simctl launch "$udid" "$BUNDLE" -dt-inert-reminders >> "$LOG" 2>&1 || true
+  xcrun simctl launch "$udid" "$BUNDLE" -dt-inert-reminders -dt-sample-menus >> "$LOG" 2>&1 || true
   sleep "$SETTLE"
   xcrun simctl terminate "$udid" "$BUNDLE" >> "$LOG" 2>&1 || true
   local container

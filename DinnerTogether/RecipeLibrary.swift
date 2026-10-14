@@ -69,7 +69,10 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     // MARK: Lookup
 
     func menu(id: String) -> DinnerMenu? {
-        if let catalog = DinnerCatalog.menus.first(where: { $0.id == id }) { return catalog }
+        if let catalog = DinnerCatalog.menu(id: id) { return catalog }
+        #if DEBUG
+        if SampleMenus.enabled, let sample = SampleMenus.menu(id: id) { return sample }
+        #endif
         return recipe(menuID: id)?.menu
     }
 
@@ -113,10 +116,12 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     @discardableResult
     func remove(id: UUID) -> Bool {
         let before = recipes
-        let imageName = recipe(id: id)?.imageFilename
+        let gone = recipe(id: id)
         recipes.removeAll { $0.id == id }
         guard save() else { recipes = before; return false }
-        if let name = imageName { try? FileManager.default.removeItem(at: imagesURL.appending(path: name)) }
+        for name in [gone?.imageFilename, gone?.platePhotoFilename].compactMap({ $0 }) {
+            try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
+        }
         return true
     }
 
@@ -259,6 +264,62 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     func imageURL(for recipe: Recipe) -> URL? {
         guard let name = recipe.imageFilename else { return nil }
+        let url = imagesURL.appending(path: name)
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+    }
+
+    /// The cook's plate photo: written fresh, committed, then the old one
+    /// removed — the same contract as the cover.
+    @discardableResult
+    func savePlatePhoto(_ data: Data, for recipeID: UUID, fileExtension: String = "jpg") -> String? {
+        guard var r = recipe(id: recipeID) else { return nil }
+        if simulateImageSaveFailure {
+            saveError = "Your plate photo couldn’t be saved."
+            return nil
+        }
+        do {
+            try FileManager.default.createDirectory(at: imagesURL, withIntermediateDirectories: true)
+            let previousName = r.platePhotoFilename
+            let name = "\(recipeID.uuidString)-plate-\(UUID().uuidString).\(fileExtension)"
+            let newURL = imagesURL.appending(path: name)
+            try data.write(to: newURL, options: .atomic)
+            r.platePhotoFilename = name
+            guard update(r) else {
+                try? FileManager.default.removeItem(at: newURL)
+                return nil
+            }
+            if let previousName {
+                try? FileManager.default.removeItem(at: imagesURL.appending(path: previousName))
+            }
+            return name
+        } catch {
+            saveError = "Your plate photo couldn’t be saved."
+            return nil
+        }
+    }
+
+    /// Removes the cover; the page goes back to the classic cream.
+    @discardableResult
+    func removeCover(for recipeID: UUID) -> Bool {
+        guard var r = recipe(id: recipeID), let name = r.imageFilename else { return false }
+        r.imageFilename = nil
+        guard update(r) else { return false }
+        try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
+        return true
+    }
+
+    /// Forgets the plate photo; the hero goes back to the cover.
+    @discardableResult
+    func removePlatePhoto(for recipeID: UUID) -> Bool {
+        guard var r = recipe(id: recipeID), let name = r.platePhotoFilename else { return false }
+        r.platePhotoFilename = nil
+        guard update(r) else { return false }
+        try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
+        return true
+    }
+
+    func platePhotoURL(for recipe: Recipe) -> URL? {
+        guard let name = recipe.platePhotoFilename else { return nil }
         let url = imagesURL.appending(path: name)
         return FileManager.default.fileExists(atPath: url.path) ? url : nil
     }

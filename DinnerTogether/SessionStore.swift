@@ -72,15 +72,18 @@ final class SessionStore: ObservableObject {
     // MARK: Derived
 
     private static func resolve(_ id: String, provider: MenuProviding?) -> DinnerMenu? {
+        if id.isEmpty { return .unchosen }
         if let m = provider?.menu(id: id) { return m }
-        return DinnerCatalog.menus.first { $0.id == id }
+        return DinnerCatalog.menu(id: id)
     }
 
-    /// The menu this session cooks. A recipe that no longer exists (deleted
-    /// while it was tonight's dinner) falls back to the first catalog menu;
+    /// The menu this session cooks — `.unchosen` until the cook chooses one, and
+    /// again when a recipe that was tonight's dinner no longer exists;
     /// `menuIsMissing` lets the UI say so instead of pretending.
-    var menu: DinnerMenu { Self.resolve(session.menuID, provider: menuProvider) ?? DinnerCatalog.menus[0] }
+    var menu: DinnerMenu { Self.resolve(session.menuID, provider: menuProvider) ?? .unchosen }
     var menuIsMissing: Bool { Self.resolve(session.menuID, provider: menuProvider) == nil }
+    /// Whether there is a dinner to time at all.
+    var hasDinner: Bool { !menu.isUnchosen }
     var plan: [PlannedStep] { Scheduling.plan(menu: menu, session: session) }
 
     func record(_ id: String) -> StepRecord {
@@ -310,7 +313,7 @@ final class SessionStore: ObservableObject {
         // time it can reach the table, on a 5-minute mark (Joe, build 8: a
         // 4-hour recipe started at "dinner in an hour" and couldn't be planned).
         fresh.serveAt = now.addingTimeInterval(3600)
-        let menu = Self.resolve(id, provider: menuProvider) ?? DinnerCatalog.menus[0]
+        let menu = Self.resolve(id, provider: menuProvider) ?? .unchosen
         if case .startsInPast(let earliest) = Scheduling.checkFeasibility(menu: menu, serveAt: fresh.serveAt, durations: [:], now: now) {
             fresh.serveAt = Scheduling.roundUp(earliest, toMinutes: 5)
         }
@@ -318,6 +321,10 @@ final class SessionStore: ObservableObject {
         notifications.cancelAll()
         save()
     }
+
+    /// Tonight has no dinner (the recipe was deleted, or the cook cleared
+    /// it). Undoable like any menu change.
+    func clearDinner() { chooseMenu("") }
 
     func resetSession() {
         pushUndo("Reset cooking progress")
@@ -333,6 +340,8 @@ final class SessionStore: ObservableObject {
     // MARK: Stale plans
 
     func staleStatus(now: Date = Date()) -> StaleStatus {
+        // Nothing chosen: nothing can be stale.
+        if !hasDinner { return .fresh }
         let calendar = Calendar.current
         let lastDay = calendar.startOfDay(for: session.lastOpenedAt)
         let today = calendar.startOfDay(for: now)

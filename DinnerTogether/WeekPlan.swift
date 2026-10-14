@@ -1,12 +1,11 @@
 import Foundation
 import SwiftUI
 
-// The week's dinners (Joe, October 13): the built-in dinners rotate through
-// the coming days with one open "your pick" night a week, and the cook can
-// set any day to a classic, one of their recipes, or an open night. Today is
-// always the session's own menu — the plan speaks for the days after it, and
-// when one of those days arrives its dinner becomes tonight's (unless the cook
-// has already chosen today or is cooking).
+// The week's dinners (Joe, October 13/14): every day is the cook's pick
+// until they plan one of their own recipes onto it; Thanksgiving fills its
+// own day. Today is always the session's own menu — the plan speaks for the
+// days after it, and when one of those days arrives its dinner becomes
+// tonight's (unless the cook has already chosen today or is cooking).
 
 /// What a day holds in the plan.
 enum PlannedDinner: Equatable {
@@ -18,10 +17,10 @@ enum PlannedDinner: Equatable {
 
 struct WeekPlan: Codable, Equatable {
     /// "yyyy-MM-dd" → a menu ID, or "" for a night the cook left open.
-    /// Days without an entry follow the rotation.
+    /// Days without an entry are open (Thanksgiving excepted).
     var assignments: [String: String] = [:]
 
-    /// The day's dinner: the cook's choice if it still exists, else the rotation.
+    /// The day's dinner: the cook's choice if it still exists, else the day's default.
     func dinner(on date: Date, calendar: Calendar = .current, exists: (String) -> Bool = { _ in true }) -> PlannedDinner {
         if let id = assignments[WeekRotation.dayKey(date, calendar: calendar)] {
             if id.isEmpty { return .open }
@@ -30,7 +29,7 @@ struct WeekPlan: Codable, Equatable {
         return WeekRotation.suggestion(for: date, calendar: calendar)
     }
 
-    /// Whether the cook set this day (as opposed to the rotation).
+    /// Whether the cook set this day (as opposed to its default).
     func isChosen(_ date: Date, calendar: Calendar = .current) -> Bool {
         assignments[WeekRotation.dayKey(date, calendar: calendar)] != nil
     }
@@ -43,7 +42,7 @@ struct WeekPlan: Codable, Equatable {
         }
     }
 
-    /// Back to the rotation for that day.
+    /// Back to the day's default.
     mutating func clear(_ date: Date, calendar: Calendar = .current) {
         assignments.removeValue(forKey: WeekRotation.dayKey(date, calendar: calendar))
     }
@@ -59,8 +58,8 @@ struct WeekPlan: Codable, Equatable {
     /// the session alone. Only a session chosen before today with nothing
     /// started gives way, and only to a menu that exists and can be cooked.
     /// A planned recipe that is not ready (its timing unchecked) holds the
-    /// day — it never silently becomes a different dinner; only a deleted
-    /// one falls back to the rotation.
+    /// day — it never silently becomes a different dinner; a deleted one
+    /// leaves the day open.
     static func menuToAdopt(session: DinnerSession, hasProgress: Bool, plan: WeekPlan, now: Date,
                             calendar: Calendar = .current, exists: (String) -> Bool = { _ in true },
                             cookable: (String) -> Bool) -> String? {
@@ -72,35 +71,17 @@ struct WeekPlan: Codable, Equatable {
 }
 
 enum WeekRotation {
-    /// Saturday is the open night (Calendar weekday 7).
-    static let openWeekday = 7
-    /// The built-in dinners that rotate; Thanksgiving has its own day.
-    static var rotation: [String] { DinnerCatalog.menus.map(\.id).filter { $0 != "thanksgiving" } }
-
     /// "yyyy-MM-dd" in the cook's calendar.
     static func dayKey(_ date: Date, calendar: Calendar = .current) -> String {
         let c = calendar.dateComponents([.year, .month, .day], from: date)
         return String(format: "%04d-%02d-%02d", c.year ?? 0, c.month ?? 0, c.day ?? 0)
     }
 
-    /// The rotation's dinner for a day: Thanksgiving on US Thanksgiving, an
-    /// open night on Saturdays, otherwise the next classic in turn — every
-    /// classic comes round before any repeats, and a dinner moves to a new
-    /// weekday each time it returns.
+    /// A day's default: Thanksgiving on US Thanksgiving, otherwise the cook's
+    /// pick. (Through 1.0 (17) the built-in dinners rotated here; the app no
+    /// longer brings any — Joe, October 14.)
     static func suggestion(for date: Date, calendar: Calendar = .current) -> PlannedDinner {
-        if isThanksgiving(date, calendar: calendar) { return .menu("thanksgiving") }
-        if calendar.component(.weekday, from: date) == openWeekday { return .open }
-        let ids = rotation
-        guard !ids.isEmpty else { return .open }
-        // Count the non-open days from a fixed Sunday, so the order is the
-        // same on every device and never depends on when the app was opened.
-        let epoch = calendar.date(from: DateComponents(year: 2026, month: 1, day: 4)) ?? Date(timeIntervalSince1970: 0)
-        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: epoch), to: calendar.startOfDay(for: date)).day ?? 0
-        let weeks = Int((Double(days) / 7).rounded(.down))
-        let offset = days - weeks * 7           // 0 = Sunday … 6 = Saturday (open)
-        let count = weeks * 6 + offset
-        let index = ((count % ids.count) + ids.count) % ids.count
-        return .menu(ids[index])
+        isThanksgiving(date, calendar: calendar) ? .menu(DinnerCatalog.thanksgivingID) : .open
     }
 
     /// The fourth Thursday of November.

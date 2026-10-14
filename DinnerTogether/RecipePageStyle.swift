@@ -64,6 +64,25 @@ enum RecipePhotos {
         return entry
     }
 
+    /// The cook's plate photo, when they took one after cooking.
+    static func loadPlate(_ recipe: Recipe, from library: RecipeLibrary) -> UIImage? {
+        guard let name = recipe.platePhotoFilename else { return nil }
+        if let hit = cache[name] { return hit.image }
+        guard let url = library.platePhotoURL(for: recipe), let image = UIImage(contentsOfFile: url.path) else { return nil }
+        if cache.count >= 24 { cache.removeAll() }
+        cache[name] = (image: image, palette: nil)
+        return image
+    }
+
+    /// The picture that leads Tonight and Cooking: the plate photo the cook
+    /// took, else the cover (Joe, October 14). The page's colors still come
+    /// from the cover.
+    static func hero(_ recipe: Recipe, from library: RecipeLibrary) -> (image: UIImage, palette: RecipePalette?)? {
+        let cover = load(recipe, from: library)
+        if let plate = loadPlate(recipe, from: library) { return (image: plate, palette: cover?.palette) }
+        return cover
+    }
+
     /// The palette the recipe's page paints with, or nil for classic cream.
     static func palette(for recipe: Recipe, from library: RecipeLibrary) -> RecipePalette? {
         recipe.resolvedPalette(photo: load(recipe, from: library)?.palette)

@@ -994,6 +994,9 @@ extension RecipeImporter {
         t = t.replacingOccurrences(of: #"[•◦∙●○]\s*(?=\d)"#, with: "", options: .regularExpression)
         t = t.replacingOccurrences(of: #"\(\s*(\d[^()]{0,24}?(?:seconds?|minutes?|mins?|hours?|hrs?))\s*\)"#, with: "$1", options: [.regularExpression, .caseInsensitive])
         t = t.replacingOccurrences(of: #"\s+([.,;:!?)])"#, with: "$1", options: .regularExpression)
+        // A dropped space before a parenthesized size: "14(6-inch)" (Joe's
+        // meringue import, 1.0 (17)) → "14 (6-inch)".
+        t = t.replacingOccurrences(of: #"(\d)\((?=\d)"#, with: "$1 (", options: .regularExpression)
         var out = line
         out.text = cleanLine(t)
         return out

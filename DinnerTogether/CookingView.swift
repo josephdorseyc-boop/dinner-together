@@ -105,7 +105,20 @@ struct CookingView: View {
 
     var body: some View {
         ScrollView {
-            if horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize {
+            if !store.hasDinner {
+                // Nothing chosen yet (the app starts here, Joe, October 14).
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Nothing cooking yet.")
+                        .font(.system(.title2, design: .serif).weight(.medium))
+                    Text("Choose tonight’s recipe on Tonight and build your plan; the timeline and timers appear here.")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .dtCard()
+                .padding(24)
+                .accessibilityIdentifier("cooking-empty")
+            } else if horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize {
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .top, spacing: 36) {
                         VStack(alignment: .leading, spacing: 24) { actionColumn }
@@ -130,7 +143,7 @@ struct CookingView: View {
                 .onAppear { viewportHeight = geo.size.height }
                 .onChange(of: geo.size.height) { _, h in viewportHeight = h }
         })
-        .navigationTitle(store.menu.title)
+        .navigationTitle(store.hasDinner ? store.menu.title : "Cooking")
         .sensoryFeedback(.success, trigger: completionFeedback)
         .navigationBarTitleDisplayMode(.inline)
         // Observe outside the conditional group, including transitions through
@@ -273,6 +286,11 @@ struct CookingView: View {
                 Text("Time to enjoy dinner.").font(.title2.weight(.semibold)).foregroundStyle(Theme.ink)
                 Text("Every step is complete.").foregroundStyle(Theme.muted)
             }.dtCard().accessibilityElement(children: .combine)
+            // The cook's own photo of the plate becomes the dinner's picture
+            // on Tonight and here (Joe, October 14) — never a stock one.
+            if let recipe = library.recipe(menuID: store.session.menuID) {
+                PlatePhotoCard(recipe: recipe)
+            }
         } else {
             // With a hero picture the tag rides on the photo's edge instead.
             if heroHeight == nil || (urgentTimer == nil && doNow.isEmpty) { SectionLabel(text: "RIGHT NOW") }

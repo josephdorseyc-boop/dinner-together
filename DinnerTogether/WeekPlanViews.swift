@@ -1,35 +1,36 @@
 import SwiftUI
 import UIKit
+import PhotosUI
 
-// The week's dinners on screen (Joe, October 13): a "This week" strip at the
-// top of Tonight, a sheet to set any day, the built-in dinners as a classics
-// folder in Recipes, and an illustrated plate for each classic until the cook
-// has a photo of their own.
+// The week's dinners on screen (Joe, October 13/14): a "This week" strip on
+// Tonight and a sheet to set any day to one of the cook's own recipes, an
+// open night, or Thanksgiving. The app brings no dinners of its own.
 
 /// Names, pictures and rules for whatever a day holds.
 @MainActor
 enum PlannedDinners {
     static func title(_ id: String, library: RecipeLibrary) -> String? {
         if let r = library.recipe(menuID: id) { return r.title }
-        return DinnerCatalog.menus.first { $0.id == id }?.title
+        return DinnerCatalog.menu(id: id)?.title
     }
 
     static func exists(_ id: String, library: RecipeLibrary) -> Bool { title(id, library: library) != nil }
 
-    /// Can become tonight's dinner without more work: every classic, and a
+    /// Can become tonight's dinner without more work: Thanksgiving, and a
     /// recipe whose timing has been checked.
     static func cookable(_ id: String, library: RecipeLibrary) -> Bool {
         if let r = library.recipe(menuID: id) { return !r.needsTimingReview }
-        return DinnerCatalog.menus.contains { $0.id == id }
+        return DinnerCatalog.menu(id: id) != nil
     }
 
-    static func cover(_ id: String, library: RecipeLibrary) -> UIImage? {
-        library.recipe(menuID: id).flatMap { RecipePhotos.load($0, from: library)?.image }
+    /// The dinner's picture: the plate photo the cook took, else the cover.
+    static func picture(_ id: String, library: RecipeLibrary) -> UIImage? {
+        library.recipe(menuID: id).flatMap { RecipePhotos.hero($0, from: library)?.image }
     }
 }
 
-/// A dinner's picture at a given size: the recipe's cover, else the classic's
-/// illustrated plate, else a plain recipe glyph; an open night is a dashed ring.
+/// A dinner's picture at a given size: the recipe's photo, a glyph for a
+/// recipe without one or for Thanksgiving; an open night is a dashed ring.
 struct DinnerPicture: View {
     @EnvironmentObject private var library: RecipeLibrary
     let dinner: PlannedDinner
@@ -42,88 +43,17 @@ struct DinnerPicture: View {
                 Circle().strokeBorder(Theme.muted.opacity(0.6), style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
                     .overlay(Image(systemName: "sparkles").font(.system(size: size * 0.3)).foregroundStyle(Theme.muted))
             case .menu(let id):
-                if let image = PlannedDinners.cover(id, library: library) {
+                if let image = PlannedDinners.picture(id, library: library) {
                     RecipeCoverThumbnail(image: image, size: size)
-                } else if DinnerCatalog.menus.contains(where: { $0.id == id }) {
-                    PlateIllustration(menuID: id)
                 } else {
                     Circle().fill(Theme.paper)
-                        .overlay(Image(systemName: "book.closed").font(.system(size: size * 0.32)).foregroundStyle(Theme.muted))
+                        .overlay(Circle().stroke(Theme.line, lineWidth: 1))
+                        .overlay(Image(systemName: DinnerCatalog.menu(id: id)?.symbol ?? "book.closed")
+                            .font(.system(size: size * 0.32)).foregroundStyle(id == DinnerCatalog.thanksgivingID ? Theme.tomato : Theme.muted))
                 }
             }
         }
         .frame(width: size, height: size)
-        .accessibilityHidden(true)
-    }
-}
-
-/// A classic's illustrated plate, drawn in the app's palette: the main on
-/// the left, the side in a little heap on the right, a scatter of garnish.
-/// A placeholder in A2's hands for the final artwork; it scales to any size.
-struct PlateIllustration: View {
-    let menuID: String
-
-    private struct Look { let main: Color; let side: Color; let garnish: Color }
-
-    private static func c(_ r: Double, _ g: Double, _ b: Double) -> Color { Color(red: r, green: g, blue: b) }
-    private static let looks: [String: Look] = [
-        "steak": Look(main: c(0.47, 0.26, 0.18), side: c(0.86, 0.68, 0.32), garnish: c(0.36, 0.52, 0.28)),
-        "pasta": Look(main: c(0.93, 0.79, 0.47), side: c(0.74, 0.24, 0.16), garnish: c(0.33, 0.55, 0.27)),
-        "salmon": Look(main: c(0.94, 0.53, 0.40), side: c(0.96, 0.93, 0.86), garnish: c(0.42, 0.58, 0.30)),
-        "lemon-chicken": Look(main: c(0.86, 0.66, 0.39), side: c(0.98, 0.86, 0.36), garnish: c(0.40, 0.55, 0.30)),
-        "turkey-tacos": Look(main: c(0.93, 0.80, 0.56), side: c(0.55, 0.33, 0.20), garnish: c(0.80, 0.25, 0.20)),
-        "tofu-bowls": Look(main: c(0.95, 0.85, 0.60), side: c(0.95, 0.55, 0.25), garnish: c(0.40, 0.62, 0.32)),
-        "chickpea-curry": Look(main: c(0.88, 0.60, 0.22), side: c(0.96, 0.94, 0.88), garnish: c(0.35, 0.56, 0.30)),
-        "gnocchi-greens": Look(main: c(0.93, 0.82, 0.56), side: c(0.35, 0.52, 0.27), garnish: c(0.97, 0.92, 0.75)),
-        "pork-supper": Look(main: c(0.70, 0.45, 0.35), side: c(0.90, 0.55, 0.25), garnish: c(0.38, 0.52, 0.28)),
-        "thanksgiving": Look(main: c(0.70, 0.42, 0.22), side: c(0.62, 0.12, 0.20), garnish: c(0.76, 0.60, 0.38)),
-    ]
-
-    /// The plate's own colors, for a backdrop behind it.
-    static func colors(_ menuID: String) -> [Color] {
-        let look = looks[menuID] ?? Look(main: Theme.tomato, side: Theme.olive, garnish: Theme.muted)
-        return [look.main, look.side, look.garnish]
-    }
-
-    @ViewBuilder
-    var body: some View {
-        // A2's plate (A2-37) when the artwork pack is in the bundle and knows
-        // this classic; the drawn placeholder otherwise.
-        if A2CatalogArtworkStore.menu(menuID) != nil {
-            A2CatalogIllustration(menuID: menuID)
-        } else {
-            placeholder
-        }
-    }
-
-    private var placeholder: some View {
-        let look = Self.looks[menuID] ?? Look(main: Theme.tomato, side: Theme.olive, garnish: Theme.muted)
-        return GeometryReader { geo in
-            let s = min(geo.size.width, geo.size.height)
-            ZStack {
-                Circle().fill(Color(red: 0.999, green: 0.992, blue: 0.973))
-                    .shadow(color: .black.opacity(0.12), radius: s * 0.04, y: s * 0.02)
-                Circle().strokeBorder(Color(red: 0.90, green: 0.87, blue: 0.82), lineWidth: s * 0.035)
-                    .padding(s * 0.09)
-                Ellipse().fill(look.main)
-                    .frame(width: s * 0.42, height: s * 0.30)
-                    .rotationEffect(.degrees(-18))
-                    .offset(x: -s * 0.10, y: s * 0.03)
-                ForEach(0..<4, id: \.self) { i in
-                    Circle().fill(look.side)
-                        .frame(width: s * 0.14, height: s * 0.14)
-                        .offset(x: s * (0.15 + 0.07 * Double(i % 2)), y: s * (0.06 * Double(i) - 0.07))
-                }
-                ForEach(0..<3, id: \.self) { i in
-                    Capsule().fill(look.garnish)
-                        .frame(width: s * 0.10, height: s * 0.05)
-                        .rotationEffect(.degrees(Double(i) * 50 - 30))
-                        .offset(x: s * (0.02 * Double(i) - 0.04), y: -s * (0.17 + 0.02 * Double(i)))
-                }
-            }
-            .frame(width: s, height: s)
-        }
-        .aspectRatio(1, contentMode: .fit)
         .accessibilityHidden(true)
     }
 }
@@ -169,14 +99,15 @@ struct WeekStrip: View {
     }
 
     private func dinner(on day: Date, index: Int) -> PlannedDinner {
-        index == 0 ? .menu(store.session.menuID) : weekPlan.dinner(on: day) { PlannedDinners.exists($0, library: library) }
+        if index == 0 { return store.hasDinner ? .menu(store.session.menuID) : .open }
+        return weekPlan.dinner(on: day) { PlannedDinners.exists($0, library: library) }
     }
 
     private func chip(_ day: Date, index: Int) -> some View {
         let dinner = self.dinner(on: day, index: index)
         let title: String = {
             switch dinner {
-            case .open: return "Your pick"
+            case .open: return index == 0 ? "Not chosen" : "Your pick"
             case .menu(let id): return PlannedDinners.title(id, library: library) ?? store.menu.title
             }
         }()
@@ -215,7 +146,7 @@ struct WeekStrip: View {
 }
 
 /// One day of the plan: a classic, one of the cook's recipes, an open night,
-/// or back to the rotation. Today goes through Tonight's own choice.
+/// or Thanksgiving. Today goes through Tonight's own choice.
 struct DayPlanSheet: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var library: RecipeLibrary
@@ -244,21 +175,15 @@ struct DayPlanSheet: View {
                 if !day.isToday {
                     Section {
                         row(.open, title: "Your pick", subtitle: "Leave this night open", identifier: "day-plan-open")
-                        if weekPlan.plan.isChosen(day.date) {
-                            Button("Back to the weekly rotation") {
-                                if weekPlan.clear(day.date) { dismiss() }
-                            }
-                            .foregroundStyle(Theme.tomato)
-                            .accessibilityIdentifier("day-plan-rotation")
-                        }
                     }
                 }
-                Section("Dinner, Together classics") {
-                    ForEach(DinnerCatalog.menus) { menu in
-                        row(.menu(menu.id), title: menu.title, subtitle: menu.subtitle, identifier: "day-plan-\(menu.id)")
+                if library.recipes.isEmpty {
+                    Section("Your recipes") {
+                        Text("Add a recipe on the Recipes tab to plan it for a day.")
+                            .font(.subheadline).foregroundStyle(Theme.muted)
+                            .accessibilityIdentifier("day-plan-no-recipes")
                     }
-                }
-                if !library.recipes.isEmpty {
+                } else {
                     Section("Your recipes") {
                         ForEach(library.recipes) { recipe in
                             let blocked = day.isToday && recipe.needsTimingReview
@@ -269,6 +194,10 @@ struct DayPlanSheet: View {
                                 identifier: "day-plan-recipe", disabled: blocked)
                         }
                     }
+                }
+                Section("Holiday") {
+                    let tg = DinnerCatalog.thanksgiving
+                    row(.menu(tg.id), title: tg.title, subtitle: tg.subtitle, identifier: "day-plan-\(tg.id)")
                 }
             }
             .scrollContentBackground(.hidden)
@@ -314,158 +243,23 @@ struct DayPlanSheet: View {
     }
 }
 
-/// Recipes → "Dinner, Together classics": the built-in dinners as a folder,
-/// each one ready to plan onto a day of the week.
-struct ClassicsView: View {
-    @EnvironmentObject private var store: SessionStore
-    @EnvironmentObject private var library: RecipeLibrary
-    @EnvironmentObject private var weekPlan: WeekPlanStore
-    var goTonight: () -> Void
-    @State private var planning: DinnerMenu?
-
-    var body: some View {
-        List {
-            Text("The dinners that come with the app. They rotate through your week on Tonight; plan one for any day here.")
-                .font(.subheadline).foregroundStyle(Theme.muted)
-                .listRowBackground(Color.clear).listRowSeparator(.hidden)
-            ForEach(DinnerCatalog.menus) { menu in
-                Button { planning = menu } label: {
-                    HStack(spacing: 14) {
-                        DinnerPicture(dinner: .menu(menu.id), size: 58)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(menu.title).font(.headline).foregroundStyle(Theme.ink)
-                            Text(menu.subtitle).font(.caption).foregroundStyle(Theme.muted).lineLimit(2)
-                            if let when = plannedDays(menu.id) {
-                                Text(when).font(.caption.weight(.semibold)).foregroundStyle(Theme.olive)
-                            }
-                        }
-                        Spacer(minLength: 0)
-                        Image(systemName: "calendar.badge.plus").foregroundStyle(Theme.tomato)
-                    }
-                    .contentShape(Rectangle()) // the row's gaps take the tap too
-                }
-                .buttonStyle(.plain)
-                .listRowBackground(Theme.paper)
-                .accessibilityHint("Plan this dinner for a day this week.")
-                .accessibilityIdentifier("classic-\(menu.id)")
-            }
-        }
-        .scrollContentBackground(.hidden)
-        .background(Theme.recipeBackground)
-        .navigationTitle("Dinner, Together classics")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $planning) { menu in
-            PlanClassicSheet(menu: menu, goTonight: goTonight).uiTestTypeSize()
-        }
-    }
-
-    /// "Tonight · Thu" — the days this week it is on the plan.
-    private func plannedDays(_ id: String) -> String? {
-        let days = WeekRotation.days(from: Date())
-        let names: [String] = days.enumerated().compactMap { index, day in
-            let dinner: PlannedDinner = index == 0 ? .menu(store.session.menuID) : weekPlan.dinner(on: day)
-            guard dinner == .menu(id) else { return nil }
-            return index == 0 ? "Tonight" : day.formatted(.dateTime.weekday(.abbreviated))
-        }
-        return names.isEmpty ? nil : "This week: " + names.joined(separator: " · ")
-    }
-}
-
-/// "Plan <classic> for…" — tonight, or one of the next six days.
-struct PlanClassicSheet: View {
-    @EnvironmentObject private var store: SessionStore
-    @EnvironmentObject private var weekPlan: WeekPlanStore
-    @Environment(\.dismiss) private var dismiss
-    let menu: DinnerMenu
-    var goTonight: () -> Void
-    @State private var cookingNow = false
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    HStack(spacing: 14) {
-                        DinnerPicture(dinner: .menu(menu.id), size: 64)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(menu.title).font(.title3.weight(.semibold))
-                            Text(menu.subtitle).font(.caption).foregroundStyle(Theme.muted)
-                        }
-                    }
-                    .listRowBackground(Color.clear)
-                }
-                if let problem = weekPlan.saveError {
-                    Text(problem).font(.subheadline).foregroundStyle(Theme.warning)
-                }
-                Section("Plan it for") {
-                    ForEach(Array(WeekRotation.days(from: Date()).enumerated()), id: \.offset) { index, day in
-                        Button {
-                            choose(day, isToday: index == 0)
-                        } label: {
-                            HStack {
-                                Text(index == 0 ? "Tonight" : day.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
-                                    .foregroundStyle(Theme.ink)
-                                Spacer()
-                                Text(currentTitle(day, isToday: index == 0)).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                            }
-                        }
-                        .listRowBackground(Theme.paper)
-                        .accessibilityIdentifier("plan-day-\(index)")
-                    }
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .background(Theme.cream)
-            .navigationTitle("Plan this dinner")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
-            .alert("You’re cooking right now", isPresented: $cookingNow) {
-                Button("OK", role: .cancel) { }
-            } message: {
-                Text("Finish or reset tonight’s dinner first, then choose another for tonight. You can still plan it for another day.")
-            }
-        }
-        .presentationDetents([.large])
-    }
-
-    private func currentTitle(_ day: Date, isToday: Bool) -> String {
-        if isToday { return store.menu.title }
-        switch weekPlan.dinner(on: day) {
-        case .open: return "Your pick"
-        case .menu(let id): return DinnerCatalog.menus.first { $0.id == id }?.title ?? "One of your recipes"
-        }
-    }
-
-    private func choose(_ day: Date, isToday: Bool) {
-        if isToday {
-            guard !store.hasProgress else { cookingNow = true; return }
-            store.chooseMenu(menu.id)
-            dismiss()
-            goTonight()
-        } else if weekPlan.set(.menu(menu.id), on: day) {
-            dismiss()
-        }
-    }
-}
-
 // MARK: - Tonight's dinner as a hero (Joe, October 13; A2's Duo mock)
 
-/// The best picture a dinner has: the recipe's cover, else the classic's
-/// illustrated plate. (Next: the cook's own plate photo, between the two.)
+/// The best picture a dinner has: the plate photo the cook took after
+/// cooking it, else the recipe's cover. Nothing else — never a stock or
+/// drawn picture (Joe, October 14).
 enum DinnerHeroArt {
     case cover(UIImage, RecipePalette?)
-    case plate(String)
 
     @MainActor
     static func of(_ menuID: String, library: RecipeLibrary) -> DinnerHeroArt? {
-        if let recipe = library.recipe(menuID: menuID) {
-            return RecipePhotos.load(recipe, from: library).map { .cover($0.image, $0.palette) }
-        }
-        return DinnerCatalog.menus.contains { $0.id == menuID } ? .plate(menuID) : nil
+        guard let recipe = library.recipe(menuID: menuID) else { return nil }
+        return RecipePhotos.hero(recipe, from: library).map { .cover($0.image, $0.palette) }
     }
 }
 
-/// The hero band: a cover resolving into the card's surface, or the plate
-/// large on a soft wash of its own colors. Decorative; the card names the dish.
+/// The hero band: a cover resolving into the card's surface. Decorative;
+/// the card names the dish.
 struct DinnerHero: View {
     let art: DinnerHeroArt
     let height: CGFloat
@@ -474,21 +268,6 @@ struct DinnerHero: View {
         switch art {
         case .cover(let image, let palette):
             RecipeCoverBand(image: image, palette: palette, height: height)
-        case .plate(let id):
-            let c = PlateIllustration.colors(id)
-            ZStack {
-                LinearGradient(colors: [c[1].opacity(0.30), c[0].opacity(0.22), Theme.paper],
-                               startPoint: .topTrailing, endPoint: .bottomLeading)
-                Circle().fill(c[2].opacity(0.16)).frame(width: height * 1.1).blur(radius: 30)
-                    .offset(x: -height * 0.9, y: -height * 0.2)
-                PlateIllustration(menuID: id)
-                    .frame(width: height * 0.86, height: height * 0.86)
-                    .offset(x: height * 0.35)
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .clipped()
-            .accessibilityHidden(true)
         }
     }
 }
@@ -501,14 +280,12 @@ struct DinnerHeroThumbnail: View {
     var body: some View {
         switch art {
         case .cover(let image, _): RecipeCoverThumbnail(image: image, size: size)
-        case .plate(let id): PlateIllustration(menuID: id).frame(width: size, height: size)
         }
     }
 }
 
-/// A catalog dish's illustration (A2-37) by its exact catalog label, for
-/// timer and timeline rows; a recipe's steps show the recipe's cover
-/// instead, and anything unknown shows nothing.
+/// A step's picture on timer and timeline rows: the recipe's own photo.
+/// Anything without one shows nothing.
 struct DishThumbnail: View {
     @EnvironmentObject private var library: RecipeLibrary
     let step: CookingStep
@@ -516,13 +293,112 @@ struct DishThumbnail: View {
     let size: CGFloat
 
     var body: some View {
-        if let recipe = library.recipe(menuID: menuID) {
-            if let cover = RecipePhotos.load(recipe, from: library) {
-                RecipeCoverThumbnail(image: cover.image, size: size)
-            }
-        } else if DinnerCatalog.menus.contains(where: { $0.id == menuID }),
-                  A2CatalogArtworkStore.dish(step.dish) != nil {
-            A2CatalogIllustration(dish: step.dish).frame(width: size, height: size)
+        if let recipe = library.recipe(menuID: menuID), let photo = RecipePhotos.hero(recipe, from: library) {
+            RecipeCoverThumbnail(image: photo.image, size: size)
         }
+    }
+}
+
+// MARK: - A photo of the plate (Joe, October 14)
+
+/// After the last step: take or choose a photo of the finished plate. It
+/// leads the recipe's hero on Tonight and Cooking from then on; the cover
+/// stays for the recipe's page and colors.
+struct PlatePhotoCard: View {
+    @EnvironmentObject private var library: RecipeLibrary
+    let recipe: Recipe
+    @State private var picked: PhotosPickerItem?
+    @State private var takingPhoto = false
+    @State private var problem: String?
+
+    private var current: Recipe { library.recipe(id: recipe.id) ?? recipe }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(text: "YOUR PLATE")
+            if let plate = RecipePhotos.loadPlate(current, from: library) {
+                HStack(spacing: 14) {
+                    RecipeCoverThumbnail(image: plate, size: 64)
+                        .accessibilityLabel("Your plate photo")
+                        .accessibilityIdentifier("plate-photo-thumbnail")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Your photo is the picture for this dinner.")
+                            .font(.subheadline.weight(.medium)).foregroundStyle(Theme.ink)
+                        Button("Remove photo") {
+                            if !library.removePlatePhoto(for: recipe.id) { problem = library.saveError }
+                        }
+                        .font(.caption).foregroundStyle(Theme.tomato)
+                        .accessibilityIdentifier("remove-plate-photo")
+                    }
+                }
+            } else {
+                Text("Add a photo of your plate and it becomes this dinner’s picture.")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 10) {
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        Button { takingPhoto = true } label: { Label("Take a photo", systemImage: "camera") }
+                            .buttonStyle(SecondaryButtonStyle())
+                            .accessibilityIdentifier("take-plate-photo")
+                    }
+                    PhotosPicker(selection: $picked, matching: .images) {
+                        Label("Choose a photo", systemImage: "photo.on.rectangle")
+                    }
+                    .buttonStyle(SecondaryButtonStyle())
+                    .accessibilityIdentifier("choose-plate-photo")
+                }
+            }
+            if let problem {
+                Text(problem).font(.caption).foregroundStyle(Theme.warning)
+                    .accessibilityIdentifier("plate-photo-error")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .dtCard()
+        .accessibilityIdentifier("plate-photo-card")
+        .onChange(of: picked) { _, item in
+            guard let item else { return }
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self) { save(data) }
+                picked = nil
+            }
+        }
+        .fullScreenCover(isPresented: $takingPhoto) {
+            CameraCapture { image in
+                takingPhoto = false
+                if let image, let data = image.jpegData(compressionQuality: 0.85) { save(data) }
+            }
+            .ignoresSafeArea()
+        }
+    }
+
+    private func save(_ data: Data) {
+        // Re-encode through UIImage so an HEIC pick is stored as JPEG.
+        let jpeg = UIImage(data: data)?.jpegData(compressionQuality: 0.85) ?? data
+        if library.savePlatePhoto(jpeg, for: recipe.id) == nil { problem = library.saveError } else { problem = nil }
+    }
+}
+
+/// The system camera, for the plate photo.
+struct CameraCapture: UIViewControllerRepresentable {
+    var done: (UIImage?) -> Void
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func makeCoordinator() -> Coordinator { Coordinator(done: done) }
+
+    final class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let done: (UIImage?) -> Void
+        init(done: @escaping (UIImage?) -> Void) { self.done = done }
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+            done(info[.originalImage] as? UIImage)
+        }
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) { done(nil) }
     }
 }

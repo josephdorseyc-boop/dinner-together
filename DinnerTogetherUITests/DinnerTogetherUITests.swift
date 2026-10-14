@@ -53,9 +53,10 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
         flowReviewDinnerTimeAXTextSize()
     }
 
-    /// Flow 9 — Tonight screen with nine menus; selection footer; into cooking.
-    func test09_tonightNineMenus() {
-        flowTonightNineMenus()
+    /// Flow 9 — Tonight on first launch: nothing chosen, the first recipe,
+    /// Cooking empty, Thanksgiving chosen and built.
+    func test09_tonightFirstLaunch() {
+        flowTonightFirstLaunch()
     }
 
     /// Recipes — r01: Tonight with an empty library.

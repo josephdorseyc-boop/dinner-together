@@ -304,7 +304,7 @@ final class LateCompletionTests: XCTestCase {
 final class AttentionTests: XCTestCase {
 
     func testOverlappingHandsOnStepsWarn() {
-        let menu = DinnerCatalog.menus[0] // steak night pileup
+        let menu = SampleMenus.menus[0] // steak night pileup
         let session = sessionFor(menuID: "steak", serveAt: t0.addingTimeInterval(3600))
         let plan = Scheduling.plan(menu: menu, session: session)
         let warnings = Scheduling.attentionWarnings(plan: plan, session: session, now: t0)
@@ -345,12 +345,12 @@ final class StoreTests: XCTestCase {
 
     private func store(notifications: MockNotifications? = nil) -> (SessionStore, MockNotifications) {
         let mock = notifications ?? MockNotifications()
-        return (SessionStore(fileURL: tempURL(), notifications: mock), mock)
+        return (SampleMenus.store(fileURL: tempURL(), notifications: mock), mock)
     }
 
     func testUndoRestoresExactSession() async {
         let (store, _) = store()
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let id = SampleMenus.menus[0].steps[0].id
         let result = await store.startStep(id, now: t0)
         XCTAssertEqual(result, .started)
         XCTAssertEqual(store.record(id).state, .cooking)
@@ -387,7 +387,7 @@ final class StoreTests: XCTestCase {
         // Push dinner into the past so the dependent is due by the clock
         // while its predecessor was never started.
         store.session.serveAt = Date().addingTimeInterval(-1800)
-        let s2 = DinnerCatalog.menus[0].dishes[0][1].id // "Cook the steak"
+        let s2 = SampleMenus.menus[0].dishes[0][1].id // "Cook the steak"
         let blocked = await store.startStep(s2, now: Date())
         guard case .blocked(let predecessor, _) = blocked else {
             return XCTFail("expected .blocked, got \(blocked)")
@@ -403,7 +403,7 @@ final class StoreTests: XCTestCase {
 
     func testCompleteUnstartedNeedsConfirmationAndPreservesUnknown() async {
         let (store, _) = store()
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let id = SampleMenus.menus[0].steps[0].id
         let first = await store.completeStep(id, now: t0)
         guard case .needsStartConfirmation = first else {
             return XCTFail("expected .needsStartConfirmation, got \(first)")
@@ -425,7 +425,7 @@ final class StoreTests: XCTestCase {
         let (store, _) = store()
         let serveAt = t0.addingTimeInterval(3600)
         store.session.serveAt = serveAt
-        let steak = DinnerCatalog.menus[0]
+        let steak = SampleMenus.menus[0]
         let s1 = steak.dishes[0][0].id, p1 = steak.dishes[1][0].id, p2 = steak.dishes[1][1].id
         // Keep the mash on schedule so the steak's late prep is the only drift:
         // p1 done on time, p2 cooking to its planned deadline.
@@ -456,8 +456,8 @@ final class StoreTests: XCTestCase {
 
     func testPersistenceRoundTrip() async throws {
         let url = tempURL()
-        let store = SessionStore(fileURL: url, notifications: MockNotifications())
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let store = SampleMenus.store(fileURL: url, notifications: MockNotifications())
+        let id = SampleMenus.menus[0].steps[0].id
         var rec = StepRecord()
         rec.state = .done
         rec.actualStart = nil // unknown start persists as unknown
@@ -502,8 +502,8 @@ final class StoreTests: XCTestCase {
     func testNoStaleReminderAfterUndoDuringPendingAuth() async {
         let mock = MockNotifications()
         mock.authDelay = 0.3
-        let store = SessionStore(fileURL: tempURL(), notifications: mock)
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let store = SampleMenus.store(fileURL: tempURL(), notifications: mock)
+        let id = SampleMenus.menus[0].steps[0].id
 
         let task = Task { await store.startStep(id, now: t0) }
         try? await Task.sleep(nanoseconds: 50_000_000) // let auth stay pending
@@ -518,8 +518,8 @@ final class StoreTests: XCTestCase {
     func testNoStaleReminderAfterResetDuringPendingAuth() async {
         let mock = MockNotifications()
         mock.authDelay = 0.3
-        let store = SessionStore(fileURL: tempURL(), notifications: mock)
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let store = SampleMenus.store(fileURL: tempURL(), notifications: mock)
+        let id = SampleMenus.menus[0].steps[0].id
 
         let task = Task { await store.startStep(id, now: t0) }
         try? await Task.sleep(nanoseconds: 50_000_000)
@@ -532,7 +532,7 @@ final class StoreTests: XCTestCase {
 
     func testReminderScheduledWhenUndisturbed() async {
         let (store, mock) = store()
-        let id = DinnerCatalog.menus[0].steps[0].id // 10-min step
+        let id = SampleMenus.menus[0].steps[0].id // 10-min step
         let result = await store.startStep(id, now: t0)
         XCTAssertEqual(result, .started)
         XCTAssertEqual(mock.scheduled.count, 1)
@@ -543,8 +543,8 @@ final class StoreTests: XCTestCase {
     func testDeniedAuthorizationSchedulesNothing() async {
         let mock = MockNotifications()
         mock.grant = false
-        let store = SessionStore(fileURL: tempURL(), notifications: mock)
-        let id = DinnerCatalog.menus[0].steps[0].id
+        let store = SampleMenus.store(fileURL: tempURL(), notifications: mock)
+        let id = SampleMenus.menus[0].steps[0].id
         _ = await store.startStep(id, now: t0)
         XCTAssertTrue(mock.scheduled.isEmpty)
         XCTAssertTrue(store.notificationsDenied)
@@ -601,7 +601,7 @@ final class ReadinessRegressionTests: XCTestCase {
 @MainActor
 final class ReminderAndEarlyStartRegressionTests: XCTestCase {
     private func makeStore(_ mock: MockNotifications) -> SessionStore {
-        SessionStore(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
+        SampleMenus.store(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
             .appending(path: "dinner-review-\(UUID().uuidString).json"), notifications: mock)
     }
 
@@ -650,7 +650,7 @@ final class ReminderAndEarlyStartRegressionTests: XCTestCase {
 @MainActor
 final class PlanningEditRegressionTests: XCTestCase {
     private func makeStore() -> SessionStore {
-        SessionStore(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
+        SampleMenus.store(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
             .appending(path: "dinner-edit-\(UUID().uuidString).json"),
             notifications: MockNotifications())
     }
@@ -681,7 +681,7 @@ final class PlanningEditRegressionTests: XCTestCase {
         let store = makeStore()
         let serveAt = t0.addingTimeInterval(3600)
         store.session.serveAt = serveAt
-        let s1 = DinnerCatalog.menus[0].dishes[0][0].id
+        let s1 = SampleMenus.menus[0].dishes[0][0].id
         let planned = store.plan.first(where: { $0.id == s1 })!
         _ = await store.startStep(s1, now: planned.plannedStart)
         let lateEnd = planned.plannedEnd.addingTimeInterval(7 * 60)
@@ -695,7 +695,7 @@ final class PlanningEditRegressionTests: XCTestCase {
         _ = await store.startStep(s1, now: planned.plannedStart)
         _ = await store.completeStep(s1, now: lateEnd)
         XCTAssertNotNil(store.readinessReport(now: lateEnd))
-        store.chooseMenu(DinnerCatalog.menus[1].id)
+        store.chooseMenu(SampleMenus.menus[1].id)
         XCTAssertNil(store.readinessReport(now: Date()), "a new menu starts with no drift")
     }
 }
@@ -732,7 +732,7 @@ final class OutOfOrderReadinessTests: XCTestCase {
 @MainActor
 final class SessionPolicyRegressionTests: XCTestCase {
     private func makeStore() -> SessionStore {
-        SessionStore(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
+        SampleMenus.store(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
             .appending(path: "dinner-policy-\(UUID().uuidString).json"),
             notifications: MockNotifications())
     }
@@ -1094,7 +1094,7 @@ final class RecoveryNoticeTests: XCTestCase {
 @MainActor
 final class RecoveryStoreTests: XCTestCase {
     private func makeStore() -> SessionStore {
-        SessionStore(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
+        SampleMenus.store(fileURL: URL(fileURLWithPath: NSTemporaryDirectory())
             .appending(path: "dinner-recovery-\(UUID().uuidString).json"),
             notifications: MockNotifications())
     }
@@ -1105,7 +1105,7 @@ final class RecoveryStoreTests: XCTestCase {
         let store = makeStore()
         let serveAt = t0.addingTimeInterval(3600)
         store.session.serveAt = serveAt
-        let steak = DinnerCatalog.menus[0]
+        let steak = SampleMenus.menus[0]
         let s1 = steak.dishes[0][0].id, p1 = steak.dishes[1][0].id, p2 = steak.dishes[1][1].id
         let p1Plan = store.plan.first(where: { $0.id == p1 })!
         _ = await store.startStep(p1, now: p1Plan.plannedStart)
@@ -1122,7 +1122,7 @@ final class RecoveryStoreTests: XCTestCase {
     /// and undo restores the previous session exactly.
     func testMoveDinnerAppliesOnceAndUndoRestores() async {
         let (store, serveAt, lateEnd) = await lateSteakPrep()
-        let p2 = DinnerCatalog.menus[0].dishes[1][1].id
+        let p2 = SampleMenus.menus[0].dishes[1][1].id
         let p2Deadline = store.record(p2).timerDeadline
         XCTAssertEqual(store.readinessReport(now: lateEnd)?.driftMinutes, 7)
 
@@ -1152,7 +1152,7 @@ final class RecoveryStoreTests: XCTestCase {
 
         // Eight minutes later the cook starts the steak; its 20-min timer
         // now ends at +65, so the rest can't finish before +75.
-        let s2 = DinnerCatalog.menus[0].dishes[0][1].id
+        let s2 = SampleMenus.menus[0].dishes[0][1].id
         let later = lateEnd.addingTimeInterval(8 * 60)                 // +45
         XCTAssertEqual(store.readinessReport(now: later)?.estimatedReadyAt,
                        serveAt.addingTimeInterval(15 * 60), "idle time is counted")
@@ -1176,12 +1176,12 @@ final class RecoveryStoreTests: XCTestCase {
         store.undoLast()                       // un-finish the late prep: steak is cooking to +30
         XCTAssertNil(store.readinessReport(now: lateEnd.addingTimeInterval(-7 * 60)))
 
-        _ = await store.completeStep(DinnerCatalog.menus[0].dishes[0][0].id, now: lateEnd)
+        _ = await store.completeStep(SampleMenus.menus[0].dishes[0][0].id, now: lateEnd)
         XCTAssertNotNil(store.readinessReport(now: lateEnd))
         store.resetSession()
         XCTAssertNil(store.readinessReport(now: t0.addingTimeInterval(10 * 60)))
 
-        store.chooseMenu(DinnerCatalog.menus[2].id)
+        store.chooseMenu(SampleMenus.menus[2].id)
         XCTAssertNil(store.readinessReport(now: Date()))
     }
 
@@ -1233,7 +1233,7 @@ final class RecoveryStoreTests: XCTestCase {
         let store = makeStore()
         let serveAt = t0.addingTimeInterval(3600)
         store.session.serveAt = serveAt
-        let steak = DinnerCatalog.menus[0]
+        let steak = SampleMenus.menus[0]
         let s1 = steak.dishes[0][0].id, p1 = steak.dishes[1][0].id, p2 = steak.dishes[1][1].id
         let p1Plan = store.plan.first(where: { $0.id == p1 })!
         _ = await store.startStep(p1, now: p1Plan.plannedStart)
@@ -1262,7 +1262,7 @@ final class RecoveryStoreTests: XCTestCase {
 
 final class CatalogTests: XCTestCase {
     private func assertMenuPlans(_ menuID: String, file: StaticString = #filePath, line: UInt = #line) {
-        guard let menu = DinnerCatalog.menus.first(where: { $0.id == menuID }) else {
+        guard let menu = SampleMenus.menus.first(where: { $0.id == menuID }) else {
             return XCTFail("Missing catalog menu: \(menuID)", file: file, line: line)
         }
         let serveAt = t0.addingTimeInterval(2 * 3600)
@@ -1295,8 +1295,8 @@ final class CatalogTests: XCTestCase {
     func testPorkSupperPlansTwoHoursOut() { assertMenuPlans("pork-supper") }
 
     func testCatalogIdentifiersAreGloballyUnique() {
-        let menuIDs = DinnerCatalog.menus.map { $0.id }
-        let stepIDs = DinnerCatalog.menus.flatMap { $0.steps.map { $0.id } }
+        let menuIDs = SampleMenus.menus.map { $0.id }
+        let stepIDs = SampleMenus.menus.flatMap { $0.steps.map { $0.id } }
         XCTAssertEqual(Set(menuIDs).count, menuIDs.count)
         XCTAssertEqual(Set(stepIDs).count, stepIDs.count)
     }
@@ -1304,7 +1304,7 @@ final class CatalogTests: XCTestCase {
     func testNewDinnerWorkflowBounds() {
         let ids = ["lemon-chicken", "turkey-tacos", "tofu-bowls", "chickpea-curry", "gnocchi-greens", "pork-supper"]
         for id in ids {
-            guard let menu = DinnerCatalog.menus.first(where: { $0.id == id }) else {
+            guard let menu = SampleMenus.menus.first(where: { $0.id == id }) else {
                 XCTFail("Missing menu: \(id)"); continue
             }
             XCTAssertTrue((2...4).contains(menu.dishes.count), id)
@@ -1324,7 +1324,7 @@ final class CatalogTests: XCTestCase {
 // The ordinary dinner bounds above remain unchanged.
 final class HolidayCatalogTests: XCTestCase {
     func testThanksgivingHasExplicitHolidayBounds() throws {
-        let menu = try XCTUnwrap(DinnerCatalog.menus.first { $0.id == "thanksgiving" })
+        let menu = try XCTUnwrap(DinnerCatalog.menu(id: "thanksgiving"))
         XCTAssertEqual(menu.dishes.count, 6)
         XCTAssertEqual(menu.longestDishMinutes, 240)
         for dish in menu.dishes {
@@ -1342,7 +1342,7 @@ final class HolidayCatalogTests: XCTestCase {
     }
 
     func testThanksgivingFourHourPlanAndPinnedRoast() throws {
-        let menu = try XCTUnwrap(DinnerCatalog.menus.first { $0.id == "thanksgiving" })
+        let menu = try XCTUnwrap(DinnerCatalog.menu(id: "thanksgiving"))
         let serveAt = t0.addingTimeInterval(240 * 60)
         var session = sessionFor(menuID: menu.id, serveAt: serveAt)
         XCTAssertEqual(Scheduling.checkFeasibility(menu: menu, serveAt: serveAt, durations: [:], now: t0), .ok)

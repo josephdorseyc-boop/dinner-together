@@ -24,6 +24,11 @@ struct DinnerMenu: Identifiable {
     let symbol: String
     let dishes: [[CookingStep]]
 
+    /// No dinner chosen yet: the app starts here and returns here when
+    /// tonight's recipe is deleted. Nothing to schedule, nothing to cook.
+    static let unchosen = DinnerMenu(id: "", title: "No dinner chosen", subtitle: "", symbol: "fork.knife", dishes: [])
+    var isUnchosen: Bool { id.isEmpty }
+
     var steps: [CookingStep] { dishes.flatMap { $0 } }
     var longestDishMinutes: Int { dishes.map { $0.reduce(0) { $0 + $1.minutes } }.max() ?? 0 }
 }
@@ -55,6 +60,9 @@ struct Recipe: Codable, Identifiable, Hashable {
     var source: RecipeSource = RecipeSource()
     /// File name inside the library's image folder, when a photo was saved.
     var imageFilename: String?
+    /// The cook's own photo of the finished plate (taken after cooking,
+    /// Joe, October 14), in the same folder. Leads the hero when present.
+    var platePhotoFilename: String?
     var yield: String?
     /// The recipe's own total time, when it stated one.
     var totalMinutes: Int?
@@ -127,7 +135,8 @@ struct HistoryEvent: Codable, Identifiable {
 
 /// Everything about one dinner. Value type so undo is a snapshot restore.
 struct DinnerSession: Codable {
-    var menuID: String = "steak"
+    /// Empty until the cook chooses one of their recipes (or Thanksgiving).
+    var menuID: String = ""
     var serveAt: Date = Date().addingTimeInterval(3600)
     /// Pre-cook duration edits: step id -> minutes.
     var durationOverrides: [String: Int] = [:]

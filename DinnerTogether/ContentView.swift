@@ -22,6 +22,9 @@ struct ContentView: View {
     }
 
     @State private var recipePath: [UUID] = []
+    /// The Add recipe sheet, in the Recipes destination; Tonight opens it
+    /// too when the cookbook is empty.
+    @State private var addingRecipe = false
 
     /// A colored recipe page draws from its own colors — light text and dark
     /// chrome on a deep page, dark text and light chrome on a pale one. Keep
@@ -57,7 +60,7 @@ struct ContentView: View {
                 }
             } else {
                 TabView(selection: $destination) {
-                    NavigationStack { PlanView(goCooking: { destination = .cooking }, goRecipes: { destination = .recipes }, openRecipe: openRecipe) }
+                    NavigationStack { planView }
                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
                         .tag(Destination.tonight)
                     NavigationStack { CookingView() }
@@ -107,7 +110,7 @@ struct ContentView: View {
 
     private var recipeNavigation: some View {
         NavigationStack(path: $recipePath) {
-            RecipesView(path: $recipePath, goTonight: {
+            RecipesView(path: $recipePath, adding: $addingRecipe, goTonight: {
                 recipePath.removeAll()
                 destination = .tonight
             }, goCooking: {
@@ -121,9 +124,14 @@ struct ContentView: View {
         if destination == .cooking {
             CookingView()
         } else {
-            PlanView(goCooking: { destination = .cooking },
-                     goRecipes: { destination = .recipes },
-                     openRecipe: openRecipe)
+            planView
         }
+    }
+
+    private var planView: some View {
+        PlanView(goCooking: { destination = .cooking },
+                 goRecipes: { destination = .recipes },
+                 addRecipe: { recipePath.removeAll(); destination = .recipes; addingRecipe = true },
+                 openRecipe: openRecipe)
     }
 }

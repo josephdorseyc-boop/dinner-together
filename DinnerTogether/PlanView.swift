@@ -1,8 +1,9 @@
 import SwiftUI
 import UIKit
 
-/// "Tonight": pick when dinner is, inspect each menu's dishes and steps,
-/// adjust estimates before cooking, then head to the kitchen.
+/// "Tonight": when dinner is on the table, which of the cook's own recipes
+/// it is, the week ahead, and Thanksgiving when it comes round — then the
+/// kitchen. The app brings no dinners of its own (Joe, October 14).
 struct PlanView: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var library: RecipeLibrary
@@ -10,6 +11,8 @@ struct PlanView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     var goCooking: () -> Void
     var goRecipes: () -> Void
+    /// Opens the Add recipe sheet (an empty cookbook's first step).
+    var addRecipe: (() -> Void)? = nil
     /// Opens one of the cook's recipes on its page (Recipes tab / sidebar).
     var openRecipe: ((UUID) -> Void)? = nil
 
@@ -40,21 +43,11 @@ struct PlanView: View {
                 header
                 servingTimeCard
                 tonightsRecipe
-                Button(action: goRecipes) {
-                    Label(tonightRecipe == nil ? "Choose from Recipes" : "Choose a different recipe", systemImage: "book.closed")
-                }
-                .buttonStyle(SecondaryButtonStyle())
-                .accessibilityIdentifier("open-recipes")
-                // The week sits below tonight's time and recipe choice, above
-                // the classics (Joe, October 13).
+                chooseRecipe
+                // The week sits below tonight's time and recipe choice
+                // (Joe, October 13).
                 WeekStrip(chooseToday: chooseFromWeek, openDay: { sheet = .day($0) })
-                SectionLabel(text: "ON THE MENU")
-                ForEach(DinnerCatalog.menus) { menu in
-                    menuCard(menu)
-                }
-                Text("Timings are planning estimates, not complete tested recipes. Use your trusted recipes and verify doneness separately.")
-                    .font(.caption)
-                    .foregroundStyle(Theme.muted)
+                thanksgivingSection
             }
             .padding(24)
             .frame(maxWidth: 720)
@@ -63,10 +56,16 @@ struct PlanView: View {
         .background(Theme.cream)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 6) {
-                Text("Selected: \(store.menu.title)")
+                Text(store.hasDinner ? "Selected: \(store.menu.title)" : "Nothing chosen for tonight yet")
                     .font(.caption)
                     .foregroundStyle(Theme.muted)
                 Button(action: {
+                    // Nothing chosen: the action is choosing (or bringing
+                    // in the first recipe), never an empty plan.
+                    if !store.hasDinner {
+                        if library.isEmpty, let addRecipe { addRecipe() } else { goRecipes() }
+                        return
+                    }
                     // Recompute feasibility right before entering cooking —
                     // duration edits can invalidate the serving time.
                     recheckFeasibility()
@@ -79,10 +78,11 @@ struct PlanView: View {
                         goCooking()
                     }
                 }) {
-                    Label(primaryActionTitle, systemImage: "arrow.right")
+                    Label(primaryActionTitle, systemImage: store.hasDinner ? "arrow.right" : "book.closed")
                 }
                 .buttonStyle(BigButtonStyle())
-                .accessibilityHint("Opens your cooking timeline.")
+                .accessibilityIdentifier("tonight-primary")
+                .accessibilityHint(store.hasDinner ? "Opens your cooking timeline." : "Opens your recipes.")
             }
             .padding(.horizontal, 24)
             .padding(.vertical, 12)
@@ -127,6 +127,7 @@ struct PlanView: View {
     }
 
     private var primaryActionTitle: String {
+        if !store.hasDinner { return library.isEmpty ? "Add your first recipe" : "Choose tonight’s recipe" }
         if hasProgress { return "Back to cooking" }
         if case .startsInPast(let earliest) = feasibility {
             return "Build plan for \(Scheduling.formatTime(earliest))"
@@ -153,7 +154,7 @@ struct PlanView: View {
                     // The cover leads when there is one (A2-35); accessibility
                     // sizes keep the row with its small thumbnail, so the
                     // title is never squeezed by a photo.
-                    if !dynamicTypeSize.isAccessibilitySize, let cover = RecipePhotos.load(recipe, from: library) {
+                    if !dynamicTypeSize.isAccessibilitySize, let cover = RecipePhotos.hero(recipe, from: library) {
                         TonightCoverCard(recipe: recipe, image: cover.image, palette: cover.palette,
                                          bandHeight: horizontalSizeClass == .regular ? 160 : 120)
                     } else {
@@ -171,10 +172,53 @@ struct PlanView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Dinner, beautifully timed.")
                 .font(.system(.largeTitle, design: .serif).weight(.medium))
-            Text("Choose your dinner. We’ll bring the timing together.")
+            Text(library.isEmpty ? "Bring in a recipe. We’ll bring the timing together."
+                                 : "Choose your dinner. We’ll bring the timing together.")
                 .foregroundStyle(Theme.muted)
         }
         .accessibilityElement(children: .combine)
+    }
+
+    /// Choosing: the first recipe when the cookbook is empty, otherwise the
+    /// cookbook. Once a recipe is tonight's, the same place changes it.
+    @ViewBuilder
+    private var chooseRecipe: some View {
+        if library.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Your cookbook is empty.")
+                    .font(.headline)
+                Text("Add a recipe from a link, screenshots or text. Once its timing is checked it can be tonight’s dinner.")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button { if let addRecipe { addRecipe() } else { goRecipes() } } label: {
+                    Label("Add your first recipe", systemImage: "plus")
+                }
+                .buttonStyle(SecondaryButtonStyle())
+                .accessibilityIdentifier("import-first-recipe")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .dtCard()
+            .accessibilityIdentifier("empty-cookbook")
+        } else {
+            Button(action: goRecipes) {
+                Label(tonightRecipe == nil ? "Choose from Recipes" : "Choose a different recipe", systemImage: "book.closed")
+            }
+            .buttonStyle(SecondaryButtonStyle())
+            .accessibilityIdentifier("open-recipes")
+        }
+    }
+
+    /// Thanksgiving is the one dinner the app brings (Joe, October 14): a
+    /// card to start planning it, with its dishes and editable estimates.
+    private var thanksgivingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionLabel(text: "PLAN YOUR THANKSGIVING")
+            Text("A whole-day plan for the turkey and the sides, timed back from when you sit down. Choose it for the day, then match each estimate to your recipes.")
+                .font(.subheadline).foregroundStyle(Theme.muted)
+                .fixedSize(horizontal: false, vertical: true)
+            menuCard(DinnerCatalog.thanksgiving)
+        }
+        .accessibilityIdentifier("thanksgiving-section")
     }
 
     /// The app's promise, first and loudest (Joe, October 13): when dinner
@@ -205,7 +249,12 @@ struct PlanView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Dinner on the table at \(Scheduling.formatMoment(store.session.serveAt))")
 
-            if hasProgress {
+            if !store.hasDinner {
+                Label("Choose tonight’s recipe and we’ll say when to start cooking.", systemImage: "book.closed")
+                    .font(.subheadline.weight(.medium)).foregroundStyle(apricot)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("table-time-no-dinner")
+            } else if hasProgress {
                 Label("You’re cooking. Change the time from Cooking with Adjust time or Review dinner time.", systemImage: "flame")
                     .font(.subheadline).foregroundStyle(cream)
                     .fixedSize(horizontal: false, vertical: true)
@@ -266,10 +315,11 @@ struct PlanView: View {
                 if hasProgress { pendingMenuID = menu.id } else { store.chooseMenu(menu.id); recheckFeasibility() }
             } label: {
                 HStack(spacing: 16) {
-                    // The classic's illustrated plate (Joe, October 13).
-                    PlateIllustration(menuID: menu.id)
+                    Image(systemName: menu.symbol)
+                        .font(.title2).foregroundStyle(Theme.tomato)
                         .frame(width: 50, height: 50)
-                        .overlay(Circle().stroke(selected ? Theme.tomato.opacity(0.7) : .clear, lineWidth: 2))
+                        .background(Theme.cream, in: Circle())
+                        .overlay(Circle().stroke(selected ? Theme.tomato.opacity(0.7) : Theme.line, lineWidth: 1.5))
                     VStack(alignment: .leading, spacing: 4) {
                         Text(menu.title).font(.headline)
                         Text(menu.subtitle).font(.caption).foregroundStyle(Theme.muted)
@@ -289,7 +339,7 @@ struct PlanView: View {
             .accessibilityLabel("\(menu.title), \(menu.subtitle)")
             .accessibilityAddTraits(selected ? .isSelected : [])
 
-            if menu.id == "thanksgiving" {
+            if menu.id == DinnerCatalog.thanksgivingID {
                 Text("Holiday guide: about 4 hours with the preset estimates. Match the roast time to your recipe. Check shared oven space and temperatures, and plan help for the final sides; the app flags overlaps but does not resolve them.")
                     .font(.caption)
                     .foregroundStyle(Theme.muted)
@@ -311,7 +361,7 @@ struct PlanView: View {
                         }
                         .padding(.top, 6)
                     }
-                    Text("Estimates, not recipes — adjust any step to match your kitchen.")
+                    Text("Estimates, not recipes — adjust any step to match your kitchen, and verify doneness separately.")
                         .font(.caption)
                         .foregroundStyle(Theme.muted)
                 }

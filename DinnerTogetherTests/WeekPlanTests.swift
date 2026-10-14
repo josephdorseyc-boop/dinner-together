@@ -1,10 +1,9 @@
 import XCTest
 @testable import DinnerTogether
 
-// The week's dinners (Joe, October 13): a rotation of the built-in dinners
-// with a Saturday open night, Thanksgiving on its day, and the cook's own
-// choices for any day. These pin the rotation's arithmetic, the plan's
-// precedence, and when a planned day takes over tonight's dinner.
+// The week's dinners (Joe, October 13/14): open days, Thanksgiving on its
+// day, and the cook's own choices for any day. These pin the defaults, the
+// plan's precedence, and when a planned day takes over tonight's dinner.
 
 final class WeekPlanTests: XCTestCase {
     private var cal: Calendar = {
@@ -22,36 +21,14 @@ final class WeekPlanTests: XCTestCase {
         return nil
     }
 
-    func testRotationCyclesEveryClassicBeforeRepeating() {
-        let ids = WeekRotation.rotation
-        XCTAssertEqual(ids.count, DinnerCatalog.menus.count - 1, "every classic but Thanksgiving rotates")
-        XCTAssertFalse(ids.contains("thanksgiving"))
-        // Twenty-one weekdays from a Sunday in October (no Thanksgiving).
-        var seen: [String] = []
-        var date = day(2026, 10, 4)
-        while seen.count < ids.count {
-            if case .menu(let id) = WeekRotation.suggestion(for: date, calendar: cal) { seen.append(id) }
-            date = cal.date(byAdding: .day, value: 1, to: date)!
-        }
-        XCTAssertEqual(Set(seen), Set(ids), "\(ids.count) planned nights show every classic once: \(seen)")
-    }
-
-    func testSaturdayIsOpenAndThanksgivingHasItsDay() {
-        XCTAssertEqual(WeekRotation.suggestion(for: day(2026, 10, 17), calendar: cal), .open, "Saturday")
+    func testDaysAreOpenExceptThanksgiving() {
+        XCTAssertEqual(WeekRotation.suggestion(for: day(2026, 10, 12), calendar: cal), .open, "a Monday is the cook's pick")
+        XCTAssertEqual(WeekRotation.suggestion(for: day(2026, 10, 17), calendar: cal), .open, "so is a Saturday")
         XCTAssertEqual(WeekRotation.suggestion(for: day(2026, 11, 26), calendar: cal), .menu("thanksgiving"), "Thanksgiving 2026 is Nov 26")
         XCTAssertTrue(WeekRotation.isThanksgiving(day(2027, 11, 25), calendar: cal))
         XCTAssertFalse(WeekRotation.isThanksgiving(day(2026, 11, 19), calendar: cal), "the third Thursday is not")
-        XCTAssertNotEqual(WeekRotation.suggestion(for: day(2026, 11, 19), calendar: cal), .menu("thanksgiving"))
-    }
-
-    func testRotationIsStableAndMovesADinnerToANewWeekday() {
-        let monday = day(2026, 10, 12)
-        XCTAssertEqual(WeekRotation.suggestion(for: monday, calendar: cal), WeekRotation.suggestion(for: day(2026, 10, 12, hour: 23), calendar: cal),
-                       "the same all day")
-        let nextMonday = cal.date(byAdding: .day, value: 7, to: monday)!
-        XCTAssertNotEqual(WeekRotation.suggestion(for: monday, calendar: cal), WeekRotation.suggestion(for: nextMonday, calendar: cal),
-                          "nine classics over six nights a week: Monday's dinner changes week to week")
-        XCTAssertNotNil(id(WeekRotation.suggestion(for: day(2025, 3, 3), calendar: cal)), "days before the fixed Sunday work too")
+        XCTAssertEqual(WeekRotation.suggestion(for: day(2026, 11, 19), calendar: cal), .open)
+        XCTAssertEqual(WeekRotation.days(from: day(2026, 10, 14, hour: 20), calendar: cal).count, 7)
     }
 
     func testTheCooksChoiceWinsAndFallsBackWhenItsRecipeIsGone() {
@@ -62,11 +39,11 @@ final class WeekPlanTests: XCTestCase {
         plan.set(.menu("recipe:ABC"), on: thursday, calendar: cal)
         XCTAssertEqual(plan.dinner(on: thursday, calendar: cal), .menu("recipe:ABC"))
         XCTAssertTrue(plan.isChosen(thursday, calendar: cal))
-        XCTAssertEqual(plan.dinner(on: thursday, calendar: cal, exists: { $0 != "recipe:ABC" }), rotation, "a deleted recipe falls back")
+        XCTAssertEqual(plan.dinner(on: thursday, calendar: cal, exists: { $0 != "recipe:ABC" }), rotation, "a deleted recipe leaves the day open")
         plan.set(.open, on: thursday, calendar: cal)
         XCTAssertEqual(plan.dinner(on: thursday, calendar: cal), .open, "an open night the cook chose")
         plan.clear(thursday, calendar: cal)
-        XCTAssertEqual(plan.dinner(on: thursday, calendar: cal), rotation, "back to the rotation")
+        XCTAssertEqual(plan.dinner(on: thursday, calendar: cal), rotation, "back to the default")
         XCTAssertFalse(plan.isChosen(thursday, calendar: cal))
     }
 
@@ -97,10 +74,9 @@ final class WeekPlanTests: XCTestCase {
                      "the cook already chose today")
         XCTAssertNil(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal, cookable: { $0 != "salmon" }),
                      "a planned dinner that can't be cooked yet (a recipe that still needs its timing check) holds the day — no silent substitute")
-        XCTAssertEqual(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal,
-                                            exists: { $0 != "salmon" }, cookable: all),
-                       { if case .menu(let id) = WeekRotation.suggestion(for: now, calendar: cal) { return id }; return nil }(),
-                       "a deleted recipe falls back to the rotation")
+        XCTAssertNil(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal,
+                                          exists: { $0 != "salmon" }, cookable: all),
+                     "a deleted recipe leaves the day open, and tonight as it is")
         plan.set(.open, on: now, calendar: cal)
         XCTAssertNil(WeekPlan.menuToAdopt(session: yesterdays, hasProgress: false, plan: plan, now: now, calendar: cal, cookable: all),
                      "an open night leaves tonight as it is")
