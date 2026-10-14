@@ -110,12 +110,12 @@ struct ContentView: View {
 
     private var recipeNavigation: some View {
         NavigationStack(path: $recipePath) {
-            RecipesView(path: $recipePath, adding: $addingRecipe, goTonight: {
+            RecipesView(path: $recipePath, goTonight: {
                 recipePath.removeAll()
                 destination = .tonight
             }, goCooking: {
                 destination = .cooking
-            })
+            }, adding: $addingRecipe)
         }
     }
 

@@ -801,7 +801,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// builds a plan.
     func flowTonightFirstLaunch() {
         launch(seed: UISeed.tonight(now: Date(), menuID: ""), openCooking: false)
-        let action = app.buttons["tonight-primary"].firstMatch
+        var action = app.buttons["tonight-primary"].firstMatch
         waitForExistence(action, timeout: 10, "Tonight with its primary action")
         XCTAssertTrue(action.isHittable, "the primary action is on screen before any scrolling (bottom inset)")
         XCTAssertTrue(action.label.contains("Add your first recipe"), "an empty cookbook's action: \(action.label)")
@@ -831,6 +831,7 @@ class DinnerTogetherUITestCase: XCTestCase {
 
         // Thanksgiving is the one dinner the app brings.
         launch(seed: UISeed.tonight(now: Date(), menuID: ""), openCooking: false)
+        action = app.buttons["tonight-primary"].firstMatch
         waitForExistence(action, timeout: 10, "Tonight again")
         let thanksgiving = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Thanksgiving, together'")).firstMatch
         scrollAndTap(thanksgiving, "the Thanksgiving card")
