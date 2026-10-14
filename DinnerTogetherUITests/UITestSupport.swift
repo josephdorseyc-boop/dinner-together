@@ -1520,17 +1520,21 @@ extension DinnerTogetherUITestCase {
             scrollTo(chip)
             waitForStableFrame(chip)
             let done = app.buttons["day-plan-done"]
-            // A combined element's tap can miss (run 38497304286: the sheet
-            // never opened); a second tap at its center, with evidence.
-            for attempt in 0..<2 where !done.exists {
+            let sheet = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
+            // Evidence first (runs 38508449584, 38519974627: the sheet never
+            // showed): the chip as it is about to be tapped, a second tap at
+            // its center, the hierarchy if the sheet is still missing.
+            photograph("r23-day-chip-before-tap-\(index)")
+            for attempt in 0..<2 where !done.exists && !sheet.exists {
                 if attempt == 0 { chip.tap() } else {
                     photograph("r23-day-chip-tap-missed")
                     chip.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
                 }
-                _ = done.waitForExistence(timeout: 5)
+                _ = sheet.waitForExistence(timeout: 5)
             }
-            if !done.exists { attachHierarchy("r23-day-sheet-missing-hierarchy") }
-            waitForExistence(done, timeout: 1, "the day’s plan sheet")
+            if !sheet.exists { photograph("r23-day-sheet-missing"); attachHierarchy("r23-day-sheet-missing-hierarchy") }
+            waitForExistence(sheet, timeout: 1, "the day’s plan sheet")
+            waitForExistence(done, timeout: 3, "the day’s plan sheet’s Done")
         }
         func plan(day index: Int, choose identifier: String) {
             openDay(index)

@@ -198,10 +198,9 @@ struct WeekStrip: View {
                 .stroke(index == 0 ? Theme.tomato.opacity(0.55) : Theme.line, lineWidth: 1))
         }
         .buttonStyle(.plain)
-        // `.ignore` replaced the button's own element (run 38484344610:
-        // "week-day-0" was not among the buttons); combine keeps the trait.
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton)
+        // The Button's own element, untouched: `.ignore` dropped the button
+        // trait (run 38484344610) and `.combine` left a chip whose taps never
+        // opened the sheet (runs 38508449584, 38519974627).
         .accessibilityLabel("\(index == 0 ? "Today" : day.formatted(.dateTime.weekday(.wide))): \(title)")
         .accessibilityHint(index == 0 ? "Choose tonight’s dinner." : "Plan this day’s dinner.")
         .accessibilityIdentifier("week-day-\(index)")
@@ -267,6 +266,7 @@ struct DayPlanSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(Theme.cream)
+            .accessibilityIdentifier("day-plan-sheet")
             .navigationTitle(day.isToday ? "Tonight" : day.date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("day-plan-done") } }
