@@ -1585,12 +1585,27 @@ extension DinnerTogetherUITestCase {
             waitForExistence(sheet, timeout: 1, "the day’s plan sheet")
             waitForExistence(done, timeout: 3, "the day’s plan sheet’s Done")
         }
+        // Inside the day sheet: `scrollTo` measures Tonight's pinned bar
+        // behind the sheet and kept dragging past the four-minute limit
+        // (run 38610973412). Tap what is already tappable; otherwise drag
+        // inside the sheet itself.
+        func showInSheet(_ option: XCUIElement) {
+            let window = app.windows.firstMatch.frame
+            for _ in 0..<6 {
+                if option.exists && option.isHittable && option.frame.maxY < window.maxY - 30 && option.frame.minY > window.minY + 60 { return }
+                let up = !option.exists || option.frame.midY > window.midY
+                let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
+                let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
+                from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
+                Thread.sleep(forTimeInterval: 0.4)
+            }
+        }
         func plan(day index: Int, choose identifier: String) {
             openDay(index)
             let option = app.descendants(matching: .any)[identifier].firstMatch
             if !option.waitForExistence(timeout: 5) { attachHierarchy("r23-day-sheet-hierarchy-\(identifier)") }
             waitForExistence(option, timeout: 1, "the day’s plan sheet offers \(identifier)")
-            scrollTo(option)
+            showInSheet(option)
             tapEvenInPopover(option)
             waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         }
@@ -1604,7 +1619,7 @@ extension DinnerTogetherUITestCase {
         photograph("r23b-day-plan-sheet" + capture.suffix)
         let holiday = app.descendants(matching: .any)["day-plan-thanksgiving"].firstMatch
         waitForExistence(holiday, timeout: 5, "Thanksgiving in the day sheet")
-        scrollTo(holiday)
+        showInSheet(holiday)
         tapEvenInPopover(holiday)
         waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         let day2 = app.descendants(matching: .any)["week-day-2"].firstMatch
@@ -1703,7 +1718,8 @@ extension DinnerTogetherUITestCase {
         XCTAssertGreaterThan(cover.frame.height, 300, "the cover is a full cover: \(cover.frame)")
         scrollToTop(maxDrags: 3)
         photograph("r22a-tonight-cover-\(photo)" + capture.suffix)
-        scrollTo(card)
+        // (Build is pinned: no need to scroll back to the recipe's name —
+        // at AX3 that second scroll could not settle, run 38610973412.)
 
         let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
         waitForExistence(build, timeout: 5, "the build action")
