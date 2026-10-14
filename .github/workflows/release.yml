@@ -76,14 +76,20 @@ jobs:
           # The validation workflow runs on every push; this release must sit on a
           # commit it has already approved (compile, 61 XCTest, UI flows, screenshots).
           # A cancelled run is not a verdict: the newest completed run that
-          # was not cancelled speaks for the commit.
+          # was not cancelled speaks for the commit. A run still in progress
+          # for the same SHA (a fast-forward of main re-validates the very
+          # commit a branch run already approved — release runs 38563260454
+          # and 38564347625 refused 1.0 (15)/(16) that way) only blocks when
+          # there is no verdict yet.
           check() { # workflow-file label
             local runs_json incomplete conclusion
             runs_json=$(gh api "repos/${{ github.repository }}/actions/workflows/$1/runs?head_sha=${{ github.sha }}&per_page=10")
             incomplete=$(printf '%s' "$runs_json" | jq '[.workflow_runs[] | select(.status != "completed")] | length')
             conclusion=$(printf '%s' "$runs_json" | jq -r '[.workflow_runs[] | select(.status=="completed" and .conclusion != "cancelled")] | .[0].conclusion // "none"')
             echo "$2 for ${{ github.sha }}: $conclusion (incomplete runs: $incomplete)"
-            [ "$incomplete" = "0" ] || { echo "::error::$2 is still running for this commit — wait for it to finish, or rerun with require_green=false"; exit 1; }
+            if [ "$conclusion" = "none" ] && [ "$incomplete" != "0" ]; then
+              echo "::error::$2 is still running for this commit and has no verdict yet — wait for it to finish, or rerun with require_green=false"; exit 1
+            fi
             [ "$conclusion" = "success" ] || { echo "::error::$2 is '$conclusion' for this commit — fix that first, or rerun with require_green=false"; exit 1; }
           }
           check native-validation.yml native-validation
