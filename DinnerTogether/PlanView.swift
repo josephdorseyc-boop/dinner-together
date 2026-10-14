@@ -43,12 +43,13 @@ struct PlanView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // The photo cover (Joe and A2, October 14): tonight's recipe
-                // photo — or A2's notebook when nothing is chosen — with the
-                // dinner-time card on it in frosted glass.
+                // photo — or A2's notebook when nothing is chosen — fading in
+                // from the page and hazing back into it, with the dinner-time
+                // card on it in frosted glass. The page's name sits above it
+                // on the plain page, so the status bar never sits on a photo.
+                pageTitle
+                    .frame(maxWidth: 720)
                 cover
-                    .padding(.horizontal, 12)
-                    .padding(.top, 4)
-                    .frame(maxWidth: 744)
                 VStack(alignment: .leading, spacing: 28) {
                     tonightsRecipe
                     chooseRecipe
@@ -205,52 +206,57 @@ struct PlanView: View {
         return UIImage(named: "TonightCover")
     }
 
-    /// The photo with the page's name over its top and the dinner-time card
-    /// on its lower edge. Inset from the screen edges as a rounded cover, so
-    /// the status bar stays over the plain page in Light and Dark.
-    private var cover: some View {
-        let cream = Color(red: 0.965, green: 0.945, blue: 0.890)
-        return VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 0) {
-                // iPad keeps the name in its navigation bar.
-                if horizontalSizeClass != .regular {
-                    Text("Dinner, Together")
-                        .font(.system(.subheadline, design: .serif).weight(.medium))
-                }
-                Text("Tonight")
-                    .font(.system(size: 44, weight: .medium, design: .serif))
-                    .minimumScaleFactor(0.7).lineLimit(1)
-                    .accessibilityAddTraits(.isHeader)
+    /// "Dinner, Together · Tonight" on the page, above the cover.
+    private var pageTitle: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // iPad keeps the name in its navigation bar.
+            if horizontalSizeClass != .regular {
+                Text("Dinner, Together")
+                    .font(.system(.subheadline, design: .serif).weight(.medium))
+                    .foregroundStyle(Theme.muted)
             }
-            .foregroundStyle(cream)
-            .shadow(color: .black.opacity(0.25), radius: 6, y: 1)
-            .padding(.horizontal, 8)
-            .padding(.top, 10)
-            Spacer(minLength: 96)
-            servingTimeCard
+            Text("Tonight")
+                .font(.system(size: 40, weight: .medium, design: .serif))
+                .minimumScaleFactor(0.7).lineLimit(1)
+                .foregroundStyle(Theme.ink)
+                .accessibilityAddTraits(.isHeader)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, minHeight: horizontalSizeClass == .regular ? 480 : 440, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 24)
+        .padding(.top, 8)
+    }
+
+    /// The photo, full width, fading in from the page at its top and hazing
+    /// back into it at the bottom (Joe, October 14: "I like the hazy fade"),
+    /// with the dinner-time card on its lower half. The fade is a mask, so
+    /// the page shows through in Light and Dark alike.
+    private var cover: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: horizontalSizeClass == .regular ? 200 : 150)
+            servingTimeCard
+                .frame(maxWidth: 696)
+                .padding(.horizontal, 12)
+            Spacer().frame(height: 40) // the card's foot rests in the haze
+        }
+        .frame(maxWidth: .infinity, minHeight: horizontalSizeClass == .regular ? 500 : 440)
         .background {
             Color.clear
                 .overlay {
                     if let coverImage {
                         Image(uiImage: coverImage).resizable().scaledToFill()
-                    } else {
-                        Self.tableSurface
                     }
                 }
-                .overlay(alignment: .top) {
-                    // Keeps the cream name readable on a pale photo.
-                    LinearGradient(stops: [.init(color: .black.opacity(0.62), location: 0),
-                                           .init(color: .black.opacity(0.48), location: 0.22),
-                                           .init(color: .black.opacity(0), location: 0.5)],
+                .clipped()
+                .mask {
+                    LinearGradient(stops: [.init(color: .clear, location: 0),
+                                           .init(color: .black, location: 0.07),
+                                           .init(color: .black, location: 0.6),
+                                           .init(color: .black.opacity(0.35), location: 0.85),
+                                           .init(color: .clear, location: 1)],
                                    startPoint: .top, endPoint: .bottom)
                 }
-                .clipped()
                 .accessibilityHidden(true)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("tonight-cover")
     }
