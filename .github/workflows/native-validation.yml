@@ -6,10 +6,11 @@
 #                                 expected number of tests actually executed.
 #   supplemental  (seconds)     — the JavaScript model + a dry run of the
 #                                 validation scripts against a fake toolchain.
-#   native-ios    (macOS runner) — builds the Xcode project, runs XCTest on an
+#   native-ios    (four macOS runners at once: core, two iPhone UI halves,
+#                                 iPad UI) — builds the Xcode project, runs XCTest on an
 #                                 iPhone and an iPad simulator, screenshots the
 #                                 seeded recovery states. Uploads everything as
-#                                 the "native-validation-results" artifact
+#                                 the "native-validation-results-<part>" artifacts
 #                                 whether or not the steps pass, then FAILS the
 #                                 job if any required step failed or could not
 #                                 run (no simulator, app not built, tests not
@@ -93,13 +94,22 @@ jobs:
         run: bash release/dry-run.sh
 
   native-ios:
-    name: Xcode build, XCTest, simulator screenshots
+    name: Xcode build, XCTest, simulator screenshots (${{ matrix.part }})
     runs-on: macos-15
-    # 33 UI flows since the recipe captures (October 12): ~55 min typical.
-    # 150 was too close: run 38628522264 took 149 minutes on a slow runner.
-    timeout-minutes: 210
+    # One pass took ~2.5 h on one machine (run 38628522264: 149 of 150
+    # minutes). Four machines at once (Joe, October 14): the builds, unit
+    # tests and stills on one; the iPhone UI tests in two halves; the iPad
+    # UI tests. Each builds the app itself (~15 min). Four, not five: the
+    # account runs at most five macOS jobs at once, and a release or Duo
+    # run needs one. The workflow fails if any part fails.
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [core, ui-iphone-1-of-2, ui-iphone-2-of-2, ui-ipad]
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
+      DT_PART: ${{ matrix.part }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode 26 (App Store Connect requires the iOS 26 SDK)
@@ -123,7 +133,7 @@ jobs:
         run: bash native-validation/run-native-pass.sh "$RESULTS" || echo "native-pass-failed=true" >> "$GITHUB_OUTPUT"
       - name: Screenshots of seeded recovery states
         id: shots
-        if: always()
+        if: ${{ always() && matrix.part == 'core' }}
         run: bash native-validation/screenshots.sh "$RESULTS" || echo "screenshots-failed=true" >> "$GITHUB_OUTPUT"
       - name: Show summary
         if: always()
@@ -153,7 +163,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: native-validation-results
+          name: native-validation-results-${{ matrix.part }}
           path: |
             native-validation/results/**
             !native-validation/results/build/**
@@ -167,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ui-review-evidence-${{ github.run_id }}
+          name: ui-review-evidence-${{ github.run_id }}-${{ matrix.part }}
           path: |
             native-validation/results/ui-screenshots/**
             native-validation/results/screenshots/**
@@ -179,27 +189,81 @@ jobs:
           if-no-files-found: warn
           compression-level: 0
           retention-days: 30
-      # Best effort: the artifact above is the record. Two runs finishing
-      # together race on the force-push (run 38305253325 lost to 38306639479
-      # and was marked failed although its gate passed), so retry, then
-      # carry on.
-      - name: Publish results to the ci-results branch (readable with plain git)
+      # What used to go to the ci-results branch from this job, as a small
+      # artifact; the publish job below merges the four parts and pushes.
+      - name: Bundle this part for ci-results
         if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/part"
+          if [ -d "$RESULTS" ]; then
+            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' --exclude='*.mp4' -cf - .) | (cd "$RUNNER_TEMP/part" && tar -xf -)
+          fi
+      - name: Upload this part for ci-results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-part-${{ matrix.part }}
+          path: ${{ runner.temp }}/part/**
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 7
+      - name: Gate — fail unless every required step ran and passed
+        if: always()
+        run: |
+          [ -f "$RESULTS/SUMMARY.md" ] || { echo "::error::SUMMARY.md missing — the pass did not run"; exit 1; }
+          [ -f "$RESULTS/status.txt" ] || { echo "::error::status.txt missing — the pass did not finish"; exit 1; }
+          failures=$(sed -n 's/^REQUIRED_FAILURES=//p' "$RESULTS/status.txt" | head -1)
+          if [ "${failures:-1}" != "0" ]; then echo "::error::${failures:-?} required step(s) failed or could not run — see SUMMARY.md in the artifact"; exit 1; fi
+          if grep -q '❌' "$RESULTS/SUMMARY.md"; then echo "::error::SUMMARY.md contains a failed step"; exit 1; fi
+          echo "All required steps passed."
+
+  # The four parts' results merged into the one tree the ci-results branch
+  # has always held (native-validation/merge-parts.py), plus one combined
+  # ui-review-evidence-<run> artifact for A1 and A2. Never the verdict: each
+  # part's gate decides, and the run fails if any part failed.
+  publish:
+    name: Publish merged results (ci-results)
+    needs: native-ios
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # Publishing is best effort and never the verdict: a merge or push
+    # problem must not fail a run whose four parts all passed.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the parts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: ci-part-*
+          path: ${{ runner.temp }}/parts
+      - name: Merge the parts
+        run: python3 native-validation/merge-parts.py "$RUNNER_TEMP/parts" "$RUNNER_TEMP/merged"
+      - name: Upload combined review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-review-evidence-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/merged/ui-screenshots/**
+            ${{ runner.temp }}/merged/screenshots/**
+            ${{ runner.temp }}/merged/SUMMARY.md
+            ${{ runner.temp }}/merged/status.txt
+            ${{ runner.temp }}/merged/devices.env
+            ${{ runner.temp }}/merged/25-ui-test-*.log
+            ${{ runner.temp }}/merged/25-ui-test-*-summary.json
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
+      # Best effort: the artifacts are the record. Two runs finishing
+      # together race on the force-push (run 38305253325 lost to 38306639479),
+      # so retry, then carry on.
+      - name: Publish results to the ci-results branch (readable with plain git)
         continue-on-error: true
-        # A hung push must not hold the gate until the job's timeout (run
-        # 38425982728 sat in this step for 20+ minutes).
         timeout-minutes: 6
         run: |
-          tmp=$(mktemp -d)
-          if [ -d "$RESULTS" ]; then
-            # Everything except DerivedData and the large .xcresult bundles (those
-            # stay in the artifact). tar copes with any file name (run 12: the
-            # xargs/sh -c copy failed and the results never reached the branch).
-            # Screen recordings of failed UI tests stay in the artifact (10+ MB each).
-            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' --exclude='*.mp4' -cf - .) | (cd "$tmp" && tar -xf -)
-            du -sh "$tmp" || true
-          fi
-          printf 'run_id=%s\nsha=%s\njob_status_so_far=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ job.status }}" > "$tmp/RUN.txt"
+          tmp="$RUNNER_TEMP/merged"
+          printf 'run_id=%s\nsha=%s\nparts=core,ui-iphone-1-of-2,ui-iphone-2-of-2,ui-ipad\nverdict=see each native-ios part\n' "${{ github.run_id }}" "${{ github.sha }}" > "$tmp/RUN.txt"
           cd "$tmp" && git init -q -b ci-results
           git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -q -m "native-validation results for run ${{ github.run_id }} (${{ github.sha }})"
@@ -218,12 +282,3 @@ jobs:
             echo "::warning::Results branch publication failed after four attempts. Use the uploaded ui-review-evidence-${{ github.run_id }} artifact."
             exit 1
           fi
-      - name: Gate — fail unless every required step ran and passed
-        if: always()
-        run: |
-          [ -f "$RESULTS/SUMMARY.md" ] || { echo "::error::SUMMARY.md missing — the pass did not run"; exit 1; }
-          [ -f "$RESULTS/status.txt" ] || { echo "::error::status.txt missing — the pass did not finish"; exit 1; }
-          failures=$(sed -n 's/^REQUIRED_FAILURES=//p' "$RESULTS/status.txt" | head -1)
-          if [ "${failures:-1}" != "0" ]; then echo "::error::${failures:-?} required step(s) failed or could not run — see SUMMARY.md in the artifact"; exit 1; fi
-          if grep -q '❌' "$RESULTS/SUMMARY.md"; then echo "::error::SUMMARY.md contains a failed step"; exit 1; fi
-          echo "All required steps passed."

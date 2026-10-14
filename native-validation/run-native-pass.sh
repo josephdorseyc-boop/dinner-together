@@ -50,9 +50,33 @@ EXPECTED_ENGINE_TESTS=$(grep -L 'canImport(UIKit)' "$ROOT"/DinnerTogetherTests/*
 EXPECTED_UI_IPHONE=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" 'func test')
 EXPECTED_UI_IPAD=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift" 'func test')
 
+# One pass can be split across machines that run at the same time (Joe,
+# October 14: the single pass took ~2.5 h). DT_PART picks the share:
+#   all (default)        everything, as before (local runs, Duo, dry run)
+#   core                 builds, XCTest, swift test (the workflow runs the stills)
+#   ui-iphone-K-of-N     the K-th of N round-robin shares of the iPhone UI tests
+#   ui-ipad              the iPad UI tests
+# Every part builds the app itself; the workflow's own gate fails if any part fails.
+PART="${DT_PART:-all}"
+case "$PART" in
+  all|core|ui-ipad) ;;
+  ui-iphone-*-of-*) ;;
+  *) echo "unknown DT_PART=$PART" >&2; exit 2 ;;
+esac
+want_core()      { [ "$PART" = all ] || [ "$PART" = core ]; }
+want_ui_iphone() { [ "$PART" = all ] || [[ "$PART" == ui-iphone-* ]]; }
+want_ui_ipad()   { [ "$PART" = all ] || [ "$PART" = ui-ipad ]; }
+IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherUITests"
+if [[ "$PART" == ui-iphone-*-of-* ]]; then
+  SHARE="${PART#ui-iphone-}"; K="${SHARE%%-of-*}"; N="${SHARE##*-of-}"
+  IPHONE_ONLY=$(grep -oE 'func test[A-Za-z0-9_]+' "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" | sed 's/^func //' \
+    | awk -v k="$K" -v n="$N" '(NR-1) % n == k-1 { print "DinnerTogetherUITests/DinnerTogetherUITests/" $1 }')
+  EXPECTED_UI_IPHONE=$(printf '%s\n' "$IPHONE_ONLY" | grep -c . || true)
+fi
+
 note "# Native validation — $(date -u '+%Y-%m-%d %H:%M UTC')"
 note ""
-note "Project: $(basename "$ROOT") · bundle com.example.dinnertogether · scheme DinnerTogether · expected XCTest methods: $EXPECTED_TESTS · expected UI tests: $EXPECTED_UI_IPHONE (iPhone) + $EXPECTED_UI_IPAD (iPad)"
+note "Project: $(basename "$ROOT") · bundle com.example.dinnertogether · scheme DinnerTogether · part: $PART · expected XCTest methods: $EXPECTED_TESTS · expected UI tests: $EXPECTED_UI_IPHONE (iPhone) + $EXPECTED_UI_IPAD (iPad)"
 note ""
 
 # ---------------------------------------------------------------- environment
@@ -140,6 +164,7 @@ if [ -n "$IPHONE_UDID" ]; then
   # The Release configuration is what the archive compiles: a symbol that
   # exists only under #if DEBUG passes every Debug step here and fails the
   # release (build 9, release run 9: LaunchOptions.stubScreenshotData).
+  if want_core; then
   LOG="$RESULTS/11-build-release-iphone.log"
   xcodebuild build -project DinnerTogether.xcodeproj -scheme DinnerTogether -configuration Release \
     -derivedDataPath "$DERIVED" -destination "id=$IPHONE_UDID" \
@@ -149,6 +174,9 @@ if [ -n "$IPHONE_UDID" ]; then
     note ""; note "First errors (Release):"; note '```'
     grep -E 'error:|\*\* BUILD FAILED' "$LOG" | head -30 | tee -a "$SUMMARY"
     note '```'
+  fi
+  else
+    note "- Release build: run by the core part"
   fi
 else
   fail "build skipped: no iPhone simulator"
@@ -204,7 +232,9 @@ run_tests() { # label udid
 
 note ""
 note "## XCTest (required; iPhone simulator — the iPad simulator runs the UI tests, A1 #19)"
-if [ -n "$APP_PATH" ]; then
+if ! want_core; then
+  note "- run by the core part"
+elif [ -n "$APP_PATH" ]; then
   if [ -n "$IPHONE_UDID" ]; then run_tests "iphone" "$IPHONE_UDID"; else fail "XCTest on iPhone skipped: no simulator"; fi
   # The unit tests are device-independent logic; the same binary ran on the
   # iPhone simulator a moment ago, on Linux and on macOS. The iPad simulator
@@ -224,6 +254,9 @@ note "## XCUITest (required: interactive flows photographed)"
 run_ui_tests() { # label udid only_testing expected
   local label="$1" udid="$2" only_testing="$3" expected="$4"
   local bundle="$RESULTS/$label-ui.xcresult"
+  # One target or class, or a part's list of tests (whitespace-separated).
+  local mainonly=() t
+  for t in $only_testing; do mainonly+=("-only-testing:$t"); done
   local log="$RESULTS/25-ui-test-$label.log"
   rm -rf "$bundle"
   # Warm the simulator before XCTest asks it to launch the app: on a cold
@@ -256,7 +289,7 @@ run_ui_tests() { # label udid only_testing expected
   python3 "$ROOT/native-validation/run-with-deadline.py" \
     --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
     xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
-    -only-testing:"$only_testing" -resultBundlePath "$bundle" \
+    "${mainonly[@]}" -resultBundlePath "$bundle" \
     -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
     > "$log" 2>&1; rc=$?
   local passed failed executed skipped source counts
@@ -407,9 +440,15 @@ PY
   fi
 }
 
-if [ -n "$APP_PATH" ]; then
-  if [ -n "$IPHONE_UDID" ]; then run_ui_tests "iphone" "$IPHONE_UDID" "DinnerTogetherUITests/DinnerTogetherUITests" "$EXPECTED_UI_IPHONE"; else fail "UI tests on iPhone skipped: no simulator"; fi
-  if [ -n "$IPAD_UDID" ];   then run_ui_tests "ipad"   "$IPAD_UDID"   "DinnerTogetherUITests/DinnerTogetherUITests_iPad" "$EXPECTED_UI_IPAD";     else fail "UI tests on iPad skipped: no simulator"; fi
+if ! want_ui_iphone && ! want_ui_ipad; then
+  note "- run by the ui-* parts"
+elif [ -n "$APP_PATH" ]; then
+  if want_ui_iphone; then
+    if [ -n "$IPHONE_UDID" ]; then run_ui_tests "iphone" "$IPHONE_UDID" "$IPHONE_ONLY" "$EXPECTED_UI_IPHONE"; else fail "UI tests on iPhone skipped: no simulator"; fi
+  fi
+  if want_ui_ipad; then
+    if [ -n "$IPAD_UDID" ];   then run_ui_tests "ipad"   "$IPAD_UDID"   "DinnerTogetherUITests/DinnerTogetherUITests_iPad" "$EXPECTED_UI_IPAD";     else fail "UI tests on iPad skipped: no simulator"; fi
+  fi
 else
   fail "UI tests skipped: app did not build"
 fi
@@ -417,6 +456,7 @@ fi
 # ------------------------------------------------- swift test (engine harness)
 note ""
 note "## swift test (Package.swift engine/store harness, macOS — required)"
+if want_core; then
 LOG="$RESULTS/30-swift-test-macos.log"
 swift test > "$LOG" 2>&1; rc=$?
 step_result "swift test" $rc "$LOG"
@@ -424,6 +464,9 @@ executed=$(grep -oE 'Executed [0-9]+ tests' "$LOG" 2>/dev/null | grep -oE '[0-9]
 note "  - executed $executed (expected $EXPECTED_ENGINE_TESTS) — \`$(basename "$LOG")\`"
 if [ "$executed" -lt "$EXPECTED_ENGINE_TESTS" ]; then fail "swift test executed $executed of $EXPECTED_ENGINE_TESTS expected tests"; fi
 grep -E 'error:|failed' "$LOG" | head -20 | sed 's/^/    /' | tee -a "$SUMMARY" >/dev/null || true
+else
+note "- run by the core part"
+fi
 
 note ""
 note "## Not covered by this script"
