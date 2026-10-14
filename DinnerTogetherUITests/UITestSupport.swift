@@ -848,6 +848,350 @@ class DinnerTogetherUITestCase: XCTestCase {
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen after Build")
         photograph("09-tonight-into-cooking")
     }
+}
+
+// MARK: - Recipe flows (A2 capture contract, October 11, 2026)
+
+/// Agent 2's R5 scheduling fixtures — test data, not tested cooking recipes.
+enum RecipeFixtureText {
+    static let frozenBerry = """
+        Frozen berry drink with lime and a three-hour freezer stage
+        Yield: 2 tall glasses, or 4 small tasting portions
+        Total time: 187 minutes
+
+        Ingredients
+        2 cups berry juice
+        1 lime
+
+        Directions
+        1. Mix the juice and lime and fill an ice tray for 5 minutes.
+        2. Freeze the mixture for 3 hours; check that it is solid before continuing.
+        3. Blend and pour the frozen drink for 2 minutes.
+        """
+    /// A2's fixture (PR #16): two visible directions standing for source
+    /// steps 1 and 3; the seeded warning says step 2 was not found.
+    static let missingTextTitle = "Missing text review"
+    static let missingText = """
+        Missing text review
+        Total time: 3 minutes
+
+        Ingredients
+        - 1 cup water
+
+        Directions
+        1. Mix for 2 minutes.
+        2. Serve for 1 minute.
+        """
+    static let missingTextWarning = "Source step 2 wasn’t found in the screenshots."
+
+    static let beanSpread = """
+        Bean spread with an untimed step
+        Yield: 2 snack portions
+
+        Ingredients
+        1 can beans
+        1 tablespoon olive oil
+        1 lemon
+
+        Directions
+        1. Drain the beans and prepare the lemon for 5 minutes.
+        2. Warm the beans until hot.
+        3. Mash and season the spread for 8-10 minutes.
+        4. Finish plating for 30 seconds.
+        """
+    static let frozenBerryTitle = "Frozen berry drink with lime and a three-hour freezer stage"
+    static let beanSpreadTitle = "Bean spread with an untimed step"
+}
+
+/// How a recipe flow is rendered. Each variant is verified on screen before
+/// it is photographed: a file name alone is not evidence (A2 capture contract).
+struct RecipeCapture {
+    var suffix = ""
+    var typeSize: String?
+    var dark = false
+    /// Extra launch flags, e.g. the solid-card rendering of Reduce Transparency.
+    var extra: [String] = []
+    static let standard = RecipeCapture()
+    static let ax3 = RecipeCapture(suffix: "-ax3", typeSize: "accessibility3")
+    static let darkMode = RecipeCapture(suffix: "-dark", dark: true)
+    static let solidCards = RecipeCapture(suffix: "-solid", extra: ["-dt-solid-cards"])
+
+    var launchArguments: [String] {
+        (typeSize.map { ["-dt-type-size", $0] } ?? []) + (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"]) + extra
+    }
+}
+
+extension DinnerTogetherUITestCase {
+    private func launchRecipes(_ recipes: [String], _ capture: RecipeCapture, extra: [String] = [], heroPhoto: Bool = false,
+                               photo: String? = nil, warnings: [[String]] = []) {
+        launch(seed: UISeed.tonight(now: Date()), extraLaunchArguments: capture.launchArguments + extra,
+               openCooking: false, recipes: recipes, heroPhoto: heroPhoto, photo: photo, recipeWarnings: warnings)
+    }
+
+    private func openRecipesLibrary() {
+        scrollAndTap(app.buttons["open-recipes"], "Choose from Recipes")
+        waitForExistence(app.buttons["add-recipe"], timeout: 5, "Recipes collection")
+    }
+
+    private func openRecipe(_ title: String) {
+        openRecipesLibrary()
+        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", title)).firstMatch
+        scrollAndTap(row, "the recipe row for “\(title)”")
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
+    }
+
+    /// Proves the forced type size took effect: at accessibility sizes the
+    /// recipe tabs stack vertically (A2-R2), at default size they sit in a row.
+    private func verifyTypeSize(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
+        let a = app.buttons["recipe-tab-ingredients"], b = app.buttons["recipe-tab-directions"]
+        guard a.waitForExistence(timeout: 5), b.exists else { return XCTFail("recipe tabs not found", file: file, line: line) }
+        // Stacked = the second tab starts below the first one's middle. (Left
+        // edges differ by the selected tab's capsule padding — 28 vs 38 pt in
+        // run 38259705494 — so they aren't compared.)
+        let stacked = b.frame.minY > a.frame.midY
+        if capture.typeSize != nil {
+            XCTAssertTrue(stacked, "AX3 forced: tabs stack vertically (\(a.frame) / \(b.frame))", file: file, line: line)
+        } else {
+            XCTAssertFalse(stacked, "default type size: tabs share a row", file: file, line: line)
+        }
+    }
+
+    /// Proves Dark Mode took effect by measuring the screen: mean luminance of
+    /// the screenshot is low in dark, high in light (cream background).
+    private func verifyAppearance(_ capture: RecipeCapture, file: StaticString = #filePath, line: UInt = #line) {
+        let luminance = Self.meanLuminance(app.screenshot().image)
+        if capture.dark {
+            XCTAssertLessThan(luminance, 0.35, "Dark Mode forced: screen luminance \(luminance)", file: file, line: line)
+        } else {
+            XCTAssertGreaterThan(luminance, 0.6, "light appearance: screen luminance \(luminance)", file: file, line: line)
+        }
+    }
+
+    static func meanLuminance(_ image: UIImage) -> Double {
+        guard let cg = image.cgImage else { return -1 }
+        let w = 24, h = 48
+        var px = [UInt8](repeating: 0, count: w * h * 4)
+        guard let ctx = CGContext(data: &px, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return -1 }
+        ctx.interpolationQuality = .medium
+        ctx.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        var total = 0.0
+        for i in stride(from: 0, to: px.count, by: 4) {
+            total += 0.2126 * Double(px[i]) + 0.7152 * Double(px[i + 1]) + 0.0722 * Double(px[i + 2])
+        }
+        return total / Double(w * h) / 255
+    }
+
+    /// Mean luminance of the bare page in the gap just below the recipe tabs
+    /// (the track ends 4 pt below the buttons; content starts 22 pt later).
+    /// The same spot in every layout, so the iPad sidebar, the tab bar, the
+    /// cook bar and the hero photo never count.
+    func pageLuminance(file: StaticString = #filePath, line: UInt = #line) -> Double {
+        let first = app.buttons["recipe-tab-ingredients"], last = app.buttons["recipe-tab-timing"]
+        guard first.waitForExistence(timeout: 5), last.exists else {
+            XCTFail("recipe tabs not found", file: file, line: line); return -1
+        }
+        // Bring the tabs to the upper middle, clear of the cook bar.
+        let screen = app.frame
+        for _ in 0..<3 where first.frame.maxY > screen.height * 0.6 || first.frame.minY < screen.minY + 100 {
+            let delta = max(-screen.height * 0.45, min(screen.height * 0.45, first.frame.midY - screen.midY))
+            let startY = delta >= 0 ? 0.70 : 0.30
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY - Double(delta / screen.height))),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+        Thread.sleep(forTimeInterval: 0.5) // let a sheet dismissal or color change finish
+        let shot = app.screenshot().image
+        guard let cg = shot.cgImage, screen.width > 0 else { return -1 }
+        let scale = CGFloat(cg.width) / screen.width
+        let x0 = first.frame.minX, x1 = last.frame.maxX, y0 = first.frame.maxY + 9
+        let rect = CGRect(x: x0 * scale, y: y0 * scale, width: (x1 - x0) * scale, height: 10 * scale).integral
+        guard let strip = cg.cropping(to: rect) else { return -1 }
+        return Self.meanLuminance(UIImage(cgImage: strip))
+    }
+
+    private func onRecipePage(_ capture: RecipeCapture) {
+        verifyTypeSize(capture)
+        verifyAppearance(capture)
+    }
+
+    /// r01 — the Recipes destination with an empty library.
+    func flowRecipeLibraryEmpty() {
+        launchRecipes([], .standard)
+        openRecipesLibrary()
+        let add = app.buttons["add-recipe"]
+        scrollTo(add)
+        XCTAssertTrue(app.staticTexts["Cook your own recipes, on time."].exists, "empty state explains the feature")
+        photograph("r01-library-empty")
+    }
+
+    /// r02, r04, r04b, r05 — unreviewed page, cook gate, duration editor
+    /// (Save pinned, disabled until changed, Cancel discards), confirmation.
+    func flowRecipeReviewGate(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture)
+        XCTAssertTrue(app.staticTexts["Selected: Steak night"].waitForExistence(timeout: 10), "seeded dinner")
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        onRecipePage(capture)
+        XCTAssertTrue(app.buttons["timing-review-banner"].exists, "an imported recipe asks for a timing check")
+        photograph("r02-recipe-unreviewed" + capture.suffix)
+
+        let cook = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(cook.label.contains("Check timing"), "the primary action asks for the check first: \(cook.label)")
+        cook.tap()
+        let confirm = app.buttons["timing-looks-right"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "the cook action opened the Timing tab")
+        XCTAssertTrue(app.buttons["recipe-tab-timing"].isSelected, "Timing is the selected tab")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
+                       "opening Timing did not change tonight’s dinner")
+
+        let freezer = app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch
+        scrollAndTap(freezer, "the three-hour freezer step’s minutes")
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5), "the duration editor opened")
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS '3 hr' OR label CONTAINS '180'")).firstMatch.exists,
+                      "it shows the three-hour freezer time")
+        // A2-R7: Save is pinned in view, disabled until the value changes,
+        // and Cancel discards a change.
+        let save = app.buttons["Save estimate"]
+        XCTAssertTrue(save.exists && save.isHittable, "Save is visible without scrolling")
+        XCTAssertFalse(save.isEnabled, "nothing to save yet")
+        photograph("r04-duration-180" + capture.suffix)
+        app.steppers.firstMatch.buttons["Increment"].tap()
+        XCTAssertTrue(save.isEnabled, "a changed estimate can be saved")
+        photograph("r04b-duration-181" + capture.suffix)
+        cancel.tap()
+        waitForDisappearance(cancel, "editor closed")
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS '180 minutes'")).firstMatch.exists,
+                      "Cancel discarded the change")
+
+        tapPinned(app.buttons["timing-looks-right"], "Timing looks right (pinned footer, A2-R8)")
+        waitForDisappearance(app.buttons["timing-looks-right"], "the review is recorded")
+        let cookNow = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(cookNow.label.contains("Cook this for dinner"), "after review the recipe can be cooked: \(cookNow.label)")
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'This is tonight'")).firstMatch.exists,
+                       "confirming did not choose the recipe as tonight’s dinner")
+        photograph("r05-timing-confirmed" + capture.suffix)
+        tapPinned(cookNow, "Choose the reviewed recipe for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
+                      "choosing a recipe routes to Tonight without starting cooking")
+        XCTAssertTrue(app.buttons["open-recipes"].exists, "Tonight keeps the Recipes shortcut")
+
+        // Tonight names the recipe (Joe, build 10) — the card opens its page,
+        // and "Back to Tonight" from there lands on Tonight, not the collection.
+        let card = app.buttons["tonight-recipe"]
+        scrollTo(card)
+        XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "Tonight shows which recipe is being made: \(card.label)")
+        photograph("r17-tonight-recipe" + capture.suffix)
+        card.tap()
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the card opened the recipe page")
+        let back = app.buttons["cook-this-recipe"]
+        XCTAssertTrue(back.label.contains("Back to Tonight"), "tonight’s recipe offers the way back: \(back.label)")
+        tapPinned(back, "Back to Tonight")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5),
+                      "Back to Tonight shows Tonight")
+        XCTAssertFalse(app.buttons["add-recipe"].exists, "…not the recipe collection")
+    }
+
+    /// The review banner's missing-time cue: the full sentence, or A2-21's
+    /// short form at accessibility sizes.
+    private func bannerMentionsMissingTime() -> Bool {
+        let label = app.buttons["timing-review-banner"].label
+        return label.contains("No total time") || label.contains("Add recipe time")
+    }
+
+    /// r03 — an untimed step stays marked as an estimate.
+    func flowRecipeEstimate(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.beanSpread], capture)
+        openRecipe(RecipeFixtureText.beanSpreadTitle)
+        onRecipePage(capture)
+        // No total time came with the text: the stat says so and takes one
+        // (Joe, build 11). r18.
+        let timeStat = app.buttons["recipe-time"]
+        XCTAssertTrue(timeStat.waitForExistence(timeout: 5), "the recipe-time stat is a button")
+        XCTAssertTrue(timeStat.label.contains("not stated"), "no total time yet: \(timeStat.label)")
+        XCTAssertTrue(bannerMentionsMissingTime(), "the review banner warns about the missing time: \(app.buttons["timing-review-banner"].label)")
+        scrollAndTap(timeStat, "Recipe time → Add time")
+        let save = app.buttons["recipe-time-save"]
+        waitForExistence(save, timeout: 5, "the Recipe time sheet")
+        XCTAssertFalse(save.isEnabled, "nothing to save at zero")
+        let minutesStepper = app.steppers.matching(NSPredicate(format: "label BEGINSWITH 'Minutes'")).firstMatch
+        waitForExistence(minutesStepper, timeout: 5, "the minutes stepper")
+        for _ in 0..<9 { minutesStepper.buttons["Increment"].tap() }
+        XCTAssertTrue(app.staticTexts["recipe-time-value"].label.contains("45"), "45 minutes entered: \(app.staticTexts["recipe-time-value"].label)")
+        photograph("r18-recipe-time-entry" + capture.suffix)
+        tapPinned(save, "Save recipe time")
+        waitForDisappearance(save, "the sheet closed")
+        XCTAssertTrue(timeStat.label.contains("45 min"), "the page shows the entered time: \(timeStat.label)")
+        XCTAssertFalse(bannerMentionsMissingTime(), "the warning is gone: \(app.buttons["timing-review-banner"].label)")
+        app.buttons["recipe-tab-timing"].tap()
+        let estimated = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Estimated time'")).firstMatch
+        scrollTo(estimated)
+        XCTAssertTrue(estimated.exists, "the untimed step stays marked as an estimate")
+        photograph("r03-timing-estimate" + capture.suffix)
+        let confirm = app.buttons["timing-looks-right"]
+        XCTAssertTrue(confirm.exists && confirm.isHittable, "the confirmation is reachable on Timing (pinned footer)")
+    }
+
+    /// r02 and r03 in another appearance, each from a fresh launch.
+    func flowRecipePageAndEstimate(_ capture: RecipeCapture) {
+        launchRecipes([RecipeFixtureText.frozenBerry], capture)
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        onRecipePage(capture)
+        photograph("r02-recipe-unreviewed" + capture.suffix)
+        flowRecipeEstimate(capture)
+    }
+
+    /// r06 — an Apple News link explains itself and switches to Screenshots.
+    func flowAppleNewsLink(_ capture: RecipeCapture = .standard) {
+        launchRecipes([], capture, extra: ["-dt-stub-apple-news"])
+        openRecipesLibrary()
+        scrollAndTap(app.buttons["add-recipe"], "Add a recipe")
+        let field = app.textFields["recipe-link"]
+        waitForExistence(field, timeout: 5, "the link field")
+        field.tap()
+        field.typeText("https://apple.news/KHuRjSBKDOACcBIjqE6y9tg")
+        // Keyboard down first: at AX3 the Add button sat under it, XCTest
+        // still called it hittable, and the tap went to the keyboard
+        // (run 38350049136: the sheet never left Link).
+        let returnKey = app.keyboards.buttons.matching(NSPredicate(format: "label IN {'return', 'go', 'Return', 'Go', 'done', 'Done'}")).firstMatch
+        if returnKey.waitForExistence(timeout: 2) { returnKey.tap() }
+        let importButton = app.buttons["import-recipe"]
+        scrollAndTap(importButton, "Add recipe")
+        // The explanation itself, not the field's "Apple News" hint.
+        let error = app.descendants(matching: .any)["import-error"]
+        XCTAssertTrue(error.waitForExistence(timeout: 10), "the import explanation appears")
+        XCTAssertTrue(error.label.contains("Apple News"), "…and it is about Apple News: \(error.label)")
+        // At AX3 the picker sits below a long paragraph; its UIKit-backed
+        // button is only exposed once scrolled near (run 38335694569).
+        let chooser = app.descendants(matching: .any)["choose-screenshots"]
+        for _ in 0..<6 where !chooser.exists {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)),
+                       withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+        if !chooser.exists { attachHierarchy("r06-no-chooser-hierarchy" + capture.suffix); photograph("r06-no-chooser" + capture.suffix) }
+        // The segmented control's selected segment is the switch itself; the
+        // picker's own element is the usual proof.
+        XCTAssertTrue(chooser.exists || app.buttons["Screenshots"].isSelected, "the sheet switched to Screenshots and stayed open")
+        if capture.typeSize != nil { bringIntoView(error) }
+        photograph("r06-apple-news-link" + capture.suffix)
+    }
+
+    /// r07 — a confirmation that can’t be saved says so and stays unreviewed.
+    func flowTimingSaveFailure() {
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-fail-recipe-saves"])
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        app.buttons["recipe-tab-timing"].tap()
+        tapPinned(app.buttons["timing-looks-right"], "Timing looks right (pinned footer, A2-R8)")
+        let problem = app.descendants(matching: .any)["recipe-save-error"]
+        XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown")
+        XCTAssertTrue(app.buttons["timing-looks-right"].exists, "the recipe is still unreviewed and the action is still reachable")
+        scrollToTop()
+        photograph("r07-save-error")
+    }
 
     /// r08 — the Thanksgiving card on Tonight.
     func flowThanksgivingCard() {
