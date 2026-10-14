@@ -1,0 +1,24 @@
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+index c078f65..8aac942 100644
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -319,8 +319,17 @@ class DinnerTogetherUITestCase: XCTestCase {
+         let bars = app.buttons.matching(pinned).allElementsBoundByIndex + app.staticTexts.matching(captions).allElementsBoundByIndex
+         // A pinned control sits in the bottom quarter and is never the target
+         // itself (run 38341383318: the Add sheet's own button counted as a bar).
+-        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1
+-                                 && $0.frame.minY > app.frame.maxY * 0.6 && $0.frame != target }.map { $0.frame.minY }
++        // XCUIElement.frame resolves a fresh accessibility snapshot. Read each
++        // bar's geometry once per call, not once per predicate comparison;
++        // subsequent scroll iterations still remeasure all live controls.
++        let screen = app.frame
++        let tops = bars.compactMap { bar -> CGFloat? in
++            guard bar.exists else { return nil }
++            let frame = bar.frame
++            guard frame.height > 0, frame.maxY <= screen.maxY + 1,
++                  frame.minY > screen.maxY * 0.6, frame != target else { return nil }
++            return frame.minY
++        }
+         return tops.min()
+     }
+ 
