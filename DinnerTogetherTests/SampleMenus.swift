@@ -7,12 +7,10 @@ import Foundation
 extension SampleMenus {
     @MainActor
     static func store(fileURL: URL, notifications: NotificationService) -> SessionStore {
-        let store = SessionStore(fileURL: fileURL, notifications: notifications, menuProvider: provider)
+        let store = SessionStore(fileURL: fileURL, notifications: notifications, menuProvider: Provider())
         if store.session.menuID.isEmpty { store.session.menuID = "steak" }
         return store
     }
-
-    static let provider = Provider()
 
     final class Provider: MenuProviding {
         func menu(id: String) -> DinnerMenu? { SampleMenus.menu(id: id) }
