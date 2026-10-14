@@ -225,7 +225,11 @@ run_ui_tests() { # label udid only_testing expected
   rm -rf "$bundle"
   # Per-test time allowance: a flow stuck on a missing element fails in
   # minutes instead of running the job into its timeout (run 12: 45 min).
-  xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+  # XCTest allowances did not stop the 95-minute silent runner hang in
+  # Duo run 38468245512. Bound the process independently and retain logs.
+  python3 "$ROOT/native-validation/run-with-deadline.py" \
+    --seconds 5400 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
+    xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
     -only-testing:"$only_testing" -resultBundlePath "$bundle" \
     -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
     > "$log" 2>&1; rc=$?
@@ -253,7 +257,9 @@ run_ui_tests() { # label udid only_testing expected
   # reported in the summary, as an annotation and in FLAKY.txt — never hidden.
   local retried="" flaky="" stillfailing="" retrynote="" retrylog="$RESULTS/25-ui-test-$label-retry.log" retrybundle="$RESULTS/$label-ui-retry.xcresult"
   local credit=0
-  if [ "$failed" -gt 0 ] && [ "$failed" -le 3 ]; then
+  # A killed process has incomplete evidence, even if a partial bundle
+  # names failures. A retry must never turn a deadline into success.
+  if [ "$rc" -ne 124 ] && [ "$failed" -gt 0 ] && [ "$failed" -le 3 ]; then
     local names namescount
     names=$(grep -oE "Test Case '-\[DinnerTogetherUITests\.[A-Za-z_]+ [A-Za-z0-9_]+\]' failed" "$log" \
       | sed -E "s/.*\.([A-Za-z_]+) ([A-Za-z0-9_]+)\]' failed/\1\/\2/" | sort -u)
@@ -265,7 +271,9 @@ run_ui_tests() { # label udid only_testing expected
       local onlyargs=()
       for t in $names; do onlyargs+=("-only-testing:DinnerTogetherUITests/$t"); done
       rm -rf "$retrybundle"
-      xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+      python3 "$ROOT/native-validation/run-with-deadline.py" \
+        --seconds 900 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
+        xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
         -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
         > "$retrylog" 2>&1; local retryrc=$?

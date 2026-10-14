@@ -41,6 +41,11 @@ case "$1" in
       [ -n "${FAKE_UI_RETRY_RC:-}" ] && { echo "** TEST FAILED **"; exit "$FAKE_UI_RETRY_RC"; }
       [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0
     fi
+    # FAKE_UI_HANG: the runner goes silent mid-run (Duo run 38468245512's
+    # 92-minute stall); the deadline wrapper must end it as a failure.
+    if [ -n "${FAKE_UI_HANG:-}" ] && [[ "$only" == *DinnerTogetherUITests* ]]; then
+      echo "Test Case '-[DinnerTogetherUITests.DinnerTogetherUITests test1]' started"; sleep 30
+    fi
     if [[ "$only" == *DinnerTogetherUITests* ]]; then
       # UI run: the class after the last "/" selects the expected count.
       class="${only##*/}"; ui_file="DinnerTogetherUITests/DinnerTogetherUITests.swift"

@@ -54,8 +54,9 @@ run_case ui-many-failing        1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=
 run_case ui-retry-partial-ids   1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=2 FAKE_UI_LOG_HIDE=1 FAKE_UI_RETRY_PASS=1   # xcresult counts 2 failures, the log names 1: nothing is retried, no credit
 run_case ui-retry-process-error 1    0     4    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1 FAKE_UI_RETRY_PASS=1 FAKE_UI_RETRY_RC=65   # the retry prints a pass and exits 65: no credit
 run_case ui-retry-pass-then-fail 1   0     4    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1 FAKE_UI_RETRY_PASS_THEN_FAIL=1   # the retry prints a pass and then a failure for the same test: no credit
+run_case ui-runner-hang         1    0     2    32   $UPNG   FAKE_UI_HANG=1 DT_UI_IDLE_SECONDS=2   # A2-40: a silent runner is ended by the deadline (exit 124) and fails, never retried
 run_case ui-attachments-missing 1    0     2    32   0    FAKE_UI_ATTACHMENTS_RC=1  # A1-U: export failure → the flows were not photographed
 run_case ui-skipped             1    0     2    32   $UPNG   FAKE_UI_SKIPPED=1      # A1-U: a skipped UI test on each device fails the gate
 run_case release-build-fails    1    0     1    32   $UPNG   FAKE_RELEASE_BUILD_RC=65  # build 9, release run 9: a DEBUG-only symbol must fail validation, not the archive
 rm -rf "$WORK"
-if [ "$bad" -eq 0 ]; then echo "PASS: 22 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
+if [ "$bad" -eq 0 ]; then echo "PASS: 23 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi

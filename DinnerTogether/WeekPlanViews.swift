@@ -506,10 +506,13 @@ struct DishThumbnail: View {
     let size: CGFloat
 
     var body: some View {
-        if A2CatalogArtworkStore.dish(step.dish) != nil {
+        if let recipe = library.recipe(menuID: menuID) {
+            if let cover = RecipePhotos.load(recipe, from: library) {
+                RecipeCoverThumbnail(image: cover.image, size: size)
+            }
+        } else if DinnerCatalog.menus.contains(where: { $0.id == menuID }),
+                  A2CatalogArtworkStore.dish(step.dish) != nil {
             A2CatalogIllustration(dish: step.dish).frame(width: size, height: size)
-        } else if let recipe = library.recipe(menuID: menuID), let cover = RecipePhotos.load(recipe, from: library) {
-            RecipeCoverThumbnail(image: cover.image, size: size)
         }
     }
 }
