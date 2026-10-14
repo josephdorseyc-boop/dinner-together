@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
-<title>Mash</title>
-<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
-<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
-<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
-<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 53 162 C 38 145 54 131 69 124 C 50 105 72 91 95 94 C 94 70 127 69 143 86 C 164 68 191 88 180 109 C 209 112 217 136 198 151 C 209 171 174 187 143 181 C 110 197 67 188 53 162 Z" fill="#F1E2BC" stroke="#D7A45B" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M 119 111 L 148 110 L 151 133 L 121 136 Z" fill="#EBCB88" stroke="#D7A45B" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>

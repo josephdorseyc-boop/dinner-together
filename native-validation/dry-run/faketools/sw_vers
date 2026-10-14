@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-echo "ProductName: macOS"; echo "ProductVersion: 15.0 (fake)"; echo "BuildVersion: 00A000"

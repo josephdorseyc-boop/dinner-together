@@ -1,3 +1,0 @@
-run_id=38010450198
-sha=3837266b472837ced22de7800b675f02c8426d1e
-job_status_so_far=success
