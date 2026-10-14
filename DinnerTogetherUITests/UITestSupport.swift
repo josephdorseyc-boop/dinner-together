@@ -307,6 +307,21 @@ class DinnerTogetherUITestCase: XCTestCase {
         return f.minY >= screen.minY + 60 && f.maxY <= zoneBottom
     }
 
+    /// Frame-in-zone without the hittability requirement (A1, issue #22): for
+    /// scrollTo callers that only read the element, or tap it by position.
+    /// At AX3 XCTest reported Tonight's correctly placed recipe title as not
+    /// hittable (runs 38610973412, 38628522264: test18, test42).
+    func isFrameInComfortZone(_ element: XCUIElement) -> Bool {
+        guard element.exists else { return false }
+        let screen = app.frame
+        let f = element.frame
+        let (zoneTop, zoneBottom) = comfortZone(excluding: f)
+        if f.height > zoneBottom - zoneTop {
+            return f.minY >= zoneTop && f.minY <= zoneBottom - 44
+        }
+        return f.minY >= screen.minY + 60 && f.maxY <= zoneBottom
+    }
+
     /// The top edge of whichever pinned bottom control is on screen (the
     /// recipe page's cook action, the editors' Save, Tonight's plan button).
     func pinnedBarTop(excluding target: CGRect) -> CGFloat? {
@@ -324,10 +339,13 @@ class DinnerTogetherUITestCase: XCTestCase {
         return tops.min()
     }
 
-    func scrollTo(_ element: XCUIElement, maxDrags: Int = 12,
+    func scrollTo(_ element: XCUIElement, maxDrags: Int = 12, requireHittable: Bool = true,
                   file: StaticString = #filePath, line: UInt = #line) {
         var drags = 0
-        while !isComfortablyVisible(element) && drags < maxDrags {
+        let visible = { (e: XCUIElement) -> Bool in
+            requireHittable ? self.isComfortablyVisible(e) : self.isFrameInComfortZone(e)
+        }
+        while !visible(element) && drags < maxDrags {
             let screen = app.frame
             // Aim the element at the middle of the screen; if it doesn't exist
             // yet, page downward. A short hold at the end stops the scroll view
@@ -359,7 +377,7 @@ class DinnerTogetherUITestCase: XCTestCase {
             Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
         }
-        if !isComfortablyVisible(element) {
+        if !visible(element) {
             let zone = element.exists ? comfortZone(excluding: element.frame) : (top: 0, bottom: 0)
             XCTFail("element not comfortably on screen after \(drags) scroll(s): \(element) — frame \(element.exists ? element.frame : .zero), "
                     + "hittable \(element.exists && element.isHittable), zone \(zone.top)…\(zone.bottom), screen \(app.frame)", file: file, line: line)
@@ -1116,10 +1134,10 @@ extension DinnerTogetherUITestCase {
         // Tonight names the recipe (Joe, build 10) — the card opens its page,
         // and "Back to Tonight" from there lands on Tonight, not the collection.
         let card = app.buttons["tonight-recipe"]
-        scrollTo(card)
+        scrollTo(card, requireHittable: false)  // A1: in place is enough; tapped by position below
         XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "Tonight shows which recipe is being made: \(card.label)")
         photograph("r17-tonight-recipe" + capture.suffix)
-        card.tap()
+        tapEvenInPopover(card)  // a coordinate tap: hittability is unreliable at AX3 (A1)
         waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the card opened the recipe page")
         let back = app.buttons["cook-this-recipe"]
         XCTAssertTrue(back.label.contains("Back to Tonight"), "tonight’s recipe offers the way back: \(back.label)")
@@ -1727,7 +1745,7 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 5), "Tonight")
 
         let card = app.buttons["tonight-recipe"]
-        scrollTo(card)
+        scrollTo(card, requireHittable: false)  // the label is read, never tapped (A1)
         XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "the card names the recipe first: \(card.label)")
         // The recipe's photo is Tonight's cover (Joe and A2, October 14).
         let cover = app.descendants(matching: .any)["tonight-cover"].firstMatch

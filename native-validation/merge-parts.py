@@ -39,6 +39,8 @@ def main(parts_dir, out):
     found.sort(key=lambda d: (ORDER.index(part_name(d)) if part_name(d) in ORDER else len(ORDER), d))
     summaries, failures, logs = [], 0, {}
     missing_status = []
+    missing_parts = [name for name in ORDER if name not in {part_name(d) for d in found}]
+    failures += len(missing_parts)
     for folder in found:
         name = part_name(folder)
         src = os.path.join(parts_dir, folder)
@@ -54,13 +56,13 @@ def main(parts_dir, out):
                     continue
                 if rel == "status.txt":
                     with open(path, encoding="utf-8", errors="replace") as fh:
-                        for line in fh:
-                            if line.startswith("REQUIRED_FAILURES="):
-                                try:
-                                    failures += int(line.split("=", 1)[1].strip() or "1")
-                                except ValueError:
-                                    failures += 1
-                                break
+                        values = [line.split("=", 1)[1].strip() for line in fh
+                                  if line.startswith("REQUIRED_FAILURES=")]
+                    if len(values) != 1 or not values[0].isascii() or not values[0].isdigit():
+                        missing_status.append(name)
+                        failures += 1
+                    else:
+                        failures += int(values[0])
                     continue
                 if f.startswith("25-ui-test-") and f.endswith(".log") and os.sep not in rel:
                     logs.setdefault(f, []).append((name, path))
@@ -87,8 +89,10 @@ def main(parts_dir, out):
                     shutil.copyfileobj(fh, out_fh)
                 out_fh.write("\n")
     header = f"Merged from {len(found)} part(s): {', '.join(part_name(d) for d in found) or 'none'}\n"
+    if missing_parts:
+        header += f"Missing required parts (counted as failures): {', '.join(missing_parts)}\n"
     if missing_status:
-        header += f"Parts without status.txt (counted as failures): {', '.join(missing_status)}\n"
+        header += f"Parts without valid status.txt (counted as failures): {', '.join(missing_status)}\n"
     with open(os.path.join(out, "SUMMARY.md"), "w", encoding="utf-8") as fh:
         fh.write(header + "\n" + "\n".join(summaries))
     with open(os.path.join(out, "status.txt"), "w", encoding="utf-8") as fh:
