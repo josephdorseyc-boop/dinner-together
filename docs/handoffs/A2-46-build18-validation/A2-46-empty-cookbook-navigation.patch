@@ -1,0 +1,30 @@
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -929,7 +929,25 @@
+     }
+ 
+     private func openRecipesLibrary() {
+-        scrollAndTap(app.buttons["open-recipes"], "Choose from Recipes")
++        let shortcut = app.buttons["open-recipes"]
++        if shortcut.exists {
++            scrollAndTap(shortcut, "Choose from Recipes")
++        } else {
++            // An empty cookbook has no Recipes shortcut (Joe, build 18).
++            // Use the first-recipe route verified by flowTonightFirstLaunch,
++            // then cancel its sheet to reach the still-empty collection.
++            let first = app.buttons["tonight-primary"].firstMatch
++            waitForExistence(first, timeout: 5, "the empty cookbook's primary action")
++            XCTAssertTrue(first.label.contains("Add your first recipe"),
++                          "the empty cookbook offers its first recipe: \(first.label)")
++            tapPinned(first, "Add your first recipe")
++            let importButton = app.buttons["import-recipe"].firstMatch
++            waitForExistence(importButton, timeout: 10, "the Add recipe sheet from Tonight")
++            let cancel = app.buttons["Cancel"].firstMatch
++            waitForExistence(cancel, timeout: 5, "Cancel in the Add recipe sheet")
++            tapEvenInPopover(cancel)
++            waitForDisappearance(importButton, "Cancel closes the Add recipe sheet")
++        }
+         waitForExistence(app.buttons["add-recipe"], timeout: 5, "Recipes collection")
+     }
+ 
