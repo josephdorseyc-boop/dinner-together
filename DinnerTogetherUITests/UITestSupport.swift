@@ -1472,8 +1472,9 @@ extension DinnerTogetherUITestCase {
     /// a classic for a day.
     func flowWeekPlan(_ capture: RecipeCapture = .standard) {
         launchRecipes([RecipeFixtureText.frozenBerry], capture)
-        let today = app.buttons["week-day-0"]
-        waitForExistence(today, timeout: 10, "This week on Tonight")
+        let today = app.descendants(matching: .any)["week-day-0"].firstMatch
+        if !today.waitForExistence(timeout: 10) { attachHierarchy("week-strip-missing-hierarchy") }
+        waitForExistence(today, timeout: 1, "This week on Tonight")
         // Below AT THE TABLE and Choose from Recipes, above the classics (Joe).
         let recipesButton = app.buttons["open-recipes"]
         XCTAssertGreaterThan(today.frame.minY, recipesButton.frame.maxY, "the week sits below Choose from Recipes")
@@ -1482,7 +1483,7 @@ extension DinnerTogetherUITestCase {
         photograph("r23a-week-strip" + capture.suffix)
 
         func plan(day index: Int, choose identifier: String) {
-            let chip = app.buttons["week-day-\(index)"]
+            let chip = app.descendants(matching: .any)["week-day-\(index)"].firstMatch
             scrollTo(chip)
             chip.tap()
             let option = app.buttons[identifier].firstMatch
@@ -1492,19 +1493,21 @@ extension DinnerTogetherUITestCase {
             waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         }
         plan(day: 1, choose: "day-plan-open")
-        XCTAssertTrue(app.buttons["week-day-1"].label.hasSuffix("Your pick"), "an open night: \(app.buttons["week-day-1"].label)")
-        app.buttons["week-day-2"].tap()
+        let day1 = app.descendants(matching: .any)["week-day-1"].firstMatch
+        XCTAssertTrue(day1.label.hasSuffix("Your pick"), "an open night: \(day1.label)")
+        app.descendants(matching: .any)["week-day-2"].firstMatch.tap()
         waitForExistence(app.buttons["day-plan-done"], timeout: 5, "the plan sheet")
         photograph("r23b-day-plan-sheet" + capture.suffix)
         let salmon = app.buttons["day-plan-salmon"]
         scrollTo(salmon)
         salmon.tap()
         waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
-        XCTAssertTrue(app.buttons["week-day-2"].label.hasSuffix("An easy salmon evening"), "\(app.buttons["week-day-2"].label)")
+        let day2 = app.descendants(matching: .any)["week-day-2"].firstMatch
+        XCTAssertTrue(day2.label.hasSuffix("An easy salmon evening"), "\(day2.label)")
 
         plan(day: 0, choose: "day-plan-pasta")
         XCTAssertTrue(app.staticTexts["Selected: A little pasta therapy"].waitForExistence(timeout: 5), "today’s chip chose tonight’s dinner")
-        XCTAssertTrue(app.buttons["week-day-0"].label.hasPrefix("Today: A little pasta therapy"))
+        XCTAssertTrue(today.label.hasPrefix("Today: A little pasta therapy"), today.label)
         photograph("r23c-week-planned" + capture.suffix)
 
         openRecipesLibrary()

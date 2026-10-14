@@ -200,7 +200,10 @@ struct WeekStrip: View {
                 .stroke(index == 0 ? Theme.tomato.opacity(0.55) : Theme.line, lineWidth: 1))
         }
         .buttonStyle(.plain)
-        .accessibilityElement(children: .ignore)
+        // `.ignore` replaced the button's own element (run 38484344610:
+        // "week-day-0" was not among the buttons); combine keeps the trait.
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
         .accessibilityLabel("\(index == 0 ? "Today" : day.formatted(.dateTime.weekday(.wide))): \(title)")
         .accessibilityHint(index == 0 ? "Choose tonight’s dinner." : "Plan this day’s dinner.")
         .accessibilityIdentifier("week-day-\(index)")
