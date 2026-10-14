@@ -1532,7 +1532,19 @@ extension DinnerTogetherUITestCase {
                 }
                 _ = sheet.waitForExistence(timeout: 5)
             }
-            if !sheet.exists { photograph("r23-day-sheet-missing"); attachHierarchy("r23-day-sheet-missing-hierarchy") }
+            if !sheet.exists {
+                photograph("r23-day-sheet-missing"); attachHierarchy("r23-day-sheet-missing-hierarchy")
+                // The failure message itself carries the facts (the run's
+                // annotation is readable where its artifacts are not): the
+                // chip's frame and hittability, what is presented, and every
+                // navigation bar's title — a presented day sheet has one.
+                let dayPlan = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH 'day-plan-'")).count
+                let bars = app.navigationBars.allElementsBoundByIndex.map { $0.identifier }
+                XCTFail("day sheet missing after tapping week-day-\(index): chip exists=\(chip.exists) hittable=\(chip.exists && chip.isHittable) "
+                        + "frame=\(chip.frame) window=\(app.windows.firstMatch.frame) alerts=\(app.alerts.count) popovers=\(app.popovers.count) "
+                        + "sheets=\(app.sheets.count) navBars=\(bars) day-plan elements=\(dayPlan) done=\(done.exists) "
+                        + "selected='\(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Selected:'")).firstMatch.label)'")
+            }
             waitForExistence(sheet, timeout: 1, "the day’s plan sheet")
             waitForExistence(done, timeout: 3, "the day’s plan sheet’s Done")
         }
