@@ -17,6 +17,8 @@ struct PlanView: View {
     var openRecipe: ((UUID) -> Void)? = nil
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     @State private var feasibility: Feasibility = .ok
     @State private var pendingMenuID: String?
     /// One sheet presenter for the page: the duration editor or the week's
@@ -39,18 +41,25 @@ struct PlanView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 28) {
-                header
-                servingTimeCard
-                tonightsRecipe
-                chooseRecipe
-                // The week sits below tonight's time and recipe choice
-                // (Joe, October 13).
-                WeekStrip(chooseToday: chooseFromWeek, openDay: { sheet = .day($0) })
-                thanksgivingSection
+            VStack(spacing: 0) {
+                // The photo cover (Joe and A2, October 14): tonight's recipe
+                // photo — or A2's notebook when nothing is chosen — with the
+                // dinner-time card on it in frosted glass.
+                cover
+                    .padding(.horizontal, 12)
+                    .padding(.top, 4)
+                    .frame(maxWidth: 744)
+                VStack(alignment: .leading, spacing: 28) {
+                    tonightsRecipe
+                    chooseRecipe
+                    // The week sits below tonight's time and recipe choice
+                    // (Joe, October 13).
+                    WeekStrip(chooseToday: chooseFromWeek, openDay: { sheet = .day($0) })
+                    thanksgivingSection
+                }
+                .padding(24)
+                .frame(maxWidth: 720)
             }
-            .padding(24)
-            .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
         .background(Theme.cream)
@@ -92,6 +101,9 @@ struct PlanView: View {
         }
         .navigationTitle("Dinner, Together")
         .navigationBarTitleDisplayMode(.inline)
+        // On iPhone the cover carries the name; iPad keeps its bar, which
+        // holds the sidebar button.
+        .toolbar(horizontalSizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
         .onAppear { recheckFeasibility() }
         .sensoryFeedback(.selection, trigger: store.session.menuID)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: store.session.menuID)
@@ -140,43 +152,107 @@ struct PlanView: View {
     /// The cook's own recipe when it is tonight's dinner.
     private var tonightRecipe: Recipe? { library.recipe(menuID: store.session.menuID) }
 
-    /// Tonight names the dish when it is one of the cook's recipes, right
-    /// above the catalog (Joe, build 10: "it should tell you which recipe
-    /// you're making on the home page"). Tapping opens the recipe.
+    /// Tonight names the dish when it is one of the cook's recipes (Joe,
+    /// build 10: "it should tell you which recipe you're making on the home
+    /// page"). Its photo is the cover above; here the name leads, large, and
+    /// opens the recipe.
     @ViewBuilder
     private var tonightsRecipe: some View {
         if let recipe = tonightRecipe {
-            VStack(alignment: .leading, spacing: 12) {
-                SectionLabel(text: "TONIGHT’S DINNER")
+            VStack(alignment: .leading, spacing: 6) {
+                SectionLabel(text: "TONIGHT’S RECIPE")
                 Button {
                     if let openRecipe { openRecipe(recipe.id) } else { goRecipes() }
                 } label: {
-                    // The cover leads when there is one (A2-35); accessibility
-                    // sizes keep the row with its small thumbnail, so the
-                    // title is never squeezed by a photo.
-                    if !dynamicTypeSize.isAccessibilitySize, let cover = RecipePhotos.hero(recipe, from: library) {
-                        TonightCoverCard(recipe: recipe, image: cover.image, palette: cover.palette,
-                                         bandHeight: horizontalSizeClass == .regular ? 160 : 120)
-                    } else {
-                        RecipeRow(recipe: recipe, selected: true)
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Text(recipe.title)
+                            .font(.system(.title, design: .serif).weight(.medium))
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.body.weight(.semibold)).foregroundStyle(Theme.muted)
                     }
+                    .foregroundStyle(Theme.ink)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("tonight-recipe")
                 .accessibilityHint("Opens the recipe.")
+                HStack(spacing: 6) {
+                    if let byline = recipe.source.byline {
+                        Text(byline).lineLimit(1)
+                        Text("·").accessibilityHidden(true)
+                    }
+                    if recipe.needsTimingReview {
+                        Label("Check the timing", systemImage: "clock.badge.questionmark")
+                            .fontWeight(.semibold).foregroundStyle(Theme.warning)
+                    } else {
+                        Text(RecipeFormat.duration(recipe.plannedMinutes))
+                    }
+                }
+                .font(.subheadline).foregroundStyle(Theme.muted)
             }
         }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Dinner, beautifully timed.")
-                .font(.system(.largeTitle, design: .serif).weight(.medium))
-            Text(library.isEmpty ? "Bring in a recipe. We’ll bring the timing together."
-                                 : "Choose your dinner. We’ll bring the timing together.")
-                .foregroundStyle(Theme.muted)
+    // MARK: The cover
+
+    /// Behind the cover: tonight's recipe's plate photo or cover, else A2's
+    /// default photo, so the page is never bare (Joe, October 14).
+    private var coverImage: UIImage? {
+        if let recipe = tonightRecipe, let photo = RecipePhotos.hero(recipe, from: library) { return photo.image }
+        return UIImage(named: "TonightCover")
+    }
+
+    /// The photo with the page's name over its top and the dinner-time card
+    /// on its lower edge. Inset from the screen edges as a rounded cover, so
+    /// the status bar stays over the plain page in Light and Dark.
+    private var cover: some View {
+        let cream = Color(red: 0.965, green: 0.945, blue: 0.890)
+        return VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                // iPad keeps the name in its navigation bar.
+                if horizontalSizeClass != .regular {
+                    Text("Dinner, Together")
+                        .font(.system(.subheadline, design: .serif).weight(.medium))
+                }
+                Text("Tonight")
+                    .font(.system(size: 44, weight: .medium, design: .serif))
+                    .minimumScaleFactor(0.7).lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            .foregroundStyle(cream)
+            .shadow(color: .black.opacity(0.25), radius: 6, y: 1)
+            .padding(.horizontal, 8)
+            .padding(.top, 10)
+            Spacer(minLength: 96)
+            servingTimeCard
         }
-        .accessibilityElement(children: .combine)
+        .padding(12)
+        .frame(maxWidth: .infinity, minHeight: horizontalSizeClass == .regular ? 480 : 440, alignment: .topLeading)
+        .background {
+            Color.clear
+                .overlay {
+                    if let coverImage {
+                        Image(uiImage: coverImage).resizable().scaledToFill()
+                    } else {
+                        Self.tableSurface
+                    }
+                }
+                .overlay(alignment: .top) {
+                    // Keeps the cream name readable on a pale photo.
+                    LinearGradient(stops: [.init(color: .black.opacity(0.62), location: 0),
+                                           .init(color: .black.opacity(0.48), location: 0.22),
+                                           .init(color: .black.opacity(0), location: 0.5)],
+                                   startPoint: .top, endPoint: .bottom)
+                }
+                .clipped()
+                .accessibilityHidden(true)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("tonight-cover")
     }
 
     /// Choosing: the first recipe when the cookbook is empty, otherwise the
@@ -184,20 +260,24 @@ struct PlanView: View {
     @ViewBuilder
     private var chooseRecipe: some View {
         if library.isEmpty {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Your cookbook is empty.")
-                    .font(.headline)
-                Text("Add a recipe from a link, screenshots or text. Once its timing is checked it can be tonight’s dinner.")
+            // A2's first-evening copy under the notebook cover.
+            VStack(spacing: 10) {
+                Text("Your recipes, together")
+                    .font(.system(.title, design: .serif).weight(.medium))
+                    .multilineTextAlignment(.center)
+                Text("Add a recipe you love from a link, text or screenshots. We’ll help you time dinner.")
                     .font(.subheadline).foregroundStyle(Theme.muted)
+                    .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                 Button { if let addRecipe { addRecipe() } else { goRecipes() } } label: {
-                    Label("Add your first recipe", systemImage: "plus")
+                    Label("Link, text or screenshots", systemImage: "link")
                 }
                 .buttonStyle(SecondaryButtonStyle())
+                .padding(.top, 4)
                 .accessibilityIdentifier("import-first-recipe")
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .dtCard()
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .contain)
             .accessibilityIdentifier("empty-cookbook")
         } else {
             Button(action: goRecipes) {
@@ -294,9 +374,26 @@ struct PlanView: View {
             .environment(\.colorScheme, .dark)
             .disabled(hasProgress)
         }
-        .padding(24)
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Self.tableSurface, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .background { tableGlass }
+    }
+
+    /// Dark frosted glass over the cover photo; solid espresso when the
+    /// cook asks for less transparency or more contrast (and in the
+    /// `-dt-solid-cards` captures). The tint keeps cream text ≥ 4.5:1 over
+    /// a white photo.
+    @ViewBuilder
+    private var tableGlass: some View {
+        let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
+        if reduceTransparency || contrast == .increased || LaunchOptions.solidCards {
+            shape.fill(Self.tableSurface)
+        } else {
+            shape.fill(.ultraThinMaterial)
+                .environment(\.colorScheme, .dark)
+                .overlay(shape.fill(Self.tableSurface.opacity(0.64)))
+                .overlay(shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+        }
     }
 
     /// Deep espresso in Light Mode, a lifted warm brown in Dark Mode (so it

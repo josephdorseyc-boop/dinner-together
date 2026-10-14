@@ -808,6 +808,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(app.staticTexts["Nothing chosen for tonight yet"].waitForExistence(timeout: 5), "the footer says nothing is chosen")
         XCTAssertTrue(app.descendants(matching: .any)["table-time-no-dinner"].exists, "the dinner-time card asks for a recipe")
         XCTAssertTrue(app.descendants(matching: .any)["empty-cookbook"].exists, "the empty-cookbook card")
+        XCTAssertTrue(app.descendants(matching: .any)["tonight-cover"].exists, "A2's default photo is the cover, never a bare page")
         XCTAssertFalse(app.buttons["open-recipes"].exists, "no Choose from Recipes with nothing to choose from")
         XCTAssertFalse(app.staticTexts["ON THE MENU"].exists, "no built-in dinners")
         photograph("09-tonight-first-launch")
@@ -1273,10 +1274,13 @@ class DinnerTogetherUITestCase: XCTestCase {
         let card = app.buttons["tonight-recipe"]
         scrollTo(card)
         XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "the card names the recipe first: \(card.label)")
-        if capture.typeSize == nil {
-            XCTAssertGreaterThan(card.frame.height, 150, "the cover leads Tonight's card: height \(card.frame.height)")
-        }
+        // The recipe's photo is Tonight's cover (Joe and A2, October 14).
+        let cover = app.descendants(matching: .any)["tonight-cover"].firstMatch
+        XCTAssertTrue(cover.exists, "the photo cover leads Tonight")
+        XCTAssertGreaterThan(cover.frame.height, 300, "the cover is a full cover: \(cover.frame)")
+        scrollToTop(maxDrags: 3)
         photograph("r22a-tonight-cover-\(photo)" + capture.suffix)
+        scrollTo(card)
 
         let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
         waitForExistence(build, timeout: 5, "the build action")

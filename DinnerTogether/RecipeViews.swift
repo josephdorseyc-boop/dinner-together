@@ -204,49 +204,6 @@ struct RecipeRow: View {
     }
 }
 
-/// Tonight's dinner when it has a cover (A2-35): the photo leads, the
-/// recipe's name and timing sit below it on the card's opaque surface.
-/// Without a cover, or at accessibility sizes, Tonight uses `RecipeRow`.
-struct TonightCoverCard: View {
-    let recipe: Recipe
-    let image: UIImage
-    let palette: RecipePalette?
-    let bandHeight: CGFloat
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            RecipeCoverBand(image: image, palette: palette, height: bandHeight)
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(recipe.title).font(.system(.title3, design: .serif).weight(.semibold))
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if let byline = recipe.source.byline {
-                        Text(byline).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
-                    }
-                    if recipe.needsTimingReview {
-                        Label("Check the timing", systemImage: "clock.badge.questionmark")
-                            .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
-                    } else {
-                        Text(RecipeFormat.duration(recipe.plannedMinutes)).font(.caption).foregroundStyle(Theme.olive)
-                    }
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.tomato).font(.title3)
-                    .accessibilityLabel("Tonight’s dinner")
-                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(Theme.muted)
-            }
-            .padding(.horizontal, 16).padding(.top, 4).padding(.bottom, 16)
-        }
-        .foregroundStyle(Theme.ink)
-        .background(Theme.paper)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).stroke(Theme.tomato.opacity(0.65), lineWidth: 1.25))
-        .accessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isSelected)
-    }
-}
-
 struct RecipeThumbnail: View {
     @EnvironmentObject private var library: RecipeLibrary
     let recipe: Recipe
