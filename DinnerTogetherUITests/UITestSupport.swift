@@ -327,7 +327,10 @@ class DinnerTogetherUITestCase: XCTestCase {
             // from decelerating past the target.
             var delta = screen.height * 0.4
             if element.exists {
-                delta = element.frame.midY - screen.midY
+                // A tall element (an AX3 recipe title on Tonight) is aimed
+                // by its top, which is what "on screen" means for it.
+                let f = element.frame
+                delta = f.height > screen.height * 0.4 ? f.minY - (screen.minY + 140) : f.midY - screen.midY
                 delta = max(-screen.height * 0.45, min(screen.height * 0.45, delta))
             }
             // Start above the pinned bottom bar: at AX3 the bar (caption +
@@ -929,7 +932,22 @@ extension DinnerTogetherUITestCase {
     }
 
     private func openRecipesLibrary() {
-        scrollAndTap(app.buttons["open-recipes"], "Choose from Recipes")
+        let choose = app.buttons["open-recipes"]
+        if choose.waitForExistence(timeout: 4) {
+            scrollAndTap(choose, "Choose from Recipes")
+        } else {
+            // An empty cookbook has no "Choose from Recipes" on Tonight
+            // (build 18): the Recipes tab on iPhone, the sidebar on iPad.
+            let tab = app.tabBars.buttons["Recipes"].firstMatch
+            if tab.exists {
+                tab.tap()
+            } else {
+                let row = app.buttons["Recipes"].firstMatch.exists ? app.buttons["Recipes"].firstMatch
+                    : app.staticTexts["Recipes"].firstMatch
+                waitForExistence(row, timeout: 5, "the Recipes tab or sidebar row")
+                row.tap()
+            }
+        }
         waitForExistence(app.buttons["add-recipe"], timeout: 5, "Recipes collection")
     }
 

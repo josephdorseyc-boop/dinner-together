@@ -238,6 +238,10 @@ run_ui_tests() { # label udid only_testing expected
     xcrun simctl launch "$udid" com.example.dinnertogether 2>&1 || true
     sleep "${DT_UI_WARMUP_SECONDS:-8}"
     xcrun simctl terminate "$udid" com.example.dinnertogether 2>&1 || true
+    # Let SpringBoard finish with the app before XCTest reinstalls it (run
+    # 38588198150, test01: "is installing or uninstalling, and cannot be
+    # launched").
+    sleep "${DT_UI_WARMUP_SECONDS:-8}"
     echo "== warm-up done $(date -u +%H:%M:%S)"
   } > "$RESULTS/24-ui-warmup-$label.log" 2>&1 || true
   # Per-test time allowance: a flow stuck on a missing element fails in
