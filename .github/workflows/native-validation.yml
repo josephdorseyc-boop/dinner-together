@@ -202,10 +202,21 @@ jobs:
           cd "$tmp" && git init -q -b ci-results
           git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A && git commit -q -m "native-validation results for run ${{ github.run_id }} (${{ github.sha }})"
+          published=false
           for attempt in 1 2 3 4; do
-            git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results && break
-            echo "push attempt $attempt failed; retrying"; sleep $((attempt * 15))
+            if git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results; then
+              published=true
+              break
+            fi
+            if [ "$attempt" -lt 4 ]; then
+              echo "push attempt $attempt failed; retrying"
+              sleep $((attempt * 15))
+            fi
           done
+          if [ "$published" != true ]; then
+            echo "::warning::Results branch publication failed after four attempts. Use the uploaded ui-review-evidence-${{ github.run_id }} artifact."
+            exit 1
+          fi
       - name: Gate — fail unless every required step ran and passed
         if: always()
         run: |

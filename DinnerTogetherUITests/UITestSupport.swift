@@ -483,6 +483,15 @@ class DinnerTogetherUITestCase: XCTestCase {
         return formatter.string(from: date.addingTimeInterval(60))
     }
 
+    /// The time-only part of a proposed moment. Across midnight the app's
+    /// buttons say "Move dinner to Oct 14, 2026 at 12:14 AM" (formatMoment
+    /// qualifies another day), while DINNER AT only ever shows the time —
+    /// run 38484344610 compared the two verbatim (A2's read of the log).
+    func timeOnly(_ moment: String) -> String {
+        if let range = moment.range(of: " at ", options: .backwards) { return String(moment[range.upperBound...]) }
+        return moment
+    }
+
     // MARK: Flows (each test method calls one)
 
     /// Flow 1 — Review dinner time from a late-prep notice: open the sheet,
@@ -508,7 +517,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         // real time. Read the label immediately before tapping, and accept
         // the minute boundary the proposal may cross between the read and
         // the tap (run 14 on iPad: button said 3:45, applied 3:46) (A3-U-F9).
-        let target = moveButton.label.replacingOccurrences(of: "Move dinner to ", with: "")
+        let target = timeOnly(moveButton.label.replacingOccurrences(of: "Move dinner to ", with: ""))
         XCTAssertNotEqual(target, before, "the move proposes a different time")
         moveButton.tap()
 
@@ -522,9 +531,20 @@ class DinnerTogetherUITestCase: XCTestCase {
         // The readout is read before anything else moves: a wrong-control
         // tap (the Completed disclosure) shows up here as the unchanged time,
         // with the frame of what was tapped in the failure message.
-        let restored = XCTWaiter().wait(for: [XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(before)"),
-            object: app.staticTexts["serving-time"])], timeout: 10) == .completed
+        func restoredNow() -> Bool {
+            XCTWaiter().wait(for: [XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(before)"),
+                object: app.staticTexts["serving-time"])], timeout: 10) == .completed
+        }
+        var restored = restoredNow()
+        if !restored, undo.exists {
+            // The undo is still offered, so nothing was undone: the tap
+            // missed (run 38484344610's retry: Undo at y 3358 when tapped).
+            // One more, from a fresh scroll — recorded so a flake is visible.
+            photograph("01-undo-tap-missed")
+            scrollAndTap(undo, "undo, second attempt")
+            restored = restoredNow()
+        }
         scrollToTop()
         photograph("01-after-undo")  // before asserting: the failure state is evidence too (A2)
         XCTAssertTrue(restored, "DINNER AT returned to \(before) right after the Undo tap (still '\(servingTimeValue)'; undo button now \(undo.exists ? "\(undo.frame)" : "gone"))")
