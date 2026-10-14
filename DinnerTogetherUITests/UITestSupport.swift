@@ -274,10 +274,10 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// bands where the navigation bar, tab bar and home indicator live.
     /// Run 14: `isHittable` was true for a "Review start" button whose
     /// lower half sat under the tab bar, and the tap did nothing (A3-U-F8).
-    func isComfortablyVisible(_ element: XCUIElement) -> Bool {
-        guard element.exists, element.isHittable else { return false }
+    /// The part of the screen an element must sit in to be "on screen":
+    /// below the status bar, above the tab bar and any pinned bottom bar.
+    func comfortZone(excluding f: CGRect) -> (top: CGFloat, bottom: CGFloat) {
         let screen = app.frame
-        let f = element.frame
         // The tab bar only matters when it is actually on top (not under a sheet).
         let tabBar = app.tabBars.firstMatch
         var bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
@@ -287,9 +287,16 @@ class DinnerTogetherUITestCase: XCTestCase {
         if let barTop = pinnedBarTop(excluding: f), barTop < screen.maxY - bottomBand {
             bottomBand = screen.maxY - barTop + 8
         }
+        return (screen.minY + 60, screen.maxY - bottomBand)
+    }
+
+    func isComfortablyVisible(_ element: XCUIElement) -> Bool {
+        guard element.exists, element.isHittable else { return false }
+        let screen = app.frame
+        let f = element.frame
+        let (zoneTop, zoneBottom) = comfortZone(excluding: f)
         // An element taller than the zone (an AX3 paragraph) can never fit
         // whole; its top inside the zone is what "on screen" can mean.
-        let zoneTop = screen.minY + 60, zoneBottom = screen.maxY - bottomBand
         if f.height > zoneBottom - zoneTop {
             return f.minY >= zoneTop && f.minY <= zoneBottom - 44
         }
@@ -297,7 +304,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         // actually covers the element already makes it non-hittable. (iPad's
         // "Adjust time" sits ~100 pt from the top and never scrolls higher —
         // run 16.)
-        return f.minY >= screen.minY + 60 && f.maxY <= screen.maxY - bottomBand
+        return f.minY >= screen.minY + 60 && f.maxY <= zoneBottom
     }
 
     /// The top edge of whichever pinned bottom control is on screen (the
@@ -327,11 +334,18 @@ class DinnerTogetherUITestCase: XCTestCase {
             // from decelerating past the target.
             var delta = screen.height * 0.4
             if element.exists {
-                // A tall element (an AX3 recipe title on Tonight) is aimed
-                // by its top, which is what "on screen" means for it.
+                // Aim at the middle of the visible zone, not of the screen:
+                // at AX3 Tonight's pinned bar covers the bottom third, and an
+                // element centred on the screen still ran under it with a
+                // zero-length drag every time (runs 38610973412,
+                // 38628522264; A2's read of 38588198150). An element taller
+                // than the zone is aimed by its top.
                 let f = element.frame
-                delta = f.height > screen.height * 0.4 ? f.minY - (screen.minY + 140) : f.midY - screen.midY
+                let zone = comfortZone(excluding: f)
+                delta = f.height > zone.bottom - zone.top - 16 ? f.minY - (zone.top + 24)
+                                                             : f.midY - (zone.top + zone.bottom) / 2
                 delta = max(-screen.height * 0.45, min(screen.height * 0.45, delta))
+                if abs(delta) < 4 { delta = delta < 0 ? -12 : 12 } // never a zero-length drag
             }
             // Start above the pinned bottom bar: at AX3 the bar (caption +
             // button + tab bar) reaches up to ~0.68 of the screen, and a drag
@@ -345,8 +359,11 @@ class DinnerTogetherUITestCase: XCTestCase {
             Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
         }
-        XCTAssertTrue(isComfortablyVisible(element),
-                      "element not comfortably on screen after \(drags) scroll(s): \(element)", file: file, line: line)
+        if !isComfortablyVisible(element) {
+            let zone = element.exists ? comfortZone(excluding: element.frame) : (top: 0, bottom: 0)
+            XCTFail("element not comfortably on screen after \(drags) scroll(s): \(element) — frame \(element.exists ? element.frame : .zero), "
+                    + "hittable \(element.exists && element.isHittable), zone \(zone.top)…\(zone.bottom), screen \(app.frame)", file: file, line: line)
+        }
     }
 
     /// Taps an element that may sit in a popover (iPad confirmation dialogs

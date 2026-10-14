@@ -247,15 +247,17 @@ run_ui_tests() { # label udid only_testing expected
     sleep "${DT_UI_WARMUP_SECONDS:-8}"
     echo "== warm-up done $(date -u +%H:%M:%S)"
   } > "$RESULTS/24-ui-warmup-$label.log" 2>&1 || true
-  # Per-test time allowance: a flow stuck on a missing element fails in
+  # Per-test time allowance (240 s, at most 360: the macOS runners slowed
+  # until iPad test01 hit the old 240 s cap in run 38628522264, whose job
+  # took 149 of its 150 minutes): a flow stuck on a missing element fails in
   # minutes instead of running the job into its timeout (run 12: 45 min).
   # XCTest allowances did not stop the 95-minute silent runner hang in
   # Duo run 38468245512. Bound the process independently and retain logs.
   python3 "$ROOT/native-validation/run-with-deadline.py" \
-    --seconds 5400 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
+    --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
     xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
     -only-testing:"$only_testing" -resultBundlePath "$bundle" \
-    -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
+    -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
     > "$log" 2>&1; rc=$?
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
@@ -299,7 +301,7 @@ run_ui_tests() { # label udid only_testing expected
         --seconds 900 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
         xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
-        -test-timeouts-enabled YES -default-test-execution-time-allowance 150 -maximum-test-execution-time-allowance 240 \
+        -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
         > "$retrylog" 2>&1; local retryrc=$?
       retried="$names"
       for t in $names; do
