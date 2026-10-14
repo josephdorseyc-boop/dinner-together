@@ -1,0 +1,24 @@
+diff --git a/native-validation/run-native-pass.sh b/native-validation/run-native-pass.sh
+--- a/native-validation/run-native-pass.sh
++++ b/native-validation/run-native-pass.sh
+@@ -44,6 +44,9 @@
+ 
+ # Expected test count comes from the source, so "0 tests executed" cannot pass.
+ EXPECTED_TESTS=$(cat "$ROOT"/DinnerTogetherTests/*.swift | grep -c 'func test' || true)
++# UIKit-only files execute on the iOS simulator, not the macOS engine harness.
++# Keep the simulator count intact; match the Linux workflow for swift test.
++EXPECTED_ENGINE_TESTS=$(grep -L 'canImport(UIKit)' "$ROOT"/DinnerTogetherTests/*.swift | xargs cat | grep -c 'func test' || true)
+ EXPECTED_UI_IPHONE=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" 'func test')
+ EXPECTED_UI_IPAD=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift" 'func test')
+ 
+@@ -416,8 +419,8 @@
+ swift test > "$LOG" 2>&1; rc=$?
+ step_result "swift test" $rc "$LOG"
+ executed=$(grep -oE 'Executed [0-9]+ tests' "$LOG" 2>/dev/null | grep -oE '[0-9]+' | sort -n | tail -1); executed=${executed:-0}
+-note "  - executed $executed (expected $EXPECTED_TESTS) — \`$(basename "$LOG")\`"
+-if [ "$executed" -lt "$EXPECTED_TESTS" ]; then fail "swift test executed $executed of $EXPECTED_TESTS expected tests"; fi
++note "  - executed $executed (expected $EXPECTED_ENGINE_TESTS) — \`$(basename "$LOG")\`"
++if [ "$executed" -lt "$EXPECTED_ENGINE_TESTS" ]; then fail "swift test executed $executed of $EXPECTED_ENGINE_TESTS expected tests"; fi
+ grep -E 'error:|failed' "$LOG" | head -20 | sed 's/^/    /' | tee -a "$SUMMARY" >/dev/null || true
+ 
+ note ""
