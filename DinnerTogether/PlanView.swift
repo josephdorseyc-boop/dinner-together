@@ -34,22 +34,23 @@ struct PlanView: View {
         }
     }
     @State private var sheet: PageSheet?
+    /// Whether the cover photo is under the navigation bar (at rest, yes).
+    @State private var coverUnderBar = true
 
     private var hasProgress: Bool {
         store.session.records.values.contains { $0.state != .notStarted }
     }
 
     var body: some View {
+        GeometryReader { outer in
         ScrollView {
             VStack(spacing: 0) {
                 // The photo cover (Joe and A2, October 14): tonight's recipe
-                // photo — or A2's notebook when nothing is chosen — fading in
-                // from the page and hazing back into it, with the dinner-time
-                // card on it in frosted glass. The page's name sits above it
-                // on the plain page, so the status bar never sits on a photo.
-                pageTitle
-                    .frame(maxWidth: 720)
-                cover
+                // photo — or A2's notebook when nothing is chosen — from the
+                // very top of the screen, under the clock and the bar, fading
+                // into the page at its foot, with the dinner-time card on it
+                // in frosted glass.
+                cover(topInset: outer.safeAreaInsets.top)
                 VStack(alignment: .leading, spacing: 28) {
                     tonightsRecipe
                     chooseRecipe
@@ -63,6 +64,17 @@ struct PlanView: View {
             }
             .frame(maxWidth: .infinity)
         }
+        .ignoresSafeArea(edges: .top)
+        .onPreferenceChange(CoverBottomKey.self) { bottom in
+            // The bar turns back to the plain page once the photo has
+            // scrolled up out from under it.
+            let underBar = bottom > outer.safeAreaInsets.top + 24
+            if underBar != coverUnderBar { coverUnderBar = underBar }
+        }
+        }
+        // The reader spans the top too, so it reports the clock-and-bar
+        // inset the page name has to clear.
+        .ignoresSafeArea(edges: .top)
         .background(Theme.cream)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 6) {
@@ -100,11 +112,14 @@ struct PlanView: View {
             .frame(maxWidth: .infinity)
             .background(Theme.cream)
         }
-        .navigationTitle("Dinner, Together")
+        // Over the photo the bar is clear and dark-styled, so the clock and
+        // battery read light on the photo; once the photo has scrolled away
+        // it is the plain page's bar again, with the app's name.
+        .navigationTitle(coverUnderBar ? "" : "Dinner, Together")
         .navigationBarTitleDisplayMode(.inline)
-        // On iPhone the cover carries the name; iPad keeps its bar, which
-        // holds the sidebar button.
-        .toolbar(horizontalSizeClass == .regular ? .automatic : .hidden, for: .navigationBar)
+        .toolbarBackground(Theme.cream, for: .navigationBar)
+        .toolbarBackground(coverUnderBar ? .hidden : .visible, for: .navigationBar)
+        .toolbarColorScheme(coverUnderBar ? .dark : nil, for: .navigationBar)
         .onAppear { recheckFeasibility() }
         .sensoryFeedback(.selection, trigger: store.session.menuID)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: store.session.menuID)
@@ -206,39 +221,36 @@ struct PlanView: View {
         return UIImage(named: "TonightCover")
     }
 
-    /// "Dinner, Together · Tonight" on the page, above the cover.
-    private var pageTitle: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // iPad keeps the name in its navigation bar.
-            if horizontalSizeClass != .regular {
+    /// The photo from the very top of the screen (Joe, October 14: "all
+    /// the way to the top"), the page's name over it on a soft dark scrim,
+    /// the frosted dinner-time card on its lower half, and a fade into the
+    /// page at its foot only. The fade is a mask, so the page color shows
+    /// through in Light and Dark alike.
+    private func cover(topInset: CGFloat) -> some View {
+        let cream = Color(red: 0.965, green: 0.945, blue: 0.890)
+        return VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text("Dinner, Together")
                     .font(.system(.subheadline, design: .serif).weight(.medium))
-                    .foregroundStyle(Theme.muted)
+                Text("Tonight")
+                    .font(.system(size: 44, weight: .medium, design: .serif))
+                    .minimumScaleFactor(0.7).lineLimit(1)
+                    .accessibilityAddTraits(.isHeader)
             }
-            Text("Tonight")
-                .font(.system(size: 40, weight: .medium, design: .serif))
-                .minimumScaleFactor(0.7).lineLimit(1)
-                .foregroundStyle(Theme.ink)
-                .accessibilityAddTraits(.isHeader)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 24)
-        .padding(.top, 8)
-    }
-
-    /// The photo, full width, fading in from the page at its top and hazing
-    /// back into it at the bottom (Joe, October 14: "I like the hazy fade"),
-    /// with the dinner-time card on its lower half. The fade is a mask, so
-    /// the page shows through in Light and Dark alike.
-    private var cover: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: horizontalSizeClass == .regular ? 200 : 150)
+            .foregroundStyle(cream)
+            .shadow(color: .black.opacity(0.25), radius: 6, y: 1)
+            .frame(maxWidth: 696, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.top, topInset + 2)
+            Spacer(minLength: 110)
             servingTimeCard
                 .frame(maxWidth: 696)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 12)
-            Spacer().frame(height: 40) // the card's foot rests in the haze
+            Spacer().frame(height: 44) // the card's foot rests in the fade
         }
-        .frame(maxWidth: .infinity, minHeight: horizontalSizeClass == .regular ? 500 : 440)
+        .frame(maxWidth: .infinity, minHeight: topInset + (horizontalSizeClass == .regular ? 500 : 440))
         .background {
             Color.clear
                 .overlay {
@@ -246,17 +258,26 @@ struct PlanView: View {
                         Image(uiImage: coverImage).resizable().scaledToFill()
                     }
                 }
+                .overlay(alignment: .top) {
+                    // Keeps the clock, the name and the bar readable on a pale photo.
+                    LinearGradient(stops: [.init(color: .black.opacity(0.55), location: 0),
+                                           .init(color: .black.opacity(0.42), location: 0.25),
+                                           .init(color: .black.opacity(0), location: 0.5)],
+                                   startPoint: .top, endPoint: .bottom)
+                }
                 .clipped()
                 .mask {
-                    LinearGradient(stops: [.init(color: .clear, location: 0),
-                                           .init(color: .black, location: 0.07),
-                                           .init(color: .black, location: 0.6),
-                                           .init(color: .black.opacity(0.35), location: 0.85),
+                    LinearGradient(stops: [.init(color: .black, location: 0),
+                                           .init(color: .black, location: 0.7),
+                                           .init(color: .black.opacity(0.4), location: 0.88),
                                            .init(color: .clear, location: 1)],
                                    startPoint: .top, endPoint: .bottom)
                 }
                 .accessibilityHidden(true)
         }
+        .background(GeometryReader { g in
+            Color.clear.preference(key: CoverBottomKey.self, value: g.frame(in: .global).maxY)
+        })
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("tonight-cover")
     }
@@ -534,4 +555,11 @@ struct PlanView: View {
             now: Date()
         )
     }
+}
+
+/// Where the bottom of Tonight's cover is on screen, to restyle the bar
+/// once the photo has scrolled out from under it.
+private struct CoverBottomKey: PreferenceKey {
+    static var defaultValue: CGFloat = .infinity
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = min(value, nextValue()) }
 }
