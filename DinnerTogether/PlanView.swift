@@ -225,6 +225,7 @@ struct PlanView: View {
         return UIImage(named: "TonightCover")
     }
 
+    #if DEBUG
     /// Which picture the cover shows — for UI tests of A2-44's priority
     /// (plate, then cover, then the notebook), as the cover's value.
     private var coverSource: String {
@@ -233,6 +234,7 @@ struct PlanView: View {
         if RecipePhotos.load(recipe, from: library) != nil { return "cover" }
         return "notebook"
     }
+    #endif
 
     /// The photo from the very top of the screen (Joe, October 14: "all
     /// the way to the top"): the cover lays out below the bar, and on iPhone
@@ -298,7 +300,9 @@ struct PlanView: View {
         })
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("tonight-cover")
+        #if DEBUG
         .accessibilityValue(coverSource)
+        #endif
     }
 
     /// Choosing: the first recipe when the cookbook is empty, otherwise the

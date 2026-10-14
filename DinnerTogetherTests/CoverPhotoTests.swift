@@ -94,6 +94,14 @@ final class CoverPhotoTests: XCTestCase {
         XCTAssertTrue(library.update(edited))
         XCTAssertEqual(heroSize(recipe.id, library), CGSize(width: 30, height: 50), "a corrupt plate photo falls back to the cover")
 
+        // A corrupt cover with no plate must fall all the way back to the notebook.
+        let corruptCover = "corrupt-cover-\(UUID().uuidString).jpg"
+        try Data("not a cover picture".utf8).write(to: folder.appendingPathComponent(corruptCover))
+        edited.platePhotoFilename = nil
+        edited.imageFilename = corruptCover
+        XCTAssertTrue(library.update(edited))
+        XCTAssertNil(heroSize(recipe.id, library), "a corrupt cover falls back to the notebook")
+
         // Both files missing: nothing leads (Tonight shows the notebook).
         edited.platePhotoFilename = "missing-\(UUID().uuidString).jpg"
         edited.imageFilename = "missing-\(UUID().uuidString).jpg"
