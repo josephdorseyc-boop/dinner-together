@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+if [ "$1" = "xcresulttool" ]; then
+  shift
+  if [ "$1" = "export" ]; then
+    # export attachments --path <bundle> --output-path <dir>
+    out=""; prev=""; for a in "$@"; do [ "$prev" = "--output-path" ] && out="$a"; prev="$a"; done
+    [ -z "$out" ] && { echo "fake: no --output-path" >&2; exit 2; }
+    if [ -n "${FAKE_UI_ATTACHMENTS_RC:-}" ]; then echo "fake: attachment export failed" >&2; exit "$FAKE_UI_ATTACHMENTS_RC"; fi
+    mkdir -p "$out"
+    fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; [ "$(basename "$out")" = "ipad" ] && fu="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"
+    dflt=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)
+    n=${FAKE_UI_PNGS:-${FAKE_UI_EXECUTED:-$dflt}}
+    for ((k=1;k<=n;k++)); do printf 'PNGFAKE' > "$out/ui-shot-$k.png"; done
+    exit 0
+  fi
+  # get test-results summary --path <bundle>: mirror the fake xcodebuild's
+  # counts (FAKE_EXECUTED / FAKE_FAIL_CASES / FAKE_SKIPPED, or the FAKE_UI_*
+  # variants for a UI result bundle), like a real result bundle would.
+  path=""; prev=""; for a in "$@"; do [ "$prev" = "--path" ] && path="$a"; prev="$a"; done
+  d=$(cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c 'func test')
+  n=${FAKE_EXECUTED:-$d}; k=${FAKE_FAIL_CASES:-0}; s=${FAKE_SKIPPED:-0}
+  if [[ "$path" == *-ui* ]]; then
+    fu="DinnerTogetherUITests/DinnerTogetherUITests.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 9)
+    if [ "$(basename "$path")" = "ipad-ui.xcresult" ]; then fu="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"; du=$([ -f "$fu" ] && grep -c 'func test' "$fu" || echo 2); fi
+    n=${FAKE_UI_EXECUTED:-$du}; k=${FAKE_UI_FAIL_CASES:-0}; s=${FAKE_UI_SKIPPED:-0}
+  fi
+  echo "{\"totalTestCount\": $n, \"passedTests\": $((n-k-s)), \"failedTests\": $k, \"skippedTests\": $s, \"result\": \"$([ $k -eq 0 ] && echo Passed || echo Failed)\"}"; exit 0
+fi
+[ "$1" = "simctl" ] || { echo "fake xcrun: $*" >&2; exit 2; }
+shift
+case "$1 $2 $3" in
+  "list devices available")
+    if [ "$4" = "-j" ]; then
+      ipad='{"name":"iPad Pro 13-inch (M4)","udid":"IPAD-UDID","isAvailable":true}'; [ -n "${FAKE_NO_IPAD:-}" ] && ipad=""
+      echo "{\"devices\":{\"com.apple.CoreSimulator.SimRuntime.iOS-18-0\":[{\"name\":\"iPhone 16\",\"udid\":\"IPHONE-UDID\",\"isAvailable\":true},{\"name\":\"iPhone 16 Pro Max\",\"udid\":\"X\",\"isAvailable\":true}${ipad:+,$ipad}]}}"
+    else echo "iPhone 16 (IPHONE-UDID) (Shutdown)"; fi; exit 0;;
+  "list runtimes available") echo "iOS 18.0 (fake)"; exit 0;;
+esac
+case "$1" in
+  boot|bootstatus|install|terminate|shutdown) exit 0;;
+  launch) echo "com.example.dinnertogether: 1234"; exit 0;;
+  get_app_container) d="${FAKE_CONTAINER:-/tmp/fake-container}-$2"; mkdir -p "$d/Documents"; echo "$d"; exit 0;;
+  ui) [ "$3" = "content_size" ] && exit ${FAKE_CONTENT_SIZE_RC:-0}; [ "$3" = "appearance" ] && exit ${FAKE_APPEARANCE_RC:-0}; exit 0;;
+  io) # io <udid> screenshot <path>
+    [ -n "${FAKE_SHOT_FAIL:-}" ] && exit 1; printf 'PNGFAKE' > "$4"; exit 0;;
+  spawn) echo "PID Status Label"; if [ -n "${FAKE_APP_DEAD:-}" ]; then echo "999 0 UIKitApplication:other.app[0][9]"; else echo "1234 0 UIKitApplication:com.example.dinnertogether[0x1][1234]"; fi; exit 0;;
+esac
+exit 0

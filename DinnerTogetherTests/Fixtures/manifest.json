@@ -1,0 +1,128 @@
+[
+  {
+    "file": "eatingwell-sheet-pan-chicken-zucchini.html",
+    "site": "EatingWell",
+    "source_url": "https://www.eatingwell.com/sheet-pan-chicken-with-zucchini-11940836",
+    "unavailable": "HTTP 402: Dotdash Meredith (people.inc) bot protection blocks datacenter IPs; tried iPhone Safari and desktop Chrome user-agents"
+  },
+  {
+    "file": "allrecipes-best-ever-banana-bread.html",
+    "site": "Allrecipes",
+    "source_url": "https://www.allrecipes.com/recipe/15747/best-ever-banana-bread/",
+    "unavailable": "HTTP 402: Dotdash Meredith (people.inc) bot protection blocks datacenter IPs; tried iPhone Safari and desktop Chrome user-agents"
+  },
+  {
+    "file": "foodandwine-chicken-piccata-pasta.html",
+    "site": "Food & Wine",
+    "source_url": "https://www.foodandwine.com/chicken-piccata-pasta-8775045",
+    "unavailable": "HTTP 402: Dotdash Meredith (people.inc) bot protection blocks datacenter IPs; tried iPhone Safari and desktop Chrome user-agents"
+  },
+  {
+    "file": "seriouseats-detroit-style-pizza.html",
+    "site": "Serious Eats",
+    "source_url": "https://www.seriouseats.com/detroit-style-pizza-recipe",
+    "unavailable": "HTTP 402: Dotdash Meredith (people.inc) bot protection blocks datacenter IPs; tried iPhone Safari and desktop Chrome user-agents"
+  },
+  {
+    "file": "simplyrecipes-slow-cooker-beef-stew.html",
+    "site": "Simply Recipes",
+    "source_url": "https://www.simplyrecipes.com/slow-cooker-beef-stew-recipe-6541415",
+    "unavailable": "HTTP 402: Dotdash Meredith (people.inc) bot protection blocks datacenter IPs; tried iPhone Safari and desktop Chrome user-agents"
+  },
+  {
+    "file": "nyt-no-knead-bread.html",
+    "site": "NYT Cooking",
+    "source_url": "https://cooking.nytimes.com/recipes/11376-no-knead-bread",
+    "page_title": "No-Knead Bread Recipe",
+    "expected_title": "No-Knead Bread",
+    "ingredient_count": 4,
+    "step_count": 4,
+    "total_time": "21 hr 30 mins",
+    "markup": "json-ld",
+    "bytes": 56083
+  },
+  {
+    "file": "bbcgoodfood-classic-lasagne.html",
+    "site": "BBC Good Food",
+    "source_url": "https://www.bbcgoodfood.com/recipes/classic-lasagne",
+    "page_title": "Easy classic lasagne recipe | Good Food",
+    "expected_title": "Easy classic lasagne",
+    "ingredient_count": 15,
+    "step_count": 5,
+    "total_time": "1 hr 15 mins",
+    "markup": "json-ld",
+    "bytes": 46644,
+    "notes": "URL /recipes/classic-lasagne serves the renamed 'Easy classic lasagne' recipe; 5 HowToStep items in JSON-LD"
+  },
+  {
+    "file": "bonappetit-bas-best-chocolate-chip-cookies.html",
+    "site": "Bon Appetit",
+    "source_url": "https://www.bonappetit.com/recipe/bas-best-chocolate-chip-cookies",
+    "page_title": "BA's Best Chocolate Chip Cookies Recipe | Bon Appétit",
+    "expected_title": "BA's Best Chocolate Chip Cookies",
+    "ingredient_count": 10,
+    "step_count": 4,
+    "total_time": "40 minutes",
+    "markup": "json-ld",
+    "bytes": 44110,
+    "notes": "totalTime given as plain string '40 minutes', not ISO 8601"
+  },
+  {
+    "file": "food52-perfect-roast-chicken.html",
+    "site": "Food52",
+    "source_url": "https://food52.com/recipes/3401-perfect-roast-chicken",
+    "unavailable": "HTTP 429 rate limit on all 3 attempts (including after 60s backoff); not a hard block, retry later"
+  },
+  {
+    "file": "recipetineats-hollandaise-sauce.html",
+    "site": "RecipeTin Eats (WPRM)",
+    "source_url": "https://www.recipetineats.com/hollandaise-sauce/",
+    "page_title": "Hollandaise Sauce (Quick, easy, foolproof) - RecipeTin Eats",
+    "expected_title": "Hollandaise sauce",
+    "ingredient_count": 6,
+    "step_count": 10,
+    "total_time": null,
+    "markup": "json-ld",
+    "bytes": 83543,
+    "notes": "WP Recipe Maker markup; no totalTime (prepTime PT5M, cookTime PT3M); 10 HowToStep items include tip/note steps (Thickness, Salt adjustment, Lemon adjustment, Using)"
+  },
+  {
+    "file": "pinchofyum-pastina-soup.html",
+    "site": "Pinch of Yum (Tasty Recipes)",
+    "source_url": "https://pinchofyum.com/pastina-soup-italian-penicillin",
+    "page_title": "Pastina Soup (Italian Penicillin) Recipe - Pinch of Yum",
+    "expected_title": "Pastina Soup (Italian Penicillin)",
+    "ingredient_count": 9,
+    "step_count": 6,
+    "total_time": "45 mins",
+    "markup": "json-ld",
+    "bytes": 77522,
+    "notes": "Tasty Recipes plugin markup"
+  },
+  {
+    "file": "smittenkitchen-double-chocolate-banana-bread.html",
+    "site": "Smitten Kitchen (microdata-only)",
+    "source_url": "http://smittenkitchen.com/blog/2014/03/double-chocolate-banana-bread/",
+    "page_title": "double chocolate banana bread – smitten kitchen",
+    "expected_title": "Double Chocolate Banana Bread",
+    "ingredient_count": 11,
+    "step_count": 4,
+    "total_time": null,
+    "markup": "microdata",
+    "bytes": 10499,
+    "notes": "No JSON-LD on page; Jetpack hrecipe microdata (itemscope schema.org/Recipe, itemprop=recipeIngredient x11). Instructions are a directions div + 3 paragraphs (no itemprop=recipeInstructions); final paragraph is do-ahead storage info"
+  },
+  {
+    "file": "negative-wikipedia-banana-bread.html",
+    "site": "Wikipedia (negative case)",
+    "source_url": "https://en.wikipedia.org/wiki/Banana_bread",
+    "page_title": "Banana bread - Wikipedia",
+    "expected_title": null,
+    "ingredient_count": 0,
+    "step_count": 0,
+    "total_time": null,
+    "markup": "none",
+    "bytes": 36983,
+    "notes": "Negative case: no Recipe markup of any kind; importer must return no recipe"
+  }
+]

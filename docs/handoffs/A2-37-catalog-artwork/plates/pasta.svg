@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>A little pasta therapy</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="102.68" cy="143.4" rx="69.66" ry="45.36" fill="#EBCB88" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 43.55 109.38 C 100.25 87.51 138.32 130.44 57.32 162.84 C 41.12 162.84 57.32 123.96 112.4 136.11" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 54.89 118.29 C 111.59 96.42 149.66 139.35 68.66 171.75 C 52.46 171.75 68.66 132.87 123.74 145.02" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 66.23 127.2 C 122.93 105.33 161 148.26 80 180.66 C 63.8 180.66 80 141.78 135.08 153.93" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 77.57 109.38 C 134.27 87.51 172.34 130.44 91.34 162.84 C 75.14 162.84 91.34 123.96 146.42 136.11" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 88.91 118.29 C 145.61 96.42 183.68 139.35 102.68 171.75 C 86.48 171.75 102.68 132.87 157.76 145.02" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 100.25 127.2 C 156.95 105.33 195.02 148.26 114.02 180.66 C 97.82 180.66 114.02 141.78 169.1 153.93" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 111.59 109.38 C 168.29 87.51 206.36 130.44 125.36 162.84 C 109.16 162.84 125.36 123.96 180.44 136.11" fill="none" stroke="#D7A45B" stroke-width="6.48" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 54.08 127.2 Q 64.61 107.76 78.38 127.2 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 62.18 127.2 L 62.18 136.92 L 67.85 136.92 L 67.85 127.2 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 114.83 119.91 Q 125.36 100.47 139.13 119.91 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 122.93 119.91 L 122.93 129.63 L 128.6 129.63 L 128.6 119.91 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 102.68 163.65 Q 113.21 144.21 126.98 163.65 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 110.78 163.65 L 110.78 173.37 L 116.45 173.37 L 116.45 163.65 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 68.202 99.094 Q 75.29 81.86 91.798 90.506 Q 84.71 107.74 68.202 99.094 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 97.164 91.242 Q 111.589 88.543 111.436 103.218 Q 97.011 105.917 97.164 91.242 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 139.7 87.42 Q 143.84 121.46 177.88 122.84 Q 212.84 121 216.06 87.42 Z" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="1.38" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="177.88" cy="86.96" rx="38.64" ry="22.54" fill="#FFFCF4" stroke="#D8CBB1" stroke-width="1.38" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="177.88" cy="86.04" rx="33.12" ry="17.02" fill="#A6AC78" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 142.175 78.795 Q 156.95 72.984 159.305 88.685 Q 144.53 94.496 142.175 78.795 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 159.257 79.715 Q 161.78 63.386 177.183 69.365 Q 174.66 85.694 159.257 79.715 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 178.142 73.663 Q 193.744 69.426 195.098 85.537 Q 179.496 89.774 178.142 73.663 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 193.894 88.57 Q 195.82 72.586 210.626 78.91 Q 208.7 94.894 193.894 88.57 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 152.295 101.105 Q 154.65 85.404 169.425 91.215 Q 167.07 106.916 152.295 101.105 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 174.74 91.828 Q 189.362 82.553 195.74 98.652 Q 181.118 107.927 174.74 91.828 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="156.72" cy="78.22" rx="5.52" ry="4.6" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="155.8" cy="77.3" rx="1.84" ry="0.92" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="191.22" cy="92.94" rx="5.52" ry="4.6" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="190.3" cy="92.02" rx="1.84" ry="0.92" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="178.34" cy="82.36" rx="5.52" ry="4.6" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="177.42" cy="81.44" rx="1.84" ry="0.92" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

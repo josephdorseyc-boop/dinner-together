@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support — Dinner, Together</title>
+<meta name="description" content="Help and contact for Dinner, Together, the cooking-timing app for iPhone and iPad.">
+<style>
+  :root { --cream:#faf6ed; --paper:#fffdf8; --ink:#302b25; --muted:#6e675e; --tomato:#a83827; --olive:#485639; --line:#e6dfd2; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cream:#1a1916; --paper:#272520; --ink:#f6f1e3; --muted:#bab5a6; --tomato:#f28a6b; --olive:#b0c28f; --line:#454138; } }
+  :root[data-theme="dark"] { --cream:#1a1916; --paper:#272520; --ink:#f6f1e3; --muted:#bab5a6; --tomato:#f28a6b; --olive:#b0c28f; --line:#454138; }
+  body { margin:0; background:var(--cream); color:var(--ink); font: 17px/1.6 -apple-system, "SF Pro Text", system-ui, Georgia, serif; }
+  main { max-width: 42rem; margin: 0 auto; padding: 48px 16px 80px; }
+  h1 { font-size: 2rem; margin: 0 0 .25rem; } h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; color: var(--olive); }
+  .meta { color: var(--muted); margin-bottom: 2rem; }
+  a { color: var(--tomato); }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; margin-bottom: 14px; }
+  dt { font-weight: 600; margin-top: 1rem; } dd { margin: .25rem 0 0; color: var(--ink); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Support</h1>
+  <p class="meta">Dinner, Together for iPhone and iPad</p>
+
+  <div class="card">
+    <p><strong>Contact:</strong> <a href="mailto:Joseph.DorseyC@gmail.com">Joseph.DorseyC@gmail.com</a>. Replies usually within two days.</p>
+    <p>When writing about a timing problem, the most useful details are: which dinner you picked, the dinner time you chose, and what the Cooking screen showed when things went sideways (a screenshot is perfect).</p>
+  </div>
+
+  <h2>How the app thinks</h2>
+  <dl>
+    <dt>Plan backward from dinner time.</dt>
+    <dd>Pick a dinner and a time; the app lays out every step of every dish so they finish together. Adjust any estimate before you start cooking.</dd>
+    <dt>"What do I do right now?"</dt>
+    <dd>The Cooking screen always leads with the one thing that needs you next, then running timers, then what's coming up.</dd>
+    <dt>A timer ending means "check the food," never "done."</dt>
+    <dd>Recipes and stoves differ. The app asks you to check and mark the step done yourself; it never guesses that something finished.</dd>
+    <dt>Running behind is normal.</dt>
+    <dd>When steps run late, a quiet notice shows the new estimate next to the dinner time you chose. Nothing moves on its own: "Review dinner time" shows exactly what would change, and Undo takes it back.</dd>
+  </dl>
+
+  <h2>Common questions</h2>
+  <dl>
+    <dt>Timer reminders didn't arrive.</dt>
+    <dd>Check Settings → Notifications → Dinner, Together → Allow Notifications. The in-app timers keep counting either way; reminders are only a backup for when the phone is in your pocket.</dd>
+    <dt>I opened the app the next day and it asked about an old plan.</dt>
+    <dd>That's deliberate. A plan from yesterday is never resumed or thrown away silently; the "Welcome back" screen lets you resume it, keep the menu with a fresh time, or start over.</dd>
+    <dt>Can I change a step's time after I've started cooking?</dt>
+    <dd>Estimates are edited before cooking starts. While cooking, use "Adjust time" or "Review dinner time" on the Cooking screen, or reset progress to plan again.</dd>
+    <dt>Can I bring my own recipes?</dt>
+    <dd>Open Recipes and add a supported recipe link, choose screenshots, or paste text. Review the imported ingredients and directions, check the step estimates, and save the recipe before cooking. The preset dinner menus remain timing guides rather than complete recipes.</dd>
+    <dt>My recipe link couldn't be read.</dt>
+    <dd>Some pages do not provide recipe data the app can read, including some Apple News links. Choose screenshots showing the full ingredients and directions, or paste the recipe text instead. When selecting screenshots, choose them in recipe order and check the result for missing or repeated instructions.</dd>
+    <dt>Does importing a recipe need internet access?</dt>
+    <dd>A web-link import needs internet access to fetch the page and an available recipe photo. Screenshot text recognition and pasted-text import run on your device. Planning and cooking with saved recipes work offline.</dd>
+    <dt>Where are my recipes and plans stored?</dt>
+    <dd>They are saved in the app on your device, with no app account or developer-operated library sync. Recipe-link import contacts the selected websites, which receive normal network-request information. See the <a href="privacy.html">privacy policy</a> for details.</dd>
+  </dl>
+
+  <h2>Food safety</h2>
+  <p>Timing in the app is a planning estimate. Always confirm doneness with your recipe and a thermometer.</p>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+name: toolchain-probe
+
+# What a GitHub-hosted macOS runner image actually has: Xcode versions, SDKs,
+# simulator runtimes and device types. Manual only; one minute. Used to find
+# out whether an iPhone Duo simulator (Xcode 27.1) is available before moving
+# the release toolchain (Joe, October 12: Duo compatibility in 1.0).
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "Runner label to probe (macos-15, macos-26, xcode-27, …)"
+        required: true
+        default: xcode-27
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 15
+    steps:
+      # Findings go out as annotations: run logs live in blob storage that not
+      # every environment can read; check-run annotations are plain API.
+      - name: Probe
+        # At most ten notices per step are kept: the interesting ones only.
+        run: |
+          echo "::notice title=macOS::$(sw_vers -productVersion) on ${{ inputs.runner }}; default $(xcodebuild -version | tr '\n' ' ')"
+          apps=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tr '\n' ' ')
+          echo "::notice title=Xcode apps::$apps"
+          newest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tail -1)
+          for x in "$newest" /Applications/Xcode_27.1.app /Applications/Xcode_26.2.app; do
+            [ -d "$x" ] || continue
+            rt=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list runtimes 2>/dev/null | grep -i "^iOS" | sed 's/ - com.apple.*//' | tr '\n' ';')
+            duo=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "duo|fold" | tr '\n' ';')
+            phones=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "^iPhone 1[7-9]|^iPhone 2" | sed 's/ (com.apple.*//' | tr '\n' ';')
+            echo "::notice title=$(basename "$x")::runtimes ${rt:-none} | Duo ${duo:-none} | phones ${phones:-none}"
+          done

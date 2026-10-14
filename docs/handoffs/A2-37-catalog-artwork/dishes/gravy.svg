@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Gravy</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 62 102 Q 96 80 163 95 L 207 79 Q 189 112 176 135 Q 174 177 138 182 Q 80 187 63 161 Z" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="4" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 68 99 Q 117 83 168 96 L 194 89 Q 172 117 129 128 Q 93 127 68 99 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 62 118 C 18 85 12 164 63 152" fill="none" stroke="#D8CBB1" stroke-width="13" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 62 118 C 26 98 25 152 63 143" fill="none" stroke="#FFF9ED" stroke-width="7" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 85 144 Q 94 171 129 173" fill="none" stroke="#FFFCF4" stroke-width="5" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

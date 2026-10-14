@@ -1,0 +1,206 @@
+# Dinner, Together — native validation without owning a Mac.
+#
+# Three jobs:
+#   engine-linux  (free, fast)  — `swift test` on Linux via the Package.swift
+#                                 harness (engine + store tests). Verifies the
+#                                 expected number of tests actually executed.
+#   supplemental  (seconds)     — the JavaScript model + a dry run of the
+#                                 validation scripts against a fake toolchain.
+#   native-ios    (macOS runner) — builds the Xcode project, runs XCTest on an
+#                                 iPhone and an iPad simulator, screenshots the
+#                                 seeded recovery states. Uploads everything as
+#                                 the "native-validation-results" artifact
+#                                 whether or not the steps pass, then FAILS the
+#                                 job if any required step failed or could not
+#                                 run (no simulator, app not built, tests not
+#                                 executed, screenshots missing, no summary).
+#
+# Triggers on every push and manually (Actions tab → "Run workflow").
+name: native-validation
+
+on:
+  push:
+    branches-ignore: [ci-results, ci-results-linux, store-assets, release-results, 'wip/**']
+    # wip/** branches get the 1-minute Linux harness on every push
+    # (engine-quick.yml); run this full workflow on them by hand when wanted.
+    # Documentation-only pushes don't need a 20-minute macOS run.
+    paths-ignore: ['docs/**', '**/*.md', '.github/workflows/ui-review-evidence.yml', '.github/workflows/toolchain-probe.yml', '.github/workflows/duo-validation.yml']
+  workflow_dispatch:
+
+# Results are also pushed to the ci-results / ci-results-linux branches so
+# they can be read with plain git (artifact downloads need blob-storage
+# access that not every environment has). Pushes made with GITHUB_TOKEN do
+# not trigger new runs.
+permissions:
+  contents: write
+
+defaults:
+  run:
+    # `bash` here means `bash --noprofile --norc -eo pipefail`, so a failing
+    # command inside a pipeline (e.g. `swift test | tee`) fails the step.
+    shell: bash
+
+jobs:
+  engine-linux:
+    name: swift test on Linux (Package.swift harness)
+    runs-on: ubuntu-latest
+    container: swift:6.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: swift --version
+      - name: swift test
+        run: |
+          set -o pipefail
+          swift test 2>&1 | tee swift-test-linux.log
+      - name: Verify the expected number of tests executed
+        if: always()
+        run: |
+          expected=$(cat DinnerTogetherTests/*.swift | grep -c 'func test' || true)
+          executed=$(grep -oE 'Executed [0-9]+ tests' swift-test-linux.log | grep -oE '[0-9]+' | sort -n | tail -1)
+          echo "expected=$expected executed=${executed:-0}"
+          test -n "$executed" && [ "$executed" -ge "$expected" ] || { echo "::error::swift test executed ${executed:-0} of $expected expected tests"; exit 1; }
+      - name: Upload Linux log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-linux-log
+          path: swift-test-linux.log
+          if-no-files-found: error
+      - name: Publish Linux log to the ci-results-linux branch
+        if: always()
+        run: |
+          tmp=$(mktemp -d); cp swift-test-linux.log "$tmp"/
+          printf 'run_id=%s\nsha=%s\nconclusion_so_far=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ job.status }}" > "$tmp/RUN.txt"
+          cd "$tmp" && git init -q -b ci-results-linux
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "engine-linux results for run ${{ github.run_id }} (${{ github.sha }})"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results-linux
+
+  supplemental:
+    name: JS model + harness dry run (no Swift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node logic-checks/mirror-test.cjs
+      - run: node logic-checks/reconciliation-test.cjs
+      - name: Harness dry run against a fake toolchain (proves the gates, not the app)
+        run: bash native-validation/dry-run/run.sh
+      - name: Release-script dry run (control flow only; no signing)
+        run: bash release/dry-run.sh
+
+  native-ios:
+    name: Xcode build, XCTest, simulator screenshots
+    runs-on: macos-15
+    # 33 UI flows since the recipe captures (October 12): ~55 min typical.
+    timeout-minutes: 80
+    env:
+      RESULTS: ${{ github.workspace }}/native-validation/results
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 26 (App Store Connect requires the iOS 26 SDK)
+        run: |
+          # The image's default Xcode (16.4, iOS 18.5 SDK) builds fine but App
+          # Store Connect refuses its uploads ("must be built with the iOS 26
+          # SDK or later" — release run 4). Pin one 26.x; fall back to the
+          # newest 26.x if the pinned one is ever dropped from the image.
+          app="/Applications/Xcode_${DT_XCODE:-26.2}.app"
+          [ -d "$app" ] || app=$(ls -d /Applications/Xcode_26*.app | sort -V | tail -1)
+          echo "DEVELOPER_DIR=$app/Contents/Developer" >> "$GITHUB_ENV"
+          echo "Selected $app"
+      - name: Xcode in use
+        run: |
+          xcodebuild -version
+          xcrun simctl list runtimes available
+      - name: Build + XCTest (iPhone and iPad simulators) + swift test
+        id: native
+        # Non-zero exit = a required step failed; keep going so the artifact
+        # and the screenshot attempt still happen, then fail at the gate.
+        run: bash native-validation/run-native-pass.sh "$RESULTS" || echo "native-pass-failed=true" >> "$GITHUB_OUTPUT"
+      - name: Screenshots of seeded recovery states
+        id: shots
+        if: always()
+        run: bash native-validation/screenshots.sh "$RESULTS" || echo "screenshots-failed=true" >> "$GITHUB_OUTPUT"
+      - name: Show summary
+        if: always()
+        run: |
+          if [ -f "$RESULTS/SUMMARY.md" ]; then cat "$RESULTS/SUMMARY.md"; else echo "::error::no SUMMARY.md was produced"; fi
+          [ -f "$RESULTS/status.txt" ] && cat "$RESULTS/status.txt" || true
+          # Surface the verdict lines as annotations too: they are readable
+          # through the API even when the results branch cannot be pushed.
+          if [ -f "$RESULTS/SUMMARY.md" ]; then
+            grep -E '❌|cases on|UI cases on|UI screenshots on' "$RESULTS/SUMMARY.md" | head -40 | while IFS= read -r line; do
+              case "$line" in *❌*) echo "::error title=native-validation::${line}";; *) echo "::notice title=native-validation::${line}";; esac
+            done
+          fi
+          # First failing UI assertion per device, if any (also as annotations).
+          for d in iphone ipad; do
+            f="$RESULTS/25-ui-test-$d.log"
+            [ -f "$f" ] && grep -E 'error: -\[|failed - |Assertion Failure|XCTAssert' "$f" | head -3 | while IFS= read -r line; do echo "::error title=ui-$d::${line:0:400}"; done || true
+          done
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-validation-results
+          path: |
+            native-validation/results/**
+            !native-validation/results/build/**
+          if-no-files-found: error
+      # A2-16: the renders alone, small enough to download (the full results
+      # artifact is ~600 MB; this one is ~60 MB). Original PNG bytes, with
+      # the summary, provenance and UI logs — per run, so a later run's
+      # force-push of ci-results never takes an earlier run's renders away.
+      - name: Upload review evidence (screenshots, summary, UI logs only)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-review-evidence-${{ github.run_id }}
+          path: |
+            native-validation/results/ui-screenshots/**
+            native-validation/results/screenshots/**
+            native-validation/results/SUMMARY.md
+            native-validation/results/status.txt
+            native-validation/results/devices.env
+            native-validation/results/25-ui-test-*.log
+            native-validation/results/25-ui-test-*-summary.json
+          if-no-files-found: warn
+          compression-level: 0
+          retention-days: 30
+      # Best effort: the artifact above is the record. Two runs finishing
+      # together race on the force-push (run 38305253325 lost to 38306639479
+      # and was marked failed although its gate passed), so retry, then
+      # carry on.
+      - name: Publish results to the ci-results branch (readable with plain git)
+        if: always()
+        continue-on-error: true
+        run: |
+          tmp=$(mktemp -d)
+          if [ -d "$RESULTS" ]; then
+            # Everything except DerivedData and the large .xcresult bundles (those
+            # stay in the artifact). tar copes with any file name (run 12: the
+            # xargs/sh -c copy failed and the results never reached the branch).
+            # Screen recordings of failed UI tests stay in the artifact (10+ MB each).
+            (cd "$RESULTS" && tar --exclude='./build' --exclude='*.xcresult.zip' --exclude='*.xcresult' --exclude='*.mp4' -cf - .) | (cd "$tmp" && tar -xf -)
+            du -sh "$tmp" || true
+          fi
+          printf 'run_id=%s\nsha=%s\njob_status_so_far=%s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ job.status }}" > "$tmp/RUN.txt"
+          cd "$tmp" && git init -q -b ci-results
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "native-validation results for run ${{ github.run_id }} (${{ github.sha }})"
+          for attempt in 1 2 3 4; do
+            git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results && break
+            echo "push attempt $attempt failed; retrying"; sleep $((attempt * 15))
+          done
+      - name: Gate — fail unless every required step ran and passed
+        if: always()
+        run: |
+          [ -f "$RESULTS/SUMMARY.md" ] || { echo "::error::SUMMARY.md missing — the pass did not run"; exit 1; }
+          [ -f "$RESULTS/status.txt" ] || { echo "::error::status.txt missing — the pass did not finish"; exit 1; }
+          failures=$(sed -n 's/^REQUIRED_FAILURES=//p' "$RESULTS/status.txt" | head -1)
+          if [ "${failures:-1}" != "0" ]; then echo "::error::${failures:-?} required step(s) failed or could not run — see SUMMARY.md in the artifact"; exit 1; fi
+          if grep -q '❌' "$RESULTS/SUMMARY.md"; then echo "::error::SUMMARY.md contains a failed step"; exit 1; fi
+          echo "All required steps passed."

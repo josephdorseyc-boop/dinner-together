@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Pasta</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="140" rx="86" ry="56" fill="#EBCB88" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 55 98 C 125 71 172 124 72 164 C 52 164 72 116 140 131" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 69 109 C 139 82 186 135 86 175 C 66 175 86 127 154 142" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 83 120 C 153 93 200 146 100 186 C 80 186 100 138 168 153" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 97 98 C 167 71 214 124 114 164 C 94 164 114 116 182 131" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 111 109 C 181 82 228 135 128 175 C 108 175 128 127 196 142" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 125 120 C 195 93 242 146 142 186 C 122 186 142 138 210 153" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 139 98 C 209 71 256 124 156 164 C 136 164 156 116 224 131" fill="none" stroke="#D7A45B" stroke-width="8" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 68 120 Q 81 96 98 120 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 78 120 L 78 132 L 85 132 L 85 120 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 143 111 Q 156 87 173 111 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 153 111 L 153 123 L 160 123 L 160 111 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 128 165 Q 141 141 158 165 Z" fill="#885238" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 138 165 L 138 177 L 145 177 L 145 165 Z" fill="#F1E2BC" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 85.435 85.301 Q 94.186 64.025 114.565 74.699 Q 105.814 95.975 85.435 85.301 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 121.19 75.608 Q 138.999 72.275 138.81 90.392 Q 121.001 93.725 121.19 75.608 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

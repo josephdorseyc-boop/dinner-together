@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Lemony salad</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 45 127 Q 54 201 128 204 Q 204 200 211 127 Z" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="84" ry="49" fill="#FFFCF4" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="124" rx="72" ry="37" fill="#A6AC78" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 50.38 108.25 Q 82.5 95.617 87.62 129.75 Q 55.5 142.383 50.38 108.25 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 87.514 110.25 Q 93 74.751 126.486 87.75 Q 121 123.249 87.514 110.25 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 128.569 97.095 Q 162.487 87.883 165.431 122.905 Q 131.513 132.117 128.569 97.095 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 162.813 129.5 Q 167 94.751 199.187 108.5 Q 195 143.249 162.813 129.5 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 72.38 156.75 Q 77.5 122.617 109.62 135.25 Q 104.5 169.383 72.38 156.75 Z" fill="#718451" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 121.175 136.584 Q 152.961 116.419 166.825 151.416 Q 135.039 171.581 121.175 136.584 Z" fill="#4A583B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="82" cy="107" rx="12" ry="10" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="80" cy="105" rx="4" ry="2" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="157" cy="139" rx="12" ry="10" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="155" cy="137" rx="4" ry="2" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="129" cy="116" rx="12" ry="10" fill="#AC3526" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="127" cy="114" rx="4" ry="2" fill="#E8A568" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="180" cy="153" rx="21" ry="21" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="180" cy="153" rx="18" ry="18" fill="#EBCB88" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 195 153" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 187.5 165.99" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 172.5 165.99" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 165 153" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 172.5 140.01" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 180 153 L 187.5 140.01" fill="none" stroke="#FFFCF4" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

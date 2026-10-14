@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+default_tests() { cat DinnerTogetherTests/*.swift 2>/dev/null | grep -c "func test"; }
+args=("$@")
+case "$1" in
+  -version) echo "Xcode 16.0 (fake)"; echo "Build version 16A000"; exit 0;;
+  -list) echo "Information about project \"DinnerTogether\":"; echo "    Schemes:"; echo "        DinnerTogether"; exit 0;;
+esac
+derived=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-derivedDataPath" ] && derived="${args[$((i+1))]}"; done
+case "$1" in
+  build-for-testing)
+    mkdir -p "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app"
+    echo "SwiftCompile normal arm64 Compiling CookingView.swift"
+    if [ -z "${FAKE_NO_DEBUG:-}" ]; then echo "    /usr/bin/swiftc -Onone -DDEBUG -enable-testing ..."; else echo "    /usr/bin/swiftc -Onone -enable-testing ..."; fi
+    if [ -n "${FAKE_BUILD_RC:-}" ]; then echo "DinnerTogether/Foo.swift:1:1: error: fake compile error"; echo "** TEST BUILD FAILED **"; exit "$FAKE_BUILD_RC"; fi
+    printf '#!/bin/sh\n' > "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"; chmod +x "$derived/Build/Products/Debug-iphonesimulator/DinnerTogether.app/DinnerTogether"
+    echo "** TEST BUILD SUCCEEDED **"; exit 0;;
+  build)
+    echo "SwiftCompile normal arm64 Compiling CookingView.swift"
+    echo "    /usr/bin/swiftc -O ..."
+    if [ -n "${FAKE_RELEASE_BUILD_RC:-}" ]; then echo "DinnerTogether/RecipeViews.swift:1:1: error: type 'LaunchOptions' has no member 'fake' (fake)"; echo "** BUILD FAILED **"; exit "$FAKE_RELEASE_BUILD_RC"; fi
+    echo "** BUILD SUCCEEDED **"; exit 0;;
+  test-without-building)
+    bundle=""; only=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-resultBundlePath" ] && bundle="${args[$((i+1))]}"; [[ "${args[$i]}" == -only-testing:* ]] && only="${args[$i]#-only-testing:}"; done
+    mkdir -p "$bundle"
+    if [[ "$only" == *DinnerTogetherUITests* ]]; then
+      # UI run: the class after the last "/" selects the expected count.
+      class="${only##*/}"; ui_file="DinnerTogetherUITests/DinnerTogetherUITests.swift"
+      [ "$class" = "DinnerTogetherUITests_iPad" ] && ui_file="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"
+      dflt=$([ -f "$ui_file" ] && grep -c 'func test' "$ui_file" || echo 9)
+      n=${FAKE_UI_EXECUTED:-$dflt}; f=${FAKE_UI_FAIL_CASES:-0}
+      for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherUITests.$class test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherUITests.$class test$k]' passed (0.1 seconds)"; fi; done
+      echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+      [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0
+    fi
+    n=${FAKE_EXECUTED:-$(default_tests)}; f=${FAKE_FAIL_CASES:-0}
+    for ((k=1;k<=n;k++)); do if [ $k -le $f ]; then echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' failed (0.1 seconds)"; else echo "Test Case '-[DinnerTogetherTests.RecoveryNoticeTests test$k]' passed (0.1 seconds)"; fi; done
+    echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+    [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0;;
+  archive)
+    # release/build-release.sh: archive -archivePath <dir> ... (cloud signing args ignored)
+    arch=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-archivePath" ] && arch="${args[$((i+1))]}"; done
+    [ -n "$arch" ] || { echo "fake: no -archivePath" >&2; exit 2; }
+    if [ -n "${FAKE_ARCHIVE_RC:-}" ]; then echo "error: No profiles for 'com.fake' were found (fake)"; echo "** ARCHIVE FAILED **"; exit "$FAKE_ARCHIVE_RC"; fi
+    mkdir -p "$arch/Products/Applications/DinnerTogether.app"; printf '#!/bin/sh\n' > "$arch/Products/Applications/DinnerTogether.app/DinnerTogether"
+    echo "** ARCHIVE SUCCEEDED **"; exit 0;;
+  -exportArchive)
+    plist=""; dest=""; for ((i=0;i<${#args[@]};i++)); do [ "${args[$i]}" = "-exportOptionsPlist" ] && plist="${args[$((i+1))]}"; [ "${args[$i]}" = "-exportPath" ] && dest="${args[$((i+1))]}"; done
+    [ -n "$plist" ] && [ -n "$dest" ] || { echo "fake: need -exportOptionsPlist and -exportPath" >&2; exit 2; }
+    destination=$(sed -n 's/.*<key>destination<\/key><string>\(.*\)<\/string>.*/\1/p' "$plist" | head -1)
+    if [ "$destination" = "upload" ]; then
+      if [ -n "${FAKE_UPLOAD_RC:-}" ]; then echo "error: exportArchive No suitable application records were found (fake)"; echo "** EXPORT FAILED **"; exit "$FAKE_UPLOAD_RC"; fi
+      mkdir -p "$dest"; echo "Upload succeeded (fake)"; echo "** EXPORT SUCCEEDED **"; exit 0
+    fi
+    if [ -n "${FAKE_EXPORT_RC:-}" ]; then echo "error: exportArchive fake export failure"; echo "** EXPORT FAILED **"; exit "$FAKE_EXPORT_RC"; fi
+    mkdir -p "$dest"; printf 'PK-fake' > "$dest/DinnerTogether.ipa"; echo "** EXPORT SUCCEEDED **"; exit 0;;
+esac
+echo "fake xcodebuild: unhandled $*" >&2; exit 2
