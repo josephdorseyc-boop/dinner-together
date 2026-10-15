@@ -44,7 +44,10 @@ struct ContentView: View {
             guard let palette = RecipePhotos.palette(for: recipe, from: library) else { return .light }
             return palette.tone == .deep ? .dark : .light
         }
-        return nil
+        // Dark Mode is Tonight's alone (Joe, October 15: "a dark mode but
+        // only on the Tonight page at night"): Tonight follows the phone (or
+        // the tests' forced appearance); Cooking and Recipes stay cream.
+        return destination == .tonight ? nil : .light
     }
 
     var body: some View {

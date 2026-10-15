@@ -94,7 +94,7 @@ iPad 13-inch 2064×2752. Upload in this order:
 | 3 | Running late? Review the plan. | The review sheet from the UI tests (`01-review-sheet`) |
 | 4 | A timer ends. You check the food. | Expired-timer cooking screen (`expired-timer-light`) |
 | 5 | Nine dinners to choose from. | Tonight list scrolled, tofu selected (`09-tonight-menus`) |
-| 6 | A calmer counter, even after dark. | Dark Mode cooking screen (`on-schedule-dark`) |
+| 6 | A calmer counter, even after dark. | Dark Mode cooking screen (`on-schedule-dark`) — **replace before submission:** from build 20 only Tonight goes dark (Joe, October 15); use Tonight in Dark Mode (`r24d-tonight-first-launch-dark`, or a recipe's cover at night) and a caption about the evening, e.g. “Tonight, even after dark.” |
 
 The table describes existing generated assets. Before submission, replace
 frame 5 with **“Your recipes. Your timing.”** using a real Recipes/detail
