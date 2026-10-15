@@ -401,7 +401,7 @@ struct PlanView: View {
                     .accessibilityAddTraits(.isHeader)
                     .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
                 Spacer(minLength: 0)
-                // "…": the card's glass, clearer or darker (Joe, build 18).
+                // "…": the card from see-through to solid (Joe, build 18).
                 Button { showingGlassPanel = true } label: {
                     Image(systemName: "ellipsis")
                         .font(.body.weight(.bold))
@@ -413,8 +413,8 @@ struct PlanView: View {
                 .buttonStyle(.plain)
                 // A 44 pt target without making the header taller.
                 .padding(5).contentShape(Rectangle()).padding(-5)
-                .accessibilityLabel("Card glass")
-                .accessibilityHint("Makes this card clearer or darker.")
+                .accessibilityLabel("Card opacity")
+                .accessibilityHint("Makes this card see-through or solid.")
                 .accessibilityIdentifier("table-card-more")
                 .popover(isPresented: $showingGlassPanel, arrowEdge: .bottom) {
                     GlassTintPanel(tint: $glassTint, solid: solidCard) { showingGlassPanel = false }
@@ -515,10 +515,15 @@ struct PlanView: View {
         if solidCard {
             shape.fill(Self.tableSurface)
         } else {
-            shape.fill(.ultraThinMaterial)
-                .environment(\.colorScheme, .dark)
-                .overlay(shape.fill(Self.tableSurface.opacity(TonightGlass.clamped(glassTint))))
-                .overlay(shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+            // One dial from glass to solid: the blur and the espresso fade
+            // in together; at Solid nothing of the photo shows.
+            ZStack {
+                shape.fill(.ultraThinMaterial)
+                    .environment(\.colorScheme, .dark)
+                    .opacity(TonightGlass.blur(glassTint))
+                shape.fill(Self.tableSurface.opacity(TonightGlass.tint(glassTint)))
+            }
+            .overlay(shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
         }
     }
 
@@ -669,24 +674,34 @@ private struct CoverBottomKey: PreferenceKey {
 /// blurred photo; Reduce Transparency and Increase Contrast keep the card
 /// solid whatever it is.
 enum TonightGlass {
-    static let key = "tonightGlassTint"
-    static let range: ClosedRange<Double> = 0.25...0.85
-    /// Lighter than build 18's fixed 0.64.
-    static let standard = 0.50
+    /// 0 = see-through glass, 1 = a solid card (Joe, build 18: "make the
+    /// card opaque and able to adjust it"). A new key: the first slider's
+    /// tint values do not mean the same thing.
+    static let key = "tonightCardOpacity"
+    static let range: ClosedRange<Double> = 0...1
+    /// A little more see-through than build 18's card.
+    static let standard = 0.45
 
-    static func clamped(_ tint: Double) -> Double {
-        tint.isFinite ? min(max(tint, range.lowerBound), range.upperBound) : standard
+    static func clamped(_ value: Double) -> Double {
+        value.isFinite ? min(max(value, range.lowerBound), range.upperBound) : standard
     }
 
-    /// A soft shadow under the card's cream text as the glass clears, so
-    /// it still reads where the photo is pale; none from 0.65 up.
-    static func textShadow(_ tint: Double) -> Double {
-        max(0, 0.65 - clamped(tint)) * 1.3
+    /// How much of the frosted blur shows: a light blur when see-through,
+    /// full frosting from about a third of the way up.
+    static func blur(_ value: Double) -> Double { min(1, 0.25 + clamped(value) * 2.2) }
+    /// The espresso layer: a hint when see-through, fully opaque at Solid.
+    static func tint(_ value: Double) -> Double { 0.08 + clamped(value) * 0.92 }
+
+    /// A soft shadow under the card's cream text as the card clears, so it
+    /// still reads where the photo is pale; none from 0.6 up.
+    static func textShadow(_ value: Double) -> Double {
+        max(0, 0.6 - clamped(value)) * 1.1
     }
 }
+}
 
-/// The card's "…" panel: one slider from Clearer to Darker that changes the
-/// card live behind it, and a way back to the standard glass.
+/// The card's "…" panel: one slider from See-through to Solid that changes
+/// the card live behind it, and a way back to the standard card.
 private struct GlassTintPanel: View {
     @Binding var tint: Double
     /// Reduce Transparency or Increase Contrast: the card stays solid.
@@ -698,7 +713,7 @@ private struct GlassTintPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
-                Text("Card glass").font(.headline)
+                Text("Card opacity").font(.headline)
                     .accessibilityAddTraits(.isHeader)
                 Spacer(minLength: 12)
                 Button("Done", action: done)
@@ -713,14 +728,15 @@ private struct GlassTintPanel: View {
                 VStack(spacing: 6) {
                     Slider(value: Binding(get: { TonightGlass.clamped(tint) }, set: { tint = $0 }),
                            in: TonightGlass.range) {
-                        Text("Card glass")
+                        Text("Card opacity")
                     }
                     .tint(Theme.tomato)
+                    .accessibilityValue("\(Int((TonightGlass.clamped(tint) * 100).rounded())) percent opaque")
                     .accessibilityIdentifier("glass-slider")
                     HStack {
-                        Text("Clearer")
+                        Text("See-through")
                         Spacer(minLength: 12)
-                        Text("Darker")
+                        Text("Solid")
                     }
                     .font(.caption).foregroundStyle(.secondary)
                     .accessibilityHidden(true)

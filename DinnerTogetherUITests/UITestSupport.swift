@@ -1780,9 +1780,9 @@ extension DinnerTogetherUITestCase {
         let reset = app.buttons["glass-reset"]
         XCTAssertFalse(reset.isEnabled, "the glass starts standard: nothing to reset")
         slider.adjust(toNormalizedSliderPosition: 0)
-        photograph("r25c-glass-clearest")
+        photograph("r25c-card-see-through")
         slider.adjust(toNormalizedSliderPosition: 1)
-        photograph("r25d-glass-darkest")
+        photograph("r25d-card-solid")
         XCTAssertNotEqual(slider.value as? String, standard, "the slider moved")
         XCTAssertTrue(reset.isEnabled, "Reset is offered once the glass has changed")
         reset.tap()
