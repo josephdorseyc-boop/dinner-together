@@ -43,6 +43,7 @@ struct DinnerTogetherApp: App {
                 .environmentObject(timers)
                 .environmentObject(weekPlan)
                 #if DEBUG
+                .background { UITestSceneGeometry.launchProbe }
                 // UI-test forced type size (A1-T1); nil unless -dt-type-size
                 // was passed, so release and ordinary debug builds are
                 // unaffected.
@@ -395,6 +396,13 @@ extension View {
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }
+        #if DEBUG
+        // Duo window experiment only (A1's suggestion on issue #15, with
+        // A2-61's geometry request): landscape alone, so a display that
+        // honours the mask at all has to turn. Apple says the Duo's inner
+        // display does not; the probe records what actually happens.
+        if ProcessInfo.processInfo.arguments.contains(UITestSceneGeometry.argument) { return .landscape }
+        #endif
         let bounds = (window?.windowScene?.screen ?? UIScreen.main).bounds
         let short = min(bounds.width, bounds.height), long = max(bounds.width, bounds.height)
         return long > 0 && short / long >= 0.6 ? .allButUpsideDown : .portrait

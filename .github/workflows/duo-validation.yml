@@ -33,6 +33,10 @@ on:
         description: "Only the Duo simulator's parts (the ios27 pass skipped)"
         type: boolean
         default: false
+      window:
+        description: "Also A2-61's wide-native-window experiment on the Duo (one test; never decides the run)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -49,7 +53,13 @@ jobs:
       fail-fast: false
       matrix:
         # duo_only: the three Duo parts alone, when only the Duo is in question.
-        include: ${{ fromJSON(inputs.duo_only && '[{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}]' || '[{"pass":"ios27","part":"core"},{"pass":"ios27","part":"ui-iphone-1-of-2"},{"pass":"ios27","part":"ui-iphone-2-of-2"},{"pass":"ios27","part":"ui-ipad"},{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}]') }}
+        # window: A2-61's experiment first (it gets the first free machine):
+        # can the Duo simulator give the app a wide window at all? Apple says
+        # the inner display ignores orientation masks; this records the facts.
+        include: ${{ fromJSON(format('[{0}{1}]', inputs.window && '{"pass":"duo","part":"ui-duo-window"},' || '', inputs.duo_only && '{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}' || '{"pass":"ios27","part":"core"},{"pass":"ios27","part":"ui-iphone-1-of-2"},{"pass":"ios27","part":"ui-iphone-2-of-2"},{"pass":"ios27","part":"ui-ipad"},{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}')) }}
+    # The experiment is evidence, not a verdict: its failure never fails the
+    # run, so it cannot stand in for (or block) a commit's duo-validation.
+    continue-on-error: ${{ matrix.part == 'ui-duo-window' }}
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
       DT_PART: ${{ matrix.part }}

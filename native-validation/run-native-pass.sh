@@ -56,17 +56,24 @@ EXPECTED_UI_IPAD=$(count_matches "$ROOT/DinnerTogetherUITests/DinnerTogetherUITe
 #   core                 builds, XCTest, swift test (the workflow runs the stills)
 #   ui-iphone-K-of-N     the K-th of N round-robin shares of the iPhone UI tests
 #   ui-ipad              the iPad UI tests
+#   ui-duo-window        A2-61's wide-native-window experiment alone, on the
+#                        iPhone simulator (the Duo's): one test, selected by
+#                        name, never part of the ordinary counts
 # Every part builds the app itself; the workflow's own gate fails if any part fails.
 PART="${DT_PART:-all}"
 case "$PART" in
-  all|core|ui-ipad) ;;
+  all|core|ui-ipad|ui-duo-window) ;;
   ui-iphone-*-of-*) ;;
   *) echo "unknown DT_PART=$PART" >&2; exit 2 ;;
 esac
 want_core()      { [ "$PART" = all ] || [ "$PART" = core ]; }
-want_ui_iphone() { [ "$PART" = all ] || [[ "$PART" == ui-iphone-* ]]; }
+want_ui_iphone() { [ "$PART" = all ] || [[ "$PART" == ui-iphone-* ]] || [ "$PART" = ui-duo-window ]; }
 want_ui_ipad()   { [ "$PART" = all ] || [ "$PART" = ui-ipad ]; }
 IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherUITests"
+if [ "$PART" = ui-duo-window ]; then
+  IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherDuoWindowTests/test01_wideNativeWindowCookbookSpread"
+  EXPECTED_UI_IPHONE=1
+fi
 if [[ "$PART" == ui-iphone-*-of-* ]]; then
   SHARE="${PART#ui-iphone-}"; K="${SHARE%%-of-*}"; N="${SHARE##*-of-}"
   IPHONE_ONLY=$(grep -oE 'func test[A-Za-z0-9_]+' "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" | sed 's/^func //' \

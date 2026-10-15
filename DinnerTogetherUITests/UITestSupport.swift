@@ -187,7 +187,13 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// results branch when a tap "did nothing" and XCTest's own dump is not
     /// exported (iPad, runs 20–21).
     func attachHierarchy(_ name: String) {
-        let text = app.debugDescription
+        attachText(name, app.debugDescription)
+    }
+
+    /// A short text note kept always, and written beside the direct
+    /// captures: on Xcode 27.1 the result bundle (and every attachment in
+    /// it) can be unreadable, so evidence that matters goes to the folder too.
+    func attachText(_ name: String, _ text: String) {
         let attachment = XCTAttachment(string: text)
         attachment.name = name
         attachment.lifetime = .keepAlways
@@ -1905,8 +1911,9 @@ extension DinnerTogetherUITestCase {
     /// can read a second recipe on the left and bring the photo back, and
     /// the right page keeps its tab throughout. On any other window the page
     /// is the single page, unchanged, which this flow records too.
-    func flowCookbookSpread(_ capture: RecipeCapture = .standard) {
-        launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture, photo: "pastel")
+    func flowCookbookSpread(_ capture: RecipeCapture = .standard, requireWideNativeWindow: Bool = false) {
+        launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture,
+                      extra: requireWideNativeWindow ? ["-dt-request-landscape-scene"] : [], photo: "pastel")
         // The window as this device gives it (the Duo's shape was unknown
         // until its first run: 466 × 678 in run 38723119849).
         photograph("r26-0-first-screen" + capture.suffix)
@@ -1916,8 +1923,40 @@ extension DinnerTogetherUITestCase {
         if UIDevice.current.userInterfaceIdiom == .phone, min(first.width, first.height) / max(first.width, first.height) >= 0.6 {
             XCUIDevice.shared.orientation = .landscapeLeft
             addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
-            Thread.sleep(forTimeInterval: 1.5)
+            // The simulator can acknowledge the device request while the app
+            // window stays narrow. Only observed native spread-fit geometry
+            // earns wide-window coverage; scene orientation is diagnostic only.
+            let wideNativeWindow = NSPredicate { _, _ in
+                let window = self.app.frame
+                return self.isFiniteFrame(window) && window.width > window.height
+                    && window.width >= 600 && window.height >= 450
+            }
+            let wideWindowObserved: Bool
+            if requireWideNativeWindow {
+                wideWindowObserved = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: wideNativeWindow, object: app)], timeout: 15) == .completed
+            } else {
+                Thread.sleep(forTimeInterval: 1.5)
+                wideWindowObserved = false // this mixed flow also accepts the upright book
+            }
+            let observed = app.frame
+            let probe = app.descendants(matching: .any)["dt-scene-geometry-status"].firstMatch
+            let sceneStatus = probe.exists ? ((probe.value as? String) ?? probe.label) : "probe absent"
+            attachText("r26-orientation-evidence" + capture.suffix,
+                       "requested=landscapeLeft; device=\(XCUIDevice.shared.orientation.rawValue); appFrame=\(observed); scene=\(sceneStatus)")
             photograph("r26-0-turned" + capture.suffix)
+            if requireWideNativeWindow && !wideWindowObserved {
+                attachHierarchy("r26-orientation-not-landscape-hierarchy" + capture.suffix)
+                return XCTFail("A wide native window was requested, but the Duo app did not expose spread-fit bounds: \(observed); device orientation \(XCUIDevice.shared.orientation.rawValue)")
+            }
+        }
+        if requireWideNativeWindow {
+            let observed = app.frame
+            guard isFiniteFrame(observed), observed.width > observed.height,
+                  observed.width >= 600, observed.height >= 450 else {
+                photograph("r26-landscape-window-missing" + capture.suffix)
+                attachHierarchy("r26-landscape-window-missing-hierarchy" + capture.suffix)
+                return XCTFail("This wide-window-required flow needs observed native spread-fit bounds, got \(observed)")
+            }
         }
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         photograph("r26-0-recipe-page" + capture.suffix)
@@ -1926,6 +1965,10 @@ extension DinnerTogetherUITestCase {
         let frame = app.frame
         let phone = UIDevice.current.userInterfaceIdiom == .phone
         let openBook = phone && frame.width >= 600 && frame.height >= 450 && capture.typeSize == nil
+        if requireWideNativeWindow && (!openBook || frame.width <= frame.height) {
+            attachHierarchy("r26-landscape-lost-at-recipe-hierarchy" + capture.suffix)
+            return XCTFail("The wide-window-required recipe must retain native spread-fit bounds and spread eligibility: \(frame)")
+        }
         let nearSquare = phone && min(frame.width, frame.height) / max(frame.width, frame.height) >= 0.6
         if !openBook && nearSquare {
             // The Duo upright (Joe, October 15): one cookbook page with a
@@ -2400,5 +2443,14 @@ extension XCUIElement {
             RunLoop.current.run(until: Date().addingTimeInterval(0.2))
         }
         return exists && isSelected
+    }
+}
+
+/// Selected explicitly for Duo native-window validation. Kept outside the
+/// ordinary iPhone/iPad classes and their discovery counts. This checks real
+/// window fit; device/scene orientation is diagnostic, not a layout override.
+final class DinnerTogetherDuoWindowTests: DinnerTogetherUITestCase {
+    func test01_wideNativeWindowCookbookSpread() {
+        flowCookbookSpread(requireWideNativeWindow: true)
     }
 }
