@@ -292,6 +292,8 @@ struct CookingView: View {
                 PlatePhotoCard(recipe: recipe)
             }
         } else {
+            // Kitchen timers from the directions, while any run (A2-64).
+            RunningTimersStrip()
             // With a hero picture the tag rides on the photo's edge instead.
             if heroHeight == nil || (urgentTimer == nil && doNow.isEmpty) { SectionLabel(text: "RIGHT NOW") }
             if let urgent = urgentTimer {

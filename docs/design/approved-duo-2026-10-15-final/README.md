@@ -24,3 +24,11 @@ remains for the book position.
 These are concepts. Recipe text, timer values, device proportions and rail
 placement are illustrative. Native fit, safe areas, Dynamic Type, VoiceOver and
 the timing engine's rules decide the details.
+
+## Kitchen timers (1:55 PM)
+`04_Kitchen_Timers.jpg`: Joe chose A2-64's options 1 and 3 together ("I like 1
+and 3"): the cream page with an olive ring draining clockwise around a large
+centered countdown, the dish above and the step below; one timer gets a
+generous ring; with several, the next to finish (or one that's up) leads and
+the others sit beside it, each named. "Time's up" is said plainly and never
+marks food or a step done. Started from the time in any direction.

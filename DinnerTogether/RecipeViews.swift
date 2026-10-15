@@ -707,6 +707,7 @@ struct RecipeDetailView: View {
     @State private var removingStep: CookingStep?
     @State private var confirmingReplace = false
     @State private var confirmingAdd = false
+    @State private var showingTimers = false
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
     @State private var choosingPageStyle = false
@@ -821,6 +822,7 @@ struct RecipeDetailView: View {
                     }
                 }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
+                .sheet(isPresented: $showingTimers) { KitchenTimersView().uiTestTypeSize() }
                 .sheet(isPresented: $editingRecipeTime) {
                     RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()
                 }
@@ -1330,6 +1332,7 @@ struct RecipeDetailView: View {
 
     private func directions(_ recipe: Recipe) -> some View {
         VStack(alignment: .leading, spacing: 22) {
+            if !reader { RunningTimersStrip() }
             if let total = recipe.totalMinutes {
                 Text("Total time: \(RecipeFormat.compact(total))").font(.subheadline).foregroundStyle(Theme.muted)
             }
@@ -1412,30 +1415,60 @@ struct RecipeDetailView: View {
         }
     }
 
+    @ViewBuilder
     private func timerButton(_ recipe: Recipe, stepTitle: String, duration: String) -> some View {
-        let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration)
         let now = timers.now
-        return Button {
-            if let running { quickTimers.stop(running.id) }
-            else if let seconds = TimedText.seconds(in: duration) {
-                quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
-            }
-        } label: {
+        if let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration) {
+            // Running: the countdown opens the timers' faces; Stop is its own
+            // button, so a tap on the time never silently ends it (A2-64).
+            let over = running.isOver(at: now)
             HStack(spacing: 6) {
-                Image(systemName: running == nil ? "timer" : (running!.isOver(at: now) ? "bell.fill" : "stop.fill"))
-                Text(running.map { QuickTimer.countdown($0.remaining(at: now)) } ?? "Start \(duration)")
-                    .monospacedDigit()
+                Button { showingTimers = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: over ? "bell.fill" : "timer")
+                        Text(over ? "Time’s up" : QuickTimer.countdown(running.remaining(at: now))).monospacedDigit()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14).frame(minHeight: 44)
+                    .foregroundStyle(deepPage ? Theme.ink : .white)
+                    .background(Capsule().fill(over ? Theme.warning : accentColor))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(stepTitle), \(duration) timer: \(over ? "time’s up" : QuickTimer.countdown(running.remaining(at: now)) + " remaining")")
+                .accessibilityHint("Opens the timers.")
+                .accessibilityIdentifier(pageID("timer-running"))
+                Button { quickTimers.stop(running.id) } label: {
+                    Image(systemName: over ? "checkmark" : "stop.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(width: 44, height: 44)
+                        .foregroundStyle(accentColor)
+                        .background(Circle().fill(accentColor.opacity(0.14)))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(over ? "Dismiss the \(stepTitle) timer" : "Stop the \(stepTitle) \(duration) timer")
+                .accessibilityIdentifier(pageID("stop-timer"))
             }
-            .font(.subheadline.weight(.semibold))
-            .padding(.horizontal, 14).frame(minHeight: 40)
-            .foregroundStyle(running == nil ? accentColor : (deepPage ? Theme.ink : .white))
-            .background(Capsule().fill(running == nil ? accentColor.opacity(0.14) : (running!.isOver(at: now) ? Theme.warning : accentColor)))
+        } else {
+            Button {
+                if let seconds = TimedText.seconds(in: duration) {
+                    quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                    Text("Start \(duration)")
+                }
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 14).frame(minHeight: 44)
+                .foregroundStyle(accentColor)
+                .background(Capsule().fill(accentColor.opacity(0.14)))
+            }
+            .buttonStyle(.plain)
+            .disabled(TimedText.seconds(in: duration) == nil)
+            .accessibilityLabel("Start a \(duration) timer for \(stepTitle), \(recipe.title)")
+            .accessibilityHint("Counts down and tells you when it’s up.")
+            .accessibilityIdentifier(pageID("start-timer"))
         }
-        .buttonStyle(.plain)
-        .disabled(running == nil && TimedText.seconds(in: duration) == nil)
-        .accessibilityLabel(running.map { "\(stepTitle) timer, \(QuickTimer.countdown($0.remaining(at: now)))" } ?? "Start a \(duration) timer for \(stepTitle)")
-        .accessibilityHint(running == nil ? "Counts down and tells you when it’s up." : "Stops the timer.")
-        .accessibilityIdentifier(pageID(running == nil ? "start-timer" : "stop-timer"))
     }
 
     /// The Edit sheet, in Notes when asked. (The page's own menu waits for
