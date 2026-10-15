@@ -270,13 +270,41 @@ struct PlanView: View {
         .frame(maxWidth: .infinity, minHeight: horizontalSizeClass == .regular ? 500 : 400)
         .background {
             ZStack(alignment: .top) {
-                Color.clear
-                    .overlay {
-                        if let coverImage {
-                            Image(uiImage: coverImage).resizable().scaledToFill()
+                if reach == 0 {
+                    // iPad: a wide cover, the photo fills it.
+                    Color.clear
+                        .overlay {
+                            if let coverImage {
+                                Image(uiImage: coverImage).resizable().scaledToFill()
+                            }
                         }
-                    }
-                    .clipped()
+                        .clipped()
+                } else if let coverImage {
+                    // iPhone: the cover is far taller than wide (and reaches
+                    // up out of sight for the bounce), so filling it blew a
+                    // photo up to a corner of itself (Joe, build 18: "the app
+                    // blew up the changed cover"). The photo now sits at the
+                    // top of the screen at its own shape — zoomed at most to
+                    // a 4:5 portrait — and melts into a soft, blurred wash of
+                    // itself that carries on behind the card.
+                    Color.clear
+                        .overlay(Image(uiImage: coverImage).resizable().scaledToFill())
+                        .blur(radius: 36, opaque: true)
+                        .overlay(Color.black.opacity(0.22))
+                        .clipped()
+                    Color.clear
+                        .aspectRatio(Self.coverPhotoAspect(coverImage), contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .overlay(Image(uiImage: coverImage).resizable().scaledToFill())
+                        .clipped()
+                        .mask(LinearGradient(stops: [.init(color: .black, location: 0),
+                                                     .init(color: .black, location: 0.72),
+                                                     .init(color: .clear, location: 1)],
+                                             startPoint: .top, endPoint: .bottom))
+                        // From the top of the screen (the clock and the bar
+                        // are ~110 pt), not from the hidden bounce area.
+                        .padding(.top, reach - Self.barReach)
+                }
                 // Keeps the clock, the bar's title and "Tonight" readable on
                 // a pale photo: darkest behind the bars, gone by mid-cover.
                 LinearGradient(stops: [.init(color: .black.opacity(0.55), location: 0),
@@ -460,6 +488,16 @@ struct PlanView: View {
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background { tableGlass }
+    }
+
+    /// The status bar and the inline navigation bar on iPhone, about.
+    private static let barReach: CGFloat = 110
+    /// The cover photo's shape on iPhone: its own, but never wider than 4:5
+    /// portrait, so a landscape photo still reaches the card (a 1.25× crop
+    /// at most for a square, 1.66× for 4:3 — never the 3–4× of filling).
+    static func coverPhotoAspect(_ image: UIImage) -> CGFloat {
+        guard image.size.height > 0 else { return 0.8 }
+        return min(image.size.width / image.size.height, 0.8)
     }
 
     /// Solid espresso instead of glass: the cook asked for less
