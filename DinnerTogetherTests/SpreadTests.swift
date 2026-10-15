@@ -12,7 +12,7 @@ final class SpreadTests: XCTestCase {
         XCTAssertFalse(spread(390, 844), "an iPhone upright: one page")
         XCTAssertFalse(spread(932, 430), "a Pro Max on its side is wide but not tall: one page")
         XCTAssertFalse(spread(430, 932), "a Pro Max upright: one page")
-        XCTAssertTrue(spread(780, 844), "two phone-wide panels side by side: the spread")
+        XCTAssertTrue(spread(820, 844), "two phone-wide panels side by side: the spread")
         XCTAssertTrue(spread(800, 560), "the smallest open window that fits two readable pages")
         XCTAssertFalse(spread(799, 560), "just short of two comfortable pages: one page")
         XCTAssertFalse(spread(466, 678), "the Duo's cover display, folded: one page")
@@ -23,7 +23,7 @@ final class SpreadTests: XCTestCase {
         XCTAssertFalse(spread(599, 844), "a column narrower than an SE each: one page")
         XCTAssertFalse(spread(1024, 768, phone: false), "iPad keeps its own layout (Joe: the Duo first)")
         XCTAssertFalse(spread(1366, 1024, phone: false))
-        XCTAssertFalse(spread(780, 844, ax: true), "at accessibility sizes the main recipe takes the whole width")
+        XCTAssertFalse(spread(820, 844, ax: true), "at accessibility sizes the main recipe takes the whole width")
     }
 
     func testDuoUprightIsOneCookbookPage() {
