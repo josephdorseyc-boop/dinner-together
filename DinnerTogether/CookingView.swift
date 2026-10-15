@@ -632,8 +632,8 @@ struct CookingView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
             // RIGHT NOW's action comes before the timing details, so it stays
-            // on the first screen of a short window too (the Duo upright,
-            // 466 × 678: below the tab bar in run 38733138966).
+            // on the first screen of a short window too (the Duo's cover
+            // display, 466 × 678: below the tab bar in run 38733138966).
             if featured {
                 Button { doneTapped(item) } label: {
                     Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")

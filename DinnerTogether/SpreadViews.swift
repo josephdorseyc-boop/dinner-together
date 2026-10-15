@@ -82,8 +82,11 @@ struct RecipeSpreadView: View {
         }
     }
 
-    /// The Duo upright (Joe, October 15): one cookbook page, and a quiet
-    /// switch between the main recipe and a side dish read alongside.
+    /// A near-square screen — the Duo's cover display either way up, or the
+    /// opened Duo held upright (Joe, October 15): one cookbook page, and a
+    /// quiet switch between the main recipe and a side dish read alongside.
+    /// Its bar is frosted, so a colored page shows through as under the
+    /// system's own glass rail (Joe, October 15, 10:45 AM).
     @ViewBuilder
     private func bookSwitch(side: UUID?) -> some View {
         HStack(spacing: 16) {
@@ -118,7 +121,7 @@ struct RecipeSpreadView: View {
         }
         .padding(.horizontal, 18).padding(.vertical, 4)
         .frame(maxWidth: .infinity)
-        .background(Theme.cream)
+        .background(.ultraThinMaterial)
     }
 
     /// One half of the Main / Side capsule (approved mockup 04): olive with

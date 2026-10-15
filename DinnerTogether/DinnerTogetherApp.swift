@@ -390,9 +390,9 @@ extension View {
 }
 
 /// Which ways the app turns. iPad: every way. iPhone: upright, except on a
-/// near-square screen — the iPhone Duo's inner display — which turns like a
-/// book so the cookbook spread can open (its first run showed the Duo's
-/// screen upright at 466 × 678).
+/// near-square screen — the iPhone Duo — which turns either way (its cover
+/// display is 466 × 678 folded; one cookbook page both ways up, Joe,
+/// October 15). Apple: the inner display ignores this mask anyway.
 final class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         if UIDevice.current.userInterfaceIdiom == .pad { return .all }

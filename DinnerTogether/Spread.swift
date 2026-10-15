@@ -7,14 +7,20 @@ import Foundation
 /// dish). One recipe per dinner stays: the left page is read, never cooked.
 ///
 /// Decided from the window's geometry, never from the device (Apple's
-/// guidance for the Duo): a phone-idiom window wide enough for two pages of
-/// at least 300 pt and tall enough for a page. The Duo's inner display came
-/// up 466 × 678 in its first run (October 15), upright: one page there; the
-/// app turns with the Duo held like a book (678 wide), and the spread opens.
-/// Ordinary iPhones stay upright, so never qualify; iPad keeps its layout.
+/// guidance for the Duo): a phone-idiom window wide enough for two
+/// comfortable pages once the rail, gutter and padding are taken out, and
+/// tall enough for a page. The Duo runs so far were all on its COVER
+/// display, folded (466 × 678; the simulator boots closed — A1, October 15).
+/// The cover is one page in either orientation (Joe approved, October 15,
+/// 10:32 and 10:45 AM): 678 × 466 sideways is too little for two. Opened,
+/// the inner display is reported at 951 × 669 (pending our own capture),
+/// and the spread opens there. Ordinary iPhones never qualify; iPad keeps
+/// its layout.
 enum SpreadLayout {
-    /// Two readable pages of 300 pt or more.
-    static let minimumWidth: Double = 600
+    /// Two readable pages after the rail, gutter and page padding (A2,
+    /// October 15: a starting floor, to be checked against real inner-display
+    /// captures; 600 let the sideways cover split into ~290 pt pages).
+    static let minimumWidth: Double = 800
     /// …and a page's worth of height (an iPhone on its side is 430–440).
     static let minimumHeight: Double = 450
 
@@ -24,12 +30,12 @@ enum SpreadLayout {
         phoneIdiom && !accessibilitySize && width >= minimumWidth && height >= minimumHeight
     }
 
-    /// How the recipe page is laid out (Joe, October 15, after the Duo's
-    /// first screenshots: upright, the Duo's screen is 466 × 678 with the
-    /// system's rail on the right — two pages would be ~190 pt each):
-    /// - `.spread`: two cookbook pages side by side (wide enough);
+    /// How the recipe page is laid out (Joe, October 15):
+    /// - `.spread`: two cookbook pages side by side (wide enough: the Duo
+    ///   opened);
     /// - `.book`: one full-width cookbook page with a quiet Main / Side
-    ///   switch — a near-square phone screen (the Duo upright);
+    ///   switch — a near-square phone screen: the Duo's cover display either
+    ///   way up (466 × 678 or 678 × 466), or the opened Duo held upright;
     /// - `.single`: the page as on every iPhone and iPad.
     enum Mode: Equatable { case single, book, spread }
 
