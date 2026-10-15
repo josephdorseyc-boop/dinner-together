@@ -1,6 +1,16 @@
 # A2-60 — Duo Cooking spread proposal
 Issue23 request from A3, October15,07:39 Denver. Status: PROPOSAL FOR JOE APPROVAL. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
 
+
+## Current single-recipe direction — Joe, October15,08:23 Denver
+This supersedes the earlier07:59 single-recipe composition below. LEFT: full-bleed hero photo overlaid by ONE adjustable transparent/frosted-glass Right now card, containing current step, remaining time and primary Start/Mark done/Mark done after checking action as existing state requires. RIGHT: cream reader with Coming up and Directions tabs, so upcoming steps and full saved directions are both available. Browsing preserves current timer/deadline/action on LEFT and each right-tab reading position.
+
+Card opacity control: discreet card ellipsis opens an accessible transparency/opacity slider, using the established card-control pattern. Adjustment affects the glass treatment, not the underlying photograph or timer/session state. Maintain readable contrast at every setting and use adaptive tint/scrim rather than allowing text to disappear against bright food photos. Persistence/scope follows A3's implementation choice; do not silently tie this to an unrelated setting. Controls stay reachable above actual safe areas/system rail; AX3/narrow fallback can stack photo/card and reader rather than clipping or shrinking text.
+
+The current action belongs to the current step, even while another direction is being read. No action buttons on future-direction rows that start/complete tasks implicitly. Timer-end notice remains in/adjacent to LEFT card, with accessible View step/return to current direction on RIGHT. No automatic completion or forced loss of reading position. Missing photo uses existing placeholder. Decorative leaf remains on RIGHT, distinct from overflow.
+
+User-specified layout is now the design reference; the new mockup was shown for confirmation and is not a native fit test. Multi-dish layout remains a separate proposal, not changed by this single-recipe instruction.
+
 ## Mockups prepared
 1. Sideways: Right now LEFT, Coming up RIGHT.
 2. Upright and larger text: single-column Cooking with timer-ended notice and return-to-current access.
