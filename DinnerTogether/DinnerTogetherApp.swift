@@ -8,6 +8,7 @@ struct DinnerTogetherApp: App {
     @StateObject private var store: SessionStore
     @StateObject private var library: RecipeLibrary
     @StateObject private var timers = TimerCenter()
+    @StateObject private var quickTimers: QuickTimerStore
     @StateObject private var weekPlan: WeekPlanStore
 
     init() {
@@ -31,8 +32,11 @@ struct DinnerTogetherApp: App {
         library.simulateImageSaveFailure = LaunchOptions.failCoverSaves
         #endif
         _library = StateObject(wrappedValue: library)
-        _store = StateObject(wrappedValue: SessionStore(notifications: LaunchOptions.notificationService(),
-                                                        menuProvider: library))
+        let store = SessionStore(notifications: LaunchOptions.notificationService(), menuProvider: library)
+        _store = StateObject(wrappedValue: store)
+        // Kitchen timers from the directions (Joe, October 15) share the
+        // session's reminder service.
+        _quickTimers = StateObject(wrappedValue: QuickTimerStore(notifications: store.notifications))
     }
 
     var body: some Scene {
@@ -41,6 +45,7 @@ struct DinnerTogetherApp: App {
                 .environmentObject(store)
                 .environmentObject(library)
                 .environmentObject(timers)
+                .environmentObject(quickTimers)
                 .environmentObject(weekPlan)
                 #if DEBUG
                 .background { UITestSceneGeometry.launchProbe }

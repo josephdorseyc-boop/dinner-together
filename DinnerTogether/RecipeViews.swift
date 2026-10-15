@@ -697,6 +697,8 @@ struct RecipeDetailView: View {
     var roleLabel: String? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
+    @EnvironmentObject private var timers: TimerCenter
+    @EnvironmentObject private var quickTimers: QuickTimerStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -1342,9 +1344,12 @@ struct RecipeDetailView: View {
                                 .frame(minWidth: 28, minHeight: 28)
                                 .background(Circle().fill(Theme.olive))
                                 .accessibilityLabel("Step \(i + 1)")
-                            TimedText.make(line, accent: accentColor)
-                                .font(.body).lineSpacing(4)
-                                .fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 10) {
+                                TimedText.make(line, accent: accentColor)
+                                    .font(.body).lineSpacing(4)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                stepTimers(recipe, step: i, line: line)
+                            }
                         }
                         Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
                     }
@@ -1356,6 +1361,7 @@ struct RecipeDetailView: View {
                         TimedText.make(line, accent: accentColor)
                             .font(.title3).lineSpacing(7)
                             .fixedSize(horizontal: false, vertical: true)
+                        stepTimers(recipe, step: i, line: line)
                     }
                 }
             }
@@ -1387,6 +1393,49 @@ struct RecipeDetailView: View {
                 }
             }
         }
+    }
+
+    /// A kitchen timer for each duration a step names (Joe, October 15:
+    /// "the option to set a timer"): "Start 15 minutes", then the live
+    /// countdown with a stop. Named for the dish and the step, so several
+    /// can run at once; they end with a notification. Not a step of the
+    /// cooking plan — the cook's own timer, whenever they want one.
+    @ViewBuilder
+    private func stepTimers(_ recipe: Recipe, step index: Int, line: String) -> some View {
+        let durations = TimedText.durations(in: line)
+        if !durations.isEmpty {
+            let stepTitle = recipe.steps.indices.contains(index) ? recipe.steps[index].title : "Step \(index + 1)"
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { ForEach(durations, id: \.self) { timerButton(recipe, stepTitle: stepTitle, duration: $0) } }
+                VStack(alignment: .leading, spacing: 8) { ForEach(durations, id: \.self) { timerButton(recipe, stepTitle: stepTitle, duration: $0) } }
+            }
+        }
+    }
+
+    private func timerButton(_ recipe: Recipe, stepTitle: String, duration: String) -> some View {
+        let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration)
+        let now = timers.now
+        return Button {
+            if let running { quickTimers.stop(running.id) }
+            else if let seconds = TimedText.seconds(in: duration) {
+                quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: running == nil ? "timer" : (running!.isOver(at: now) ? "bell.fill" : "stop.fill"))
+                Text(running.map { QuickTimer.countdown($0.remaining(at: now)) } ?? "Start \(duration)")
+                    .monospacedDigit()
+            }
+            .font(.subheadline.weight(.semibold))
+            .padding(.horizontal, 14).frame(minHeight: 40)
+            .foregroundStyle(running == nil ? accentColor : (deepPage ? Theme.ink : .white))
+            .background(Capsule().fill(running == nil ? accentColor.opacity(0.14) : (running!.isOver(at: now) ? Theme.warning : accentColor)))
+        }
+        .buttonStyle(.plain)
+        .disabled(running == nil && TimedText.seconds(in: duration) == nil)
+        .accessibilityLabel(running.map { "\(stepTitle) timer, \(QuickTimer.countdown($0.remaining(at: now)))" } ?? "Start a \(duration) timer for \(stepTitle)")
+        .accessibilityHint(running == nil ? "Counts down and tells you when it’s up." : "Stops the timer.")
+        .accessibilityIdentifier(pageID(running == nil ? "start-timer" : "stop-timer"))
     }
 
     /// The Edit sheet, in Notes when asked. (The page's own menu waits for
@@ -1728,6 +1777,31 @@ struct RecipeDetailView: View {
 /// orange timer chips in the reference: "about [⏱ 30 seconds]".
 enum TimedText {
     static let pattern = #"(?i)\b\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔]|\s\d/\d)?(?:\s*(?:to|-|–|or)\s*\d+(?:[.,]\d+)?(?:\s?[½¼¾⅓⅔]|\s\d/\d)?)?\s*(?:seconds?|secs?|minutes?|mins?|hours?|hrs?)\b|\b(?:an|one|half an|a half) hours?\b|\bovernight\b"#
+
+    /// Each duration the line names, as written ("15 minutes", "2 to 3 hours").
+    static func durations(in line: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: pattern) else { return [] }
+        let ns = NSString(string: line)
+        return regex.matches(in: line, options: [], range: NSRange(location: 0, length: ns.length))
+            .map { ns.substring(with: $0.range) }
+            .filter { $0.lowercased() != "overnight" }
+    }
+
+    /// "15 minutes" → 900, "30 seconds" → 30 (the importer's minutes would
+    /// round that up to a minute); a range takes its upper end, as the
+    /// importer does.
+    static func seconds(in duration: String) -> Int? {
+        let t = duration.lowercased()
+        if let regex = try? NSRegularExpression(pattern: #"(\d+(?:[.,]\d+)?)\s*(?:seconds?|secs?)\b"#),
+           t.range(of: #"\b(?:minutes?|mins?|hours?|hrs?)\b"#, options: .regularExpression) == nil {
+            let ns = NSString(string: t)
+            let values = regex.matches(in: t, options: [], range: NSRange(location: 0, length: ns.length))
+                .compactMap { Double(ns.substring(with: $0.range(at: 1)).replacingOccurrences(of: ",", with: ".")) }
+            if let last = values.last, last > 0 { return Int(last.rounded()) }
+        }
+        guard let minutes = RecipeImporter.minutes(in: duration), minutes > 0 else { return nil }
+        return minutes * 60
+    }
 
     static func make(_ line: String, accent: Color = Theme.tomato) -> Text {
         guard let regex = try? NSRegularExpression(pattern: pattern) else { return Text(line) }

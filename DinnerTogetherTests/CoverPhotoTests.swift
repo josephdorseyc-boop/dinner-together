@@ -221,4 +221,25 @@ final class CoverPhotoTests: XCTestCase {
         XCTAssertNil(library.recipe(id: recipe.id)?.originalCoverFilename)
     }
 }
+
+/// The durations a direction names, as the timer buttons read them
+/// (Joe, October 15). TimedText lives with the views, so this runs on the
+/// simulator only.
+final class DirectionTimerTests: XCTestCase {
+    func testEachDurationInAStepBecomesATimer() {
+        XCTAssertEqual(TimedText.durations(in: "Pat the chicken dry. Roast at 375°F for 15 minutes."), ["15 minutes"])
+        XCTAssertEqual(TimedText.durations(in: "Simmer 10 to 12 minutes, then rest for 5 min."), ["10 to 12 minutes", "5 min"])
+        XCTAssertEqual(TimedText.durations(in: "Chill overnight."), [], "overnight is no kitchen timer")
+        XCTAssertEqual(TimedText.durations(in: "Stir until smooth."), [])
+    }
+
+    func testTimerSecondsFollowTheDirection() {
+        XCTAssertEqual(TimedText.seconds(in: "15 minutes"), 900)
+        XCTAssertEqual(TimedText.seconds(in: "10 to 12 minutes"), 720, "a range takes its upper end")
+        XCTAssertEqual(TimedText.seconds(in: "30 seconds"), 30, "not rounded up to a minute")
+        XCTAssertEqual(TimedText.seconds(in: "1½ hours"), 90 * 60)
+        XCTAssertEqual(TimedText.seconds(in: "an hour"), 3600)
+        XCTAssertNil(TimedText.seconds(in: "0 minutes"))
+    }
+}
 #endif

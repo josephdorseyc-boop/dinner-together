@@ -241,4 +241,25 @@ final class SpreadTests: XCTestCase {
         store.dishDeleted(chicken.id)
         XCTAssertFalse(store.hasDinner, "the main gone is no dinner")
     }
+
+    // MARK: Kitchen timers from the directions (Joe, October 15)
+
+    func testQuickTimerCountsDownFromItsDeadlineAndNamesItsDishAndStep() throws {
+        let now = Date()
+        let t = try XCTUnwrap(QuickTimer.make(recipeID: nil, dish: "Creamy Chicken Au Poivre", stepTitle: "Roast at 375°F",
+                                              durationText: "15 minutes", seconds: 15 * 60, now: now))
+        XCTAssertEqual(t.label, "Roast at 375°F · Creamy Chicken Au Poivre")
+        XCTAssertEqual(t.remaining(at: now), 900, accuracy: 0.001)
+        XCTAssertEqual(QuickTimer.countdown(t.remaining(at: now.addingTimeInterval(126))), "12:54")
+        XCTAssertEqual(QuickTimer.countdown(t.remaining(at: now.addingTimeInterval(892))), "0:08")
+        XCTAssertFalse(t.isOver(at: now.addingTimeInterval(899)))
+        XCTAssertTrue(t.isOver(at: now.addingTimeInterval(900)))
+        XCTAssertEqual(QuickTimer.countdown(t.remaining(at: now.addingTimeInterval(1000))), "Time’s up")
+        XCTAssertEqual(QuickTimer.countdown(3 * 3600 + 5), "3:00:05")
+        XCTAssertNil(QuickTimer.make(recipeID: nil, dish: "x", stepTitle: "", durationText: "0 minutes", seconds: 0), "nothing to count")
+        XCTAssertEqual(QuickTimer.make(recipeID: nil, dish: "Beans", stepTitle: "", durationText: "6 minutes", seconds: 360)?.label, "Beans")
+        // Round trip: the deadline is what's kept, not a tick count.
+        let data = try JSONEncoder().encode(t)
+        XCTAssertEqual(try JSONDecoder().decode(QuickTimer.self, from: data), t)
+    }
 }

@@ -285,3 +285,42 @@ enum WholeMeal {
                           dishes: recipes.flatMap(\.dishes))
     }
 }
+
+/// A kitchen timer started from a direction (Joe, October 15: "the option to
+/// set a timer" on a step's "15 minutes"). Standalone: it isn't a step of the
+/// cooking plan, just a countdown named for its dish and step, kept by its
+/// absolute deadline so backgrounding and relaunch can't drift it. The same
+/// timers are what the Duo's tent mode will show (build 22, #24).
+struct QuickTimer: Codable, Identifiable, Equatable {
+    var id: String = UUID().uuidString
+    /// The recipe it came from, and its step, for the label.
+    var recipeID: UUID?
+    var dish: String
+    var stepTitle: String
+    /// The duration as the direction wrote it ("15 minutes").
+    var durationText: String
+    var seconds: Int
+    var startedAt: Date
+    var deadline: Date
+
+    static func make(recipeID: UUID?, dish: String, stepTitle: String, durationText: String, seconds: Int, now: Date = Date()) -> QuickTimer? {
+        guard seconds > 0 else { return nil }
+        return QuickTimer(recipeID: recipeID, dish: dish, stepTitle: stepTitle, durationText: durationText,
+                          seconds: seconds, startedAt: now, deadline: now.addingTimeInterval(TimeInterval(seconds)))
+    }
+
+    func remaining(at now: Date) -> TimeInterval { deadline.timeIntervalSince(now) }
+    func isOver(at now: Date) -> Bool { remaining(at: now) <= 0 }
+
+    /// "Roast at 375°F · Creamy Chicken Au Poivre" — the step, then the dish
+    /// (several dishes can be going at once, build 21).
+    var label: String { stepTitle.isEmpty ? dish : "\(stepTitle) · \(dish)" }
+
+    /// "12:34", or "0:08"; over: "Time's up".
+    static func countdown(_ remaining: TimeInterval) -> String {
+        let r = Int(remaining.rounded(.up))
+        guard r > 0 else { return "Time’s up" }
+        if r >= 3600 { return String(format: "%d:%02d:%02d", r / 3600, (r % 3600) / 60, r % 60) }
+        return String(format: "%d:%02d", r / 60, r % 60)
+    }
+}
