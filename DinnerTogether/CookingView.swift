@@ -631,19 +631,23 @@ struct CookingView: View {
                     .font(.caption).foregroundStyle(Theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            DisclosureGroup("Timing details") {
-                VStack(alignment: .leading, spacing: 5) {
-                    if let start = record.actualStart { Text("Started \(Scheduling.formatTime(start))") }
-                    Text("Planned \(Scheduling.formatRange(start: item.plannedStart, end: item.plannedEnd))")
-                }.font(.caption).foregroundStyle(Theme.muted).padding(.top, 5)
-            }.font(.caption).tint(Theme.muted)
+            // RIGHT NOW's action comes before the timing details, so it stays
+            // on the first screen of a short window too (the Duo upright,
+            // 466 × 678: below the tab bar in run 38733138966).
             if featured {
                 Button { doneTapped(item) } label: {
                     Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")
                 }
                     .buttonStyle(BigButtonStyle()).accessibilityLabel("Mark \(item.step.title) done")
                     .accessibilityHint(remaining <= 0 ? "The timer ended. Confirm the food is ready before marking this step done." : "")
-            } else {
+            }
+            DisclosureGroup("Timing details") {
+                VStack(alignment: .leading, spacing: 5) {
+                    if let start = record.actualStart { Text("Started \(Scheduling.formatTime(start))") }
+                    Text("Planned \(Scheduling.formatRange(start: item.plannedStart, end: item.plannedEnd))")
+                }.font(.caption).foregroundStyle(Theme.muted).padding(.top, 5)
+            }.font(.caption).tint(Theme.muted)
+            if !featured {
                 Button { doneTapped(item) } label: { Label("Mark done", systemImage: "checkmark") }
                     .buttonStyle(QuietButtonStyle()).accessibilityLabel("Mark \(item.step.title) done")
             }

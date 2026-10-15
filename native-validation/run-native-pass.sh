@@ -389,7 +389,13 @@ run_ui_tests() { # label udid only_testing expected
   # A skipped test is a test that did not run; it cannot count toward "passed" (Agent 1, A1-4).
   if [ "$skipped" -gt 0 ]; then fail "$label UI: $skipped skipped UI test(s) — every test must execute"; fi
   local shots="$RESULTS/ui-screenshots/$label"
-  rm -rf "$shots"; mkdir -p "$shots"
+  # Keep the captures the test runner wrote itself (direct/): they are all
+  # there is when the result bundle cannot be read (Duo run 38733138966).
+  find "$shots" -mindepth 1 -maxdepth 1 ! -name direct -exec rm -rf {} + 2>/dev/null || true
+  mkdir -p "$shots"
+  local directcount
+  directcount=$(find "$shots/direct" -name '*.png' 2>/dev/null | wc -l | tr -d ' ')
+  note "  - captures written directly by the test runner on $label: $directcount — \`ui-screenshots/$label/direct/\`"
   local arc=0 pngs=0
   if [ -d "$bundle" ]; then
     xcrun xcresulttool export attachments --path "$bundle" --output-path "$shots" \
@@ -405,8 +411,15 @@ run_ui_tests() { # label udid only_testing expected
     arc=1
   fi
   if [ "$arc" -ne 0 ]; then
-    fail "$label UI: attachment export failed (exit $arc) — the flows were not photographed"
+    if [ "${directcount:-0}" -gt 0 ]; then
+      fail "$label UI: attachment export failed (exit $arc) — the $directcount captures in ui-screenshots/$label/direct/ are the evidence"
+    else
+      fail "$label UI: attachment export failed (exit $arc) — the flows were not photographed"
+    fi
   else
+    # The bundle's own export has them all (named): the direct copies would
+    # only double the results.
+    rm -rf "$shots/direct"
     # Best effort, never a gate: give the exported files their attachment
     # names (xcresulttool names them by UUID and describes them in
     # manifest.json), so Agent 2 can read "01-review-sheet.png" instead of a

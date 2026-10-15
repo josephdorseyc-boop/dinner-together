@@ -1815,6 +1815,19 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(cover.exists, "Tonight is still there")
     }
 
+    /// Back from a recipe page: the bar's back button by its identifier (it
+    /// is not always inside a NavigationBar element — the Duo, run
+    /// 38733138966), else the first button of a navigation bar, else the
+    /// edge swipe.
+    private func goBack() {
+        let back = app.buttons["BackButton"].firstMatch
+        if back.exists { back.tap(); return }
+        let barBack = app.navigationBars.buttons.firstMatch
+        if barBack.exists { barBack.tap(); return }
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)))
+    }
+
     /// The Tonight tab on iPhone. iPad has no tab bar, and its clock follows
     /// the sidebar, so the page's own Back to Tonight serves (run
     /// 38670042839: a "Tonight" text tapped there did not switch).
@@ -2012,8 +2025,7 @@ extension DinnerTogetherUITestCase {
         let pageStar = app.buttons["recipe-favorite"]
         waitForExistence(pageStar, timeout: 5, "the page's star")
         XCTAssertTrue(pageStar.isSelected, "…filled for a favorite")
-        let back = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Recipes' OR label == 'Back'")).firstMatch
-        (back.exists ? back : app.navigationBars.buttons.element(boundBy: 0)).tap()
+        goBack()
 
         // Search by title or ingredient, from a fresh launch: an active search
         // collapses iOS 27's tab bar, which the week part needs (run 38723119849).
@@ -2187,8 +2199,7 @@ extension DinnerTogetherUITestCase {
         XCTAssertEqual(shown.label, "Use extra lime. Check five minutes early.", "the page shows the cook's notes")
         XCTAssertTrue(app.buttons["edit-notes"].exists, "…with Edit notes beside them")
         photograph("r20b2-recipe-notes" + capture.suffix)
-        let back = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Recipes' OR label == 'Back'")).firstMatch
-        (back.exists ? back : app.navigationBars.buttons.element(boundBy: 0)).tap()
+        goBack()
         waitForExistence(app.buttons["add-recipe"], timeout: 5, "back in Your Recipes")
         }
 
