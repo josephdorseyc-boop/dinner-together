@@ -54,6 +54,7 @@ let package = Package(
                 "SharedInbox.swift",
                 "WeekPlan.swift",
                 "Spread.swift",
+                "PlayOverlay.swift",
                 "DebugSampleMenus.swift",
                 "EngineTestSupport.swift",
             ]

@@ -266,3 +266,148 @@ final class SharedInboxTests: XCTestCase {
     }
 }
 
+
+// MARK: - Joe's Instagram import (build 19): a caption laid out as a recipe
+
+/// The shape of the post Joe imported: the dish's name running straight into
+/// the creator's story, a "Comment BOMB" call to action, a lead-in, groups
+/// headed "For the …:", amounts without numbers, an "(optional, …)" line under
+/// its ingredient, the method, and "Save this…" at the end.
+private let auPoivreCaption = """
+Creamy Chicken Au Poivre 🍗🔥 This might be one of the best ways I’ve ever prepared a whole chicken. Listen it’s juicy, crispy skin and that creamy peppercorn sauce is EVERYTHINGGG thank you for sharing this recipe with us!
+
+Interested in trying a Kickin’ Chicken Seasoning Bomb? Comment “BOMB” and I’ll send you the link!
+
+My version of the viral chicken au poivre:
+
+For the chicken:
+1 whole young chicken (4–5 lb), spatchcocked, cleaned and pat dry
+Salt, to taste
+drizzle of good quality olive oil
+
+For the creamy au poivre sauce:
+1½ cups heavy cream (I used lactose free)
+2 sprigs fresh rosemary, chopped
+3 cloves garlic, chopped
+1 shallot, sliced
+2 tbsp crushed black peppercorns (more or less, and you can ground the texture as coarse or as fine as you like. This is entirely based on preference since they add a kick)
+Generous pinch of salt
+½ Kickin’ Chicken Seasoning Bomb
+(optional, yes you can sub with a bouillon cube or seasoning)
+Splash of sherry cooking wine
+
+Pat the chicken dry, massage with olive oil and season with salt on both sides. Roast at 375°F for 15 minutes.
+Meanwhile, steep the heavy cream with the rosemary, garlic, shallot, cracked peppercorns, salt and ½ Kickin’ Chicken Seasoning Bomb. You want to make sure this is simmering, not boiling, so steam coming off the pot and some *small* bubbles are okay!
+Once the 15 minute timer is up, remove the chicken from the oven and pour the creamy au poivre sauce all over. Add a splash of sherry cooking wine and pop it back in the oven to finish roasting at 400 F. Let it roast until the chicken is golden brown and fully cooked through to 165°F.
+Save this for your next chicken dinner! 🍗 #chickenaupoivre #wholechicken
+"""
+
+final class InstagramCaptionLayoutTests: XCTestCase {
+    private func post(_ caption: String) -> SocialPost {
+        SocialPost(platform: "Instagram", caption: caption, author: "Call Me Candace", imageURL: nil,
+                   url: URL(string: "https://www.instagram.com/reel/C9x/")!)
+    }
+
+    func testJoesAuPoivreCaptionReadsAsTheRecipe() throws {
+        let r = try SocialImport.recipe(from: post(auPoivreCaption))
+        XCTAssertEqual(r.title, "Creamy Chicken Au Poivre", "the dish's name, not the story after it, nor “Recipe from Call Me Candace”")
+        XCTAssertEqual(r.ingredients, [
+            "For the chicken:",
+            "1 whole young chicken (4–5 lb), spatchcocked, cleaned and pat dry",
+            "Salt, to taste",
+            "drizzle of good quality olive oil",
+            "For the creamy au poivre sauce:",
+            "1½ cups heavy cream (I used lactose free)",
+            "2 sprigs fresh rosemary, chopped",
+            "3 cloves garlic, chopped",
+            "1 shallot, sliced",
+            "2 tbsp crushed black peppercorns (more or less, and you can ground the texture as coarse or as fine as you like. This is entirely based on preference since they add a kick)",
+            "Generous pinch of salt",
+            "½ Kickin’ Chicken Seasoning Bomb (optional, yes you can sub with a bouillon cube or seasoning)",
+            "Splash of sherry cooking wine",
+        ])
+        let steps = r.sections.flatMap(\.steps)
+        XCTAssertEqual(steps.count, 3, "only the method: \(steps)")
+        XCTAssertTrue(steps[0].hasPrefix("Pat the chicken dry"), steps[0])
+        XCTAssertTrue(steps[1].hasPrefix("Meanwhile, steep the heavy cream"), steps[1])
+        XCTAssertTrue(steps[2].hasPrefix("Once the 15 minute timer is up"), steps[2])
+        let all = steps.joined(separator: " ")
+        for gone in ["This might be one", "Comment", "My version", "For the chicken", "Save this"] {
+            XCTAssertFalse(all.contains(gone), "“\(gone)…” is not a step")
+        }
+    }
+
+    func testCallsToActionAndHeaders() {
+        XCTAssertTrue(SocialImport.isCallToAction("Interested? Comment “BOMB” and I’ll send you the link!"))
+        XCTAssertTrue(SocialImport.isCallToAction("Save this for your next chicken dinner!"))
+        XCTAssertTrue(SocialImport.isCallToAction("Follow for more easy dinners"))
+        XCTAssertFalse(SocialImport.isCallToAction("Save the remaining sauce in the fridge."), "a step that keeps food is not a call to action")
+        XCTAssertTrue(SocialImport.isGroupHeader("For the creamy au poivre sauce:"))
+        XCTAssertTrue(SocialImport.isGroupHeader("Sauce:"))
+        XCTAssertFalse(SocialImport.isGroupHeader("My version of the viral chicken au poivre:"))
+        XCTAssertFalse(SocialImport.isGroupHeader("1 cup flour"))
+        XCTAssertTrue(SocialImport.isAmountPhrase("drizzle of good quality olive oil"))
+        XCTAssertTrue(SocialImport.isAmountPhrase("Splash of sherry cooking wine"))
+        XCTAssertFalse(SocialImport.isAmountPhrase("Drizzle the sauce over the chicken."))
+    }
+
+    func testLeadingTitle() {
+        XCTAssertEqual(SocialImport.leadingTitle("Creamy Chicken Au Poivre This might be one of the best"), "Creamy Chicken Au Poivre")
+        XCTAssertEqual(SocialImport.leadingTitle("Garlic Butter Steak Bites Recipe below"), "Garlic Butter Steak Bites")
+        XCTAssertEqual(SocialImport.leadingTitle("Lemon Herb Chicken"), "Lemon Herb Chicken")
+        XCTAssertEqual(SocialImport.leadingTitle("Whipped frozen apple cider the coziest fall drink!! Recipe"),
+                       "Whipped frozen apple cider the coziest fall drink", "a sentence-case first line keeps the old rule")
+    }
+}
+
+// MARK: - The ▶ baked into a video post's cover (Joe, build 19)
+
+final class PlayOverlayTests: XCTestCase {
+    /// A 160 × 284 picture: a textured mid-tone photo, optionally with a
+    /// dark disc and a white right-pointing triangle at its centre.
+    private func picture(button: Bool, triangle: Bool = true, pointsLeft: Bool = false, square: Bool = false) -> [Double] {
+        let w = 160, h = 284
+        var luma = [Double](repeating: 0, count: w * h)
+        let cx = Double(w) / 2, cy = Double(h) / 2, r = 22.0
+        for y in 0..<h {
+            for x in 0..<w {
+                // Texture: a soft pattern between 0.35 and 0.75, never white.
+                var l = 0.55 + 0.2 * sin(Double(x) * 0.21) * cos(Double(y) * 0.17)
+                if button {
+                    let dx = Double(x) - cx, dy = Double(y) - cy
+                    if hypot(dx, dy) <= r { l *= 0.55 } // the translucent dark disc
+                    let tx = pointsLeft ? -dx : dx
+                    let inTriangle = tx >= -7 && tx <= 10 && abs(dy) <= (10 - tx) * 11 / 17
+                    let inSquare = abs(dx) <= 8 && abs(dy) <= 8
+                    if triangle ? inTriangle : (square ? inSquare : hypot(dx, dy) <= 8) { l = 0.97 }
+                }
+                luma[y * w + x] = l
+            }
+        }
+        return luma
+    }
+
+    func testFindsThePlayButtonAtTheCentre() throws {
+        let hit = try XCTUnwrap(PlayOverlay.find(luma: picture(button: true), width: 160, height: 284))
+        XCTAssertEqual(hit.centerX, 80, accuracy: 4)
+        XCTAssertEqual(hit.centerY, 142, accuracy: 4)
+        XCTAssertGreaterThan(hit.radius, 20, "clears the disc")
+    }
+
+    func testLeavesOtherPicturesAlone() {
+        XCTAssertNil(PlayOverlay.find(luma: picture(button: false), width: 160, height: 284), "a photo without a button")
+        XCTAssertNil(PlayOverlay.find(luma: picture(button: true, triangle: false), width: 160, height: 284), "a white dot is not a ▶")
+        XCTAssertNil(PlayOverlay.find(luma: picture(button: true, triangle: false, square: true), width: 160, height: 284), "nor a white square")
+        XCTAssertNil(PlayOverlay.find(luma: picture(button: true, pointsLeft: true), width: 160, height: 284), "nor a ◀")
+    }
+
+    func testKeepsTheTallerCleanBand() throws {
+        let hit = PlayOverlay.Hit(centerX: 80, centerY: 142, radius: 30)
+        // A 1080 × 1920 reel cover sampled at 160 wide: scale 6.75.
+        let band = try XCTUnwrap(PlayOverlay.cleanBand(width: 1080, height: 1920, hit: hit, scale: 6.75))
+        XCTAssertEqual(band.y, 0, "above the button")
+        XCTAssertEqual(band.height, (142 - 30) * 6.75, accuracy: 0.5)
+        XCTAssertNil(PlayOverlay.cleanBand(width: 1080, height: 400, hit: PlayOverlay.Hit(centerX: 80, centerY: 30, radius: 25), scale: 6.75),
+                     "too thin either side: the cover stays as it was")
+    }
+}

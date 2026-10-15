@@ -85,6 +85,8 @@ struct ContentView: View {
         // appearance (Debug; nil in Release) or else the system's — as this
         // window's own style.
         .background(WindowStyle(scheme: preferredPresentationScheme ?? LaunchOptions.forcedColorScheme))
+        // Video-post covers saved with a baked-in ▶ (Joe, build 19).
+        .task { library.cleanVideoCovers() }
         // Share → "Dinner, Together" from another app: the inbox item opens
         // Add recipe already filled in; the new recipe's page follows.
         .sheet(item: $library.pendingShare) { share in

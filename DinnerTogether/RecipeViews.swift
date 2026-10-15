@@ -1078,12 +1078,21 @@ struct RecipeDetailView: View {
             if recipe.ingredients.isEmpty {
                 Text("No ingredient list came with this recipe.").foregroundStyle(Theme.muted)
             }
-            ForEach(Array(recipe.ingredients.enumerated()), id: \.offset) { _, line in
-                Text(line)
-                    .font(.body)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 18).padding(.vertical, 14)
-                    .recipeSurface(cornerRadius: 18)
+            ForEach(Array(recipe.ingredients.enumerated()), id: \.offset) { i, line in
+                if SocialImport.isGroupHeader(line) {
+                    // "For the chicken:" heads its group, not a card of its own.
+                    Text(line.dropLast().uppercased())
+                        .font(.footnote.weight(.semibold)).tracking(0.8)
+                        .foregroundStyle(labelColor)
+                        .padding(.top, i == 0 ? 0 : 10)
+                        .accessibilityAddTraits(.isHeader)
+                } else {
+                    Text(line)
+                        .font(.body)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 18).padding(.vertical, 14)
+                        .recipeSurface(cornerRadius: 18)
+                }
             }
         }
     }

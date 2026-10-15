@@ -152,9 +152,13 @@ enum SocialImport {
     /// the comments or the video hold it, and the app says so).
     static func recipe(from post: SocialPost) throws -> ImportedRecipe {
         let text = cleanCaption(post.caption)
+        // A caption laid out as a recipe (Joe, build 19: an Instagram import
+        // turned the creator's story, "Comment BOMB", "For the chicken:" and
+        // "Save this…" into steps).
+        let structured = structureCaption(text)
         var parsed: ImportedRecipe
         do {
-            parsed = try RecipeImporter.parse(text: text)
+            parsed = try RecipeImporter.parse(text: structured?.text ?? text)
         } catch {
             throw RecipeImportError.captionWithoutRecipe(platform: post.platform)
         }
@@ -163,7 +167,9 @@ enum SocialImport {
             throw RecipeImportError.captionWithoutRecipe(platform: post.platform)
         }
         let firstLine = text.components(separatedBy: "\n").first { !$0.isEmpty } ?? ""
-        if parsed.title == "Untitled recipe" {
+        if let structured {
+            parsed.title = structured.title ?? post.author.map { "Recipe from \($0)" } ?? "\(post.platform) recipe"
+        } else if parsed.title == "Untitled recipe" {
             parsed.title = post.author.map { "Recipe from \($0)" } ?? "\(post.platform) recipe"
         } else if parsed.title == RecipeImporter.stripStepPrefix(firstLine) {
             parsed.title = captionTitle(firstLine)
@@ -173,6 +179,114 @@ enum SocialImport {
         parsed.source.url = post.url
         parsed.imageURL = post.imageURL
         return parsed
+    }
+
+    // MARK: Caption layout
+
+    /// "Comment BOMB and I'll send you the link", "Save this for later",
+    /// "Follow for more": the creator talking to followers, never a step.
+    static func isCallToAction(_ line: String) -> Bool {
+        line.range(of: #"\b(?:comment\s+[“"'‘]?[\p{L}\p{N}]+|link in (?:my |the )?bio|follow (?:me|for more|along|@)|save (?:this|it for|the recipe for)|tag (?:a|someone|your|a friend)|share (?:this|it) with|send (?:you|u) the (?:link|recipe)|dm me|turn on (?:post )?notifications|double tap|like (?:and|&) (?:save|share)|subscribe)\b"#,
+                   options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    /// "For the chicken:", "Sauce:" — a group of ingredients, not a step.
+    static func isGroupHeader(_ line: String) -> Bool {
+        guard line.hasSuffix(":"), line.count <= 48 else { return false }
+        if line.range(of: #"^(?:for|to make|make)\s+(?:the\s+)?\S"#, options: [.regularExpression, .caseInsensitive]) != nil { return true }
+        return line.split(separator: " ").count <= 3 && !line.lowercased().hasPrefix("my ")
+    }
+
+    /// "drizzle of olive oil", "Splash of sherry", "a handful of basil":
+    /// amounts without numbers, read as ingredients.
+    static func isAmountPhrase(_ line: String) -> Bool {
+        line.range(of: #"^(?:a\s+|an\s+|generous\s+|good\s+|big\s+|small\s+|large\s+)?(?:drizzle|splash|pinch|dash|handful|sprinkle|knob|squeeze|sprig|bunch|glug|dollop|few)s?\s+of\b"#,
+                   options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    private static let captionStepVerbs = #"^\s*(?:pat|massage|rub|marinate|grill|sear|steep|blend|knead|roll|flip|rest|top|layer|mash|shred|squeeze|whip|air[- ]?fry|broil|toast|warm|chill|refrigerate|freeze|line|grease|spray|assemble|enjoy|start|first|then|next|finally|now|after|in the|to the)\b"#
+
+    /// The first line of the method in a caption: numbered, a "Directions"
+    /// header, a sentence, or a cooking verb — never an amount.
+    static func startsMethod(_ line: String) -> Bool {
+        if RecipeImporter.isDirectionsHeader(line) { return true }
+        if isAmountPhrase(line) || isGroupHeader(line) { return false }
+        let lower = line.lowercased()
+        if lower.range(of: #"^\s*(?:step\s*\d+|\d{1,2}\s*[.)]\s+\p{L})"#, options: .regularExpression) != nil { return true }
+        if RecipeImporter.looksLikeIngredient(line) { return false }
+        return RecipeImporter.looksLikeInstruction(line)
+            || lower.range(of: captionStepVerbs, options: .regularExpression) != nil
+    }
+
+    /// The caption rewritten as "title / Ingredients / … / Directions / …"
+    /// for the text importer, when it reads as a recipe: the creator's story
+    /// before the ingredients, lead-ins ("My version of…:"), group headers
+    /// in the method and calls to action are left out; group headers stay
+    /// with the ingredients; "(optional, …)" joins the ingredient above it.
+    /// Nil when the caption has no ingredients followed by a method.
+    static func structureCaption(_ text: String) -> (title: String?, text: String)? {
+        let lines = text.components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty && !isCallToAction($0) }
+        guard lines.count >= 3 else { return nil }
+        func ingredientish(_ l: String) -> Bool {
+            RecipeImporter.looksLikeIngredient(l) || isAmountPhrase(l) || RecipeImporter.isIngredientsHeader(l)
+        }
+        // The title: the first line, unless the caption opens with its list.
+        var title: String?
+        var from = 0
+        if !ingredientish(lines[0]), !isGroupHeader(lines[0]) {
+            title = leadingTitle(lines[0])
+            from = 1
+        }
+        // Where the ingredients begin.
+        var start: Int?
+        for i in from..<lines.count {
+            let l = lines[i]
+            if ingredientish(l) { start = i; break }
+            if isGroupHeader(l), i + 1 < lines.count, ingredientish(lines[i + 1]) { start = i; break }
+        }
+        guard let first = start else { return nil }
+        // Where the method begins.
+        guard let method = (first + 1..<lines.count).first(where: { startsMethod(lines[$0]) }) else { return nil }
+        var ingredients: [String] = []
+        for l in lines[first..<method] where !RecipeImporter.isIngredientsHeader(l) {
+            if l.hasPrefix("("), let last = ingredients.last, !isGroupHeader(last) {
+                ingredients[ingredients.count - 1] = last + " " + l
+            } else {
+                ingredients.append(l)
+            }
+        }
+        let steps = lines[method...].filter { !RecipeImporter.isDirectionsHeader($0) && !isGroupHeader($0) }
+        guard ingredients.contains(where: { !isGroupHeader($0) }), !steps.isEmpty else { return nil }
+        let body = (title.map { [$0] } ?? []) + ["Ingredients"] + ingredients + ["Directions"] + steps
+        return (title, body.joined(separator: "\n"))
+    }
+
+    /// The dish's name at the start of a caption's first line, when the
+    /// story runs on without a stop: "Creamy Chicken Au Poivre This might be
+    /// one of…" → "Creamy Chicken Au Poivre". Otherwise `captionTitle`.
+    static func leadingTitle(_ line: String) -> String {
+        let words = line.split(separator: " ").map(String.init)
+        let small: Set<String> = ["and", "with", "&", "au", "aux", "de", "del", "di", "of", "the", "a", "in", "on", "or", "à", "la", "le", "con", "al", "alla", "n", "'n'"]
+        var run: [String] = []
+        var stopped = false
+        for w in words {
+            let bare = w.trimmingCharacters(in: .punctuationCharacters)
+            guard let f = bare.first else { stopped = true; break }
+            if f.isUppercase || f.isNumber || (!run.isEmpty && small.contains(bare.lowercased())) {
+                run.append(w)
+                if let last = w.last, ".!?:".contains(last) { break }
+            } else { stopped = true; break }
+        }
+        // The run stopped mid-line: its last capital starts the next sentence.
+        if stopped, run.count >= 3, let last = run.last, last.first?.isUppercase == true, let end = last.last, !".!?:".contains(end) {
+            run.removeLast()
+        }
+        while let last = run.last, small.contains(last.lowercased()) { run.removeLast() }
+        guard run.count >= 2, stopped || run.count == words.count else { return captionTitle(line) }
+        let t = run.joined(separator: " ").trimmingCharacters(in: CharacterSet(charactersIn: " .!?:-–—,"))
+        return t.isEmpty ? captionTitle(line) : t
     }
 
     /// The dish's name out of a caption's first line: up to its first

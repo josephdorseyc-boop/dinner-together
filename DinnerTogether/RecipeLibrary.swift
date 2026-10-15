@@ -330,6 +330,18 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         }
     }
 
+    #if canImport(UIKit)
+    /// Covers saved from video posts before the ▶ was cropped away (Joe,
+    /// build 19): checked when the app opens; a clean cover is left as it is.
+    func cleanVideoCovers() {
+        for r in recipes where ["Instagram", "TikTok"].contains(r.source.publisher ?? "") {
+            guard let url = imageURL(for: r), let data = try? Data(contentsOf: url) else { continue }
+            let cleaned = PlayOverlay.cleaned(data)
+            if cleaned != data { _ = saveImage(cleaned, for: r.id) }
+        }
+    }
+    #endif
+
     /// Removes the cover; the page goes back to the classic cream.
     @discardableResult
     func removeCover(for recipeID: UUID) -> Bool {
@@ -533,6 +545,10 @@ struct RecipeImportService {
         var imageData: Data?
         if let imageURL = imported.imageURL, let fetched = try? await fetcher.fetch(imageURL), fetched.data.count > 1_000 {
             imageData = fetched.data
+            #if canImport(UIKit)
+            // A video post's cover can carry a baked-in ▶ (Joe, build 19).
+            imageData = PlayOverlay.cleaned(fetched.data)
+            #endif
         }
         return (recipe, imageData)
     }
