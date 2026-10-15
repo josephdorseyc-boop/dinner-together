@@ -239,7 +239,7 @@ final class DirectionTimerTests: XCTestCase {
         XCTAssertEqual(TimedText.seconds(in: "30 seconds"), 30, "not rounded up to a minute")
         XCTAssertEqual(TimedText.seconds(in: "1½ hours"), 90 * 60)
         XCTAssertEqual(TimedText.seconds(in: "an hour"), 3600)
-        XCTAssertNil(TimedText.seconds(in: "0 minutes"))
+        XCTAssertNil(TimedText.seconds(in: "a while"), "no duration, no timer")
     }
 }
 #endif

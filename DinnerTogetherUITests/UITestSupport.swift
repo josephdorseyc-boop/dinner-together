@@ -1777,7 +1777,16 @@ extension DinnerTogetherUITestCase {
             waitForExistence(option, timeout: 1, "the day’s plan sheet offers \(identifier)")
             showInSheet(option)
             tapEvenInPopover(option)
-            waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
+            if identifier == "day-plan-recipe" {
+                // Build 21: a recipe checks into the day's dinner and the
+                // sheet stays open for more; Done closes it.
+                XCTAssertTrue(option.waitForSelection(), "the recipe is checked")
+                let done = app.buttons["day-plan-done"]
+                tapEvenInPopover(done)
+                waitForDisappearance(done, "Done closes the sheet")
+            } else {
+                waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
+            }
         }
         // Every day starts as the cook's pick (no built-in rotation, Joe,
         // October 14); a day takes one of the cook's recipes or Thanksgiving.
