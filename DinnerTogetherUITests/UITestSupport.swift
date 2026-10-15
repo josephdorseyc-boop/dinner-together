@@ -1789,14 +1789,13 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(cover.exists, "Tonight is still there")
     }
 
-    /// The Tonight tab on iPhone, the sidebar row on iPad.
+    /// The Tonight tab on iPhone. iPad has no tab bar, and its clock follows
+    /// the sidebar, so the page's own Back to Tonight serves (run
+    /// 38670042839: a "Tonight" text tapped there did not switch).
     private func goToTonight() {
         let tab = app.tabBars.buttons["Tonight"].firstMatch
         if tab.exists { tab.tap(); return }
-        let row = app.buttons["Tonight"].firstMatch.exists ? app.buttons["Tonight"].firstMatch
-            : app.staticTexts["Tonight"].firstMatch
-        waitForExistence(row, timeout: 5, "the Tonight tab or sidebar row")
-        row.tap()
+        tapPinned(app.buttons["cook-this-recipe"], "Back to Tonight")
     }
 
     /// On iPhone the photo runs up behind the status bar, so the clock must
@@ -1951,8 +1950,11 @@ extension DinnerTogetherUITestCase {
         field.typeText("Berry lime slush")
         // The cook's own notes, on the same sheet (A2, build 19).
         let notes = app.descendants(matching: .any)["recipe-edit-notes"]
-        scrollTo(notes)
-        notes.tap()
+        // The keyboard is still up from the title: bring Notes into view and
+        // tap its upper part, above the keyboard (run 38670042839: XCTest
+        // called it not hittable with its lower half under the keys).
+        scrollTo(notes, requireHittable: false)
+        notes.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).tap()
         notes.typeText("Use extra lime. Check five minutes early.")
         photograph("r20b-edit-recipe" + capture.suffix)
         tapPinned(save, "Save changes")
