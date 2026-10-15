@@ -1,5 +1,7 @@
 # A2-58: late validation support
 
+**Follow-up:** A new AX3 Notes failure completed during this review. See [AX3_FOLLOWUP.md](AX3_FOLLOWUP.md) and `editor-margin-scroll.patch`; that later evidence supersedes the initial no-new-harness-patch assessment below.
+
 Joe requested agents and patches without overstepping A3. Four agents reviewed app source, UI harness, CI and candidate fixes. No A3 branch or active run was modified.
 
 ## Installed test-only fix on an isolated branch
