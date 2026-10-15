@@ -208,7 +208,7 @@ final class DurationPersistenceTests: XCTestCase {
     /// A2, build 19: the cook's own notes save with the recipe through the
     /// Edit sheet's path, survive a relaunch, clear when blanked, and never
     /// touch the directions, the steps or the timing.
-    func testCookNotesSaveWithTheRecipe() throws {
+    func testCookNotesSaveWithTheRecipe() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
         var imported = ImportedRecipe(title: "Garlic toast")
