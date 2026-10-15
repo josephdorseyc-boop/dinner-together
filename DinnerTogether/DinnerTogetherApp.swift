@@ -407,6 +407,10 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // honours the mask at all has to turn. Apple says the Duo's inner
         // display does not; the probe records what actually happens.
         if ProcessInfo.processInfo.arguments.contains(UITestSceneGeometry.argument) { return .landscape }
+        // UI tests of This Week (the folded Duo turned sideways): the Duo
+        // simulator's cover display does not turn, so an iPhone turned on
+        // its side stands in for it (run 38817138530).
+        if ProcessInfo.processInfo.arguments.contains("-dt-allow-landscape") { return .allButUpsideDown }
         #endif
         let bounds = (window?.windowScene?.screen ?? UIScreen.main).bounds
         let short = min(bounds.width, bounds.height), long = max(bounds.width, bounds.height)

@@ -127,4 +127,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test46_cookbookSpread() { flowCookbookSpread() }
     /// r27 — favorites first, and a day's + Add a new recipe (Joe, build 20).
     func test47_favoritesAndWeekAdd() { flowFavoritesAndWeekAdd() }
+    /// r29 — This Week on a phone turned sideways (the folded Duo's cover, A2-63/A2-65).
+    func test53_weekShowcaseSideways() throws { try flowWeekShowcase() }
 }

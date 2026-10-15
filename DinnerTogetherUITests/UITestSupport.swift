@@ -2252,6 +2252,65 @@ extension DinnerTogetherUITestCase {
         photograph("r26g-duo-cooking-two" + capture.suffix)
     }
 
+    /// r29 — This Week (A2-63; Joe, October 15, 1:12 PM): a phone window
+    /// turned sideways with a short side under 600 pt — the folded Duo's
+    /// cover — shows the week's dinners full screen over an idle Tonight;
+    /// swiping moves through the days; Done returns to Tonight and keeps it
+    /// away while the phone stays sideways. An ordinary iPhone stands in
+    /// (debug -dt-allow-landscape): the Duo simulator's cover doesn't turn.
+    func flowWeekShowcase() throws {
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-allow-landscape"], photo: "pastel")
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let cook = app.buttons["cook-this-recipe"]
+        tapPinned(cook, "Check timing to continue")
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "the Timing tab")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the review is recorded")
+        tapPinned(cook, "Cook this for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 8), "Tonight")
+
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+        let sideways = NSPredicate { _, _ in
+            let f = self.screenFrame
+            return f.width > f.height
+        }
+        if XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: sideways, object: app)], timeout: 8) != .completed {
+            photograph("r29-not-turned")
+            throw XCTSkip("this simulator's display did not turn sideways: \(screenFrame)")
+        }
+        let showcase = app.descendants(matching: .any)["week-showcase"].firstMatch
+        if !showcase.waitForExistence(timeout: 8) { attachHierarchy("r29-week-showcase-missing-hierarchy") }
+        waitForExistence(showcase, timeout: 1, "This Week, sideways on an idle Tonight")
+        let title = app.descendants(matching: .any)["week-showcase-title"].firstMatch
+        XCTAssertTrue(title.waitForExistence(timeout: 3), "the day's dinner")
+        XCTAssertEqual(title.label, RecipeFixtureText.frozenBerryTitle, "tonight's recipe leads")
+        let count = app.staticTexts["week-showcase-count"]
+        XCTAssertEqual(count.label, "1 of 7")
+        XCTAssertTrue(app.buttons["week-showcase-view-dinner"].exists, "View recipe")
+        photograph("r29a-week-showcase-tonight")
+
+        // Swipe to tomorrow: nothing planned, the day can be planned.
+        screenCoordinate(CGVector(dx: 0.8, dy: 0.5)).press(forDuration: 0.05, thenDragTo: screenCoordinate(CGVector(dx: 0.2, dy: 0.5)))
+        let next = NSPredicate { _, _ in count.exists && count.label == "2 of 7" }
+        if XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: next, object: app)], timeout: 5) != .completed {
+            // A day chip moves there too (the swipe is the photo's).
+            let chips = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'week-showcase-day-'"))
+            if chips.count > 1 { chips.element(boundBy: 1).tap() }
+        }
+        XCTAssertTrue(count.label == "2 of 7", "the next day: \(count.label)")
+        XCTAssertTrue(app.buttons["week-showcase-plan-day"].waitForExistence(timeout: 3), "an open day offers Plan this day")
+        photograph("r29b-week-showcase-open-day")
+
+        // Done: back to Tonight, and not again while it stays sideways.
+        app.buttons["week-showcase-done"].tap()
+        waitForDisappearance(showcase, "Done returns to Tonight")
+        Thread.sleep(forTimeInterval: 1.5)
+        XCTAssertFalse(showcase.exists, "Done keeps it away while the phone stays sideways")
+        photograph("r29c-tonight-sideways-after-done")
+    }
+
     /// Tonight's Build → Cooking.
     private func buildDinnerPlan() {
         let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
