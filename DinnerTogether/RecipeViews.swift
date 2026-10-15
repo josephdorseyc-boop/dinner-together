@@ -635,7 +635,10 @@ struct AddRecipeSheet: View {
                     return
                 }
                 if let data = imageData, let jpeg = RecipeFormat.storableJPEG(data) {
-                    guard library.saveImage(jpeg, for: recipe.id) != nil else {
+                    // A link import's picture is the post's; a cover the cook
+                    // cropped from screenshots is their own.
+                    let fromPost = mode == .link && RecipeLibrary.isVideoPost(recipe)
+                    guard library.saveImage(jpeg, for: recipe.id, source: fromPost ? "post" : nil) != nil else {
                         pendingCoverSave = PendingCoverSave(recipe: recipe, data: jpeg)
                         error = "Your recipe is saved, but the cover couldn’t be saved. Retry or continue without it."
                         return
@@ -1049,6 +1052,7 @@ struct RecipeDetailView: View {
                     .padding(.horizontal, 24).padding(.top, 20)
                     .frame(maxWidth: 720, alignment: .leading)
                     .frame(maxWidth: .infinity)
+                if !reader && recipe.coverSource == "post" { postCoverNote(recipe) }
             }
         } else {
             VStack(alignment: .leading, spacing: 12) {
@@ -1072,6 +1076,50 @@ struct RecipeDetailView: View {
             .padding(.horizontal, 24).padding(.top, 20)
             .frame(maxWidth: 720, alignment: .leading)
             .frame(maxWidth: .infinity)
+        }
+    }
+
+    /// The cover a video post shared is often the raw start of the video
+    /// (Joe, October 15: "a little unappealing"). Once, gently: choose a
+    /// better one — a photo or a screenshot of the finished dish — or keep
+    /// it; kept, a quiet line stays while this is still the post's cover
+    /// (A2-63). The app can't reach the video itself, so it never promises
+    /// the final frame.
+    @ViewBuilder
+    private func postCoverNote(_ recipe: Recipe) -> some View {
+        if recipe.coverPromptDismissed == true {
+            HStack(spacing: 6) {
+                Text("Cover from the video post").font(.caption).foregroundStyle(Theme.muted)
+                Text("·").font(.caption).foregroundStyle(Theme.muted).accessibilityHidden(true)
+                Button("Change cover") { editingCover = true }
+                    .font(.caption.weight(.semibold)).tint(accentColor)
+                    .accessibilityIdentifier(pageID("change-post-cover"))
+            }
+            .padding(.horizontal, 24).padding(.top, 8)
+            .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
+        } else {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Cover from the video post").font(.subheadline.weight(.semibold))
+                Text("Choose a photo or screenshot of the finished dish.")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 12) {
+                    Button("Choose a better cover") { editingCover = true }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .accessibilityIdentifier(pageID("choose-better-cover"))
+                    Button("Keep this cover") { library.keepPostCover(for: recipe.id) }
+                        .buttonStyle(QuietButtonStyle())
+                        .accessibilityIdentifier(pageID("keep-post-cover"))
+                }
+            }
+            .padding(16)
+            .recipeSurface(cornerRadius: 18)
+            .padding(.horizontal, 24).padding(.top, 16)
+            .frame(maxWidth: 720, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier(pageID("post-cover-prompt"))
         }
     }
 

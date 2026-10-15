@@ -182,6 +182,34 @@ final class CoverPhotoTests: XCTestCase {
         XCTAssertEqual(library.recipe(id: recipe.id)?.coverChecked, true)
     }
 
+    // Joe, October 15: the Instagram cover "came out a little unappealing".
+    // The post's picture is marked as such; the gentle prompt shows until
+    // the cook keeps it (then a quiet line) or replaces it (then nothing).
+    func testAPostsCoverIsMarkedUntilTheCookKeepsOrReplacesIt() throws {
+        let library = RecipeLibrary(directory: try tempDir())
+        var recipe = try addRecipe(library, "Reel chicken")
+        recipe.source.publisher = "Instagram"
+        XCTAssertTrue(library.update(recipe))
+
+        XCTAssertNotNil(library.saveImage(reelCover(), for: recipe.id, source: "post"))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.coverSource, "post")
+        XCTAssertNil(library.recipe(id: recipe.id)?.coverPromptDismissed, "the prompt is due")
+        XCTAssertTrue(library.cropPlayButton(for: recipe.id))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.coverSource, "post", "the ▶ crop keeps where the picture came from")
+
+        XCTAssertTrue(library.keepPostCover(for: recipe.id))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.coverPromptDismissed, true, "kept: the quiet line only")
+        XCTAssertEqual(library.recipe(id: recipe.id)?.coverSource, "post")
+
+        XCTAssertNotNil(library.saveImage(cover, for: recipe.id), "the cook's own cover")
+        XCTAssertNil(library.recipe(id: recipe.id)?.coverSource, "nothing to prompt about any more")
+        XCTAssertNil(library.recipe(id: recipe.id)?.coverPromptDismissed)
+        XCTAssertFalse(library.keepPostCover(for: recipe.id), "nothing to keep")
+
+        XCTAssertTrue(library.removeCover(for: recipe.id))
+        XCTAssertNil(library.recipe(id: recipe.id)?.coverSource)
+    }
+
     func testOrdinaryPhotosAreNeverCropped() throws {
         let library = RecipeLibrary(directory: try tempDir())
         var recipe = try addRecipe(library, "Plain photo")

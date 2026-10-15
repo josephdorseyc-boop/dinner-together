@@ -277,7 +277,7 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     /// Writes a fresh image, commits its reference, then removes the old cover.
     @discardableResult
-    func saveImage(_ data: Data, for recipeID: UUID, fileExtension: String = "jpg") -> String? {
+    func saveImage(_ data: Data, for recipeID: UUID, fileExtension: String = "jpg", source: String? = nil) -> String? {
         guard var r = recipe(id: recipeID) else { return nil }
         if simulateImageSaveFailure {
             saveError = "The recipe was saved, but its photo couldn’t be."
@@ -295,6 +295,9 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
             // later, and an earlier uncropped original no longer applies.
             r.coverChecked = true
             r.originalCoverFilename = nil
+            // A cover the cook chose has no provenance to prompt about.
+            r.coverSource = source
+            r.coverPromptDismissed = nil
             guard update(r) else {
                 try? FileManager.default.removeItem(at: newURL)
                 return nil
@@ -384,6 +387,14 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     }
     #endif
 
+    /// The post's cover, kept as it is: the prompt goes, the quiet line stays.
+    @discardableResult
+    func keepPostCover(for recipeID: UUID) -> Bool {
+        guard var r = recipe(id: recipeID), r.coverSource == "post" else { return false }
+        r.coverPromptDismissed = true
+        return update(r)
+    }
+
     /// Puts back the cover exactly as it came from the post (A2, build 20).
     @discardableResult
     func restoreOriginalCover(for recipeID: UUID) -> Bool {
@@ -405,6 +416,8 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         let original = r.originalCoverFilename
         r.imageFilename = nil
         r.originalCoverFilename = nil
+        r.coverSource = nil
+        r.coverPromptDismissed = nil
         guard update(r) else { return false }
         for gone in [name, original].compactMap({ $0 }) {
             try? FileManager.default.removeItem(at: imagesURL.appending(path: gone))

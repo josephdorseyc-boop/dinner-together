@@ -74,6 +74,15 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// app never crops it on its own again. Nil for covers saved before
     /// build 20.
     var coverChecked: Bool?
+    /// Where the current cover came from: "post" for the picture a social
+    /// video post shared with the import (its thumbnail — often the raw
+    /// start of the video, Joe, October 15); nil for a cover the cook chose
+    /// or a recipe without one. Decides the gentle "Choose a better cover"
+    /// prompt (A2-63), which never returns once the cook has replaced it.
+    var coverSource: String?
+    /// The cook kept the post's cover ("Keep this cover"): the prompt goes,
+    /// a quiet "Cover from the video post · Change cover" line remains.
+    var coverPromptDismissed: Bool?
     var yield: String?
     /// The recipe's own total time, when it stated one.
     var totalMinutes: Int?
