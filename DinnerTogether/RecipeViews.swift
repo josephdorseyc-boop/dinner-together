@@ -96,31 +96,25 @@ struct RecipesView: View {
                         .libraryRow()
                         .accessibilityIdentifier("recipe-search-empty")
                 }
-                ForEach(shown) { recipe in
-                    Button { path.append(recipe.id) } label: {
-                        RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete, right to star it.")
-                    .libraryRow()
-                    // Plain buttons, not role: .destructive — that role
-                    // animates the row away before the cook has confirmed.
-                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                        Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
-                            Label(recipe.isFavorite ? "Unstar" : "Star", systemImage: recipe.isFavorite ? "star.slash" : "star.fill")
-                        }
-                        .tint(Theme.tomato)
-                        .accessibilityIdentifier("swipe-favorite")
-                    }
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button { requestDelete(recipe) } label: { Label("Delete", systemImage: "trash") }
-                            .tint(.red)
-                            .accessibilityIdentifier("swipe-delete")
-                        Button { editing = recipe } label: { Label("Edit", systemImage: "pencil") }
-                            .tint(Theme.olive)
-                            .accessibilityIdentifier("swipe-edit")
+                // Favorites get their own section at the top (Joe, build 20);
+                // the rest follow under All recipes.
+                let favorites = shown.filter(\.isFavorite)
+                let others = shown.filter { !$0.isFavorite }
+                if !favorites.isEmpty {
+                    Label("FAVORITES", systemImage: "star.fill")
+                        .font(.caption.weight(.semibold)).tracking(1.2)
+                        .foregroundStyle(Theme.tomato)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("favorites-section")
+                        .libraryRow(top: 8, bottom: 0)
+                    ForEach(favorites) { recipe in recipeListRow(recipe) }
+                    if !others.isEmpty {
+                        SectionLabel(text: "ALL RECIPES")
+                            .accessibilityIdentifier("all-recipes-section")
+                            .libraryRow(top: 16, bottom: 0)
                     }
                 }
+                ForEach(others) { recipe in recipeListRow(recipe) }
             }
             Color.clear.frame(height: 24).libraryRow(top: 0, bottom: 0)
         }
@@ -162,6 +156,48 @@ struct RecipesView: View {
     }
 
     /// Same rule as the page's Delete button: not while it's being cooked.
+    /// One recipe in Your Recipes: the row opens it; the star beside it
+    /// stars or unstars it in one tap (Joe, build 20: the swipe alone was
+    /// not found). Swipe right stars too; swipe left for Edit and Delete.
+    private func recipeListRow(_ recipe: Recipe) -> some View {
+        HStack(spacing: 4) {
+            Button { path.append(recipe.id) } label: {
+                RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID, marksFavorite: false)
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete.")
+            Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
+                Image(systemName: recipe.isFavorite ? "star.fill" : "star")
+                    .font(.title3)
+                    .foregroundStyle(recipe.isFavorite ? Theme.tomato : Theme.muted)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(recipe.isFavorite ? "Remove \(recipe.title) from favorites" : "Add \(recipe.title) to favorites")
+            .accessibilityAddTraits(recipe.isFavorite ? .isSelected : [])
+            .accessibilityIdentifier("recipe-star")
+        }
+        .libraryRow()
+        // Plain buttons, not role: .destructive — that role
+        // animates the row away before the cook has confirmed.
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
+                Label(recipe.isFavorite ? "Unstar" : "Star", systemImage: recipe.isFavorite ? "star.slash" : "star.fill")
+            }
+            .tint(Theme.tomato)
+            .accessibilityIdentifier("swipe-favorite")
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+            Button { requestDelete(recipe) } label: { Label("Delete", systemImage: "trash") }
+                .tint(.red)
+                .accessibilityIdentifier("swipe-delete")
+            Button { editing = recipe } label: { Label("Edit", systemImage: "pencil") }
+                .tint(Theme.olive)
+                .accessibilityIdentifier("swipe-edit")
+        }
+    }
+
     private func requestDelete(_ recipe: Recipe) {
         if store.session.menuID == recipe.menuID && hasProgress { cannotDelete = true } else { deleting = recipe }
     }
@@ -194,17 +230,21 @@ struct RecipeRow: View {
     @EnvironmentObject private var library: RecipeLibrary
     let recipe: Recipe
     let selected: Bool
+    /// The small star before the title; off where the row has its own star button.
+    var marksFavorite = true
 
     // Explicit: the private wrapper makes the memberwise init file-private,
     // and Tonight (PlanView.swift) shows this row too.
-    init(recipe: Recipe, selected: Bool) { self.recipe = recipe; self.selected = selected }
+    init(recipe: Recipe, selected: Bool, marksFavorite: Bool = true) {
+        self.recipe = recipe; self.selected = selected; self.marksFavorite = marksFavorite
+    }
 
     var body: some View {
         HStack(spacing: 14) {
             RecipeThumbnail(recipe: recipe, size: 58)
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    if recipe.isFavorite {
+                    if marksFavorite && recipe.isFavorite {
                         Image(systemName: "star.fill").font(.caption).foregroundStyle(Theme.tomato)
                             .accessibilityLabel("Favorite")
                     }

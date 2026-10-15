@@ -1962,17 +1962,21 @@ extension DinnerTogetherUITestCase {
         }
         let bean = row(RecipeFixtureText.beanSpreadTitle)
         scrollTo(bean)
-        let star = app.buttons["swipe-favorite"].firstMatch
-        for _ in 0..<2 where !star.exists {
-            bean.swipeRight()
-            _ = star.waitForExistence(timeout: 3)
-        }
-        waitForExistence(star, timeout: 2, "swipe right shows Star")
+        XCTAssertFalse(app.descendants(matching: .any)["favorites-section"].exists, "no Favorites section before a star")
+        // The star beside the row, one tap (Joe, build 20).
+        let star = app.buttons["Add \(RecipeFixtureText.beanSpreadTitle) to favorites"]
+        waitForExistence(star, timeout: 5, "the row's star")
         star.tap()
-        let first = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", RecipeFixtureText.beanSpreadTitle)).firstMatch
+        let section = app.descendants(matching: .any)["favorites-section"].firstMatch
+        waitForExistence(section, timeout: 5, "the Favorites section")
+        XCTAssertTrue(app.buttons["Remove \(RecipeFixtureText.beanSpreadTitle) from favorites"].exists, "the star is now filled")
+        let first = row(RecipeFixtureText.beanSpreadTitle) // the row itself, not its star
         XCTAssertTrue(first.waitForExistence(timeout: 5))
         let berry = row(RecipeFixtureText.frozenBerryTitle)
         XCTAssertLessThan(first.frame.minY, berry.frame.minY, "the starred recipe leads Your Recipes")
+        XCTAssertLessThan(section.frame.minY, first.frame.minY, "…under Favorites")
+        let all = app.descendants(matching: .any)["all-recipes-section"].firstMatch
+        XCTAssertTrue(all.exists && all.frame.minY < berry.frame.minY, "the rest under All recipes")
         photograph("r27a-favorite-first" + capture.suffix)
 
         // Search by an ingredient: only the recipe with lemon in it.
