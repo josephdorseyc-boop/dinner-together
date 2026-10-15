@@ -124,7 +124,9 @@ final class NotificationManager: NotificationService {
                 let content = UNMutableNotificationContent()
                 content.title = "Dinner, Together"
                 content.body = "“\(reminder.title)” timer finished — time to check it."
-                content.sound = .default
+                // The timer chime (≤ 30 s, in the app bundle), not the
+                // short default ding (Joe, October 15: timers should ring).
+                content.sound = UNNotificationSound(named: UNNotificationSoundName(TimerAlarm.soundFile))
                 let request = UNNotificationRequest(
                     identifier: prefix + reminder.stepID, content: content,
                     trigger: UNTimeIntervalNotificationTrigger(timeInterval: max(1, interval), repeats: false))

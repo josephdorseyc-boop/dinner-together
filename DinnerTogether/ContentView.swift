@@ -54,6 +54,10 @@ struct ContentView: View {
             && !store.hasProgress && library.pendingShare == nil && !store.needsStaleChoice
     }
 
+    /// Timers that end while the app is open ring, on any screen (Joe,
+    /// October 15).
+    @StateObject private var alarm = TimerAlarm()
+
     @State private var recipePath: [UUID] = []
     /// The Add recipe sheet, in the Recipes destination; Tonight opens it
     /// too when the cookbook is empty.
@@ -142,6 +146,12 @@ struct ContentView: View {
                 .transition(.opacity)
             }
         }
+        .overlay(alignment: .top) {
+            TimerAlarmBanner(alarm: alarm)
+                .padding(.top, 8)
+                .animation(.easeOut(duration: 0.25), value: alarm.ringing)
+        }
+        .background(TimerAlarmDriver(alarm: alarm))
         .background {
             GeometryReader { g in
                 Color.clear
