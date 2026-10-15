@@ -402,11 +402,17 @@ final class PlayOverlayTests: XCTestCase {
     }
 
     func testKeepsTheTallerCleanBand() throws {
-        let hit = PlayOverlay.Hit(centerX: 80, centerY: 142, radius: 30)
-        // A 1080 × 1920 reel cover sampled at 160 wide: scale 6.75.
-        let band = try XCTUnwrap(PlayOverlay.cleanBand(width: 1080, height: 1920, hit: hit, scale: 6.75))
+        // A 1080 × 1920 reel cover sampled at 160 wide (scale 6.75), the
+        // button a little below the middle: more picture above it.
+        let below = PlayOverlay.Hit(centerX: 80, centerY: 150, radius: 30)
+        let band = try XCTUnwrap(PlayOverlay.cleanBand(width: 1080, height: 1920, hit: below, scale: 6.75))
         XCTAssertEqual(band.y, 0, "above the button")
-        XCTAssertEqual(band.height, (142 - 30) * 6.75, accuracy: 0.5)
+        XCTAssertEqual(band.height, (150 - 30) * 6.75, accuracy: 0.5)
+        // A little above the middle: more below it.
+        let above = PlayOverlay.Hit(centerX: 80, centerY: 134, radius: 30)
+        let lower = try XCTUnwrap(PlayOverlay.cleanBand(width: 1080, height: 1920, hit: above, scale: 6.75))
+        XCTAssertEqual(lower.y, (134 + 30) * 6.75, accuracy: 0.5, "below the button")
+        XCTAssertEqual(lower.y + lower.height, 1920, accuracy: 0.5)
         XCTAssertNil(PlayOverlay.cleanBand(width: 1080, height: 400, hit: PlayOverlay.Hit(centerX: 80, centerY: 30, radius: 25), scale: 6.75),
                      "too thin either side: the cover stays as it was")
     }
