@@ -162,7 +162,7 @@ struct RecipesView: View {
     private func recipeListRow(_ recipe: Recipe) -> some View {
         HStack(spacing: 4) {
             Button { path.append(recipe.id) } label: {
-                RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID, marksFavorite: false)
+                RecipeRow(recipe: recipe, selected: store.isTonightsDish(recipe.id), marksFavorite: false)
             }
             .buttonStyle(.plain)
             .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete.")
@@ -199,11 +199,11 @@ struct RecipesView: View {
     }
 
     private func requestDelete(_ recipe: Recipe) {
-        if store.session.menuID == recipe.menuID && hasProgress { cannotDelete = true } else { deleting = recipe }
+        if store.isTonightsDish(recipe.id) && hasProgress { cannotDelete = true } else { deleting = recipe }
     }
 
     private func delete(_ recipe: Recipe) {
-        let wasTonight = store.session.menuID == recipe.menuID
+        let wasTonight = store.isTonightsDish(recipe.id)
         // Delete first; only a delete that reached disk changes tonight's dinner.
         guard library.remove(id: recipe.id) else {
             deleteProblem = "“\(recipe.title)” couldn’t be deleted. It’s still in your recipes. Try deleting it again."
@@ -211,7 +211,7 @@ struct RecipesView: View {
             return
         }
         deleteProblem = nil
-        if wasTonight { store.clearDinner() }
+        if wasTonight { store.dishDeleted(recipe.id) }
     }
 }
 
@@ -701,6 +701,7 @@ struct RecipeDetailView: View {
     @State private var editingStep: CookingStep?
     @State private var removingStep: CookingStep?
     @State private var confirmingReplace = false
+    @State private var confirmingAdd = false
     @State private var confirmingDelete = false
     @State private var cannotDelete = false
     @State private var choosingPageStyle = false
@@ -835,6 +836,12 @@ struct RecipeDetailView: View {
                 }
                 .confirmationDialog("Change dinner and clear progress?", isPresented: $confirmingReplace, titleVisibility: .visible) {
                     Button(reader ? "Cook both instead" : "Cook \(recipe.title) instead", role: .destructive) { choose(recipe) }
+                    Button("Cancel", role: .cancel) { }
+                }
+                .confirmationDialog("Add to dinner and clear progress?", isPresented: $confirmingAdd, titleVisibility: .visible) {
+                    Button("Add \(recipe.title)", role: .destructive) {
+                        if let joined = WholeMeal.adding(recipe.id, to: store.session.menuID) { addToDinner(joined) }
+                    }
                     Button("Cancel", role: .cancel) { }
                 }
             } else {
@@ -1509,15 +1516,29 @@ struct RecipeDetailView: View {
                     if recipe.needsTimingReview { tab = .timing }
                     // "Back to Tonight" goes to Tonight — not just back to the
                     // collection with the recipe ticked (Joe, build 10).
-                    else if isTonight { if let onChoose { onChoose() } else { dismiss() } }
+                    else if isTonight || inTonightsDinner { if let onChoose { onChoose() } else { dismiss() } }
                     else if hasProgress { confirmingReplace = true }
                     else { choose(recipe) }
                 } label: {
-                    Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
+                    Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight || inTonightsDinner ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
                 }
                 .buttonStyle(CookBarStyle(book: bookPage, onColoredPage: deepPage))
                 .disabled(recipe.steps.isEmpty)
                 .accessibilityIdentifier("cook-this-recipe")
+                // The whole meal (Joe, build 21): a recipe that isn't tonight's
+                // can join the dinner already chosen, ready together with it.
+                if let joined = WholeMeal.adding(recipe.id, to: store.session.menuID),
+                   !recipe.needsTimingReview, !inTonightsDinner, !recipe.steps.isEmpty {
+                    Button {
+                        if hasProgress { confirmingAdd = true } else { addToDinner(joined) }
+                    } label: {
+                        Label("Add to tonight’s dinner", systemImage: "plus")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .buttonStyle(QuietButtonStyle())
+                    .accessibilityHint("Cooks it alongside tonight’s dinner, ready at the same time.")
+                    .accessibilityIdentifier("add-to-dinner")
+                }
             }
         }
         .padding(.horizontal, 24).padding(.vertical, 12)
@@ -1619,6 +1640,17 @@ struct RecipeDetailView: View {
         }
     }
 
+    /// Already one of tonight's dishes (main or not).
+    private var inTonightsDinner: Bool {
+        guard let recipe else { return false }
+        return WholeMeal.recipeIDs(store.session.menuID)?.contains(recipe.id) ?? false
+    }
+
+    private func addToDinner(_ menuID: String) {
+        store.changeDishes(to: menuID)
+        if let onChoose { onChoose() } else { dismiss() }
+    }
+
     private func choose(_ recipe: Recipe) {
         guard !recipe.needsTimingReview, !(reader && mainNeedsReview), let id = dinnerMenuID else {
             if recipe.needsTimingReview { tab = .timing }
@@ -1629,7 +1661,7 @@ struct RecipeDetailView: View {
     }
 
     private func delete(_ recipe: Recipe) {
-        let wasTonight = isTonight
+        let wasTonight = inTonightsDinner
         // Delete first; only a delete that reached disk changes tonight's dinner.
         guard library.remove(id: recipe.id) else {
             deleteProblem = "This recipe couldn’t be deleted. It’s still in your recipes. Try deleting it again."
@@ -1637,7 +1669,7 @@ struct RecipeDetailView: View {
             return
         }
         deleteProblem = nil
-        if wasTonight { store.clearDinner() }
+        if wasTonight { store.dishDeleted(recipe.id) }
         dismiss()
     }
 }

@@ -68,7 +68,7 @@ struct RecipeSpreadView: View {
             }
             .frame(width: g.size.width, height: g.size.height)
             .sheet(isPresented: $choosingSecond) {
-                SecondRecipePicker(mainID: recipeID, current: leftPage.secondRecipeID) { id in
+                RecipePickerSheet(excluding: [recipeID], current: leftPage.secondRecipeID) { id in
                     leftPage = .recipe(id)
                     showingSide = true
                 }
@@ -231,7 +231,7 @@ struct SpreadCoverPage: View {
             if let recipe {
                 let onPhoto = RecipePhotos.hero(recipe, from: library) != nil
                 VStack(alignment: .leading, spacing: 10) {
-                    if store.session.menuID == recipe.menuID && onPhoto {
+                    if store.isTonightsDish(recipe.id) && onPhoto {
                         Text("Tonight")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
                             .shadow(color: .black.opacity(0.45), radius: 4, y: 1)
@@ -280,15 +280,21 @@ struct SpreadCoverPage: View {
 }
 
 /// Which of the cook's recipes reads alongside the main one.
-private struct SecondRecipePicker: View {
-    let mainID: UUID
-    let current: UUID?
+/// The cook's recipes, favorites first, searchable by title or ingredient
+/// — to read alongside on the spread, or to add to tonight's dinner (build
+/// 21). `excluding`: recipes already in play; `current`: the one chosen now.
+struct RecipePickerSheet: View {
+    var title = "Second recipe"
+    var header = "Read alongside — a side dish, a sauce, dessert."
+    var emptyText = "Add another recipe to read one alongside."
+    var excluding: [UUID] = []
+    var current: UUID?
     var choose: (UUID) -> Void
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
-    private var shown: [Recipe] { library.recipesFavoritesFirst.filter { $0.id != mainID && $0.matches(query) } }
+    private var shown: [Recipe] { library.recipesFavoritesFirst.filter { !excluding.contains($0.id) && $0.matches(query) } }
 
     var body: some View {
         NavigationStack {
@@ -296,7 +302,7 @@ private struct SecondRecipePicker: View {
                 Section {
                     if shown.isEmpty {
                         Text(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                             ? "Add another recipe to read one alongside."
+                             ? emptyText
                              : "No recipe matches “\(query.trimmingCharacters(in: .whitespacesAndNewlines))” by title or ingredient.")
                             .font(.subheadline).foregroundStyle(Theme.muted)
                             .listRowBackground(Theme.paper)
@@ -307,7 +313,7 @@ private struct SecondRecipePicker: View {
                             dismiss()
                         } label: {
                             HStack(spacing: 12) {
-                                RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID)
+                                RecipeRow(recipe: recipe, selected: store.isTonightsDish(recipe.id))
                                 if recipe.id == current {
                                     Image(systemName: "checkmark").foregroundStyle(Theme.tomato)
                                         .accessibilityLabel("Reading now")
@@ -316,16 +322,17 @@ private struct SecondRecipePicker: View {
                         }
                         .buttonStyle(.plain)
                         .listRowBackground(Theme.paper)
+                        .accessibilityIdentifier("pick-recipe")
                     }
                 } header: {
-                    Text("Read alongside — a side dish, a sauce, dessert. Dinner stays one recipe.")
+                    Text(header)
                         .font(.subheadline).foregroundStyle(Theme.muted).textCase(nil)
                 }
             }
             .scrollContentBackground(.hidden)
             .background(Theme.cream)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Title or ingredient")
-            .navigationTitle("Second recipe")
+            .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }

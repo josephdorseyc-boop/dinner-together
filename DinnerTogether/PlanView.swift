@@ -25,14 +25,17 @@ struct PlanView: View {
     /// day sheet. A second `.sheet` — on this view or inside its scroll
     /// view — never appeared (runs 38497304286 and 38508449584).
     enum PageSheet: Identifiable {
-        case step(CookingStep), day(PlanDay)
+        case step(CookingStep), day(PlanDay), addDish
         var id: String {
             switch self {
             case .step(let s): return "step-" + s.id
             case .day(let d): return "day-" + d.date.description
+            case .addDish: return "add-dish"
             }
         }
     }
+    /// A dish change (add or remove) waiting on "clear progress?".
+    @State private var pendingDishesID: String?
     @State private var sheet: PageSheet?
     /// Whether the cover photo is under the navigation bar (at rest, yes).
     @State private var coverUnderBar = true
@@ -142,7 +145,26 @@ struct PlanView: View {
                 .uiTestTypeSize()
             case .day(let day):
                 DayPlanSheet(day: day, chooseToday: chooseFromWeek).uiTestTypeSize()
+            case .addDish:
+                RecipePickerSheet(title: "Add a dish", header: "Ready together with the rest of dinner — a side, a sauce, dessert.",
+                                  emptyText: "Add another recipe to cook alongside.",
+                                  excluding: tonightDishIDs, current: nil) { id in
+                    if let next = WholeMeal.adding(id, to: store.session.menuID) { changeDishes(to: next) }
+                }
+                .uiTestTypeSize()
             }
+        }
+        .confirmationDialog(
+            "Change dinner and clear progress?",
+            isPresented: Binding(get: { pendingDishesID != nil }, set: { if !$0 { pendingDishesID = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Change the dishes", role: .destructive) {
+                if let id = pendingDishesID { store.changeDishes(to: id) }
+                pendingDishesID = nil
+                recheckFeasibility()
+            }
+            Button("Cancel", role: .cancel) { pendingDishesID = nil }
         }
         .confirmationDialog(
             "Change dinner and clear progress?",
@@ -171,6 +193,15 @@ struct PlanView: View {
     }
 
     // MARK: Sections
+
+    /// Tonight's dishes, main first (one for a single recipe; none for
+    /// Thanksgiving or nothing).
+    private var tonightDishIDs: [UUID] { WholeMeal.recipeIDs(store.session.menuID) ?? [] }
+    private var tonightDishes: [Recipe] { tonightDishIDs.compactMap { library.recipe(id: $0) } }
+
+    private func changeDishes(to id: String) {
+        if hasProgress { pendingDishesID = id } else { store.changeDishes(to: id); recheckFeasibility() }
+    }
 
     /// The cook's own recipe when it is tonight's dinner.
     private var tonightRecipe: Recipe? { library.recipe(menuID: store.session.menuID) }
@@ -215,6 +246,70 @@ struct PlanView: View {
                     }
                 }
                 .font(.subheadline).foregroundStyle(Theme.muted)
+                moreDishes(main: recipe)
+            }
+        }
+    }
+
+    /// The whole meal (Joe, build 21): the other dishes under the main, each
+    /// ready at dinner time with it, and a quiet way to add one — up to four.
+    @ViewBuilder
+    private func moreDishes(main: Recipe) -> some View {
+        let dishes = tonightDishes.filter { $0.id != main.id }
+        let missing = tonightDishIDs.count - tonightDishes.count
+        VStack(alignment: .leading, spacing: 8) {
+            if !dishes.isEmpty || missing > 0 {
+                SectionLabel(text: "ALSO TONIGHT").padding(.top, 8)
+            }
+            ForEach(dishes) { dish in
+                HStack(spacing: 10) {
+                    Button {
+                        if let openRecipe { openRecipe(dish.id) } else { goRecipes() }
+                    } label: {
+                        HStack(spacing: 10) {
+                            if let photo = RecipePhotos.hero(dish, from: library) {
+                                RecipeCoverThumbnail(image: photo.image, size: 44)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(dish.title).font(.body.weight(.medium)).foregroundStyle(Theme.ink)
+                                    .multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+                                if dish.needsTimingReview {
+                                    Label("Check the timing", systemImage: "clock.badge.questionmark")
+                                        .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
+                                } else {
+                                    Text(RecipeFormat.duration(dish.plannedMinutes)).font(.caption).foregroundStyle(Theme.muted)
+                                }
+                            }
+                            Spacer(minLength: 0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("Opens the recipe.")
+                    .accessibilityIdentifier("tonight-dish")
+                    Button {
+                        if let next = WholeMeal.removing(dish.id, from: store.session.menuID) { changeDishes(to: next) }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill").font(.title3).foregroundStyle(Theme.muted)
+                            .frame(width: 44, height: 44).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Remove \(dish.title) from tonight’s dinner")
+                    .accessibilityIdentifier("remove-dish")
+                }
+            }
+            if missing > 0 {
+                Label("A dish was deleted; choose the dinner again.", systemImage: "exclamationmark.triangle")
+                    .font(.subheadline).foregroundStyle(Theme.warning)
+            }
+            if tonightDishIDs.count < WholeMeal.maxRecipes && library.recipes.count > tonightDishIDs.count {
+                Button { sheet = .addDish } label: {
+                    Label(dishes.isEmpty ? "Add a dish to cook with it" : "Add another dish", systemImage: "plus")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(QuietButtonStyle())
+                .accessibilityHint("Another of your recipes, timed to be ready with this one.")
+                .accessibilityIdentifier("tonight-add-dish")
             }
         }
     }

@@ -326,6 +326,37 @@ final class SessionStore: ObservableObject {
     /// it). Undoable like any menu change.
     func clearDinner() { chooseMenu("") }
 
+    /// A deleted recipe leaves tonight's dinner: the other dishes stay when
+    /// it was a side; the main gone means no dinner (build 21).
+    func dishDeleted(_ recipeID: UUID) {
+        if let smaller = WholeMeal.removing(recipeID, from: session.menuID) { changeDishes(to: smaller) }
+        else { clearDinner() }
+    }
+
+    /// Whether this recipe is one of tonight's dishes — alone, or in a
+    /// whole meal (build 21).
+    func isTonightsDish(_ recipeID: UUID) -> Bool {
+        WholeMeal.recipeIDs(session.menuID)?.contains(recipeID) ?? false
+    }
+
+    /// Tonight's dinner with a dish added or taken away (Joe, build 21: a
+    /// whole meal of up to four recipes, ready together). The dinner time
+    /// stays — the cook set it — unless the bigger dinner can no longer
+    /// reach it, when it moves to the earliest 5-minute mark it can. A fresh
+    /// session otherwise, as choosing a menu is: the plan is new. Undoable.
+    func changeDishes(to id: String, now: Date = Date()) {
+        let serveAt = session.serveAt
+        chooseMenu(id, now: now)
+        guard serveAt > now else { return }
+        let menu = Self.resolve(id, provider: menuProvider) ?? .unchosen
+        if case .startsInPast(let earliest) = Scheduling.checkFeasibility(menu: menu, serveAt: serveAt, durations: [:], now: now) {
+            session.serveAt = Scheduling.roundUp(earliest, toMinutes: 5)
+        } else {
+            session.serveAt = serveAt
+        }
+        save()
+    }
+
     func resetSession() {
         pushUndo("Reset cooking progress")
         let menuID = session.menuID

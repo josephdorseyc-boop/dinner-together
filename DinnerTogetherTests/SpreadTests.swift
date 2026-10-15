@@ -195,4 +195,50 @@ final class SpreadTests: XCTestCase {
         XCTAssertNil(library.menu(id: id), "a deleted dish is a missing dinner, never part of a plan")
         XCTAssertTrue(store.menuIsMissing)
     }
+
+    @MainActor
+    func testChangingDishesKeepsTheDinnerTimeAndADeletedSideLeavesTheRest() async throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("dt-dishes-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let library = RecipeLibrary(directory: dir)
+        func add(_ text: String) throws -> Recipe {
+            let r = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
+            XCTAssertTrue(library.add(r)); return r
+        }
+        let chicken = try add("Sunday herb chicken\nDirections\n1. Roast for 60 minutes.")
+        let potatoes = try add("Mashed potatoes\nDirections\n1. Boil the potatoes for 20 minutes.")
+        let beans = try add("Green beans\nDirections\n1. Steam the beans for 6 minutes.")
+        let store = SessionStore(fileURL: dir.appendingPathComponent("session.json"), menuProvider: library)
+        let now = Date()
+        store.chooseMenu(chicken.menuID, now: now)
+        let dinnerTime = now.addingTimeInterval(3 * 3600)
+        store.setServeAt(dinnerTime)
+        XCTAssertTrue(store.isTonightsDish(chicken.id))
+        XCTAssertFalse(store.isTonightsDish(potatoes.id))
+
+        // Adding a dish keeps the time the cook set.
+        store.changeDishes(to: WholeMeal.adding(potatoes.id, to: store.session.menuID)!, now: now)
+        XCTAssertEqual(WholeMeal.recipeIDs(store.session.menuID), [chicken.id, potatoes.id])
+        XCTAssertEqual(store.session.serveAt, dinnerTime, "the dinner time stays")
+        XCTAssertTrue(store.isTonightsDish(potatoes.id))
+        store.changeDishes(to: WholeMeal.adding(beans.id, to: store.session.menuID)!, now: now)
+        XCTAssertEqual(WholeMeal.recipeIDs(store.session.menuID)?.count, 3)
+
+        // A dish that can't make the time moves dinner to the earliest it can.
+        let soon = now.addingTimeInterval(10 * 60)
+        store.setServeAt(soon)
+        let roast = try add("Slow roast\nDirections\n1. Roast for 4 hours.")
+        store.changeDishes(to: WholeMeal.adding(roast.id, to: store.session.menuID)!, now: now)
+        XCTAssertGreaterThan(store.session.serveAt, soon, "dinner moved later for the four-hour roast")
+        XCTAssertFalse(store.menuIsMissing)
+
+        // Deleting a side leaves the rest; deleting the main clears dinner.
+        XCTAssertTrue(library.remove(id: beans.id))
+        store.dishDeleted(beans.id)
+        XCTAssertEqual(WholeMeal.recipeIDs(store.session.menuID), [chicken.id, potatoes.id, roast.id])
+        XCTAssertFalse(store.menuIsMissing)
+        XCTAssertTrue(library.remove(id: chicken.id))
+        store.dishDeleted(chicken.id)
+        XCTAssertFalse(store.hasDinner, "the main gone is no dinner")
+    }
 }
