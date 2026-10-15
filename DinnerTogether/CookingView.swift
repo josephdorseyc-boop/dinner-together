@@ -898,8 +898,15 @@ extension CookingView {
         }
     }
 
-    @ViewBuilder
     private func duoBody(_ layout: DuoCooking) -> some View {
+        duoPages(layout)
+            // The pages carry the dish names; a bar title ran across the
+            // fold and kept the photo from the top edge (run 38815612226).
+            .toolbar(.hidden, for: .navigationBar)
+    }
+
+    @ViewBuilder
+    private func duoPages(_ layout: DuoCooking) -> some View {
         switch layout {
         case .bookOne(let recipe):
             HStack(spacing: 0) {
@@ -1211,11 +1218,20 @@ extension CookingView {
             ForEach(coming) { item in
                 duoRow(item, state: Scheduling.formatTime(item.plannedStart))
             }
-            if !warnings.isEmpty {
-                Label("\(warnings.count) attention overlap\(warnings.count == 1 ? "" : "s") — see the timeline on an iPhone layout",
-                      systemImage: "exclamationmark.triangle")
-                    .font(.caption).foregroundStyle(Theme.warning)
-                    .fixedSize(horizontal: false, vertical: true)
+            // The dinner's overlaps, once, on the main dish's page.
+            if !warnings.isEmpty && dinnerRecipes.first?.id == recipe.id {
+                DisclosureGroup(isExpanded: $warningsExpanded) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(warnings, id: \.message) { warning in
+                            Text(warning.message).font(.subheadline).foregroundStyle(Theme.ink)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }.padding(.top, 8)
+                } label: {
+                    Label("\(warnings.count) attention overlap\(warnings.count == 1 ? "" : "s")", systemImage: "exclamationmark.triangle")
+                        .font(.subheadline.weight(.medium)).foregroundStyle(Theme.warning)
+                }
+                .tint(Theme.warning)
             }
         }
     }
@@ -1234,9 +1250,9 @@ extension CookingView {
         .accessibilityElement(children: .combine)
     }
 
-    /// Read-only directions beside the cooking (board 5's right page): olive
-    /// numbers, the durations as timer buttons would be on the recipe page
-    /// are not here — reading never starts or stops anything.
+    /// The directions beside the cooking (board 5's right page): olive
+    /// numbers, and a kitchen timer for any time a step names, as on the
+    /// recipe page. Reading never starts, stops or completes a plan step.
     private func duoDirectionsList(_ recipe: Recipe) -> some View {
         VStack(alignment: .leading, spacing: 14) {
             ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
