@@ -144,7 +144,7 @@ struct PlanView: View {
                 }
                 .uiTestTypeSize()
             case .day(let day):
-                DayPlanSheet(day: day, chooseToday: chooseFromWeek).uiTestTypeSize()
+                DayPlanSheet(day: day, chooseToday: chooseFromWeek, changeTodayDishes: changeDishes(to:)).uiTestTypeSize()
             case .addDish:
                 RecipePickerSheet(title: "Add a dish", header: "Ready together with the rest of dinner — a side, a sauce, dessert.",
                                   emptyText: "Add another recipe to cook alongside.",

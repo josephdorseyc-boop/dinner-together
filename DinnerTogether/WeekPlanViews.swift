@@ -9,17 +9,31 @@ import PhotosUI
 /// Names, pictures and rules for whatever a day holds.
 @MainActor
 enum PlannedDinners {
+    /// The dinner's recipes, main first (empty for Thanksgiving or a
+    /// recipe that's gone).
+    static func recipes(_ id: String, library: RecipeLibrary) -> [Recipe] {
+        (WholeMeal.recipeIDs(id) ?? []).compactMap { library.recipe(id: $0) }
+    }
+
     static func title(_ id: String, library: RecipeLibrary) -> String? {
-        if let r = library.recipe(menuID: id) { return r.title }
+        if let ids = WholeMeal.recipeIDs(id) {
+            let recipes = recipes(id, library: library)
+            // Every dish, or nothing — as the library resolves the menu.
+            guard recipes.count == ids.count else { return nil }
+            return recipes.map(\.title).joined(separator: " + ")
+        }
         return DinnerCatalog.menu(id: id)?.title
     }
 
     static func exists(_ id: String, library: RecipeLibrary) -> Bool { title(id, library: library) != nil }
 
-    /// Can become tonight's dinner without more work: Thanksgiving, and a
-    /// recipe whose timing has been checked.
+    /// Can become tonight's dinner without more work: Thanksgiving, and
+    /// recipes whose timing has been checked — every dish of a whole meal.
     static func cookable(_ id: String, library: RecipeLibrary) -> Bool {
-        if let r = library.recipe(menuID: id) { return !r.needsTimingReview }
+        if let ids = WholeMeal.recipeIDs(id) {
+            let recipes = recipes(id, library: library)
+            return recipes.count == ids.count && !recipes.contains { $0.needsTimingReview }
+        }
         return DinnerCatalog.menu(id: id) != nil
     }
 
@@ -154,6 +168,9 @@ struct DayPlanSheet: View {
     @Environment(\.dismiss) private var dismiss
     let day: PlanDay
     var chooseToday: (String) -> Void
+    /// Tonight's dishes changed (a whole meal, build 21): the dinner time
+    /// stays. Falls back to `chooseToday` when not given.
+    var changeTodayDishes: ((String) -> Void)? = nil
     /// Add a new recipe from the day itself (Joe, build 20).
     @State private var adding = false
 
@@ -161,13 +178,20 @@ struct DayPlanSheet: View {
         day.isToday ? .menu(store.session.menuID) : weekPlan.dinner(on: day.date) { PlannedDinners.exists($0, library: library) }
     }
 
+    /// The day's recipes, main first — the checked rows (Joe, October 15:
+    /// "make it so you can check more than one recipe").
+    private var checked: [UUID] {
+        if case .menu(let id) = current { return WholeMeal.recipeIDs(id) ?? [] }
+        return []
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 Section {
                     Text(day.isToday
-                         ? "Choose tonight’s dinner. Your week plan fills the other days."
-                         : "Plan this day’s dinner. When the day comes it becomes tonight’s, unless you’ve already chosen or started cooking.")
+                         ? "Check tonight’s dinner — up to four recipes, timed to be ready together. Your week plan fills the other days."
+                         : "Check this day’s dinner — up to four recipes, ready together. When the day comes it becomes tonight’s, unless you’ve already chosen or started cooking.")
                         .font(.subheadline).foregroundStyle(Theme.muted)
                     if let problem = weekPlan.saveError {
                         Text(problem).font(.subheadline).foregroundStyle(Theme.warning)
@@ -187,11 +211,13 @@ struct DayPlanSheet: View {
                     }
                     ForEach(library.recipesFavoritesFirst) { recipe in
                             let blocked = day.isToday && recipe.needsTimingReview
-                            row(.menu(recipe.menuID), title: recipe.title,
-                                subtitle: recipe.needsTimingReview
-                                    ? (day.isToday ? "Check its timing first, on the recipe’s page" : "Check its timing before that day")
-                                    : RecipeFormat.duration(recipe.plannedMinutes),
-                                identifier: "day-plan-recipe", disabled: blocked)
+                            let position = checked.firstIndex(of: recipe.id)
+                            let full = position == nil && checked.count >= WholeMeal.maxRecipes
+                            recipeRow(recipe, position: position,
+                                      subtitle: recipe.needsTimingReview
+                                          ? (day.isToday ? "Check its timing first, on the recipe’s page" : "Check its timing before that day")
+                                          : (full ? "Four dishes is the most for one dinner" : RecipeFormat.duration(recipe.plannedMinutes)),
+                                      disabled: blocked || full)
                     }
                     // + a recipe not in the cookbook yet: added, then planned
                     // for this day (tonight once its timing is checked).
@@ -248,6 +274,47 @@ struct DayPlanSheet: View {
         .listRowBackground(Theme.paper)
         .accessibilityAddTraits(dinner == current ? .isSelected : [])
         .accessibilityIdentifier(identifier)
+    }
+
+    /// A recipe row checks into the day's dinner and out again; the first
+    /// checked is the main. The sheet stays open for the next dish.
+    private func recipeRow(_ recipe: Recipe, position: Int?, subtitle: String, disabled: Bool) -> some View {
+        Button {
+            toggle(recipe)
+        } label: {
+            HStack(spacing: 14) {
+                DinnerPicture(dinner: .menu(recipe.menuID), size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(recipe.title).font(.headline).foregroundStyle(Theme.ink)
+                    Text(position == 0 && checked.count > 1 ? "Main dish · \(subtitle)" : subtitle)
+                        .font(.caption).foregroundStyle(disabled ? Theme.warning : Theme.muted)
+                }
+                Spacer(minLength: 0)
+                if position != nil {
+                    Image(systemName: "checkmark").foregroundStyle(Theme.tomato).accessibilityLabel("Planned")
+                }
+            }
+            .contentShape(Rectangle())
+        }
+        .disabled(disabled)
+        .listRowBackground(Theme.paper)
+        .accessibilityAddTraits(position != nil ? .isSelected : [])
+        .accessibilityHint(position != nil ? "Takes it off this dinner." : "Adds it to this dinner.")
+        .accessibilityIdentifier("day-plan-recipe")
+    }
+
+    private func toggle(_ recipe: Recipe) {
+        var ids = checked
+        if let i = ids.firstIndex(of: recipe.id) { ids.remove(at: i) } else { ids.append(recipe.id) }
+        let next = ids.isEmpty ? "" : (WholeMeal.menuID(ids) ?? "")
+        if day.isToday {
+            // Unchecking the last one leaves no dinner chosen (Joe, build 19);
+            // the first check chooses; after that the dishes change and the
+            // dinner time stays.
+            if checked.isEmpty || ids.isEmpty { chooseToday(next) } else { (changeTodayDishes ?? chooseToday)(next) }
+        } else {
+            _ = weekPlan.set(ids.isEmpty ? .open : .menu(next), on: day.date)
+        }
     }
 
     private func choose(_ dinner: PlannedDinner) {
