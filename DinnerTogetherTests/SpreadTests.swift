@@ -114,4 +114,83 @@ final class SpreadTests: XCTestCase {
         XCTAssertNil(library.menu(id: id), "a deleted half is a missing dinner, never half a plan")
         XCTAssertTrue(store.menuIsMissing)
     }
+
+    // MARK: Whole meals (Joe, October 14–15: one to four recipes, ready
+    // together, on every device — build 21)
+
+    func testWholeMealIDsRoundTripAndKeepBuild20Pairs() throws {
+        let a = UUID(), b = UUID(), c = UUID(), d = UUID(), e = UUID()
+        XCTAssertEqual(WholeMeal.menuID([a]), "recipe:" + a.uuidString, "one recipe is the recipe's own id")
+        XCTAssertEqual(WholeMeal.menuID([a, b]), PairedDinner.menuID(main: a, side: b), "two stay a build 20 pair")
+        let three = try XCTUnwrap(WholeMeal.menuID([a, b, c]))
+        XCTAssertTrue(three.hasPrefix(WholeMeal.prefix))
+        XCTAssertEqual(WholeMeal.recipeIDs(three), [a, b, c], "main first, the rest in order")
+        XCTAssertEqual(WholeMeal.recipeIDs(WholeMeal.menuID([a, b, c, d])!), [a, b, c, d])
+        XCTAssertEqual(WholeMeal.recipeIDs(PairedDinner.menuID(main: a, side: b)), [a, b], "a saved pair reads as a two-dish meal")
+        XCTAssertEqual(WholeMeal.recipeIDs("recipe:" + a.uuidString), [a])
+        XCTAssertNil(WholeMeal.menuID([a, b, c, d, e]), "four recipes at most")
+        XCTAssertNil(WholeMeal.menuID([a, b, a]), "a recipe once")
+        XCTAssertNil(WholeMeal.menuID([]))
+        XCTAssertNil(WholeMeal.recipeIDs(WholeMeal.prefix + a.uuidString), "a meal of one is a recipe id, not a meal")
+        XCTAssertNil(WholeMeal.recipeIDs(WholeMeal.prefix + [a, b, a].map(\.uuidString).joined(separator: "+")))
+        XCTAssertNil(WholeMeal.recipeIDs(WholeMeal.prefix + [a, b, c, d, e].map(\.uuidString).joined(separator: "+")))
+        XCTAssertNil(WholeMeal.recipeIDs(WholeMeal.prefix + a.uuidString + "+not-a-uuid"))
+        XCTAssertNil(WholeMeal.recipeIDs("thanksgiving"), "a catalog dinner is not a whole meal")
+        XCTAssertFalse(WholeMeal.isWholeMeal("recipe:" + a.uuidString))
+        XCTAssertTrue(WholeMeal.isWholeMeal(three))
+    }
+
+    func testAddingAndRemovingDishesKeepsTheMainFirst() throws {
+        let a = UUID(), b = UUID(), c = UUID(), d = UUID(), e = UUID()
+        let one = "recipe:" + a.uuidString
+        let two = try XCTUnwrap(WholeMeal.adding(b, to: one))
+        XCTAssertEqual(WholeMeal.recipeIDs(two), [a, b])
+        let four = try XCTUnwrap(WholeMeal.adding(d, to: WholeMeal.adding(c, to: two)!))
+        XCTAssertEqual(WholeMeal.recipeIDs(four), [a, b, c, d])
+        XCTAssertNil(WholeMeal.adding(e, to: four), "a fifth dish doesn't fit")
+        XCTAssertNil(WholeMeal.adding(b, to: four), "a dish already there")
+        XCTAssertEqual(WholeMeal.recipeIDs(WholeMeal.removing(c, from: four)!), [a, b, d])
+        XCTAssertEqual(WholeMeal.removing(b, from: two), one, "back to the main alone")
+        XCTAssertNil(WholeMeal.removing(a, from: two), "the main isn't removed this way")
+        XCTAssertNil(WholeMeal.removing(e, from: two))
+        XCTAssertNil(WholeMeal.removing(a, from: one))
+    }
+
+    @MainActor
+    func testFourRecipeDinnerIsReadyTogether() async throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("dt-meal-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let library = RecipeLibrary(directory: dir)
+        func add(_ text: String) throws -> Recipe {
+            let r = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
+            XCTAssertTrue(library.add(r)); return r
+        }
+        let chicken = try add("Roast chicken\nDirections\n1. Season the chicken.\n2. Roast for 60 minutes.\n3. Rest for 10 minutes.")
+        let potatoes = try add("Mashed potatoes\nDirections\n1. Boil the potatoes for 20 minutes.\n2. Mash with butter.")
+        let beans = try add("Green beans\nDirections\n1. Steam the beans for 6 minutes.")
+        let gravy = try add("Pan gravy\nDirections\n1. Simmer the drippings for 8 minutes.")
+        let recipes = [chicken, potatoes, beans, gravy]
+        let id = try XCTUnwrap(WholeMeal.menuID(recipes.map(\.id)))
+
+        let menu = try XCTUnwrap(library.menu(id: id))
+        XCTAssertEqual(menu.title, "Roast chicken + Mashed potatoes + Green beans + Pan gravy")
+        XCTAssertTrue(menu.subtitle.hasPrefix("Four recipes, ready together"), menu.subtitle)
+        XCTAssertEqual(Set(menu.steps.map(\.id)), Set(recipes.flatMap { $0.steps.map(\.id) }), "every step of every recipe, once")
+        XCTAssertEqual(library.recipe(menuID: id)?.id, chicken.id, "Tonight follows the main")
+
+        let store = SessionStore(fileURL: dir.appendingPathComponent("session.json"), menuProvider: library)
+        store.chooseMenu(id)
+        XCTAssertTrue(store.hasDinner)
+        XCTAssertFalse(store.menuIsMissing)
+        let serve = store.session.serveAt
+        for recipe in recipes {
+            let ids = Set(recipe.steps.map(\.id))
+            let last = try XCTUnwrap(store.plan.filter { ids.contains($0.id) }.map(\.end).max())
+            XCTAssertEqual(last.timeIntervalSince(serve), 0, accuracy: 1, "“\(recipe.title)” is ready at dinner time")
+        }
+
+        XCTAssertTrue(library.remove(id: beans.id))
+        XCTAssertNil(library.menu(id: id), "a deleted dish is a missing dinner, never part of a plan")
+        XCTAssertTrue(store.menuIsMissing)
+    }
 }

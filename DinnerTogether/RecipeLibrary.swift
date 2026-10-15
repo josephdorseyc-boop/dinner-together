@@ -73,11 +73,12 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         #if DEBUG
         if SampleMenus.enabled, let sample = SampleMenus.menu(id: id) { return sample }
         #endif
-        if let pair = PairedDinner.parse(id) {
-            // Both recipes, or nothing: a deleted half is a missing dinner,
-            // which Tonight says plainly.
-            guard let main = recipe(id: pair.main), let side = recipe(id: pair.side) else { return nil }
-            return PairedDinner.menu(main: main, side: side)
+        if let ids = WholeMeal.recipeIDs(id), ids.count > 1 {
+            // Every recipe, or nothing: a deleted dish is a missing dinner,
+            // which Tonight says plainly — never half a plan.
+            let recipes = ids.compactMap { recipe(id: $0) }
+            guard recipes.count == ids.count else { return nil }
+            return WholeMeal.menu(recipes)
         }
         return recipe(menuID: id)?.menu
     }
@@ -87,7 +88,7 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     /// The recipe a menu id names — for a paired dinner, its main recipe
     /// (Tonight's cover, title link and plate photo follow the main).
     func recipe(menuID: String) -> Recipe? {
-        if let pair = PairedDinner.parse(menuID) { return recipe(id: pair.main) }
+        if let ids = WholeMeal.recipeIDs(menuID), ids.count > 1 { return recipe(id: ids[0]) }
         guard menuID.hasPrefix(Recipe.menuIDPrefix),
               let uuid = UUID(uuidString: String(menuID.dropFirst(Recipe.menuIDPrefix.count))) else { return nil }
         return recipe(id: uuid)

@@ -201,10 +201,78 @@ enum PairedDinner {
     }
 
     static func menu(main: Recipe, side: Recipe) -> DinnerMenu {
-        let minutes = max(main.plannedMinutes, side.plannedMinutes)
+        WholeMeal.menu([main, side])
+    }
+}
+
+/// A whole dinner of one to four of the cook's recipes, every dish timed to
+/// be ready together (Joe, October 14: "you're making a chicken and also
+/// mashed potatoes, and you need them synced to finish at the same time" —
+/// on every device, build 21). The first recipe is the main: Tonight's cover,
+/// title link and plate photo follow it.
+///
+/// Menu ids: one recipe keeps `recipe:<id>`; two keep build 20's
+/// `pair:<main>+<side>`; three or four are `meal:<main>+<b>+<c>[+<d>]`.
+enum WholeMeal {
+    static let prefix = "meal:"
+    static let maxRecipes = 4
+
+    /// The recipes a menu id names, main first: one for `recipe:`, two for
+    /// `pair:`, two to four for `meal:`. Nil for anything else, duplicates,
+    /// or too many.
+    static func recipeIDs(_ menuID: String) -> [UUID]? {
+        if let pair = PairedDinner.parse(menuID) { return [pair.main, pair.side] }
+        if menuID.hasPrefix(Recipe.menuIDPrefix) {
+            return UUID(uuidString: String(menuID.dropFirst(Recipe.menuIDPrefix.count))).map { [$0] }
+        }
+        guard menuID.hasPrefix(prefix) else { return nil }
+        let ids = menuID.dropFirst(prefix.count).split(separator: "+", omittingEmptySubsequences: false)
+            .map { UUID(uuidString: String($0)) }
+        guard (2...maxRecipes).contains(ids.count), !ids.contains(nil) else { return nil }
+        let unique = ids.compactMap { $0 }
+        return Set(unique).count == unique.count ? unique : nil
+    }
+
+    /// Two or more recipes in one dinner. (A single recipe is the recipe's
+    /// own `menuID`.)
+    static func isWholeMeal(_ menuID: String) -> Bool { (recipeIDs(menuID)?.count ?? 0) > 1 }
+
+    /// The id for these recipes, main first; nil for none, duplicates or
+    /// more than four.
+    static func menuID(_ ids: [UUID]) -> String? {
+        guard !ids.isEmpty, ids.count <= maxRecipes, Set(ids).count == ids.count else { return nil }
+        switch ids.count {
+        case 1: return Recipe.menuIDPrefix + ids[0].uuidString
+        case 2: return PairedDinner.menuID(main: ids[0], side: ids[1])
+        default: return prefix + ids.map(\.uuidString).joined(separator: "+")
+        }
+    }
+
+    /// The dinner with one more dish (it goes after the others); nil when it
+    /// is already there or the dinner is full.
+    static func adding(_ id: UUID, to menuID: String) -> String? {
+        guard let ids = recipeIDs(menuID), !ids.contains(id) else { return nil }
+        return self.menuID(ids + [id])
+    }
+
+    /// The dinner without one dish; the main can't be removed this way (the
+    /// next recipe would silently become the main). Nil when it isn't there.
+    static func removing(_ id: UUID, from menuID: String) -> String? {
+        guard let ids = recipeIDs(menuID), ids.count > 1, let i = ids.firstIndex(of: id), i > 0 else { return nil }
+        var rest = ids; rest.remove(at: i)
+        return self.menuID(rest)
+    }
+
+    /// Every dish of every recipe, scheduled as one dinner.
+    static func menu(_ recipes: [Recipe]) -> DinnerMenu {
+        precondition(!recipes.isEmpty)
+        if recipes.count == 1 { return recipes[0].menu }
+        let minutes = recipes.map(\.plannedMinutes).max() ?? 0
         let timing = minutes > 0 ? "About \(Scheduling.formatMinutes(minutes))" : "Timing not set"
-        return DinnerMenu(id: menuID(main: main.id, side: side.id), title: "\(main.title) + \(side.title)",
-                          subtitle: "Two recipes, ready together · \(timing)", symbol: "book.closed",
-                          dishes: main.dishes + side.dishes)
+        let count = ["", "One", "Two", "Three", "Four"][min(recipes.count, 4)]
+        return DinnerMenu(id: menuID(recipes.map(\.id)) ?? recipes[0].menuID,
+                          title: recipes.map(\.title).joined(separator: " + "),
+                          subtitle: "\(count) recipes, ready together · \(timing)", symbol: "book.closed",
+                          dishes: recipes.flatMap(\.dishes))
     }
 }

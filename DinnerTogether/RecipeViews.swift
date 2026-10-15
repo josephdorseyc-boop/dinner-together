@@ -743,13 +743,12 @@ struct RecipeDetailView: View {
     private var accentColor: Color { deepPage ? Theme.pageAccent : Theme.tomato }
     private var isTonight: Bool { dinnerMenuID != nil && store.session.menuID == dinnerMenuID }
     private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
-    /// Timing is frozen while this recipe is being cooked, same rule as the catalog.
-    /// Timing is frozen while this recipe is being cooked — alone or as
-    /// half of a paired dinner.
+    /// Timing is frozen while this recipe is being cooked — alone or as one
+    /// dish of a whole meal — same rule as the catalog.
     private var timingLocked: Bool {
         guard hasProgress, let recipe else { return false }
         if store.session.menuID == recipe.menuID { return true }
-        if let pair = PairedDinner.parse(store.session.menuID) { return pair.main == recipe.id || pair.side == recipe.id }
+        if let ids = WholeMeal.recipeIDs(store.session.menuID) { return ids.contains(recipe.id) }
         return false
     }
 
