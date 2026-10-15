@@ -1760,12 +1760,23 @@ extension DinnerTogetherUITestCase {
         // (run 38610973412). Tap what is already tappable; otherwise drag
         // inside the sheet itself.
         func showInSheet(_ option: XCUIElement) {
-            let window = app.windows.firstMatch.frame
+            // Measured against the sheet's own list, not the window: on iPad
+            // the form sheet ends above the screen's foot, and a row just
+            // below its edge was "on screen" yet outside the sheet — the tap
+            // landed on the dimmed page and dismissed the sheet, choosing
+            // nothing (run 38815605161, test22: Thanksgiving under the taller
+            // build 21 sheet).
+            let list = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
             for _ in 0..<6 {
-                if option.exists && option.isHittable && option.frame.maxY < window.maxY - 30 && option.frame.minY > window.minY + 60 { return }
-                let up = !option.exists || option.frame.midY > window.midY
-                let from = screenCoordinate( CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
-                let to = screenCoordinate( CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
+                let inList = list.exists && isFiniteFrame(list.frame) && list.frame.height > 100
+                let bounds = inList ? list.frame : app.windows.firstMatch.frame
+                let (topInset, bottomInset): (CGFloat, CGFloat) = inList ? (8, 16) : (60, 30)
+                if option.exists && option.isHittable && option.frame.maxY < bounds.maxY - bottomInset && option.frame.minY > bounds.minY + topInset { return }
+                let up = !option.exists || option.frame.midY > bounds.midY
+                let from = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.75 : 0.3))
+                                  : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
+                let to = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.3 : 0.75))
+                                : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
                 from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
                 Thread.sleep(forTimeInterval: 0.4)
             }
