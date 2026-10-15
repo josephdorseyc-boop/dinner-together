@@ -30,12 +30,13 @@ final class SpreadTests: XCTestCase {
         func mode(_ w: Double, _ h: Double, phone: Bool = true, ax: Bool = false) -> SpreadLayout.Mode {
             SpreadLayout.mode(width: w, height: h, phoneIdiom: phone, accessibilitySize: ax)
         }
-        XCTAssertEqual(mode(466, 678), .book, "the cover display (its first screenshots): one cookbook page with Main / Side")
-        XCTAssertEqual(mode(678, 466), .book, "the cover display sideways: the same one page (Joe, October 15)")
+        XCTAssertEqual(mode(466, 678), .single, "the folded Duo's cover mirrors the iPhone: the photo-first page (Joe, 12:12 PM)")
+        XCTAssertEqual(mode(678, 466), .single, "the cover sideways: still the iPhone page, never a split")
         XCTAssertEqual(mode(951, 669), .spread, "the Duo opened: two pages")
         XCTAssertEqual(mode(669, 951), .book, "the Duo opened, held upright: one page with Main / Side (mockup 04)")
         XCTAssertEqual(mode(951, 669, ax: true), .book, "large text on the opened Duo: one page")
-        XCTAssertEqual(mode(466, 678, ax: true), .book, "large text keeps the one page and its switch")
+        XCTAssertEqual(mode(669, 951, ax: true), .book, "large text on the opened Duo upright keeps the one page and its switch")
+        XCTAssertEqual(mode(466, 678, ax: true), .single, "large text on the cover: the iPhone page")
         XCTAssertEqual(mode(402, 874), .single, "an iPhone: the page as always")
         XCTAssertEqual(mode(440, 956), .single)
         XCTAssertEqual(mode(1024, 1366, phone: false), .single, "iPad keeps its layout")

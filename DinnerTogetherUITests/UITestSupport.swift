@@ -2072,9 +2072,13 @@ extension DinnerTogetherUITestCase {
             attachHierarchy("r26-landscape-lost-at-recipe-hierarchy" + capture.suffix)
             return XCTFail("The wide-window-required recipe must retain native spread-fit bounds and spread eligibility: \(frame)")
         }
+        // SpreadLayout's book: near-square with a short side of 600 pt or
+        // more — the opened Duo upright. The folded Duo's cover (466 wide)
+        // is the iPhone page (Joe, October 15, 12:12 PM).
         let nearSquare = phone && min(frame.width, frame.height) / max(frame.width, frame.height) >= 0.6
+            && min(frame.width, frame.height) >= 600
         if !openBook && nearSquare {
-            // The Duo upright (Joe, October 15): one cookbook page with a
+            // The opened Duo upright (Joe, October 15): one cookbook page with a
             // quiet Main / Side switch, each keeping its place.
             XCTAssertFalse(left.exists, "no two-page spread at \(frame.size)")
             let add = app.buttons["book-add-side"]
