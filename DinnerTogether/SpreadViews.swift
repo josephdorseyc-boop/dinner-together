@@ -14,18 +14,22 @@ struct RecipeSpreadView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var leftPage: SpreadLeftPage = .cover
     @State private var choosingSecond = false
+    /// `.book` mode: the side dish is the page in front.
+    @State private var showingSide = false
 
     var body: some View {
         GeometryReader { g in
             // The window's own size: the bars are inside it.
-            let spread = SpreadLayout.showsSpread(
+            let mode = SpreadLayout.mode(
                 width: g.size.width + g.safeAreaInsets.leading + g.safeAreaInsets.trailing,
                 height: g.size.height + g.safeAreaInsets.top + g.safeAreaInsets.bottom,
                 phoneIdiom: UIDevice.current.userInterfaceIdiom == .phone,
                 accessibilitySize: dynamicTypeSize.isAccessibilitySize)
             let half = (g.size.width / 2).rounded(.down)
+            let side = mode == .book ? leftPage.secondRecipeID : nil
+            let sideInFront = side != nil && showingSide
             HStack(spacing: 0) {
-                if spread {
+                if mode == .spread {
                     leftPane(pageWidth: half)
                         .frame(width: half)
                         .clipped()
@@ -35,24 +39,95 @@ struct RecipeSpreadView: View {
                     Rectangle().fill(Theme.line).frame(width: 1).ignoresSafeArea()
                         .accessibilityHidden(true)
                 }
-                // Always in this position, so its identity — tab, scroll,
-                // sheets — survives the spread opening and closing.
-                RecipeDetailView(recipeID: recipeID, onChoose: onChoose,
-                                 bookPage: spread, pageWidth: spread ? g.size.width / 2 : nil)
-                    .frame(maxWidth: .infinity)
+                ZStack(alignment: .top) {
+                    // Always in this position, so its identity — tab, scroll,
+                    // sheets — survives the spread opening and closing.
+                    RecipeDetailView(recipeID: recipeID, onChoose: onChoose,
+                                     bookPage: mode != .single,
+                                     pageWidth: mode == .spread ? half : g.size.width,
+                                     inBackground: sideInFront)
+                        .opacity(sideInFront ? 0 : 1)
+                        .allowsHitTesting(!sideInFront)
+                        .accessibilityHidden(sideInFront)
+                    // The side dish, kept in place behind the main page so
+                    // each keeps its own tab and scroll (A2-59).
+                    if let side {
+                        RecipeDetailView(recipeID: side, onChoose: onChoose, role: .reader, pairMain: recipeID,
+                                         bookPage: true, pageWidth: g.size.width)
+                            .id(side)
+                            .opacity(sideInFront ? 1 : 0)
+                            .allowsHitTesting(sideInFront)
+                            .accessibilityHidden(!sideInFront)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .safeAreaInset(edge: .top, spacing: 0) {
+                    if mode == .book { bookSwitch(side: side) }
+                }
             }
             .frame(width: g.size.width, height: g.size.height)
             .sheet(isPresented: $choosingSecond) {
                 SecondRecipePicker(mainID: recipeID, current: leftPage.secondRecipeID) { id in
                     leftPage = .recipe(id)
+                    showingSide = true
                 }
                 .uiTestTypeSize()
             }
             // A deleted second recipe gives way to the cover.
             .onChange(of: library.recipes.map(\.id)) { _, ids in
                 leftPage = leftPage.settled { ids.contains($0) }
+                if leftPage.secondRecipeID == nil { showingSide = false }
             }
         }
+    }
+
+    /// The Duo upright (Joe, October 15): one cookbook page, and a quiet
+    /// switch between the main recipe and a side dish read alongside.
+    @ViewBuilder
+    private func bookSwitch(side: UUID?) -> some View {
+        HStack(spacing: 16) {
+            if side != nil {
+                switchTab("Main", selected: !showingSide, id: "book-switch-main") { showingSide = false }
+                switchTab("Side dish", selected: showingSide, id: "book-switch-side") { showingSide = true }
+                Spacer(minLength: 8)
+                Menu {
+                    Button { choosingSecond = true } label: { Label("Change side dish", systemImage: "arrow.left.arrow.right") }
+                    Button { leftPage = .cover; showingSide = false } label: { Label("Close side dish", systemImage: "xmark") }
+                } label: {
+                    Image(systemName: "ellipsis").font(.body.weight(.semibold)).foregroundStyle(Theme.muted)
+                        .frame(width: 44, height: 44).contentShape(Rectangle())
+                }
+                .accessibilityLabel("Side dish options")
+                .accessibilityIdentifier("book-side-options")
+            } else {
+                Spacer(minLength: 0)
+                Button { choosingSecond = true } label: {
+                    Label("Add a side dish", systemImage: "plus").font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(QuietButtonStyle())
+                .disabled(library.recipes.count < 2)
+                .accessibilityHint("Reads another of your recipes alongside this one.")
+                .accessibilityIdentifier("book-add-side")
+            }
+        }
+        .padding(.horizontal, 18).padding(.vertical, 4)
+        .frame(maxWidth: .infinity)
+        .background(Theme.cream)
+        .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
+    }
+
+    private func switchTab(_ title: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Theme.ink : Theme.muted)
+                .padding(.vertical, 10).frame(minHeight: 44)
+                .overlay(alignment: .bottom) { Rectangle().fill(selected ? Theme.olive : .clear).frame(height: 2) }
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityIdentifier(id)
     }
 
     @ViewBuilder

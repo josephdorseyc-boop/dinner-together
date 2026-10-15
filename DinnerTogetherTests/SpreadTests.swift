@@ -23,6 +23,18 @@ final class SpreadTests: XCTestCase {
         XCTAssertFalse(spread(780, 844, ax: true), "at accessibility sizes the main recipe takes the whole width")
     }
 
+    func testDuoUprightIsOneCookbookPage() {
+        func mode(_ w: Double, _ h: Double, phone: Bool = true, ax: Bool = false) -> SpreadLayout.Mode {
+            SpreadLayout.mode(width: w, height: h, phoneIdiom: phone, accessibilitySize: ax)
+        }
+        XCTAssertEqual(mode(466, 678), .book, "the Duo upright (its first screenshots): one cookbook page with Main / Side")
+        XCTAssertEqual(mode(678, 466), .spread, "the Duo turned like a book: two pages")
+        XCTAssertEqual(mode(466, 678, ax: true), .book, "large text keeps the one page and its switch")
+        XCTAssertEqual(mode(402, 874), .single, "an iPhone: the page as always")
+        XCTAssertEqual(mode(440, 956), .single)
+        XCTAssertEqual(mode(1024, 1366, phone: false), .single, "iPad keeps its layout")
+    }
+
     func testLeftPageSettlesToTheCoverWhenItsRecipeIsGone() {
         let side = UUID(), other = UUID()
         XCTAssertEqual(SpreadLeftPage.recipe(side).settled { $0 == side }, .recipe(side), "a recipe still there stays")

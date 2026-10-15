@@ -686,6 +686,9 @@ struct RecipeDetailView: View {
     /// page a small terracotta leaf. `pageWidth` is the page's own width.
     var bookPage = false
     var pageWidth: CGFloat? = nil
+    /// Behind the side dish on the Duo's single page: its bar buttons go
+    /// away so ••• and the star never act on a recipe out of sight.
+    var inBackground = false
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -796,7 +799,7 @@ struct RecipeDetailView: View {
                 // (The main page's say; the spread's left page has none.)
                 .toolbarColorScheme(reader ? nil : pageScheme, for: .navigationBar, .tabBar)
                 .toolbar {
-                    if !reader {
+                    if !reader && !inBackground {
                         ToolbarItem(placement: .primaryAction) {
                             Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
                                 Image(systemName: recipe.isFavorite ? "star.fill" : "star")

@@ -1912,6 +1912,32 @@ extension DinnerTogetherUITestCase {
         let frame = app.frame
         let phone = UIDevice.current.userInterfaceIdiom == .phone
         let openBook = phone && frame.width >= 600 && frame.height >= 450 && capture.typeSize == nil
+        let nearSquare = phone && min(frame.width, frame.height) / max(frame.width, frame.height) >= 0.6
+        if !openBook && nearSquare {
+            // The Duo upright (Joe, October 15): one cookbook page with a
+            // quiet Main / Side switch, each keeping its place.
+            XCTAssertFalse(left.exists, "no two-page spread at \(frame.size)")
+            let add = app.buttons["book-add-side"]
+            waitForExistence(add, timeout: 5, "Add a side dish on the Duo's page")
+            photograph("r26b-duo-book-page" + capture.suffix)
+            app.buttons["recipe-tab-directions"].tap()
+            add.tap()
+            let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", RecipeFixtureText.beanSpreadTitle)).firstMatch
+            waitForExistence(row, timeout: 5, "the side-dish picker")
+            row.tap()
+            let sideTitle = app.staticTexts["recipe-title-second"]
+            waitForExistence(sideTitle, timeout: 5, "the side dish in front")
+            XCTAssertTrue(sideTitle.label.hasPrefix(RecipeFixtureText.beanSpreadTitle), sideTitle.label)
+            XCTAssertTrue(app.buttons["book-switch-side"].isSelected, "Side dish selected")
+            XCTAssertTrue(app.buttons["cook-both"].exists, "the side dish offers Cook both together")
+            photograph("r26c-duo-book-side" + capture.suffix)
+            app.buttons["book-switch-main"].tap()
+            let mainTitle = app.staticTexts["recipe-title"]
+            XCTAssertTrue(mainTitle.waitForExistence(timeout: 5) && mainTitle.isHittable, "the main recipe in front again")
+            XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "…still on Directions, where it was left")
+            photograph("r26d-duo-book-main-again" + capture.suffix)
+            return
+        }
         guard openBook else {
             XCTAssertFalse(left.exists, "a window that is not open like a book shows the single page (\(frame.size))")
             XCTAssertTrue(app.staticTexts["recipe-title"].exists, "…the recipe page as always")

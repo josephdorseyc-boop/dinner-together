@@ -23,6 +23,21 @@ enum SpreadLayout {
     static func showsSpread(width: Double, height: Double, phoneIdiom: Bool, accessibilitySize: Bool) -> Bool {
         phoneIdiom && !accessibilitySize && width >= minimumWidth && height >= minimumHeight
     }
+
+    /// How the recipe page is laid out (Joe, October 15, after the Duo's
+    /// first screenshots: upright, the Duo's screen is 466 × 678 with the
+    /// system's rail on the right — two pages would be ~190 pt each):
+    /// - `.spread`: two cookbook pages side by side (wide enough);
+    /// - `.book`: one full-width cookbook page with a quiet Main / Side
+    ///   switch — a near-square phone screen (the Duo upright);
+    /// - `.single`: the page as on every iPhone and iPad.
+    enum Mode: Equatable { case single, book, spread }
+
+    static func mode(width: Double, height: Double, phoneIdiom: Bool, accessibilitySize: Bool) -> Mode {
+        if showsSpread(width: width, height: height, phoneIdiom: phoneIdiom, accessibilitySize: accessibilitySize) { return .spread }
+        let short = min(width, height), long = max(width, height)
+        return phoneIdiom && long > 0 && short / long >= 0.6 ? .book : .single
+    }
 }
 
 /// What the LEFT page shows.
