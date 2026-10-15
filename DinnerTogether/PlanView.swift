@@ -532,6 +532,8 @@ struct PlanView: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Dinner on the table at \(Scheduling.formatMoment(store.session.serveAt))")
+            // UI tests read the dinner time here (A1's r28: kept through dish changes).
+            .accessibilityIdentifier("tonight-dinner-time")
             .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
 
             if !store.hasDinner {
