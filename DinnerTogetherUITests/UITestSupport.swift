@@ -1377,7 +1377,11 @@ extension DinnerTogetherUITestCase {
         let segment = app.buttons["Screenshots"]
         waitForExistence(segment, timeout: 5, "the Screenshots option")
         segment.tap()
-        waitForExistence(app.descendants(matching: .any)["choose-screenshots"], timeout: 5, "the stubbed screenshots")
+        // A tap while the sheet is still settling can leave Link selected
+        // (Duo run 38765525217, test22): once more, then judge.
+        let choose = app.descendants(matching: .any)["choose-screenshots"]
+        if !choose.waitForExistence(timeout: 5) && !segment.isSelected { segment.tap() }
+        waitForExistence(choose, timeout: 5, "the stubbed screenshots")
     }
 
     private func chooseCoverCrop() {
@@ -2526,13 +2530,17 @@ private enum DuoWindowGeometry {
               let scene = size(fields["scene"]), let window = size(fields["window"]),
               frame.origin.x.isFinite, frame.origin.y.isFinite,
               frame.width.isFinite, frame.height.isFinite,
-              frame.width > frame.height, frame.width >= 600, frame.height >= 450,
               window.width >= 600, window.height >= 450,
               scene.width > scene.height, scene.width >= 600, scene.height >= 450,
               window.width > window.height,
-              abs(scene.width - window.width) <= 2, abs(scene.height - window.height) <= 2,
-              abs(window.width - frame.width) <= 2, abs(window.height - frame.height) <= 2 else { return false }
-        return true
+              abs(scene.width - window.width) <= 2, abs(scene.height - window.height) <= 2 else { return false }
+        // XCTest reports the opened Duo in the inner panel's own upright
+        // coordinates (run 38766905435: app frame 669 × 951 while the app's
+        // window and scene were 951 × 669, landscape): the frame must be the
+        // window, either way round. Wideness comes from the scene.
+        let same = abs(window.width - frame.width) <= 2 && abs(window.height - frame.height) <= 2
+        let turned = abs(window.width - frame.height) <= 2 && abs(window.height - frame.width) <= 2
+        return same || turned
     }
 
     private static func size(_ text: String?) -> CGSize? {
@@ -2553,6 +2561,12 @@ final class DinnerTogetherDuoWindowTests: DinnerTogetherUITestCase {
         let frame = CGRect(x: 0, y: 0, width: 678, height: 466)
         let good = "phase=observed;orientation=portrait;window=678x466;scene=678x466;error=none"
         XCTAssertTrue(DuoWindowGeometry.accepts(status: good, frame: frame))
+        // The opened Duo as XCTest saw it (run 38766905435).
+        XCTAssertTrue(DuoWindowGeometry.accepts(
+            status: "phase=observed;orientation=landscapeLeft;window=951x669;scene=951x669;safe=0,0,34,84;traits=h2,v2;error=none",
+            frame: CGRect(x: 0, y: 0, width: 669, height: 951)))
+        XCTAssertFalse(DuoWindowGeometry.accepts(status: good, frame: CGRect(x: 0, y: 0, width: 669, height: 951)),
+                       "a frame that is neither the window nor the window turned")
         for invalid in [
             good.replacingOccurrences(of: "scene=678x466", with: "scene=466x678"),
             good.replacingOccurrences(of: "scene=678x466;", with: ""),
