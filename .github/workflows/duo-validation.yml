@@ -9,10 +9,19 @@ name: duo-validation
 #               built with Xcode 27.1 — is the app and its test-suite OK
 #               with the new toolchain and OS?
 #   - "duo":    the iPhone Duo simulator stands in for the iPhone.
-# Manual until it is green; then it decides whether release.yml moves to
-# Xcode 27.1 before submission.
+# Every push to main runs it as well as native-validation (Joe, October
+# 14: "increase efforts to run simulations on the Duo"); it decides whether
+# release.yml moves to Xcode 27.1 before submission.
+#
+# Split like native-validation: the ios27 pass in four parts, the Duo's
+# iPhone UI tests in three (its simulator is the slowest), each on its own
+# machine. Every job publishes its summary, logs and downscaled screenshots
+# to a ci-results-duo-<pass>-<part> branch, readable with plain git (the
+# artifacts need blob storage not every reviewer can reach).
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       xcode:
@@ -22,28 +31,35 @@ on:
         type: string
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   native:
-    name: ${{ matrix.pass }} (Xcode ${{ inputs.xcode }})
+    name: ${{ matrix.pass }} ${{ matrix.part }} (Xcode ${{ inputs.xcode || '27.1' }})
     runs-on: xcode-27
     # The duo pass downloads the iOS 27.1 platform first and the Duo
     # simulator is slower: run 38341872659 timed out at 110 min after the
-    # tests had passed.
-    # Two sequential UI passes of up to 110 min each (A1, issue #15).
-    timeout-minutes: 300
+    # tests had passed. One part is at most one UI pass now.
+    timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        pass: [ios27, duo]
+        include:
+          - { pass: ios27, part: core }
+          - { pass: ios27, part: ui-iphone-1-of-2 }
+          - { pass: ios27, part: ui-iphone-2-of-2 }
+          - { pass: ios27, part: ui-ipad }
+          - { pass: duo, part: ui-iphone-1-of-3 }
+          - { pass: duo, part: ui-iphone-2-of-3 }
+          - { pass: duo, part: ui-iphone-3-of-3 }
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
+      DT_PART: ${{ matrix.part }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode
         run: |
-          app="/Applications/Xcode_${{ inputs.xcode }}.app"
+          app="/Applications/Xcode_${{ inputs.xcode || '27.1' }}.app"
           [ -d "$app" ] || { echo "::error::$app is not on this image"; ls -d /Applications/Xcode*.app; exit 1; }
           echo "DEVELOPER_DIR=$app/Contents/Developer" >> "$GITHUB_ENV"
           "$app/Contents/Developer/usr/bin/xcodebuild" -version
@@ -77,7 +93,7 @@ jobs:
       - name: Screenshots of seeded recovery states
         id: shots
         # Store-frame captures are not a Duo question; the ios27 pass keeps them.
-        if: always() && matrix.pass == 'ios27'
+        if: always() && matrix.pass == 'ios27' && matrix.part == 'core'
         run: bash native-validation/screenshots.sh "$RESULTS" || echo "screenshots-failed=true" >> "$GITHUB_OUTPUT"
       - name: Show summary
         if: always()
@@ -107,7 +123,7 @@ jobs:
         timeout-minutes: 10
         uses: actions/upload-artifact@v4
         with:
-          name: duo-${{ matrix.pass }}-evidence-${{ github.run_id }}
+          name: duo-${{ matrix.pass }}-${{ matrix.part }}-evidence-${{ github.run_id }}
           path: |
             native-validation/results/ui-screenshots/**
             native-validation/results/screenshots/**
@@ -120,6 +136,28 @@ jobs:
           if-no-files-found: warn
           compression-level: 0
           retention-days: 30
+      - name: Publish to the ci-results-duo-${{ matrix.pass }}-${{ matrix.part }} branch
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 8
+        run: |
+          tmp=$(mktemp -d)
+          cd "$RESULTS" || exit 0
+          # Text results whole; screenshots downscaled (sips) so a push stays small.
+          find . -maxdepth 1 -type f \( -name '*.md' -o -name '*.txt' -o -name '*.env' -o -name '*.log' -o -name '*.json' \) -exec cp {} "$tmp"/ \;
+          for d in ui-screenshots screenshots; do
+            [ -d "$d" ] || continue
+            find "$d" -name '*.png' | while IFS= read -r f; do
+              mkdir -p "$tmp/$(dirname "$f")"
+              sips -Z 1400 "$f" --out "$tmp/$f" >/dev/null 2>&1 || cp "$f" "$tmp/$f"
+            done
+            find "$d" -name '*.txt' -exec sh -c 'mkdir -p "$1/$(dirname "$2")" && cp "$2" "$1/$2"' _ "$tmp" {} \;
+          done
+          printf 'run %s\nsha %s\npass %s\npart %s\nxcode %s\n' "${{ github.run_id }}" "${{ github.sha }}" "${{ matrix.pass }}" "${{ matrix.part }}" "${{ inputs.xcode || '27.1' }}" > "$tmp/RUN.txt"
+          cd "$tmp" && git init -q -b results
+          git config user.name "github-actions[bot]"; git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A && git commit -q -m "duo-validation ${{ matrix.pass }} ${{ matrix.part }} for run ${{ github.run_id }} (${{ github.sha }})"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" "HEAD:refs/heads/ci-results-duo-${{ matrix.pass }}-${{ matrix.part }}"
       - name: Gate
         if: always()
         run: |

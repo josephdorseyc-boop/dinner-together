@@ -21,7 +21,7 @@ name: native-validation
 
 on:
   push:
-    branches-ignore: [ci-results, ci-results-linux, store-assets, release-results, 'wip/**']
+    branches-ignore: [ci-results, ci-results-linux, 'ci-results-duo-*', store-assets, release-results, 'wip/**']
     # wip/** branches get the 1-minute Linux harness on every push
     # (engine-quick.yml); run this full workflow on them by hand when wanted.
     # Documentation-only pushes don't need a 20-minute macOS run.
