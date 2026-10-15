@@ -1953,8 +1953,12 @@ extension DinnerTogetherUITestCase {
         // before the title, while no keyboard covers them (runs 38670042839
         // and 38677804763 failed reaching Notes under the title's keyboard).
         let notes = app.descendants(matching: .any)["recipe-edit-notes"]
-        scrollTo(notes)
-        notes.tap()
+        // At AX3 the sheet's end leaves Notes partly behind the Save bar,
+        // where no scroll moves it into scrollTo's zone (run 38682393276):
+        // a hittable field is tapped near its top, which is clear of the bar.
+        waitForExistence(notes, timeout: 5, "the Notes field")
+        for _ in 0..<4 where !notes.isHittable { app.swipeUp() }
+        notes.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).tap()
         notes.typeText("Use extra lime. Check five minutes early.")
         // The title is at the top of the sheet, above the keyboard.
         scrollTo(field, requireHittable: false)
