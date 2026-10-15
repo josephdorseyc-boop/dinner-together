@@ -1949,13 +1949,11 @@ extension DinnerTogetherUITestCase {
         tapPinned(app.buttons["recipe-edit-title-clear"], "the title's clear button")
         XCTAssertTrue(app.staticTexts["A recipe needs a title."].waitForExistence(timeout: 3), "a blank title is refused")
         XCTAssertFalse(save.isEnabled, "…and cannot be saved")
-        field.tap()
-        field.typeText("Berry lime slush")
-        // The cook's own notes, on the same sheet (A2, build 19), at the
-        // standard size. At AX3 the title's keyboard and the Save bar leave
-        // Notes nowhere a test can reach it reliably (runs 38670042839,
-        // 38677804763, 38682393276, 38686178891); the sheet's layout at AX3
-        // is still recorded by r20b, and the notes path by test36.
+        // The cook's own notes, on the same sheet (A2, build 19), typed
+        // before the title while no keyboard covers them — at the standard
+        // size (passed in runs 38682393276 and 38686178891). At AX3 the
+        // keyboard and the Save bar leave the fields beyond a test's reach
+        // (four runs); r20b still records the AX3 sheet, test36 the notes.
         let typesNotes = capture.typeSize == nil
         if typesNotes {
             let notes = app.descendants(matching: .any)["recipe-edit-notes"]
@@ -1963,7 +1961,10 @@ extension DinnerTogetherUITestCase {
             for _ in 0..<4 where !notes.isHittable { app.swipeUp() }
             notes.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).tap()
             notes.typeText("Use extra lime. Check five minutes early.")
+            scrollTo(field, requireHittable: false)
         }
+        field.tap()
+        field.typeText("Berry lime slush")
         photograph("r20b-edit-recipe" + capture.suffix)
         tapPinned(save, "Save changes")
         waitForDisappearance(save, "the Edit sheet closed")
