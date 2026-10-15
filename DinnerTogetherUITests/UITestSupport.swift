@@ -1084,7 +1084,11 @@ extension DinnerTogetherUITestCase {
 
     private func onRecipePage(_ capture: RecipeCapture) {
         verifyTypeSize(capture)
-        verifyAppearance(capture)
+        // A recipe without a photo is on Classic cream, which is cream in
+        // Dark Mode too (Joe, build 19), so the page itself is light either
+        // way; Dark Mode still shows in the bars and sheets (r02/r03 -dark).
+        let luminance = Self.meanLuminance(app.screenshot().image)
+        XCTAssertGreaterThan(luminance, 0.5, "the classic cream page\(capture.dark ? ", in Dark Mode too" : ""): screen luminance \(luminance)")
     }
 
     /// r01 — the Recipes destination with an empty library.
@@ -1550,11 +1554,9 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(swatch("classic").waitForSelection(), "Classic cream is now selected")
         closePageColorSheet()
         let cream = pageLuminance()
-        if capture.dark {
-            XCTAssertLessThan(cream, colored - 0.05, "Classic in Dark Mode: the dark cream page, darker than the photo's colors: \(cream) vs \(colored)")
-        } else {
-            XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back: luminance below the tabs \(cream)")
-        }
+        // Cream in Dark Mode too (Joe, build 19: choosing Classic cream left
+        // his page dark).
+        XCTAssertGreaterThan(cream, 0.6, "Classic cream: the light page is back\(capture.dark ? ", in Dark Mode too" : ""): luminance below the tabs \(cream)")
         scrollRecipeToTop()
         photograph("r14d-photo-classic" + capture.suffix)
     }
@@ -2260,11 +2262,7 @@ extension DinnerTogetherUITestCase {
         verifyTypeSize(capture)
         photograph("r15a-typed-cream" + capture.suffix)
         let start = pageLuminance()
-        if capture.dark {
-            XCTAssertLessThan(start, 0.35, "a typed recipe starts on the (dark) cream page: \(start)")
-        } else {
-            XCTAssertGreaterThan(start, 0.6, "a typed recipe starts on the cream page: \(start)")
-        }
+        XCTAssertGreaterThan(start, 0.6, "a typed recipe starts on the cream page\(capture.dark ? ", in Dark Mode too" : ""): \(start)")
         scrollRecipeToTop()
         button.tap()
         waitForExistence(app.buttons["page-style-done"], timeout: 5, "the Page color sheet")
@@ -2277,9 +2275,6 @@ extension DinnerTogetherUITestCase {
         closePageColorSheet()
         let colored = pageLuminance()
         XCTAssertLessThan(colored, 0.35, "the page is \(preset): \(colored)")
-        if capture.dark {
-            XCTAssertGreaterThan(colored, start + 0.05, "\(preset) in Dark Mode is brighter than the dark cream page: \(colored) vs \(start)")
-        }
         scrollRecipeToTop()
         photograph("r15c-typed-\(preset)" + capture.suffix)
         app.buttons["recipe-tab-directions"].tap()

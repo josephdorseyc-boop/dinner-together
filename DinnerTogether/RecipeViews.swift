@@ -717,10 +717,11 @@ struct RecipeDetailView: View {
     private var mainNeedsReview: Bool { pairMain.flatMap { library.recipe(id: $0) }?.needsTimingReview ?? false }
     /// The page's colors (photo or the cook's choice); nil = classic cream.
     private var pagePalette: RecipePalette? { recipe.flatMap { RecipePhotos.palette(for: $0, from: library) } }
-    /// A colored page draws from its own colors whatever the phone's
-    /// appearance — light text on a deep page, the classic dark text on a
-    /// pale one; the classic page follows the phone.
-    private var pageScheme: ColorScheme { pagePalette.map { $0.tone == .deep ? .dark : .light } ?? colorScheme }
+    /// A page draws from its own colors whatever the phone's appearance —
+    /// light text on a deep page, the classic dark text on a pale one and
+    /// on Classic cream, which is cream in Dark Mode too (Joe, build 19:
+    /// choosing it left the page dark; Charcoal is the dark page).
+    private var pageScheme: ColorScheme { pagePalette.map { $0.tone == .deep ? .dark : .light } ?? .light }
     /// Deep pages swap the classic accents for ones that read on dark color.
     private var deepPage: Bool { pagePalette?.tone == .deep }
     private var labelColor: Color { deepPage ? Theme.pageAccent : Theme.olive }
@@ -784,7 +785,7 @@ struct RecipeDetailView: View {
                 // the system chrome over it must be too: the status clock
                 // and the tab bar (A2-17: black clock on brown, 2.1:1).
                 // (The main page's say; the spread's left page has none.)
-                .toolbarColorScheme(reader ? nil : pagePalette.map { $0.tone == .deep ? .dark : .light }, for: .navigationBar, .tabBar)
+                .toolbarColorScheme(reader ? nil : pageScheme, for: .navigationBar, .tabBar)
                 .toolbar {
                     if !reader {
                         ToolbarItem(placement: .primaryAction) {

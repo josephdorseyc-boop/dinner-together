@@ -233,6 +233,7 @@ struct PageStyleSheet: View {
     @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.colorScheme) private var colorScheme
     @State private var problem: String?
 
     init(recipeID: UUID) { self.recipeID = recipeID }
@@ -318,6 +319,7 @@ struct PageStyleSheet: View {
                     if let palette = option.palette {
                         shape.fill(palette.swatchGradient)
                     } else {
+                        // Cream whatever the phone's appearance, as the page is.
                         shape.fill(Theme.recipeBackground)
                     }
                     if let symbol = option.symbol {
@@ -335,6 +337,9 @@ struct PageStyleSheet: View {
                     }
                 }
                 .frame(height: 72)
+                // Classic cream's swatch, check and disc are drawn light, as
+                // its page is, in Dark Mode too.
+                .environment(\.colorScheme, option.palette == nil ? .light : colorScheme)
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .strokeBorder(selected ? Theme.ink : Theme.line, lineWidth: selected ? 2 : 1))
                 Text(option.name).font(.footnote.weight(selected ? .semibold : .regular))

@@ -38,8 +38,10 @@ struct ContentView: View {
     private var preferredPresentationScheme: ColorScheme? {
         if destination == .recipes,
            let id = recipePath.last,
-           let recipe = library.recipe(id: id),
-           let palette = RecipePhotos.palette(for: recipe, from: library) {
+           let recipe = library.recipe(id: id) {
+            // No palette is the classic cream page: cream, so light, in Dark
+            // Mode too (Joe, build 19).
+            guard let palette = RecipePhotos.palette(for: recipe, from: library) else { return .light }
             return palette.tone == .deep ? .dark : .light
         }
         return nil
