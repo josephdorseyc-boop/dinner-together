@@ -339,8 +339,14 @@ class DinnerTogetherUITestCase: XCTestCase {
     func comfortZone(excluding f: CGRect) -> (top: CGFloat, bottom: CGFloat) {
         let screen = screenFrame
         // The tab bar only matters when it is actually on top (not under a sheet).
+        // On the Duo the system puts the tabs in its side rail, not along the
+        // bottom (run 38778101724: Choose from Recipes at y 606 of 669 judged
+        // under a bottom bar that isn't there), so only a bar along the
+        // bottom reserves the band.
         let tabBar = app.tabBars.firstMatch
-        var bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
+        let alongBottom = tabBar.exists && tabBar.isHittable
+            && tabBar.frame.width > screen.width * 0.5 && tabBar.frame.minY > screen.midY
+        var bottomBand: CGFloat = alongBottom ? 130 : 40
         // A pinned bottom bar covers more than that at large type (AX3: the
         // 120 pt cook button plus its caption; run 38335694569 tapped a step
         // that sat under it). Measure the bar instead of assuming it.
