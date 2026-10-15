@@ -45,7 +45,8 @@ struct RecipeSpreadView: View {
                     RecipeDetailView(recipeID: recipeID, onChoose: onChoose,
                                      bookPage: mode != .single,
                                      pageWidth: mode == .spread ? half : g.size.width,
-                                     inBackground: sideInFront)
+                                     inBackground: sideInFront,
+                                     roleLabel: side != nil ? "MAIN DISH" : nil)
                         .opacity(sideInFront ? 0 : 1)
                         .allowsHitTesting(!sideInFront)
                         .accessibilityHidden(sideInFront)
@@ -53,7 +54,7 @@ struct RecipeSpreadView: View {
                     // each keeps its own tab and scroll (A2-59).
                     if let side {
                         RecipeDetailView(recipeID: side, onChoose: onChoose, role: .reader, pairMain: recipeID,
-                                         bookPage: true, pageWidth: g.size.width)
+                                         bookPage: true, pageWidth: g.size.width, roleLabel: "SIDE DISH")
                             .id(side)
                             .opacity(sideInFront ? 1 : 0)
                             .allowsHitTesting(sideInFront)
@@ -87,9 +88,14 @@ struct RecipeSpreadView: View {
     private func bookSwitch(side: UUID?) -> some View {
         HStack(spacing: 16) {
             if side != nil {
-                switchTab("Main", selected: !showingSide, id: "book-switch-main") { showingSide = false }
-                switchTab("Side dish", selected: showingSide, id: "book-switch-side") { showingSide = true }
-                Spacer(minLength: 8)
+                Spacer(minLength: 0)
+                HStack(spacing: 0) {
+                    switchTab("Main", selected: !showingSide, id: "book-switch-main") { showingSide = false }
+                    switchTab("Side", selected: showingSide, id: "book-switch-side") { showingSide = true }
+                }
+                .padding(3)
+                .background(Capsule().fill(Theme.line.opacity(0.6)))
+                Spacer(minLength: 0)
                 Menu {
                     Button { choosingSecond = true } label: { Label("Change side dish", systemImage: "arrow.left.arrow.right") }
                     Button { leftPage = .cover; showingSide = false } label: { Label("Close side dish", systemImage: "xmark") }
@@ -113,17 +119,18 @@ struct RecipeSpreadView: View {
         .padding(.horizontal, 18).padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .background(Theme.cream)
-        .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
     }
 
+    /// One half of the Main / Side capsule (approved mockup 04): olive with
+    /// cream text when chosen, quiet otherwise.
     private func switchTab(_ title: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(selected ? .semibold : .regular))
-                .foregroundStyle(selected ? Theme.ink : Theme.muted)
-                .padding(.vertical, 10).frame(minHeight: 44)
-                .overlay(alignment: .bottom) { Rectangle().fill(selected ? Theme.olive : .clear).frame(height: 2) }
-                .contentShape(Rectangle())
+                .foregroundStyle(selected ? Theme.cream : Theme.ink)
+                .padding(.horizontal, 22).frame(minHeight: 44)
+                .background(Capsule().fill(selected ? Theme.olive : .clear))
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])

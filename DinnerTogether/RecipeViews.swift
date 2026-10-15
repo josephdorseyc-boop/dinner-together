@@ -689,6 +689,9 @@ struct RecipeDetailView: View {
     /// Behind the side dish on the Duo's single page: its bar buttons go
     /// away so ••• and the star never act on a recipe out of sight.
     var inBackground = false
+    /// "MAIN DISH" / "SIDE DISH" above the title when two recipes share the
+    /// Duo's page (approved mockup 04).
+    var roleLabel: String? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -857,6 +860,11 @@ struct RecipeDetailView: View {
                     recipe.yield.map { "Serves \($0)" }].compactMap { $0 }.joined(separator: " • ")
         let photo = RecipePhotos.load(recipe, from: library)?.image
         let title = VStack(alignment: .leading, spacing: 6) {
+            if let roleLabel {
+                Text(roleLabel)
+                    .font(.caption.weight(.semibold)).tracking(1.6)
+                    .foregroundStyle(Theme.tomato)
+            }
             Text(recipe.title)
                 .font(.system(narrow ? .title3 : .title2, design: .serif).weight(.semibold))
                 .foregroundStyle(Theme.ink)
