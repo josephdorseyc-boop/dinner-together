@@ -173,6 +173,7 @@ struct DayPlanSheet: View {
     var changeTodayDishes: ((String) -> Void)? = nil
     /// Add a new recipe from the day itself (Joe, build 20).
     @State private var adding = false
+    @State private var query = ""
 
     private var current: PlannedDinner {
         day.isToday ? .menu(store.session.menuID) : weekPlan.dinner(on: day.date) { PlannedDinners.exists($0, library: library) }
@@ -189,10 +190,14 @@ struct DayPlanSheet: View {
         NavigationStack {
             List {
                 Section {
+                    // A2-63's copy: first is the main, up to four, saved as chosen.
                     Text(day.isToday
-                         ? "Check tonight’s dinner — up to four recipes, timed to be ready together. Your week plan fills the other days."
-                         : "Check this day’s dinner — up to four recipes, ready together. When the day comes it becomes tonight’s, unless you’ve already chosen or started cooking.")
+                         ? "Choose up to 4 dishes for tonight. The first is your main; they’re timed to be ready together."
+                         : "Choose up to 4 dishes for this day. The first is your main. When the day comes it becomes tonight’s, unless you’ve already chosen or started cooking.")
                         .font(.subheadline).foregroundStyle(Theme.muted)
+                    Text(checked.isEmpty ? "Changes save as you choose." : "\(checked.count) of \(WholeMeal.maxRecipes) dishes chosen · changes save as you choose.")
+                        .font(.caption).foregroundStyle(Theme.muted)
+                        .accessibilityIdentifier("day-plan-count")
                     if let problem = weekPlan.saveError {
                         Text(problem).font(.subheadline).foregroundStyle(Theme.warning)
                             .accessibilityIdentifier("day-plan-error")
@@ -209,7 +214,7 @@ struct DayPlanSheet: View {
                             .font(.subheadline).foregroundStyle(Theme.muted)
                             .accessibilityIdentifier("day-plan-no-recipes")
                     }
-                    ForEach(library.recipesFavoritesFirst) { recipe in
+                    ForEach(library.recipesFavoritesFirst.filter { $0.matches(query) }) { recipe in
                             let blocked = day.isToday && recipe.needsTimingReview
                             let position = checked.firstIndex(of: recipe.id)
                             let full = position == nil && checked.count >= WholeMeal.maxRecipes
@@ -236,16 +241,20 @@ struct DayPlanSheet: View {
             }
             .scrollContentBackground(.hidden)
             .background(Theme.cream)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .automatic), prompt: "Title or ingredient")
             .accessibilityIdentifier("day-plan-sheet")
             .navigationTitle(day.isToday ? "Tonight" : day.date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("day-plan-done") } }
             .sheet(isPresented: $adding) {
                 AddRecipeSheet { id in
-                    // A future day plans it now; tonight needs its timing
-                    // checked first, so it waits in the list, marked so.
-                    guard !day.isToday, let recipe = library.recipe(id: id) else { return }
-                    _ = weekPlan.set(.menu(recipe.menuID), on: day.date)
+                    // A future day plans it now, alongside the dishes already
+                    // checked (A2-63: never in their place); tonight needs
+                    // its timing checked first, so it waits in the list.
+                    guard !day.isToday, library.recipe(id: id) != nil else { return }
+                    var ids = checked
+                    if !ids.contains(id), ids.count < WholeMeal.maxRecipes { ids.append(id) }
+                    if let menuID = WholeMeal.menuID(ids) { _ = weekPlan.set(.menu(menuID), on: day.date) }
                 }
                 .uiTestTypeSize()
             }
@@ -286,7 +295,7 @@ struct DayPlanSheet: View {
                 DinnerPicture(dinner: .menu(recipe.menuID), size: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(recipe.title).font(.headline).foregroundStyle(Theme.ink)
-                    Text(position == 0 && checked.count > 1 ? "Main dish · \(subtitle)" : subtitle)
+                    Text(position == 0 ? "Main dish · \(subtitle)" : subtitle)
                         .font(.caption).foregroundStyle(disabled ? Theme.warning : Theme.muted)
                 }
                 Spacer(minLength: 0)
@@ -378,7 +387,7 @@ struct DishThumbnail: View {
     let size: CGFloat
 
     var body: some View {
-        if let recipe = library.recipe(menuID: menuID), let photo = RecipePhotos.hero(recipe, from: library) {
+        if let recipe = library.recipe(forStep: step.id, in: menuID), let photo = RecipePhotos.hero(recipe, from: library) {
             RecipeCoverThumbnail(image: photo.image, size: size)
         }
     }

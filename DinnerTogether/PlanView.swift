@@ -148,7 +148,8 @@ struct PlanView: View {
             case .addDish:
                 RecipePickerSheet(title: "Add a dish", header: "Ready together with the rest of dinner — a side, a sauce, dessert.",
                                   emptyText: "Add another recipe to cook alongside.",
-                                  excluding: tonightDishIDs, current: nil) { id in
+                                  excluding: tonightDishIDs, current: nil, allowsNewRecipe: true,
+                                  blocked: { $0.needsTimingReview ? "Check its timing first, on the recipe’s page" : nil }) { id in
                     if let next = WholeMeal.adding(id, to: store.session.menuID) { changeDishes(to: next) }
                 }
                 .uiTestTypeSize()
@@ -302,9 +303,11 @@ struct PlanView: View {
                 Label("A dish was deleted; choose the dinner again.", systemImage: "exclamationmark.triangle")
                     .font(.subheadline).foregroundStyle(Theme.warning)
             }
-            if tonightDishIDs.count < WholeMeal.maxRecipes && library.recipes.count > tonightDishIDs.count {
+            // Below four dishes the way in is always here (A2-63): the picker
+            // offers a new recipe when the cookbook has nothing else.
+            if tonightDishIDs.count < WholeMeal.maxRecipes {
                 Button { sheet = .addDish } label: {
-                    Label(dishes.isEmpty ? "Add a dish to cook with it" : "Add another dish", systemImage: "plus")
+                    Label("Add a dish", systemImage: "plus")
                         .font(.subheadline.weight(.semibold))
                 }
                 .buttonStyle(QuietButtonStyle())

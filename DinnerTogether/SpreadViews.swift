@@ -289,11 +289,16 @@ struct RecipePickerSheet: View {
     var emptyText = "Add another recipe to read one alongside."
     var excluding: [UUID] = []
     var current: UUID?
+    /// "+ Add a new recipe" at the foot: imported, then chosen (A2-63).
+    var allowsNewRecipe = false
+    /// A reason a recipe can't be chosen yet, shown under its name.
+    var blocked: (Recipe) -> String? = { _ in nil }
     var choose: (UUID) -> Void
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
     @State private var query = ""
+    @State private var adding = false
     private var shown: [Recipe] { library.recipesFavoritesFirst.filter { !excluding.contains($0.id) && $0.matches(query) } }
 
     var body: some View {
@@ -308,21 +313,37 @@ struct RecipePickerSheet: View {
                             .listRowBackground(Theme.paper)
                     }
                     ForEach(shown) { recipe in
+                        let reason = blocked(recipe)
                         Button {
                             choose(recipe.id)
                             dismiss()
                         } label: {
-                            HStack(spacing: 12) {
-                                RecipeRow(recipe: recipe, selected: store.isTonightsDish(recipe.id))
-                                if recipe.id == current {
-                                    Image(systemName: "checkmark").foregroundStyle(Theme.tomato)
-                                        .accessibilityLabel("Reading now")
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 12) {
+                                    RecipeRow(recipe: recipe, selected: store.isTonightsDish(recipe.id))
+                                    if recipe.id == current {
+                                        Image(systemName: "checkmark").foregroundStyle(Theme.tomato)
+                                            .accessibilityLabel("Reading now")
+                                    }
+                                }
+                                if let reason {
+                                    Text(reason).font(.caption).foregroundStyle(Theme.warning)
                                 }
                             }
                         }
                         .buttonStyle(.plain)
+                        .disabled(reason != nil)
                         .listRowBackground(Theme.paper)
                         .accessibilityIdentifier("pick-recipe")
+                    }
+                    if allowsNewRecipe {
+                        Button { adding = true } label: {
+                            Label("Add a new recipe", systemImage: "plus.circle.fill")
+                                .font(.headline).foregroundStyle(Theme.tomato)
+                                .frame(minHeight: 44)
+                        }
+                        .listRowBackground(Theme.paper)
+                        .accessibilityIdentifier("pick-add-recipe")
                     }
                 } header: {
                     Text(header)
@@ -336,6 +357,14 @@ struct RecipePickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+            }
+            .sheet(isPresented: $adding) {
+                // A new recipe's timing is checked on its page first (the
+                // day sheet's rule); it waits in this list, marked so.
+                AddRecipeSheet { id in
+                    if let recipe = library.recipe(id: id), blocked(recipe) == nil { choose(id); dismiss() }
+                }
+                .uiTestTypeSize()
             }
         }
         .presentationDetents([.medium, .large])

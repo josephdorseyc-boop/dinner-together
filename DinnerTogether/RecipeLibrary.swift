@@ -85,6 +85,15 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     func recipe(id: UUID) -> Recipe? { recipes.first { $0.id == id } }
 
+    /// The dish a step belongs to, within tonight's dinner (a whole meal's
+    /// steps come from several recipes; the main's photo would be wrong on
+    /// the potatoes' rows, build 21). The main when the step isn't found.
+    func recipe(forStep stepID: String, in menuID: String) -> Recipe? {
+        guard let ids = WholeMeal.recipeIDs(menuID) else { return nil }
+        let recipes = ids.compactMap { recipe(id: $0) }
+        return recipes.first { $0.steps.contains { $0.id == stepID } } ?? recipes.first
+    }
+
     /// The recipe a menu id names — for a paired dinner, its main recipe
     /// (Tonight's cover, title link and plate photo follow the main).
     func recipe(menuID: String) -> Recipe? {
