@@ -34,7 +34,11 @@ on:
         type: boolean
         default: false
       window:
-        description: "Also A2-61's wide-native-window experiment on the Duo (one test; never decides the run)"
+        description: "Also the wide-window check on the Duo, hinge opened flat (one test; never decides the run)"
+        type: boolean
+        default: false
+      window_only:
+        description: "Only the wide-window check (nothing else runs)"
         type: boolean
         default: false
 
@@ -53,16 +57,20 @@ jobs:
       fail-fast: false
       matrix:
         # duo_only: the three Duo parts alone, when only the Duo is in question.
-        # window: A2-61's experiment first (it gets the first free machine):
-        # can the Duo simulator give the app a wide window at all? Apple says
-        # the inner display ignores orientation masks; this records the facts.
-        include: ${{ fromJSON(format('[{0}{1}]', inputs.window && '{"pass":"duo","part":"ui-duo-window"},' || '', inputs.duo_only && '{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}' || '{"pass":"ios27","part":"core"},{"pass":"ios27","part":"ui-iphone-1-of-2"},{"pass":"ios27","part":"ui-iphone-2-of-2"},{"pass":"ios27","part":"ui-ipad"},{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}')) }}
+        # window: the wide-window check first (it gets the first free
+        # machine). The Duo boots closed, on its cover display (466 × 678);
+        # rotating does nothing there. "hinge": "flat" opens it with the
+        # vendored duo-hinge (A1, issue #15), so the app is on the inner
+        # display, natively wide. The probe records what the app was given.
+        include: ${{ fromJSON(format('[{0}{1}{2}]', (inputs.window || inputs.window_only) && '{"pass":"duo","part":"ui-duo-window","hinge":"flat"}' || '', inputs.window && !inputs.window_only && ',' || '', !inputs.window_only && (inputs.duo_only && '{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}' || '{"pass":"ios27","part":"core"},{"pass":"ios27","part":"ui-iphone-1-of-2"},{"pass":"ios27","part":"ui-iphone-2-of-2"},{"pass":"ios27","part":"ui-ipad"},{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}') || '')) }}
     # The experiment is evidence, not a verdict: its failure never fails the
     # run, so it cannot stand in for (or block) a commit's duo-validation.
     continue-on-error: ${{ matrix.part == 'ui-duo-window' }}
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
       DT_PART: ${{ matrix.part }}
+      # closed / half / flat or an angle; empty leaves the Duo as it boots.
+      DT_DUO_HINGE: ${{ matrix.hinge || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Select Xcode

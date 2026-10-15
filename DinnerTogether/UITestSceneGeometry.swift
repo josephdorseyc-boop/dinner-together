@@ -6,10 +6,14 @@ import UIKit
 /// The simulator may reject this request: tests must verify actual geometry.
 struct UITestSceneGeometry: UIViewRepresentable {
     static let argument = "-dt-request-landscape-scene"
+    /// Records the geometry without asking for anything (October 15: the
+    /// Duo's inner display comes from opening the hinge, not from a request).
+    static let probeArgument = "-dt-scene-geometry-probe"
 
     @ViewBuilder
     static var launchProbe: some View {
-        if ProcessInfo.processInfo.arguments.contains(argument) {
+        let arguments = ProcessInfo.processInfo.arguments
+        if arguments.contains(argument) || arguments.contains(probeArgument) {
             UITestSceneGeometry()
         }
     }
@@ -54,6 +58,11 @@ struct UITestSceneGeometry: UIViewRepresentable {
             guard let window, let scene = window.windowScene,
                   scene.activationState == .foregroundActive else { return }
             guard requestedScene !== scene else { recordGeometry(); return }
+            guard ProcessInfo.processInfo.arguments.contains(UITestSceneGeometry.argument) else {
+                phase = "observed"
+                recordGeometry()
+                return
+            }
             requestedScene = scene
             phase = "requested"
             requestError = "none"

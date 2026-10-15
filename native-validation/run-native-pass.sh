@@ -258,6 +258,19 @@ note "## XCUITest (required: interactive flows photographed)"
 # variable). Screenshots are keep-always XCTAttachments; they are exported
 # from the result bundle so they publish to the ci-results branch next to
 # the static screenshots.
+duo_hinge() { # udid state — logs to the warm-up log; never fails the pass
+  local tool="$ROOT/build/duo-hinge"
+  if [ ! -x "$tool" ]; then
+    mkdir -p "$ROOT/build"
+    clang -fobjc-arc -framework Foundation -o "$tool" "$ROOT/native-validation/duo-hinge/duo-hinge.m" 2>&1 \
+      || { echo "duo-hinge: build failed"; return 0; }
+  fi
+  echo "== duo-hinge $2 $(date -u +%H:%M:%S)"
+  "$tool" -d "$1" "$2" 2>&1 || echo "duo-hinge: exit $?"
+  # The move between displays is animated.
+  sleep 4
+}
+
 run_ui_tests() { # label udid only_testing expected
   local label="$1" udid="$2" only_testing="$3" expected="$4"
   local bundle="$RESULTS/$label-ui.xcresult"
@@ -277,9 +290,22 @@ run_ui_tests() { # label udid only_testing expected
     echo "== warm-up $label ($udid) $(date -u +%H:%M:%S)"
     xcrun simctl boot "$udid" 2>&1 || true
     xcrun simctl bootstatus "$udid" -b 2>&1 || true
+    # The iPhone Duo boots closed, on its cover display (466 × 678). Opening
+    # the hinge moves apps to the inner display (A1, issue #15: the vendored
+    # duo-hinge sends Device Hub's own hinge event). Evidence, never a verdict.
+    if [ -n "${DT_DUO_HINGE:-}" ]; then
+      duo_hinge "$udid" "$DT_DUO_HINGE"
+    fi
     xcrun simctl install "$udid" "$APP_PATH" 2>&1 || true
     xcrun simctl launch "$udid" com.example.dinnertogether 2>&1 || true
     sleep "${DT_UI_WARMUP_SECONDS:-8}"
+    if [ -n "${DT_DUO_HINGE:-}" ]; then
+      # Both screens with the app open, straight from the simulator (the one
+      # that's off captures black): proof of which display the app is on.
+      mkdir -p "$RESULTS/ui-screenshots/$label/direct"
+      xcrun simctl io "$udid" screenshot --display=3 "$RESULTS/ui-screenshots/$label/direct/hinge-$DT_DUO_HINGE-inner-screen.png" 2>&1 || true
+      xcrun simctl io "$udid" screenshot --display=1 "$RESULTS/ui-screenshots/$label/direct/hinge-$DT_DUO_HINGE-cover-screen.png" 2>&1 || true
+    fi
     xcrun simctl terminate "$udid" com.example.dinnertogether 2>&1 || true
     # Let SpringBoard finish with the app before XCTest reinstalls it (run
     # 38588198150, test01: "is installing or uninstalling, and cannot be
@@ -298,7 +324,8 @@ run_ui_tests() { # label udid only_testing expected
   # result bundle cannot be read still shows its flows (Duo run 38723119849).
   local direct="$RESULTS/ui-screenshots/$label/direct"
   mkdir -p "$direct"
-  TEST_RUNNER_DT_SHOT_DIR="$direct" python3 "$ROOT/native-validation/run-with-deadline.py" \
+  TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
+    python3 "$ROOT/native-validation/run-with-deadline.py" \
     --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
     --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
     --done-idle-seconds 120 -- \

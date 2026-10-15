@@ -169,7 +169,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// Keep-always screenshot, named by flow and step. The harness exports
     /// these from the .xcresult into results/ui-screenshots/<device>/.
     func photograph(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
-        let shot = app.screenshot()
+        let shot = Self.duoOpen ? Self.innerScreenShot() : app.screenshot()
         let attachment = XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
@@ -181,6 +181,20 @@ class DinnerTogetherUITestCase: XCTestCase {
             let safe = name.replacingOccurrences(of: "/", with: "-")
             try? shot.pngRepresentation.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
         }
+    }
+
+    /// The Duo with its hinge opened by the harness (DT_DUO_HINGE half/flat
+    /// or an angle above 0): the app is on the inner display, and the
+    /// default screen in XCTest is the cover, which is off and black.
+    static var duoOpen: Bool {
+        let hinge = ProcessInfo.processInfo.environment["DT_DUO_HINGE"] ?? ""
+        return !hinge.isEmpty && hinge != "closed" && hinge != "0" && XCUIScreen.screens.count > 1
+    }
+
+    /// The largest screen is the Duo's inner display.
+    static func innerScreenShot() -> XCUIScreenshot {
+        XCUIScreen.screens.map { $0.screenshot() }
+            .max { $0.image.size.width * $0.image.size.height < $1.image.size.width * $1.image.size.height }!
     }
 
     /// The accessibility hierarchy as text, kept always — readable from the
@@ -1927,7 +1941,9 @@ extension DinnerTogetherUITestCase {
     /// is the single page, unchanged, which this flow records too.
     func flowCookbookSpread(_ capture: RecipeCapture = .standard, requireWideNativeWindow: Bool = false) {
         launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture,
-                      extra: requireWideNativeWindow ? ["-dt-request-landscape-scene"] : [], photo: "pastel")
+                      // Watch only: on the Duo the wide window comes from
+                      // opening the hinge (DT_DUO_HINGE), never a request.
+                      extra: requireWideNativeWindow ? ["-dt-scene-geometry-probe"] : [], photo: "pastel")
         // The window as this device gives it (the Duo's shape was unknown
         // until its first run: 466 × 678 in run 38723119849).
         photograph("r26-0-first-screen" + capture.suffix)
