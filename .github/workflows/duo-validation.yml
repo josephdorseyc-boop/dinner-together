@@ -29,6 +29,10 @@ on:
         required: true
         default: "27.1"
         type: string
+      duo_only:
+        description: "Only the Duo simulator's parts (the ios27 pass skipped)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -44,14 +48,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { pass: ios27, part: core }
-          - { pass: ios27, part: ui-iphone-1-of-2 }
-          - { pass: ios27, part: ui-iphone-2-of-2 }
-          - { pass: ios27, part: ui-ipad }
-          - { pass: duo, part: ui-iphone-1-of-3 }
-          - { pass: duo, part: ui-iphone-2-of-3 }
-          - { pass: duo, part: ui-iphone-3-of-3 }
+        # duo_only: the three Duo parts alone, when only the Duo is in question.
+        include: ${{ fromJSON(inputs.duo_only && '[{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}]' || '[{"pass":"ios27","part":"core"},{"pass":"ios27","part":"ui-iphone-1-of-2"},{"pass":"ios27","part":"ui-iphone-2-of-2"},{"pass":"ios27","part":"ui-ipad"},{"pass":"duo","part":"ui-iphone-1-of-3"},{"pass":"duo","part":"ui-iphone-2-of-3"},{"pass":"duo","part":"ui-iphone-3-of-3"}]') }}
     env:
       RESULTS: ${{ github.workspace }}/native-validation/results
       DT_PART: ${{ matrix.part }}

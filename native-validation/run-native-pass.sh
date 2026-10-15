@@ -286,8 +286,15 @@ run_ui_tests() { # label udid only_testing expected
   # minutes instead of running the job into its timeout (run 12: 45 min).
   # XCTest allowances did not stop the 95-minute silent runner hang in
   # Duo run 38468245512. Bound the process independently and retain logs.
-  python3 "$ROOT/native-validation/run-with-deadline.py" \
-    --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
+  # Screenshots also go straight to the results folder from the test runner
+  # (TEST_RUNNER_ variables reach it without the prefix), so a run whose
+  # result bundle cannot be read still shows its flows (Duo run 38723119849).
+  local direct="$RESULTS/ui-screenshots/$label/direct"
+  mkdir -p "$direct"
+  TEST_RUNNER_DT_SHOT_DIR="$direct" python3 "$ROOT/native-validation/run-with-deadline.py" \
+    --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
+    --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
+    --done-idle-seconds 120 -- \
     xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
     "${mainonly[@]}" -resultBundlePath "$bundle" \
     -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
@@ -300,6 +307,10 @@ run_ui_tests() { # label udid only_testing expected
   local expectedfail=0
   if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0), j.get("expectedFailures", 0))' "$summary" 2>/dev/null); then
     set -- $counts; executed=$1; passed=$2; failed=$3; skipped=$4; expectedfail=$5; source="xcresult"
+  elif counts=$(grep -oE "Executed [0-9]+ tests?, with [0-9]+ failures?" "$log" | tail -1 | grep -oE "[0-9]+" | tr '\n' ' ') && [ -n "$counts" ]; then
+    # No readable bundle: the suite's own last line still says how it went.
+    # Evidence only — a run that had to be stopped stays a failure below.
+    set -- $counts; executed=$1; failed=$2; passed=$((executed - failed)); skipped=0; source="log (result bundle unreadable)"
   else
     executed=0; passed=0; failed=0; skipped=0; source="unavailable"
   fi

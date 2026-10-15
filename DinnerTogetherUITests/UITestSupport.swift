@@ -169,20 +169,32 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// Keep-always screenshot, named by flow and step. The harness exports
     /// these from the .xcresult into results/ui-screenshots/<device>/.
     func photograph(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
+        let shot = app.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        // Also straight to the results folder when the harness names one
+        // (DT_SHOT_DIR): the Duo run's result bundle could not be read, and
+        // with it went every capture (run 38723119849).
+        if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
+            let safe = name.replacingOccurrences(of: "/", with: "-")
+            try? shot.pngRepresentation.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
+        }
     }
 
     /// The accessibility hierarchy as text, kept always — readable from the
     /// results branch when a tap "did nothing" and XCTest's own dump is not
     /// exported (iPad, runs 20–21).
     func attachHierarchy(_ name: String) {
-        let attachment = XCTAttachment(string: app.debugDescription)
+        let text = app.debugDescription
+        let attachment = XCTAttachment(string: text)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
+        if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
+            try? text.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(name).txt"), atomically: true, encoding: .utf8)
+        }
     }
 
     func waitForExistence(_ element: XCUIElement, timeout: TimeInterval = 10, _ message: String,
@@ -1868,7 +1880,13 @@ extension DinnerTogetherUITestCase {
     /// is the single page, unchanged, which this flow records too.
     func flowCookbookSpread(_ capture: RecipeCapture = .standard) {
         launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture, photo: "pastel")
+        // The window as this device gives it (the Duo's shape was unknown
+        // until its first run: 466 × 678 in run 38723119849).
+        photograph("r26-0-first-screen" + capture.suffix)
+        attachHierarchy("r26-0-first-screen-hierarchy")
         openRecipe(RecipeFixtureText.frozenBerryTitle)
+        photograph("r26-0-recipe-page" + capture.suffix)
+        attachHierarchy("r26-0-recipe-page-hierarchy")
         let left = app.descendants(matching: .any)["spread-left"].firstMatch
         let frame = app.frame
         let phone = UIDevice.current.userInterfaceIdiom == .phone
@@ -1981,19 +1999,6 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(all.exists && all.frame.minY < berry.frame.minY, "the rest under All recipes")
         photograph("r27a-favorite-first" + capture.suffix)
 
-        // Search by an ingredient: only the recipe with lemon in it.
-        let search = app.searchFields.firstMatch
-        if search.waitForExistence(timeout: 3) {
-            search.tap()
-            search.typeText("olive")
-            XCTAssertTrue(first.waitForExistence(timeout: 5), "the bean spread (1 tablespoon olive oil) matches")
-            XCTAssertFalse(berry.exists, "the berry drink has no olive oil, and no 'olive' in its title")
-            photograph("r27a2-search-ingredient" + capture.suffix)
-            let cancel = app.buttons["Cancel"].firstMatch
-            if cancel.exists { cancel.tap() } else { search.buttons.firstMatch.tap() }
-            XCTAssertTrue(berry.waitForExistence(timeout: 5), "cleared: every recipe again")
-        }
-
         // The page shows the star, filled.
         scrollAndTap(first, "the starred recipe")
         let pageStar = app.buttons["recipe-favorite"]
@@ -2002,10 +2007,26 @@ extension DinnerTogetherUITestCase {
         let back = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Recipes' OR label == 'Back'")).firstMatch
         (back.exists ? back : app.navigationBars.buttons.element(boundBy: 0)).tap()
 
+        // Search by title or ingredient, from a fresh launch: an active search
+        // collapses iOS 27's tab bar, which the week part needs (run 38723119849).
+        func searchFromFreshLaunch() {
+            launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture)
+            openRecipesLibrary()
+            let bean = row(RecipeFixtureText.beanSpreadTitle), berry = row(RecipeFixtureText.frozenBerryTitle)
+            waitForExistence(berry, timeout: 5, "the berry drink in Your Recipes")
+            let search = app.searchFields.firstMatch
+            guard search.waitForExistence(timeout: 3) else { return XCTFail("Your Recipes offers search") }
+            search.tap()
+            search.typeText("olive")
+            XCTAssertTrue(bean.waitForExistence(timeout: 5), "the bean spread (1 tablespoon olive oil) matches")
+            XCTAssertFalse(berry.exists, "the berry drink has no olive oil, and no 'olive' in its title")
+            photograph("r27d-search-ingredient" + capture.suffix)
+        }
+
         // A day two days out: favorites first, and + Add a new recipe.
         // (iPhone: the Tonight tab; iPad's sidebar row did not switch from a
         // pushed page in run 38670042839, so iPad stops here for now.)
-        guard app.tabBars.buttons["Tonight"].firstMatch.exists else { return }
+        guard app.tabBars.buttons["Tonight"].firstMatch.exists else { return searchFromFreshLaunch() }
         goToTonight()
         let chip = app.descendants(matching: .any)["week-day-2"].firstMatch
         scrollTo(chip)
@@ -2023,6 +2044,7 @@ extension DinnerTogetherUITestCase {
         add.tap()
         waitForExistence(app.buttons["import-recipe"], timeout: 5, "the Add recipe sheet, from the day")
         photograph("r27c-add-from-day" + capture.suffix)
+        searchFromFreshLaunch()
     }
 
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
