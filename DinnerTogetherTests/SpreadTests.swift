@@ -165,7 +165,9 @@ final class SpreadTests: XCTestCase {
             let r = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
             XCTAssertTrue(library.add(r)); return r
         }
-        let chicken = try add("Roast chicken\nDirections\n1. Season the chicken.\n2. Roast for 60 minutes.\n3. Rest for 10 minutes.")
+        // ("Roast chicken" alone reads as a direction to the text importer,
+        // which is its own question; the dinner is what's under test.)
+        let chicken = try add("Sunday herb chicken\nDirections\n1. Season the chicken.\n2. Roast for 60 minutes.\n3. Rest for 10 minutes.")
         let potatoes = try add("Mashed potatoes\nDirections\n1. Boil the potatoes for 20 minutes.\n2. Mash with butter.")
         let beans = try add("Green beans\nDirections\n1. Steam the beans for 6 minutes.")
         let gravy = try add("Pan gravy\nDirections\n1. Simmer the drippings for 8 minutes.")
@@ -173,7 +175,7 @@ final class SpreadTests: XCTestCase {
         let id = try XCTUnwrap(WholeMeal.menuID(recipes.map(\.id)))
 
         let menu = try XCTUnwrap(library.menu(id: id))
-        XCTAssertEqual(menu.title, "Roast chicken + Mashed potatoes + Green beans + Pan gravy")
+        XCTAssertEqual(menu.title, "Sunday herb chicken + Mashed potatoes + Green beans + Pan gravy")
         XCTAssertTrue(menu.subtitle.hasPrefix("Four recipes, ready together"), menu.subtitle)
         XCTAssertEqual(Set(menu.steps.map(\.id)), Set(recipes.flatMap { $0.steps.map(\.id) }), "every step of every recipe, once")
         XCTAssertEqual(library.recipe(menuID: id)?.id, chicken.id, "Tonight follows the main")
