@@ -86,15 +86,22 @@ struct RecipesView: View {
                 .dtCard()
                 .libraryRow()
             } else {
-                ForEach(library.recipes) { recipe in
+                ForEach(library.recipesFavoritesFirst) { recipe in
                     Button { path.append(recipe.id) } label: {
                         RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete.")
+                    .accessibilityHint("Opens the recipe. Swipe left for Edit and Delete, right to star it.")
                     .libraryRow()
                     // Plain buttons, not role: .destructive — that role
                     // animates the row away before the cook has confirmed.
+                    .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                        Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
+                            Label(recipe.isFavorite ? "Unstar" : "Star", systemImage: recipe.isFavorite ? "star.slash" : "star.fill")
+                        }
+                        .tint(Theme.tomato)
+                        .accessibilityIdentifier("swipe-favorite")
+                    }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button { requestDelete(recipe) } label: { Label("Delete", systemImage: "trash") }
                             .tint(.red)
@@ -182,7 +189,13 @@ struct RecipeRow: View {
         HStack(spacing: 14) {
             RecipeThumbnail(recipe: recipe, size: 58)
             VStack(alignment: .leading, spacing: 4) {
-                Text(recipe.title).font(.headline).lineLimit(2).multilineTextAlignment(.leading)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    if recipe.isFavorite {
+                        Image(systemName: "star.fill").font(.caption).foregroundStyle(Theme.tomato)
+                            .accessibilityLabel("Favorite")
+                    }
+                    Text(recipe.title).font(.headline).lineLimit(2).multilineTextAlignment(.leading)
+                }
                 if let byline = recipe.source.byline {
                     Text(byline).font(.caption).foregroundStyle(Theme.muted).lineLimit(1)
                 }
@@ -718,7 +731,20 @@ struct RecipeDetailView: View {
                 // and the tab bar (A2-17: black clock on brown, 2.1:1).
                 // (The main page's say; the spread's left page has none.)
                 .toolbarColorScheme(reader ? nil : pagePalette.map { $0.tone == .deep ? .dark : .light }, for: .navigationBar, .tabBar)
-                .toolbar { if !reader { moreMenu(recipe) } }
+                .toolbar {
+                    if !reader {
+                        ToolbarItem(placement: .primaryAction) {
+                            Button { library.setFavorite(id: recipe.id, !recipe.isFavorite) } label: {
+                                Image(systemName: recipe.isFavorite ? "star.fill" : "star")
+                            }
+                            .tint(recipe.isFavorite ? Theme.tomato : nil)
+                            .accessibilityLabel(recipe.isFavorite ? "Favorite. Remove star" : "Star this recipe")
+                            .accessibilityAddTraits(recipe.isFavorite ? .isSelected : [])
+                            .accessibilityIdentifier("recipe-favorite")
+                        }
+                        moreMenu(recipe)
+                    }
+                }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
                 .sheet(isPresented: $editingRecipeTime) {
                     RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()

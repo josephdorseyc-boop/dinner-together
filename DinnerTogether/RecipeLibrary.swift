@@ -95,6 +95,20 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     var isEmpty: Bool { recipes.isEmpty }
 
+    /// The cook's recipes with the starred ones first, each group in the
+    /// order they were added (Joe, build 20).
+    var recipesFavoritesFirst: [Recipe] {
+        recipes.filter(\.isFavorite) + recipes.filter { !$0.isFavorite }
+    }
+
+    /// Stars or unstars a recipe; saved like every change.
+    @discardableResult
+    func setFavorite(id: UUID, _ on: Bool) -> Bool {
+        guard var r = recipe(id: id) else { return false }
+        r.favorite = on ? true : nil
+        return update(r)
+    }
+
     // MARK: Changes (every one saves)
 
     /// Adds and saves. If the file can't be written, the add is rolled back

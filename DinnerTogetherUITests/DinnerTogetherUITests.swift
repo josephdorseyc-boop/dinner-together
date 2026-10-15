@@ -125,4 +125,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test45_tonightAfterPalePageAndGlass() { flowTonightAfterPalePageAndGlass() }
     /// r26 — the cookbook spread on a window open like a book (the Duo); the single page elsewhere.
     func test46_cookbookSpread() { flowCookbookSpread() }
+    /// r27 — favorites first, and a day's + Add a new recipe (Joe, build 20).
+    func test47_favoritesAndWeekAdd() { flowFavoritesAndWeekAdd() }
 }

@@ -154,6 +154,8 @@ struct DayPlanSheet: View {
     @Environment(\.dismiss) private var dismiss
     let day: PlanDay
     var chooseToday: (String) -> Void
+    /// Add a new recipe from the day itself (Joe, build 20).
+    @State private var adding = false
 
     private var current: PlannedDinner {
         day.isToday ? .menu(store.session.menuID) : weekPlan.dinner(on: day.date) { PlannedDinners.exists($0, library: library) }
@@ -177,23 +179,29 @@ struct DayPlanSheet: View {
                         row(.open, title: "Your pick", subtitle: "Leave this night open", identifier: "day-plan-open")
                     }
                 }
-                if library.recipes.isEmpty {
-                    Section("Your recipes") {
-                        Text("Add a recipe on the Recipes tab to plan it for a day.")
+                Section("Your recipes") {
+                    if library.recipes.isEmpty {
+                        Text("You haven’t added a recipe yet. Add one here and plan it for this day.")
                             .font(.subheadline).foregroundStyle(Theme.muted)
                             .accessibilityIdentifier("day-plan-no-recipes")
                     }
-                } else {
-                    Section("Your recipes") {
-                        ForEach(library.recipes) { recipe in
+                    ForEach(library.recipesFavoritesFirst) { recipe in
                             let blocked = day.isToday && recipe.needsTimingReview
                             row(.menu(recipe.menuID), title: recipe.title,
                                 subtitle: recipe.needsTimingReview
                                     ? (day.isToday ? "Check its timing first, on the recipe’s page" : "Check its timing before that day")
                                     : RecipeFormat.duration(recipe.plannedMinutes),
                                 identifier: "day-plan-recipe", disabled: blocked)
-                        }
                     }
+                    // + a recipe not in the cookbook yet: added, then planned
+                    // for this day (tonight once its timing is checked).
+                    Button { adding = true } label: {
+                        Label("Add a new recipe", systemImage: "plus.circle.fill")
+                            .font(.headline).foregroundStyle(Theme.tomato)
+                            .frame(minHeight: 44)
+                    }
+                    .listRowBackground(Theme.paper)
+                    .accessibilityIdentifier("day-plan-add-recipe")
                 }
                 Section("Holiday") {
                     let tg = DinnerCatalog.thanksgiving
@@ -206,6 +214,15 @@ struct DayPlanSheet: View {
             .navigationTitle(day.isToday ? "Tonight" : day.date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("day-plan-done") } }
+            .sheet(isPresented: $adding) {
+                AddRecipeSheet { id in
+                    // A future day plans it now; tonight needs its timing
+                    // checked first, so it waits in the list, marked so.
+                    guard !day.isToday, let recipe = library.recipe(id: id) else { return }
+                    _ = weekPlan.set(.menu(recipe.menuID), on: day.date)
+                }
+                .uiTestTypeSize()
+            }
         }
         .presentationDetents([.large])
     }

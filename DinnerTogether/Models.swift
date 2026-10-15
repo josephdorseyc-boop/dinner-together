@@ -63,6 +63,10 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// The cook's own photo of the finished plate (taken after cooking,
     /// Joe, October 14), in the same folder. Leads the hero when present.
     var platePhotoFilename: String?
+    /// Starred by the cook (Joe, build 20). Optional so recipes saved
+    /// before it existed still load; nil = not a favorite.
+    var favorite: Bool?
+    var isFavorite: Bool { favorite == true }
     var yield: String?
     /// The recipe's own total time, when it stated one.
     var totalMinutes: Int?

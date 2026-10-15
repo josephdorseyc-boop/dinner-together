@@ -1942,6 +1942,61 @@ extension DinnerTogetherUITestCase {
         photograph("r26f-tonight-two-recipes" + capture.suffix)
     }
 
+    /// r27 — favorites and the week's Add a new recipe (Joe, build 20): a
+    /// recipe starred with a swipe leads Your Recipes and the day sheet,
+    /// keeps its star on the page, and a day offers + Add a new recipe.
+    func flowFavoritesAndWeekAdd(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture)
+        openRecipesLibrary()
+        func row(_ title: String) -> XCUIElement {
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", title, "Favorite, " + title)).firstMatch
+        }
+        let bean = row(RecipeFixtureText.beanSpreadTitle)
+        scrollTo(bean)
+        let star = app.buttons["swipe-favorite"].firstMatch
+        for _ in 0..<2 where !star.exists {
+            bean.swipeRight()
+            _ = star.waitForExistence(timeout: 3)
+        }
+        waitForExistence(star, timeout: 2, "swipe right shows Star")
+        star.tap()
+        let first = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", RecipeFixtureText.beanSpreadTitle)).firstMatch
+        XCTAssertTrue(first.waitForExistence(timeout: 5))
+        let berry = row(RecipeFixtureText.frozenBerryTitle)
+        XCTAssertLessThan(first.frame.minY, berry.frame.minY, "the starred recipe leads Your Recipes")
+        photograph("r27a-favorite-first" + capture.suffix)
+
+        // The page shows the star, filled.
+        scrollAndTap(first, "the starred recipe")
+        let pageStar = app.buttons["recipe-favorite"]
+        waitForExistence(pageStar, timeout: 5, "the page's star")
+        XCTAssertTrue(pageStar.isSelected, "…filled for a favorite")
+        let back = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Recipes' OR label == 'Back'")).firstMatch
+        (back.exists ? back : app.navigationBars.buttons.element(boundBy: 0)).tap()
+
+        // A day two days out: favorites first, and + Add a new recipe.
+        // (iPhone: the Tonight tab; iPad's sidebar row did not switch from a
+        // pushed page in run 38670042839, so iPad stops here for now.)
+        guard app.tabBars.buttons["Tonight"].firstMatch.exists else { return }
+        goToTonight()
+        let chip = app.descendants(matching: .any)["week-day-2"].firstMatch
+        scrollTo(chip)
+        waitForStableFrame(chip)
+        chip.tap()
+        let sheet = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
+        waitForExistence(sheet, timeout: 5, "the day's sheet")
+        let firstRecipe = app.buttons.matching(identifier: "day-plan-recipe").firstMatch
+        waitForExistence(firstRecipe, timeout: 5, "the day's recipes")
+        XCTAssertTrue(firstRecipe.label.contains(RecipeFixtureText.beanSpreadTitle), "the favorite leads the day's recipes: \(firstRecipe.label)")
+        let add = app.buttons["day-plan-add-recipe"]
+        waitForExistence(add, timeout: 5, "the day offers + Add a new recipe")
+        if !add.isHittable { sheet.swipeUp() }
+        photograph("r27b-day-add-recipe" + capture.suffix)
+        add.tap()
+        waitForExistence(app.buttons["import-recipe"], timeout: 5, "the Add recipe sheet, from the day")
+        photograph("r27c-add-from-day" + capture.suffix)
+    }
+
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
     /// (A2-35): a photo band on Tonight's card, a strip on an ordinary
     /// start, a thumbnail on the timeline. At AX3 the row and plain cards

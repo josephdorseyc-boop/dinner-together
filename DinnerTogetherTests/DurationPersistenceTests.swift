@@ -240,6 +240,33 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertNil(library.recipe(id: recipe.id)?.notes, "a failed save changes nothing in memory")
     }
 
+    /// Joe, build 20: starred recipes come first, the star survives a
+    /// relaunch, and recipes saved before stars existed still load.
+    func testFavoritesStarFirstAndPersist() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        func add(_ title: String) throws -> Recipe {
+            let r = RecipeImporter.build(try RecipeImporter.parse(text: "\(title)\nDirections\n1. Cook for 5 minutes."), method: .text)
+            XCTAssertTrue(library.add(r)); return r
+        }
+        let a = try add("Alpha soup"), b = try add("Bravo salad"), c = try add("Charlie stew")
+        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [a.id, b.id, c.id], "no stars: the order they were added")
+        XCTAssertTrue(library.setFavorite(id: c.id, true))
+        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [c.id, a.id, b.id], "the starred one first")
+        let reopened = RecipeLibrary(directory: dir)
+        XCTAssertEqual(reopened.recipe(id: c.id)?.isFavorite, true, "the star survives a relaunch")
+        XCTAssertEqual(reopened.recipe(id: a.id)?.isFavorite, false)
+        XCTAssertTrue(library.setFavorite(id: c.id, false))
+        XCTAssertNil(library.recipe(id: c.id)?.favorite, "unstarring leaves no trace")
+
+        // A recipe saved before stars existed (no "favorite" key) decodes.
+        var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(a)) as! [String: Any]
+        json.removeValue(forKey: "favorite")
+        let old = try JSONDecoder().decode(Recipe.self, from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertFalse(old.isFavorite)
+        XCTAssertEqual(old.title, "Alpha soup")
+    }
+
     func testImportWarningsSurviveARelaunch() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
