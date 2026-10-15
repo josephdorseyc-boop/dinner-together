@@ -1,5 +1,5 @@
 # A2-60 — Duo Cooking spread proposal
-Issue23 request from A3, October15,07:39 Denver. Status: PROPOSAL FOR JOE APPROVAL. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
+Issue23 request from A3, October15,07:39 Denver. Status: SINGLE-RECIPE COMPOSITION APPROVED by Joe, October15,2026,08:26 Denver. Multi-dish Cooking composition remains a separate proposal. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
 
 
 ## Current single-recipe direction — Joe, October15,08:23 Denver
@@ -9,7 +9,7 @@ Card opacity control: discreet card ellipsis opens an accessible transparency/op
 
 The current action belongs to the current step, even while another direction is being read. No action buttons on future-direction rows that start/complete tasks implicitly. Timer-end notice remains in/adjacent to LEFT card, with accessible View step/return to current direction on RIGHT. No automatic completion or forced loss of reading position. Missing photo uses existing placeholder. Decorative leaf remains on RIGHT, distinct from overflow.
 
-User-specified layout is now the design reference; the new mockup was shown for confirmation and is not a native fit test. Multi-dish layout remains a separate proposal, not changed by this single-recipe instruction.
+Joe explicitly approved the new mockup at08:26 Denver. This is the approved SINGLE-RECIPE Cooking design reference, not a native fit test. Multi-dish layout remains a separate proposal, not changed by this single-recipe instruction.
 
 ## Mockups prepared
 1. Sideways: Right now LEFT, Coming up RIGHT.
