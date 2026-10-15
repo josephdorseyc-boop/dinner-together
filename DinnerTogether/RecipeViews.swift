@@ -110,7 +110,8 @@ struct RecipesView: View {
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("recipe-library")
         .navigationDestination(for: UUID.self) { id in
-            RecipeDetailView(recipeID: id, onChoose: goTonight)
+            // The page — or, with the phone open like a book, the spread.
+            RecipeSpreadView(recipeID: id, onChoose: goTonight)
         }
         .sheet(isPresented: $adding) {
             AddRecipeSheet { id in path.append(id) }.uiTestTypeSize()
@@ -592,8 +593,15 @@ struct RecipeDetailView: View {
         var id: String { rawValue }
     }
 
+    /// The page as itself, or the spread's LEFT page: a reader of a second
+    /// recipe (ingredients and directions only — read alongside, never
+    /// cooked from here), with no menu, cook bar or delete, and its own
+    /// identifiers ("-second") so the main page's stay unique.
+    enum Role { case page, reader }
+
     let recipeID: UUID
     var onChoose: (() -> Void)? = nil
+    var role: Role = .page
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -615,6 +623,9 @@ struct RecipeDetailView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     private var recipe: Recipe? { library.recipe(id: recipeID) }
+    private var reader: Bool { role == .reader }
+    private func pageID(_ base: String) -> String { reader ? base + "-second" : base }
+    private var tabs: [Tab] { reader ? [.ingredients, .directions] : Tab.allCases }
     /// The page's colors (photo or the cook's choice); nil = classic cream.
     private var pagePalette: RecipePalette? { recipe.flatMap { RecipePhotos.palette(for: $0, from: library) } }
     /// A colored page draws from its own colors whatever the phone's
@@ -641,10 +652,10 @@ struct RecipeDetailView: View {
                                 Label(problem, systemImage: "exclamationmark.triangle")
                                     .font(.subheadline).foregroundStyle(Theme.warning)
                                     .fixedSize(horizontal: false, vertical: true)
-                                    .accessibilityIdentifier("recipe-save-error")
+                                    .accessibilityIdentifier(pageID("recipe-save-error"))
                             }
                             stats(recipe)
-                            if recipe.needsTimingReview && tab != .timing { reviewBanner(recipe) }
+                            if !reader && recipe.needsTimingReview && tab != .timing { reviewBanner(recipe) }
                             tabBar
                             importWarningCard(recipe)
                             switch tab {
@@ -653,7 +664,7 @@ struct RecipeDetailView: View {
                             case .timing: timing(recipe)
                             }
                             sourceLink(recipe)
-                            deleteButton
+                            if !reader { deleteButton }
                         }
                         .padding(24)
                         .frame(maxWidth: 720)
@@ -667,15 +678,18 @@ struct RecipeDetailView: View {
                 .environment(\.recipePalette, pagePalette)
                 .environment(\.colorScheme, pageScheme)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    cookBar(recipe)
-                        .environment(\.recipePalette, pagePalette)
-                        .environment(\.colorScheme, pageScheme)
+                    if !reader {
+                        cookBar(recipe)
+                            .environment(\.recipePalette, pagePalette)
+                            .environment(\.colorScheme, pageScheme)
+                    }
                 }
                 // A colored page is dark whatever the phone's appearance, so
                 // the system chrome over it must be too: the status clock
                 // and the tab bar (A2-17: black clock on brown, 2.1:1).
-                .toolbarColorScheme(pagePalette.map { $0.tone == .deep ? .dark : .light }, for: .navigationBar, .tabBar)
-                .toolbar { moreMenu(recipe) }
+                // (The main page's say; the spread's left page has none.)
+                .toolbarColorScheme(reader ? nil : pagePalette.map { $0.tone == .deep ? .dark : .light }, for: .navigationBar, .tabBar)
+                .toolbar { if !reader { moreMenu(recipe) } }
                 .sheet(isPresented: $choosingPageStyle) { PageStyleSheet(recipeID: recipeID).uiTestTypeSize() }
                 .sheet(isPresented: $editingRecipeTime) {
                     RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()
@@ -745,7 +759,7 @@ struct RecipeDetailView: View {
                     .accessibilityElement()
                     .accessibilityLabel("Photo of \(recipe.title)")
                     .accessibilityAddTraits(.isImage)
-                    .accessibilityIdentifier("recipe-hero")
+                    .accessibilityIdentifier(pageID("recipe-hero"))
                 titleBlock(recipe, onPhoto: false)
                     .padding(.horizontal, 24).padding(.top, 20)
                     .frame(maxWidth: 720, alignment: .leading)
@@ -766,7 +780,7 @@ struct RecipeDetailView: View {
                         Label("Page color", systemImage: "paintpalette")
                     }
                     .buttonStyle(QuietButtonStyle())
-                    .accessibilityIdentifier("page-color-button")
+                    .accessibilityIdentifier(pageID("page-color-button"))
                 }
                 titleBlock(recipe, onPhoto: false)
             }
@@ -782,7 +796,7 @@ struct RecipeDetailView: View {
                 .font(.system(.title, design: .serif).weight(.semibold))
                 .foregroundStyle(onPhoto ? .white : Theme.ink)
                 .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("recipe-title")
+                .accessibilityIdentifier(pageID("recipe-title"))
             if let byline = recipe.source.byline {
                 Text(byline).font(.subheadline.weight(.medium))
                     .foregroundStyle(onPhoto ? .white.opacity(0.9) : Theme.muted)
@@ -834,7 +848,7 @@ struct RecipeDetailView: View {
         .buttonStyle(.plain)
         .accessibilityLabel(recipe.totalMinutes.map { "Recipe time, \(RecipeFormat.compact($0))" } ?? "Recipe time not stated")
         .accessibilityHint(recipe.totalMinutes == nil ? "Adds the recipe’s total time." : "Edits the recipe’s total time.")
-        .accessibilityIdentifier("recipe-time")
+        .accessibilityIdentifier(pageID("recipe-time"))
     }
 
     private func stat(_ label: String, _ value: String) -> some View {
@@ -900,7 +914,7 @@ struct RecipeDetailView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .recipeSurface(cornerRadius: 22)
             .accessibilityElement(children: .contain)
-            .accessibilityIdentifier("import-content-warning")
+            .accessibilityIdentifier(pageID("import-content-warning"))
         }
     }
 
@@ -908,7 +922,7 @@ struct RecipeDetailView: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 6) {
-            ForEach(Tab.allCases) { t in
+            ForEach(tabs) { t in
                 Button { tab = t } label: {
                     Text(t.rawValue).font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 10).frame(minHeight: 44)
@@ -918,12 +932,12 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(tab == t ? .isSelected : [])
-                .accessibilityIdentifier("recipe-tab-\(t.rawValue.lowercased())")
+                .accessibilityIdentifier(pageID("recipe-tab-\(t.rawValue.lowercased())"))
             }
                 }
             } else {
                 HStack(spacing: 6) {
-            ForEach(Tab.allCases) { t in
+            ForEach(tabs) { t in
                 Button { tab = t } label: {
                     Text(t.rawValue).font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 10).frame(minHeight: 44)
@@ -933,7 +947,7 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(tab == t ? .isSelected : [])
-                .accessibilityIdentifier("recipe-tab-\(t.rawValue.lowercased())")
+                .accessibilityIdentifier(pageID("recipe-tab-\(t.rawValue.lowercased())"))
             }
                 }
             }
@@ -986,12 +1000,12 @@ struct RecipeDetailView: View {
                 if let notes = recipe.notes, !notes.isEmpty {
                     Text(notes).font(.subheadline).foregroundStyle(Theme.muted)
                         .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("recipe-notes")
+                        .accessibilityIdentifier(pageID("recipe-notes"))
                     Button { startEditing(inNotes: true) } label: {
                         Label("Edit notes", systemImage: "pencil").font(.subheadline.weight(.semibold))
                     }
                     .tint(accentColor)
-                    .accessibilityIdentifier("edit-notes")
+                    .accessibilityIdentifier(pageID("edit-notes"))
                 } else {
                     Button { startEditing(inNotes: true) } label: {
                         Label("Add your notes — what to remember next time", systemImage: "square.and.pencil")
@@ -999,7 +1013,7 @@ struct RecipeDetailView: View {
                             .multilineTextAlignment(.leading)
                     }
                     .tint(accentColor)
-                    .accessibilityIdentifier("add-notes")
+                    .accessibilityIdentifier(pageID("add-notes"))
                 }
             }
         }
@@ -1042,7 +1056,7 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Theme.warning)
-                .accessibilityIdentifier("recipe-time-missing")
+                .accessibilityIdentifier(pageID("recipe-time-missing"))
             }
         }
     }

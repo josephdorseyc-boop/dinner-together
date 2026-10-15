@@ -123,4 +123,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     /// r25 — Tonight after a pale recipe page in the system appearance (Joe's
     /// black clock, build 18), and the card-glass slider.
     func test45_tonightAfterPalePageAndGlass() { flowTonightAfterPalePageAndGlass() }
+    /// r26 — the cookbook spread on a window open like a book (the Duo); the single page elsewhere.
+    func test46_cookbookSpread() { flowCookbookSpread() }
 }

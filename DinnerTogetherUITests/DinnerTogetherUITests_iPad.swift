@@ -48,4 +48,5 @@ final class DinnerTogetherUITests_iPad: DinnerTogetherUITestCase {
     func test22_weekPlan_iPad() { flowWeekPlan() }
     func test23_coverSwitching_iPad() { flowCoverSwitching() }
     func test24_tonightAfterPalePageAndGlass_iPad() { flowTonightAfterPalePageAndGlass() }
+    func test25_cookbookSpread_iPad() { flowCookbookSpread() }
 }

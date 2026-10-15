@@ -1847,6 +1847,68 @@ extension DinnerTogetherUITestCase {
         }
     }
 
+    /// r26 — the cookbook spread (Joe and A2, October 14, for the iPhone
+    /// Duo): on a window open like a book the recipe page is two pages —
+    /// the cover photo on the left, the main recipe on the right; the cook
+    /// can read a second recipe on the left and bring the photo back, and
+    /// the right page keeps its tab throughout. On any other window the page
+    /// is the single page, unchanged, which this flow records too.
+    func flowCookbookSpread(_ capture: RecipeCapture = .standard) {
+        launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture, photo: "pastel")
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let left = app.descendants(matching: .any)["spread-left"].firstMatch
+        let frame = app.frame
+        let phone = UIDevice.current.userInterfaceIdiom == .phone
+        let openBook = phone && frame.width >= 600 && frame.height >= 560 && capture.typeSize == nil
+        guard openBook else {
+            XCTAssertFalse(left.exists, "a window that is not open like a book shows the single page (\(frame.size))")
+            XCTAssertTrue(app.staticTexts["recipe-title"].exists, "…the recipe page as always")
+            photograph("r26a-single-page" + capture.suffix)
+            return
+        }
+
+        // The spread: photo left, recipe right, each on its own half.
+        waitForExistence(left, timeout: 5, "the spread's left page")
+        let title = app.staticTexts["recipe-title"]
+        XCTAssertTrue(title.exists, "the main recipe is the right page")
+        XCTAssertGreaterThan(title.frame.minX, frame.midX - 1, "…on the right half: \(title.frame)")
+        let photo = app.descendants(matching: .any)["spread-cover-photo"].firstMatch
+        XCTAssertTrue(photo.exists, "the cover photo leads the left page")
+        XCTAssertLessThan(photo.frame.maxX, frame.midX + 1, "…on the left half: \(photo.frame)")
+        XCTAssertGreaterThan(photo.frame.height, frame.height * 0.8, "…edge to edge: \(photo.frame)")
+        photograph("r26b-spread-cover" + capture.suffix)
+
+        // The right page's place: Directions, kept while the left changes.
+        app.buttons["recipe-tab-directions"].tap()
+        XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "Directions on the right")
+
+        // A second recipe on the left, with its own tabs.
+        let add = app.buttons["spread-add-second"]
+        waitForExistence(add, timeout: 5, "Add a second recipe")
+        add.tap()
+        let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", RecipeFixtureText.beanSpreadTitle)).firstMatch
+        waitForExistence(row, timeout: 5, "the second-recipe picker")
+        row.tap()
+        let secondTitle = app.staticTexts["recipe-title-second"]
+        waitForExistence(secondTitle, timeout: 5, "the second recipe on the left page")
+        XCTAssertTrue(secondTitle.label.hasPrefix(RecipeFixtureText.beanSpreadTitle), secondTitle.label)
+        XCTAssertLessThan(secondTitle.frame.maxX, frame.midX + 1, "…on the left half: \(secondTitle.frame)")
+        XCTAssertFalse(app.buttons["recipe-tab-timing-second"].exists, "read alongside, never cooked: no Timing on the left")
+        XCTAssertFalse(app.buttons["cook-this-recipe"].frame.minX < frame.midX, "one cook bar, the main recipe's")
+        app.buttons["recipe-tab-directions-second"].tap()
+        XCTAssertTrue(app.buttons["recipe-tab-directions-second"].isSelected, "the left page has its own tabs")
+        XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "…and the right page kept its place")
+        XCTAssertTrue(title.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "the main recipe stays on the right")
+        photograph("r26c-spread-second-recipe" + capture.suffix)
+
+        // Back to the photo, the right page untouched.
+        app.buttons["spread-show-cover"].tap()
+        waitForExistence(photo, timeout: 5, "the cover photo is back")
+        XCTAssertFalse(secondTitle.exists, "the second recipe has left the page")
+        XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "the right page still on Directions")
+        photograph("r26d-spread-cover-again" + capture.suffix)
+    }
+
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW
     /// (A2-35): a photo band on Tonight's card, a strip on an ordinary
     /// start, a thumbnail on the timeline. At AX3 the row and plain cards

@@ -53,6 +53,7 @@ let package = Package(
                 "SocialImport.swift",
                 "SharedInbox.swift",
                 "WeekPlan.swift",
+                "Spread.swift",
                 "DebugSampleMenus.swift",
                 "EngineTestSupport.swift",
             ]
