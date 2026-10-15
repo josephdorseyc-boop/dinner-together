@@ -1135,7 +1135,15 @@ extension CookingView {
                 if let label {
                     Text(label).font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Theme.tomato)
                 }
-                HStack(alignment: .firstTextBaseline) {
+                HStack(alignment: .center, spacing: 14) {
+                    // Two dishes: each page shows its dish's photo small
+                    // beside the name (Joe, October 15, 5:40 PM: "it would
+                    // liven it up"; board 02). One dish has the photo page.
+                    if label != nil, !dynamicTypeSize.isAccessibilitySize,
+                       let photo = RecipePhotos.hero(recipe, from: library) {
+                        RecipeCoverThumbnail(image: photo.image, size: 72)
+                            .accessibilityIdentifier("duo-dish-photo")
+                    }
                     Text(recipe.title)
                         .font(.system(.title2, design: .serif).weight(.semibold)).foregroundStyle(Theme.ink)
                         .fixedSize(horizontal: false, vertical: true)
