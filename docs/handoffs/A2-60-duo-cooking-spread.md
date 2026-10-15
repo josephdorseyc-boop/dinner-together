@@ -9,7 +9,14 @@ Shown in Joe's conversation; images not attached to GitHub. Generated hardware/s
 ## Shared appearance
 Cooking remains CLASSIC CREAM in both OS appearances and regardless of Tonight's Light/Charcoal choice, per A3's current relay of Joe's decision. Dark Mode is Tonight's alone in that scope. Warm ink/olive, serif section/step titles, thin hairlines, minimal card chrome, small terracotta leaf where space permits; leaf decorative/VoiceOver-hidden and never displaces overflow. No large food images in this action-focused screen. No heavy dark footer.
 
-## Sideways: LEFT is NOW, RIGHT is TIMELINE
+## Corrected single-recipe default — Joe, October15,07:59 Denver
+With ONE recipe, the spread features the hero photo: LEFT is its full-bleed cover with minimal title/byline; RIGHT is the current cooking step, its deadline timer and primary action. This supersedes any implication below that the timeline replaces the photograph for a single-recipe dinner. Use the existing cover placeholder when no photo exists. Keep photo framing and reader styling consistent with the approved recipe spread.
+
+Upcoming steps for that recipe remain accessible through a quiet Coming up action/disclosure; they do not occupy the photographic page by default. Browsing them never mutates execution. A timer ending still surfaces the named notice and View step, returning to the actionable RIGHT page. The current action docks within the RIGHT page's safe area for this layout. Upright/narrow/AX3 keeps current-first single-column behavior.
+
+The proposed LEFT=NOW / RIGHT=TIMELINE layout below is for MULTI-DISH dinners (2–4), still pending Joe's approval. Do not treat his single-recipe correction as approval of the remaining Cooking proposal. Rendering tests must check both different compositions.
+
+## Sideways MULTI-DISH proposal: LEFT is NOW, RIGHT is TIMELINE
 Necessary condition from Joe: window width >=600pt. Also measure real available content width/height after the system rail, safe areas and bars. Do not assume inferred678x466 is actual captured geometry or hardcode it. Enable two columns only when both readable columns and the action fit. Otherwise single-column fallback; never shrink text to force spread.
 
 LEFT:
