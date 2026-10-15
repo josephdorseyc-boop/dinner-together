@@ -170,7 +170,8 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// these from the .xcresult into results/ui-screenshots/<device>/.
     func photograph(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
         let shot = Self.duoOpen ? Self.innerScreenShot() : app.screenshot()
-        let attachment = XCTAttachment(screenshot: shot)
+        let image = Self.duoOpen ? Self.turnedToReading(shot.image, for: screenFrame) : shot.image
+        let attachment = Self.duoOpen ? XCTAttachment(image: image) : XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
@@ -179,16 +180,43 @@ class DinnerTogetherUITestCase: XCTestCase {
         // with it went every capture (run 38723119849).
         if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
             let safe = name.replacingOccurrences(of: "/", with: "-")
-            try? shot.pngRepresentation.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
+            let png = Self.duoOpen ? image.pngData() : shot.pngRepresentation
+            try? png?.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
         }
     }
 
     /// The Duo with its hinge opened by the harness (DT_DUO_HINGE half/flat
     /// or an angle above 0): the app is on the inner display, and the
     /// default screen in XCTest is the cover, which is off and black.
-    static var duoOpen: Bool {
+    static let duoOpen: Bool = {
         let hinge = ProcessInfo.processInfo.environment["DT_DUO_HINGE"] ?? ""
         return !hinge.isEmpty && hinge != "closed" && hinge != "0" && XCUIScreen.screens.count > 1
+    }()
+
+    /// The screen the app's elements are measured in. On the opened Duo,
+    /// XCTest gives the application the inner panel's upright frame
+    /// (669 × 951) while the window and every element are in the app's own
+    /// landscape space (951 × 669, run 38775502581); elsewhere they agree.
+    var screenFrame: CGRect {
+        guard Self.duoOpen else { return app.frame }
+        let window = app.windows.firstMatch
+        return window.exists && isFiniteFrame(window.frame) && window.frame.width > 0 ? window.frame : app.frame
+    }
+
+    /// The inner panel captures upright with the landscape app turned a
+    /// quarter anticlockwise; turned back, the picture reads as the cook sees it.
+    static func turnedToReading(_ image: UIImage, for screen: CGRect) -> UIImage {
+        guard image.size.width < image.size.height, screen.width > screen.height else { return image }
+        let size = CGSize(width: image.size.height, height: image.size.width)
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        return UIGraphicsImageRenderer(size: size, format: format).image { context in
+            let cg = context.cgContext
+            cg.translateBy(x: size.width / 2, y: size.height / 2)
+            cg.rotate(by: .pi / 2)
+            image.draw(in: CGRect(x: -image.size.width / 2, y: -image.size.height / 2,
+                                  width: image.size.width, height: image.size.height))
+        }
     }
 
     /// The largest screen is the Duo's inner display.
@@ -309,7 +337,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// The part of the screen an element must sit in to be "on screen":
     /// below the status bar, above the tab bar and any pinned bottom bar.
     func comfortZone(excluding f: CGRect) -> (top: CGFloat, bottom: CGFloat) {
-        let screen = app.frame
+        let screen = screenFrame
         // The tab bar only matters when it is actually on top (not under a sheet).
         let tabBar = app.tabBars.firstMatch
         var bottomBand: CGFloat = (tabBar.exists && tabBar.isHittable) ? 130 : 40
@@ -330,7 +358,7 @@ class DinnerTogetherUITestCase: XCTestCase {
 
     func isComfortablyVisible(_ element: XCUIElement) -> Bool {
         guard element.exists, element.isHittable else { return false }
-        let screen = app.frame
+        let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
         // An element taller than the zone (an AX3 paragraph) can never fit
@@ -351,7 +379,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// hittable (runs 38610973412, 38628522264: test18, test42).
     func isFrameInComfortZone(_ element: XCUIElement) -> Bool {
         guard element.exists else { return false }
-        let screen = app.frame
+        let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
         if f.height > zoneBottom - zoneTop {
@@ -372,8 +400,8 @@ class DinnerTogetherUITestCase: XCTestCase {
         let bars = app.buttons.matching(pinned).allElementsBoundByIndex + app.staticTexts.matching(captions).allElementsBoundByIndex
         // A pinned control sits in the bottom quarter and is never the target
         // itself (run 38341383318: the Add sheet's own button counted as a bar).
-        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= app.frame.maxY + 1
-                                 && $0.frame.minY > app.frame.maxY * 0.6 && $0.frame != target }.map { $0.frame.minY }
+        let tops = bars.filter { $0.exists && $0.frame.height > 0 && $0.frame.maxY <= screenFrame.maxY + 1
+                                 && $0.frame.minY > screenFrame.maxY * 0.6 && $0.frame != target }.map { $0.frame.minY }
         return tops.min()
     }
 
@@ -384,7 +412,7 @@ class DinnerTogetherUITestCase: XCTestCase {
             requireHittable ? self.isComfortablyVisible(e) : self.isFrameInComfortZone(e)
         }
         while !visible(element) && drags < maxDrags {
-            let screen = app.frame
+            let screen = screenFrame
             // Aim the element at the middle of the screen; if it doesn't exist
             // yet, page downward. A short hold at the end stops the scroll view
             // from decelerating past the target.
@@ -418,7 +446,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         if !visible(element) {
             let zone = element.exists ? comfortZone(excluding: element.frame) : (top: 0, bottom: 0)
             XCTFail("element not comfortably on screen after \(drags) scroll(s): \(element) — frame \(element.exists ? element.frame : .zero), "
-                    + "hittable \(element.exists && element.isHittable), zone \(zone.top)…\(zone.bottom), screen \(app.frame)", file: file, line: line)
+                    + "hittable \(element.exists && element.isHittable), zone \(zone.top)…\(zone.bottom), screen \(screenFrame)", file: file, line: line)
         }
     }
 
@@ -455,7 +483,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// middle band of the screen. No assertion — a tall AX3 paragraph at the
     /// end of a sheet can never be "comfortably" visible (run 38399682685).
     func bringIntoView(_ element: XCUIElement) {
-        let screen = app.frame
+        let screen = screenFrame
         for _ in 0..<6 {
             guard element.exists else { return }
             let top = element.frame.minY
@@ -475,7 +503,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// scrolling (A2-25). Tries the preferred height first, then nearby ones,
     /// at the center column and then to its left where cards have margins.
     func dragStart(preferring y: Double) -> CGVector {
-        let screen = app.frame
+        let screen = screenFrame
         let buttons = app.buttons.allElementsBoundByIndex.map { $0.frame }.filter { $0.height > 0 }
         // The center column at other heights before a side column: on iPad a
         // side column can fall outside a form sheet.
@@ -614,7 +642,7 @@ class DinnerTogetherUITestCase: XCTestCase {
             Thread.sleep(forTimeInterval: 1)
             return XCTWaiter().wait(for: [XCTNSPredicateExpectation(
                 predicate: NSPredicate(format: "label == %@", "Chosen dinner time \(before)"),
-                object: app.staticTexts["serving-time"])], timeout: app.frame.width > 700 ? 15 : 10) == .completed
+                object: app.staticTexts["serving-time"])], timeout: screenFrame.width > 700 ? 15 : 10) == .completed
         }
         var restored = restoredNow()
         if !restored, undo.exists {
@@ -672,7 +700,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         waitForExistence(choice, timeout: 10, "delay choice dialog offers Add 10 minutes")
         Thread.sleep(forTimeInterval: 1.0)          // let the dialog finish presenting
         photograph("03-delay-choice-dialog")        // the dialog itself, both devices
-        let isPad = app.frame.width > 700
+        let isPad = screenFrame.width > 700
         if isPad { attachHierarchy("03-delay-choice-dialog-hierarchy") }
         tapEvenInPopover(choice)   // iPad presents the dialog as a popover
         let delaySheet = app.navigationBars["Before we shift things"]
@@ -742,8 +770,8 @@ class DinnerTogetherUITestCase: XCTestCase {
         // is on the first screen, unscrolled (Joe and A2-35, October 13).
         photograph("04-expired-hero-first-screen")
         XCTAssertTrue(waitForOnScreenFrame(markDone), "Mark done after checking exists on screen: \(markDone.frame)")
-        XCTAssertLessThanOrEqual(markDone.frame.maxY, app.frame.maxY - 90,
-                                 "…above the tab bar on the first screen, with the hero: \(markDone.frame) in \(app.frame)")
+        XCTAssertLessThanOrEqual(markDone.frame.maxY, screenFrame.maxY - 90,
+                                 "…above the tab bar on the first screen, with the hero: \(markDone.frame) in \(screenFrame)")
         scrollTo(markDone)
         photograph("04-expired-featured")
 
@@ -1101,7 +1129,7 @@ extension DinnerTogetherUITestCase {
             XCTFail("recipe tabs not found", file: file, line: line); return -1
         }
         // Bring the tabs to the upper middle, clear of the cook bar.
-        let screen = app.frame
+        let screen = screenFrame
         for _ in 0..<3 where first.frame.maxY > screen.height * 0.6 || first.frame.minY < screen.minY + 100 {
             let delta = max(-screen.height * 0.45, min(screen.height * 0.45, first.frame.midY - screen.midY))
             let startY = delta >= 0 ? 0.70 : 0.30
@@ -1897,7 +1925,7 @@ extension DinnerTogetherUITestCase {
     /// with the crop attached either way. iPad: the photo starts below the
     /// clock, which follows the sidebar.
     private func expectLightClock(_ step: String, file: StaticString = #filePath, line: UInt = #line) {
-        guard app.frame.width < 700 else { return }
+        guard screenFrame.width < 700 else { return }
         var light = 0, dark = 0
         for attempt in 0..<4 {
             if attempt > 0 { Thread.sleep(forTimeInterval: 0.5) } // the bar's style animates in
@@ -1945,14 +1973,14 @@ extension DinnerTogetherUITestCase {
     }
 
     private func hasUsableWideScene() -> Bool {
-        DuoWindowGeometry.accepts(status: wideSceneStatus(), frame: app.frame)
+        DuoWindowGeometry.accepts(status: wideSceneStatus(), frame: screenFrame)
     }
 
     /// Geometry and accessibility are automated clipping checks, not a pixel
     /// oracle. Retain the full capture for visual rail/safe-area inspection.
     private func firstScreenFitsWideScene() -> Bool {
         guard hasUsableWideScene() else { return false }
-        let frame = app.frame
+        let frame = screenFrame
         // On an opened Duo the app is on the inner screen, and XCTest's
         // default screen is the cover (A3); a screen capture may come out in
         // the panel's native orientation, so the shapes are compared long
@@ -1982,7 +2010,7 @@ extension DinnerTogetherUITestCase {
         photograph("r26-0-first-screen" + capture.suffix)
         attachHierarchy("r26-0-first-screen-hierarchy")
         // A near-square phone screen (the Duo) turns like a book for the spread.
-        let first = app.frame
+        let first = screenFrame
         if UIDevice.current.userInterfaceIdiom == .phone, min(first.width, first.height) / max(first.width, first.height) >= 0.6 {
             XCUIDevice.shared.orientation = .landscapeLeft
             addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
@@ -1999,7 +2027,7 @@ extension DinnerTogetherUITestCase {
                 Thread.sleep(forTimeInterval: 1.5)
                 wideWindowObserved = false // this mixed flow also accepts the upright book
             }
-            let observed = app.frame
+            let observed = screenFrame
             let probe = app.descendants(matching: .any)["dt-scene-geometry-status"].firstMatch
             let sceneStatus = probe.exists ? ((probe.value as? String) ?? probe.label) : "probe absent"
             attachText("r26-orientation-evidence" + capture.suffix,
@@ -2011,7 +2039,7 @@ extension DinnerTogetherUITestCase {
             }
         }
         if requireWideNativeWindow {
-            let observed = app.frame
+            let observed = screenFrame
             guard hasUsableWideScene() else {
                 photograph("r26-landscape-window-missing" + capture.suffix)
                 attachHierarchy("r26-landscape-window-missing-hierarchy" + capture.suffix)
@@ -2029,7 +2057,7 @@ extension DinnerTogetherUITestCase {
         photograph("r26-0-recipe-page" + capture.suffix)
         attachHierarchy("r26-0-recipe-page-hierarchy")
         let left = app.descendants(matching: .any)["spread-left"].firstMatch
-        let frame = app.frame
+        let frame = screenFrame
         let phone = UIDevice.current.userInterfaceIdiom == .phone
         // SpreadLayout's floor: 800 × 450 (A2, October 15; the sideways
         // cover display, 678 wide, stays one page).
@@ -2424,10 +2452,10 @@ extension DinnerTogetherUITestCase {
         // viewport, dragging inside the viewport.
         let anchor = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'page-style-'")).firstMatch
         func viewport() -> CGRect {
-            guard anchor.exists else { return app.frame }
+            guard anchor.exists else { return screenFrame }
             let c = CGPoint(x: anchor.frame.midX, y: anchor.frame.midY)
-            let hosts = app.scrollViews.allElementsBoundByIndex.filter { $0.frame.contains(c) && $0.frame.height < app.frame.height }
-            return hosts.min(by: { $0.frame.height < $1.frame.height })?.frame ?? app.frame
+            let hosts = app.scrollViews.allElementsBoundByIndex.filter { $0.frame.contains(c) && $0.frame.height < screenFrame.height }
+            return hosts.min(by: { $0.frame.height < $1.frame.height })?.frame ?? screenFrame
         }
         func inside() -> Bool {
             guard target.exists else { return false }
