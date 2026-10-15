@@ -989,8 +989,12 @@ extension CookingView {
                     .accessibilityElement()
                     .accessibilityLabel("Photo of \(recipe.title)")
                     .accessibilityAddTraits(.isImage)
-                // Legible text over any photo: a scrim at the foot.
-                LinearGradient(stops: [.init(color: .black.opacity(0), location: 0.3),
+                // Legible text over any photo: a scrim under the title at
+                // the top (a pale photo washed it out, run 38820416744) and
+                // one at the foot under the card.
+                LinearGradient(stops: [.init(color: .black.opacity(0.4), location: 0),
+                                       .init(color: .black.opacity(0), location: 0.35),
+                                       .init(color: .black.opacity(0), location: 0.55),
                                        .init(color: .black.opacity(0.45), location: 1)],
                                startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
