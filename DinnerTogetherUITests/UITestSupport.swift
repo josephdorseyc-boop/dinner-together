@@ -203,6 +203,18 @@ class DinnerTogetherUITestCase: XCTestCase {
         return window.exists && isFiniteFrame(window.frame) && window.frame.width > 0 ? window.frame : app.frame
     }
 
+    /// A point for a synthesized gesture, as a fraction of the screen the
+    /// elements are measured in. On the opened Duo, `app.coordinate` maps
+    /// through the panel's upright 669 × 951 frame while every element is
+    /// in the window's landscape 951 × 669 space, so a drag meant for the
+    /// page landed elsewhere (run 38782992528: twelve scrolls, nothing
+    /// moved); the window's own coordinates line up with its elements.
+    func screenCoordinate(_ normalized: CGVector) -> XCUICoordinate {
+        let window = app.windows.firstMatch
+        if Self.duoOpen, window.exists { return window.coordinate(withNormalizedOffset: normalized) }
+        return app.coordinate(withNormalizedOffset: normalized)
+    }
+
     /// The inner panel captures upright with the landscape app turned a
     /// quarter anticlockwise; turned back, the picture reads as the cook sees it.
     static func turnedToReading(_ image: UIImage, for screen: CGRect) -> UIImage {
@@ -443,8 +455,8 @@ class DinnerTogetherUITestCase: XCTestCase {
             // twelve identical drags).
             let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30)
             let endY = max(0.12, min(0.92, start.dy - Double(delta / screen.height)))
-            let from = app.coordinate(withNormalizedOffset: start)
-            let to = app.coordinate(withNormalizedOffset: CGVector(dx: start.dx, dy: endY))
+            let from = screenCoordinate( start)
+            let to = screenCoordinate( CGVector(dx: start.dx, dy: endY))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
@@ -478,8 +490,8 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// flow is about, not wherever the last tap left the scroll position.
     func scrollToTop(maxDrags: Int = 12) {
         for _ in 0..<maxDrags {
-            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
-            let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8))
+            let from = screenCoordinate( CGVector(dx: 0.5, dy: 0.3))
+            let to = screenCoordinate( CGVector(dx: 0.5, dy: 0.8))
             from.press(forDuration: 0.05, thenDragTo: to)
             if app.staticTexts["serving-time"].exists && app.staticTexts["serving-time"].isHittable { break }
         }
@@ -496,8 +508,8 @@ class DinnerTogetherUITestCase: XCTestCase {
             if top >= screen.minY + 80 && top <= screen.midY + 40 { return }
             let delta = max(-screen.height * 0.4, min(screen.height * 0.4, top - screen.midY + 60))
             let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30)
-            app.coordinate(withNormalizedOffset: start)
-                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: start.dx, dy: max(0.12, min(0.92, start.dy - Double(delta / screen.height))))),
+            screenCoordinate( start)
+                .press(forDuration: 0.1, thenDragTo: screenCoordinate( CGVector(dx: start.dx, dy: max(0.12, min(0.92, start.dy - Double(delta / screen.height))))),
                        withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
@@ -1139,8 +1151,8 @@ extension DinnerTogetherUITestCase {
         for _ in 0..<3 where first.frame.maxY > screen.height * 0.6 || first.frame.minY < screen.minY + 100 {
             let delta = max(-screen.height * 0.45, min(screen.height * 0.45, first.frame.midY - screen.midY))
             let startY = delta >= 0 ? 0.70 : 0.30
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
-                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY - Double(delta / screen.height))),
+            screenCoordinate( CGVector(dx: 0.5, dy: startY))
+                .press(forDuration: 0.1, thenDragTo: screenCoordinate( CGVector(dx: 0.5, dy: startY - Double(delta / screen.height))),
                        withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
@@ -1313,8 +1325,8 @@ extension DinnerTogetherUITestCase {
         // button is only exposed once scrolled near (run 38335694569).
         let chooser = app.descendants(matching: .any)["choose-screenshots"]
         for _ in 0..<6 where !chooser.exists {
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
-                .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)),
+            screenCoordinate( CGVector(dx: 0.5, dy: 0.75))
+                .press(forDuration: 0.1, thenDragTo: screenCoordinate( CGVector(dx: 0.5, dy: 0.35)),
                        withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)
         }
@@ -1369,7 +1381,7 @@ extension DinnerTogetherUITestCase {
         if cancel.waitForExistence(timeout: 2) {
             tapEvenInPopover(cancel)
         } else {
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.08)).tap()
+            screenCoordinate( CGVector(dx: 0.5, dy: 0.08)).tap()
         }
         waitForDisappearance(question, "Cancel (or tapping away) closed the confirmation")
         XCTAssertTrue(app.staticTexts["recipe-title"].exists, "Cancel: still on the recipe page")
@@ -1493,7 +1505,7 @@ extension DinnerTogetherUITestCase {
             let v = viewport()
             guard isFiniteFrame(v), v.width > 40, v.height > 80 else { break }
             // Drag through the scroll content, clear of both pinned controls.
-            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let origin = screenCoordinate( .zero)
             let towardBottom = zoom.exists && zoom.frame.midY < v.minY
             let high = v.minY + v.height * 0.2, low = v.minY + v.height * 0.8
             origin.withOffset(CGVector(dx: v.midX, dy: towardBottom ? high : low))
@@ -1615,8 +1627,8 @@ extension DinnerTogetherUITestCase {
         let title = app.staticTexts["recipe-title"]
         for _ in 0..<6 {
             let before = title.frame.minY
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
-                .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.8)))
+            screenCoordinate( CGVector(dx: 0.5, dy: 0.3))
+                .press(forDuration: 0.05, thenDragTo: screenCoordinate( CGVector(dx: 0.5, dy: 0.8)))
             Thread.sleep(forTimeInterval: 0.4)
             if abs(title.frame.minY - before) < 1 { break }
         }
@@ -1746,8 +1758,8 @@ extension DinnerTogetherUITestCase {
             for _ in 0..<6 {
                 if option.exists && option.isHittable && option.frame.maxY < window.maxY - 30 && option.frame.minY > window.minY + 60 { return }
                 let up = !option.exists || option.frame.midY > window.midY
-                let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
-                let to = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
+                let from = screenCoordinate( CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
+                let to = screenCoordinate( CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
                 from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
                 Thread.sleep(forTimeInterval: 0.4)
             }
@@ -1910,8 +1922,8 @@ extension DinnerTogetherUITestCase {
         if back.exists { back.tap(); return }
         let barBack = app.navigationBars.buttons.firstMatch
         if barBack.exists { barBack.tap(); return }
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
-            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.5)))
+        screenCoordinate( CGVector(dx: 0.01, dy: 0.5))
+            .press(forDuration: 0.05, thenDragTo: screenCoordinate( CGVector(dx: 0.8, dy: 0.5)))
     }
 
     /// The Tonight tab on iPhone. iPad has no tab bar, and its clock follows
@@ -2474,7 +2486,7 @@ extension DinnerTogetherUITestCase {
         }
         for _ in 0..<8 where !inside() {
             let v = viewport()
-            let origin = app.coordinate(withNormalizedOffset: .zero)
+            let origin = screenCoordinate( .zero)
             let from = origin.withOffset(CGVector(dx: v.midX, dy: v.maxY - 24))
             let to = origin.withOffset(CGVector(dx: v.midX, dy: v.minY + 24))
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
