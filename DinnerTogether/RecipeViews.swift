@@ -47,11 +47,15 @@ struct RecipesView: View {
             HStack {
                 SectionLabel(text: "YOUR RECIPES")
                 Spacer()
-                Button { adding = true } label: {
-                    Label("Add a recipe", systemImage: "plus")
+                // One Add when the cookbook is empty: the card's big button
+                // (Joe, build 18: two Add recipe buttons on an empty page).
+                if !library.isEmpty {
+                    Button { adding = true } label: {
+                        Label("Add a recipe", systemImage: "plus")
+                    }
+                    .buttonStyle(QuietButtonStyle())
+                    .accessibilityIdentifier("add-recipe")
                 }
-                .buttonStyle(QuietButtonStyle())
-                .accessibilityIdentifier("add-recipe")
             }
             .libraryRow(top: 12)
             if let deleteProblem {
@@ -75,7 +79,8 @@ struct RecipesView: View {
                         Label("Add your first recipe", systemImage: "plus")
                     }
                     .buttonStyle(BigButtonStyle())
-                    .accessibilityIdentifier("add-first-recipe")
+                    // The page's one Add button while it is empty.
+                    .accessibilityIdentifier("add-recipe")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .dtCard()
