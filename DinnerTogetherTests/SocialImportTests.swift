@@ -342,6 +342,11 @@ final class InstagramCaptionLayoutTests: XCTestCase {
         XCTAssertTrue(SocialImport.isCallToAction("Save this for your next chicken dinner!"))
         XCTAssertTrue(SocialImport.isCallToAction("Follow for more easy dinners"))
         XCTAssertFalse(SocialImport.isCallToAction("Save the remaining sauce in the fridge."), "a step that keeps food is not a call to action")
+        XCTAssertFalse(SocialImport.isCallToAction("Save this marinade for basting the chicken later."), "nor saving part of the food (A2)")
+        XCTAssertEqual(SocialImport.removingCallsToAction("Serve hot with the sauce. Save this for later!"), "Serve hot with the sauce.",
+                       "a step with a call to action after it keeps the step (A2)")
+        XCTAssertEqual(SocialImport.removingCallsToAction("Want the link? Comment “LINK” and I’ll DM you!"), "", "a question leading into one goes with it")
+        XCTAssertEqual(SocialImport.removingCallsToAction("Bake for 1.5 hours."), "Bake for 1.5 hours.", "untouched without a call to action")
         XCTAssertTrue(SocialImport.isGroupHeader("For the creamy au poivre sauce:"))
         XCTAssertTrue(SocialImport.isGroupHeader("Sauce:"))
         XCTAssertFalse(SocialImport.isGroupHeader("My version of the viral chicken au poivre:"))
@@ -349,6 +354,21 @@ final class InstagramCaptionLayoutTests: XCTestCase {
         XCTAssertTrue(SocialImport.isAmountPhrase("drizzle of good quality olive oil"))
         XCTAssertTrue(SocialImport.isAmountPhrase("Splash of sherry cooking wine"))
         XCTAssertFalse(SocialImport.isAmountPhrase("Drizzle the sauce over the chicken."))
+    }
+
+    func testFoodStorageStepsStayAndPromotionsGo() throws {
+        let caption = """
+        Herby Grilled Chicken
+        2 lb chicken thighs
+        1 cup yogurt marinade
+        Marinate the chicken for 2 hours. Save this marinade for basting the chicken later.
+        Grill for 12 minutes, basting twice. Save this for your next cookout!
+        Follow for more easy dinners
+        """
+        let r = try SocialImport.recipe(from: post(caption))
+        let steps = r.sections.flatMap(\.steps)
+        XCTAssertEqual(steps, ["Marinate the chicken for 2 hours. Save this marinade for basting the chicken later.",
+                               "Grill for 12 minutes, basting twice."], "\(steps)")
     }
 
     func testLeadingTitle() {

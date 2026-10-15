@@ -142,7 +142,7 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         let gone = recipe(id: id)
         recipes.removeAll { $0.id == id }
         guard save() else { recipes = before; return false }
-        for name in [gone?.imageFilename, gone?.platePhotoFilename].compactMap({ $0 }) {
+        for name in [gone?.imageFilename, gone?.platePhotoFilename, gone?.originalCoverFilename].compactMap({ $0 }) {
             try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
         }
         return true
@@ -276,16 +276,21 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         do {
             try FileManager.default.createDirectory(at: imagesURL, withIntermediateDirectories: true)
             let previousName = r.imageFilename
+            let previousOriginal = r.originalCoverFilename
             let name = "\(recipeID.uuidString)-\(UUID().uuidString).\(fileExtension)"
             let newURL = imagesURL.appending(path: name)
             try data.write(to: newURL, options: .atomic)
             r.imageFilename = name
+            // A cover the cook (or an import) chose: never cropped on its own
+            // later, and an earlier uncropped original no longer applies.
+            r.coverChecked = true
+            r.originalCoverFilename = nil
             guard update(r) else {
                 try? FileManager.default.removeItem(at: newURL)
                 return nil
             }
-            if let previousName {
-                try? FileManager.default.removeItem(at: imagesURL.appending(path: previousName))
+            for old in [previousName, previousOriginal].compactMap({ $0 }) {
+                try? FileManager.default.removeItem(at: imagesURL.appending(path: old))
             }
             return name
         } catch {
@@ -330,25 +335,70 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         }
     }
 
+    static func isVideoPost(_ recipe: Recipe) -> Bool {
+        ["Instagram", "TikTok"].contains(recipe.source.publisher ?? "")
+    }
+
     #if canImport(UIKit)
-    /// Covers saved from video posts before the ▶ was cropped away (Joe,
-    /// build 19): checked when the app opens; a clean cover is left as it is.
+    /// Crops a baked-in ▶ out of a video post's cover (Joe, build 19), keeping
+    /// the picture as it came so the cook can restore it from Edit cover
+    /// (A2, build 20). A cover without one is only marked as checked.
+    @discardableResult
+    func cropPlayButton(for recipeID: UUID) -> Bool {
+        guard var r = recipe(id: recipeID), let original = r.imageFilename,
+              let data = try? Data(contentsOf: imagesURL.appending(path: original)) else { return false }
+        let cleaned = PlayOverlay.cleaned(data)
+        guard cleaned != data else {
+            if r.coverChecked != true { r.coverChecked = true; _ = update(r) }
+            return false
+        }
+        let name = "\(recipeID.uuidString)-\(UUID().uuidString).jpg"
+        let url = imagesURL.appending(path: name)
+        guard (try? cleaned.write(to: url, options: .atomic)) != nil else { return false }
+        if let older = r.originalCoverFilename, older != original {
+            try? FileManager.default.removeItem(at: imagesURL.appending(path: older))
+        }
+        r.imageFilename = name
+        r.originalCoverFilename = original
+        r.coverChecked = true
+        guard update(r) else { try? FileManager.default.removeItem(at: url); return false }
+        return true
+    }
+
+    /// Covers saved from video posts before build 20, checked once when the
+    /// app opens. Covers the cook chose, or already checked, are never touched.
     func cleanVideoCovers() {
-        for r in recipes where ["Instagram", "TikTok"].contains(r.source.publisher ?? "") {
-            guard let url = imageURL(for: r), let data = try? Data(contentsOf: url) else { continue }
-            let cleaned = PlayOverlay.cleaned(data)
-            if cleaned != data { _ = saveImage(cleaned, for: r.id) }
+        for r in recipes where Self.isVideoPost(r) && r.coverChecked == nil && r.imageFilename != nil {
+            cropPlayButton(for: r.id)
         }
     }
     #endif
+
+    /// Puts back the cover exactly as it came from the post (A2, build 20).
+    @discardableResult
+    func restoreOriginalCover(for recipeID: UUID) -> Bool {
+        guard var r = recipe(id: recipeID), let original = r.originalCoverFilename,
+              FileManager.default.fileExists(atPath: imagesURL.appending(path: original).path) else { return false }
+        let cropped = r.imageFilename
+        r.imageFilename = original
+        r.originalCoverFilename = nil
+        r.coverChecked = true
+        guard update(r) else { return false }
+        if let cropped { try? FileManager.default.removeItem(at: imagesURL.appending(path: cropped)) }
+        return true
+    }
 
     /// Removes the cover; the page goes back to the classic cream.
     @discardableResult
     func removeCover(for recipeID: UUID) -> Bool {
         guard var r = recipe(id: recipeID), let name = r.imageFilename else { return false }
+        let original = r.originalCoverFilename
         r.imageFilename = nil
+        r.originalCoverFilename = nil
         guard update(r) else { return false }
-        try? FileManager.default.removeItem(at: imagesURL.appending(path: name))
+        for gone in [name, original].compactMap({ $0 }) {
+            try? FileManager.default.removeItem(at: imagesURL.appending(path: gone))
+        }
         return true
     }
 
@@ -544,11 +594,7 @@ struct RecipeImportService {
         let recipe = RecipeImporter.build(imported, method: .link, now: now)
         var imageData: Data?
         if let imageURL = imported.imageURL, let fetched = try? await fetcher.fetch(imageURL), fetched.data.count > 1_000 {
-            imageData = fetched.data
-            #if canImport(UIKit)
-            // A video post's cover can carry a baked-in ▶ (Joe, build 19).
-            imageData = PlayOverlay.cleaned(fetched.data)
-            #endif
+            imageData = fetched.data // a baked-in ▶ is cropped once saved (cropPlayButton)
         }
         return (recipe, imageData)
     }

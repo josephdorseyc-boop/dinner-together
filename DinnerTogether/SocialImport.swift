@@ -185,9 +185,29 @@ enum SocialImport {
 
     /// "Comment BOMB and I'll send you the link", "Save this for later",
     /// "Follow for more": the creator talking to followers, never a step.
-    static func isCallToAction(_ line: String) -> Bool {
-        line.range(of: #"\b(?:comment\s+[“"'‘]?[\p{L}\p{N}]+|link in (?:my |the )?bio|follow (?:me|for more|along|@)|save (?:this|it for|the recipe for)|tag (?:a|someone|your|a friend)|share (?:this|it) with|send (?:you|u) the (?:link|recipe)|dm me|turn on (?:post )?notifications|double tap|like (?:and|&) (?:save|share)|subscribe)\b"#,
-                   options: [.regularExpression, .caseInsensitive]) != nil
+    /// Saving *food* ("Save this marinade for basting") is a step (A2).
+    static func isCallToAction(_ sentence: String) -> Bool {
+        sentence.range(of: #"\b(?:comment\s+[“"'‘]?[\p{L}\p{N}]+[”"'’]?\s+(?:and|&|for|to|below)|link in (?:my |the )?bio|follow (?:me|for more|along|@)|save (?:this|it)(?:\s+(?:post|recipe|reel|video))?\s*(?:for (?:later|your next|next time|when)|so (?:you|u)|[!.]|$)|save (?:the|my) recipe\b|tag (?:a friend|someone|your)|share (?:this|it) with|send (?:you|u) the (?:link|recipe)|dm me|turn on (?:post )?notifications|double tap|like (?:and|&) (?:save|share)|subscribe\b)"#,
+                       options: [.regularExpression, .caseInsensitive]) != nil
+    }
+
+    /// A caption line without its calls to action, sentence by sentence, so
+    /// a step followed by "Save this for later!" keeps the step. A question
+    /// that only leads into one ("Want the link? Comment LINK…") goes too.
+    static func removingCallsToAction(_ line: String) -> String {
+        guard let regex = try? NSRegularExpression(pattern: #"[^.!?]+(?:[.!?]+[”"’']?|$)"#) else { return line }
+        let ns = NSString(string: line)
+        let parts = regex.matches(in: line, range: NSRange(location: 0, length: ns.length))
+            .map { ns.substring(with: $0.range).trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        guard parts.contains(where: isCallToAction) else { return line }
+        var kept: [String] = []
+        for (i, part) in parts.enumerated() {
+            if isCallToAction(part) { continue }
+            let leadsIntoCall = part.hasSuffix("?") && i + 1 < parts.count && isCallToAction(parts[i + 1])
+            if !leadsIntoCall { kept.append(part) }
+        }
+        return kept.joined(separator: " ")
     }
 
     /// "For the chicken:", "Sauce:" — a group of ingredients, not a step.
@@ -226,8 +246,8 @@ enum SocialImport {
     /// Nil when the caption has no ingredients followed by a method.
     static func structureCaption(_ text: String) -> (title: String?, text: String)? {
         let lines = text.components(separatedBy: "\n")
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty && !isCallToAction($0) }
+            .map { removingCallsToAction($0.trimmingCharacters(in: .whitespaces)) }
+            .filter { !$0.isEmpty }
         guard lines.count >= 3 else { return nil }
         func ingredientish(_ l: String) -> Bool {
             RecipeImporter.looksLikeIngredient(l) || isAmountPhrase(l) || RecipeImporter.isIngredientsHeader(l)

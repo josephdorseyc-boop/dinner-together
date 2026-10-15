@@ -640,6 +640,9 @@ struct AddRecipeSheet: View {
                         error = "Your recipe is saved, but the cover couldn’t be saved. Retry or continue without it."
                         return
                     }
+                    // A video post's cover can carry a baked-in ▶: cropped,
+                    // the original kept for Edit cover (Joe, build 19; A2).
+                    if RecipeLibrary.isVideoPost(recipe) { library.cropPlayButton(for: recipe.id) }
                 }
                 finishImport(recipe)
             } catch let e as LocalizedError {
@@ -1676,6 +1679,18 @@ struct EditCoverSheet: View {
                         Button("Use your plate photo") { candidates = [plate.jpegData(compressionQuality: 0.95)].compactMap { $0 }; cropping = true }
                             .buttonStyle(SecondaryButtonStyle())
                             .accessibilityIdentifier("cover-from-plate")
+                    }
+                    if current.originalCoverFilename != nil {
+                        // The app cropped a video's ▶ out of this cover; the
+                        // picture as it came is one tap away (A2, build 20).
+                        Text("We trimmed the video’s play button off this cover.")
+                            .font(.subheadline).foregroundStyle(Theme.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Use the original picture") {
+                            if library.restoreOriginalCover(for: recipe.id) { problem = nil } else { problem = library.saveError ?? "The original picture couldn’t be restored." }
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                        .accessibilityIdentifier("restore-original-cover")
                     }
                     if current.imageFilename != nil {
                         Button("Remove cover") {

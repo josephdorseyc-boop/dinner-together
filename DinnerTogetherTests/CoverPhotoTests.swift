@@ -113,5 +113,84 @@ final class CoverPhotoTests: XCTestCase {
         XCTAssertEqual(kept.directions, recipe.directions)
         XCTAssertEqual(kept.dishes.flatMap { $0 }.count, recipe.dishes.flatMap { $0 }.count)
     }
+
+    // MARK: The ▶ baked into a video post's cover (Joe, build 19; A2, build 20)
+
+    /// A 360 × 640 reel cover: warm above, cool below, a translucent dark
+    /// disc with a white ▶ a little below the middle.
+    private func reelCover() -> Data {
+        let format = UIGraphicsImageRendererFormat(); format.scale = 1
+        return UIGraphicsImageRenderer(size: CGSize(width: 360, height: 640), format: format).image { ctx in
+            UIColor(red: 0.8, green: 0.4, blue: 0.3, alpha: 1).setFill(); ctx.fill(CGRect(x: 0, y: 0, width: 360, height: 320))
+            UIColor(red: 0.3, green: 0.4, blue: 0.8, alpha: 1).setFill(); ctx.fill(CGRect(x: 0, y: 320, width: 360, height: 320))
+            UIColor.black.withAlphaComponent(0.45).setFill()
+            ctx.cgContext.fillEllipse(in: CGRect(x: 130, y: 290, width: 100, height: 100))
+            UIColor.white.setFill()
+            let play = UIBezierPath()
+            play.move(to: CGPoint(x: 165, y: 318)); play.addLine(to: CGPoint(x: 165, y: 362)); play.addLine(to: CGPoint(x: 203, y: 340)); play.close()
+            play.fill()
+        }.jpegData(compressionQuality: 0.95)!
+    }
+
+    private func topLeft(_ image: UIImage) -> (r: Double, b: Double) {
+        var px = [UInt8](repeating: 0, count: 4)
+        let ctx = CGContext(data: &px, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                            space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        // The picture's top-left pixel lands in the 1 × 1 context's only pixel.
+        ctx.draw(image.cgImage!, in: CGRect(x: -10, y: -(image.size.height - 11), width: image.size.width, height: image.size.height))
+        return (Double(px[0]) / 255, Double(px[2]) / 255)
+    }
+
+    private func coverSize(_ id: UUID, _ library: RecipeLibrary) -> CGSize? {
+        library.recipe(id: id).flatMap { RecipePhotos.load($0, from: library)?.image.size }
+    }
+
+    func testPlayButtonIsCroppedOnceTheOriginalKeptAndRestorable() throws {
+        let library = RecipeLibrary(directory: try tempDir())
+        var recipe = try addRecipe(library, "Reel chicken")
+        recipe.source.publisher = "Instagram"
+        XCTAssertTrue(library.update(recipe))
+
+        // Import: the cover is saved, then its ▶ cropped away.
+        XCTAssertNotNil(library.saveImage(reelCover(), for: recipe.id))
+        XCTAssertTrue(library.cropPlayButton(for: recipe.id), "the reel's play button is found")
+        let cropped = try XCTUnwrap(library.recipe(id: recipe.id))
+        XCTAssertNotNil(cropped.originalCoverFilename, "the picture as it came is kept")
+        let size = try XCTUnwrap(coverSize(recipe.id, library))
+        XCTAssertEqual(size.width, 360, "full width")
+        XCTAssertLessThan(size.height, 300, "only the band above the button: \(size)")
+        let image = try XCTUnwrap(RecipePhotos.load(cropped, from: library)?.image)
+        let corner = topLeft(image)
+        XCTAssertGreaterThan(corner.r, corner.b, "the warm top of the picture, right way up: \(corner)")
+        XCTAssertFalse(library.cropPlayButton(for: recipe.id), "nothing left to crop")
+
+        // Edit cover → Use the original picture.
+        XCTAssertTrue(library.restoreOriginalCover(for: recipe.id))
+        XCTAssertEqual(coverSize(recipe.id, library), CGSize(width: 360, height: 640), "the original, button and all")
+        XCTAssertNil(library.recipe(id: recipe.id)?.originalCoverFilename)
+
+        // A cover the cook chose is never cropped on its own…
+        XCTAssertNotNil(library.saveImage(reelCover(), for: recipe.id))
+        library.cleanVideoCovers()
+        XCTAssertEqual(coverSize(recipe.id, library), CGSize(width: 360, height: 640), "the cook's own cover stays as chosen")
+        // …while one saved before build 20 is checked once when the app opens.
+        var old = try XCTUnwrap(library.recipe(id: recipe.id))
+        old.coverChecked = nil
+        XCTAssertTrue(library.update(old))
+        library.cleanVideoCovers()
+        XCTAssertLessThan(try XCTUnwrap(coverSize(recipe.id, library)).height, 300, "an older video cover is cleaned")
+        XCTAssertEqual(library.recipe(id: recipe.id)?.coverChecked, true)
+    }
+
+    func testOrdinaryPhotosAreNeverCropped() throws {
+        let library = RecipeLibrary(directory: try tempDir())
+        var recipe = try addRecipe(library, "Plain photo")
+        recipe.source.publisher = "TikTok"
+        XCTAssertTrue(library.update(recipe))
+        XCTAssertNotNil(library.saveImage(cover, for: recipe.id))
+        XCTAssertFalse(library.cropPlayButton(for: recipe.id))
+        XCTAssertEqual(coverSize(recipe.id, library), CGSize(width: 30, height: 50))
+        XCTAssertNil(library.recipe(id: recipe.id)?.originalCoverFilename)
+    }
 }
 #endif

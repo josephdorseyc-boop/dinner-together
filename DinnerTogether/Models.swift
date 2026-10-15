@@ -67,6 +67,13 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// before it existed still load; nil = not a favorite.
     var favorite: Bool?
     var isFavorite: Bool { favorite == true }
+    /// The cover as it came from a video post, kept when the app cropped a
+    /// baked-in ▶ out of it, so the cook can go back to it (A2, build 20).
+    var originalCoverFilename: String?
+    /// The cover has been checked for a ▶, or was chosen by the cook: the
+    /// app never crops it on its own again. Nil for covers saved before
+    /// build 20.
+    var coverChecked: Bool?
     var yield: String?
     /// The recipe's own total time, when it stated one.
     var totalMinutes: Int?
