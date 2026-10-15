@@ -697,8 +697,6 @@ struct RecipeDetailView: View {
     var roleLabel: String? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
-    @EnvironmentObject private var timers: TimerCenter
-    @EnvironmentObject private var quickTimers: QuickTimerStore
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -1415,63 +1413,10 @@ struct RecipeDetailView: View {
         }
     }
 
-    @ViewBuilder
     private func timerButton(_ recipe: Recipe, stepTitle: String, duration: String) -> some View {
-        let now = timers.now
-        if let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration) {
-            // Running: the countdown opens the timers' faces; Stop is its own
-            // button, so a tap on the time never silently ends it (A2-64).
-            let over = running.isOver(at: now)
-            HStack(spacing: 6) {
-                Button { showingTimers = true } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: over ? "bell.fill" : "timer")
-                        Text(over ? "Time’s up" : QuickTimer.countdown(running.remaining(at: now))).monospacedDigit()
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 14).frame(minHeight: 44)
-                    .foregroundStyle(deepPage ? Theme.ink : .white)
-                    .background(Capsule().fill(over ? Theme.warning : accentColor))
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("\(stepTitle), \(duration) timer: \(over ? "time’s up" : QuickTimer.countdown(running.remaining(at: now)) + " remaining")")
-                .accessibilityHint("Opens the timers.")
-                .accessibilityIdentifier(pageID("timer-running"))
-                Button { quickTimers.stop(running.id) } label: {
-                    Image(systemName: over ? "checkmark" : "stop.fill")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(width: 44, height: 44)
-                        .foregroundStyle(accentColor)
-                        .recipeSurface(cornerRadius: 22)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(over ? "Dismiss the \(stepTitle) timer" : "Stop the \(stepTitle) \(duration) timer")
-                .accessibilityIdentifier(pageID("stop-timer"))
-            }
-        } else {
-            Button {
-                if let seconds = TimedText.seconds(in: duration) {
-                    quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
-                }
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "timer")
-                    Text("Start \(duration)")
-                }
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 14).frame(minHeight: 44)
-                .foregroundStyle(accentColor)
-                // The page's own card (Joe, October 15, 2:18 PM: the timers
-                // "change color to match the card"): frosted in the page's
-                // colors on a photo page, paper on the cream one.
-                .recipeSurface(cornerRadius: 22)
-            }
-            .buttonStyle(.plain)
-            .disabled(TimedText.seconds(in: duration) == nil)
-            .accessibilityLabel("Start a \(duration) timer for \(stepTitle), \(recipe.title)")
-            .accessibilityHint("Counts down and tells you when it’s up.")
-            .accessibilityIdentifier(pageID("start-timer"))
-        }
+        StepTimerButton(recipe: recipe, stepTitle: stepTitle, duration: duration,
+                        accentColor: accentColor, deepPage: deepPage,
+                        idPrefix: pageID(""), openTimers: { showingTimers = true })
     }
 
     /// The Edit sheet, in Notes when asked. (The page's own menu waits for
@@ -2156,6 +2101,82 @@ private struct CookBarStyle: ButtonStyle {
                 .frame(maxWidth: .infinity)
         } else {
             BigButtonStyle(onColoredPage: onColoredPage).makeBody(configuration: configuration)
+        }
+    }
+}
+
+/// A direction's timer button on the recipe page — its own view, so only
+/// the button follows the one-second clock, never the whole page (build 21:
+/// the page observing the clock redrew every second, photo and all).
+/// "Start 15 minutes"; while it runs, the countdown (opens the timers) and
+/// its own Stop, so a tap on the time never silently ends it (A2-64).
+private struct StepTimerButton: View {
+    let recipe: Recipe
+    let stepTitle: String
+    let duration: String
+    let accentColor: Color
+    let deepPage: Bool
+    /// "" on the main page, "-second" on the spread's second recipe.
+    let idPrefix: String
+    let openTimers: () -> Void
+    @EnvironmentObject private var timers: TimerCenter
+    @EnvironmentObject private var quickTimers: QuickTimerStore
+
+    private func id(_ base: String) -> String { base + idPrefix }
+
+    var body: some View {
+        let now = timers.now
+        if let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration) {
+            let over = running.isOver(at: now)
+            HStack(spacing: 6) {
+                Button(action: openTimers) {
+                    HStack(spacing: 6) {
+                        Image(systemName: over ? "bell.fill" : "timer")
+                        Text(over ? "Time’s up" : QuickTimer.countdown(running.remaining(at: now))).monospacedDigit()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14).frame(minHeight: 44)
+                    .foregroundStyle(deepPage ? Theme.ink : .white)
+                    .background(Capsule().fill(over ? Theme.warning : accentColor))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(stepTitle), \(duration) timer: \(over ? "time’s up" : QuickTimer.countdown(running.remaining(at: now)) + " remaining")")
+                .accessibilityHint("Opens the timers.")
+                .accessibilityIdentifier(id("timer-running"))
+                Button { quickTimers.stop(running.id) } label: {
+                    Image(systemName: over ? "checkmark" : "stop.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(width: 44, height: 44)
+                        .foregroundStyle(accentColor)
+                        .recipeSurface(cornerRadius: 22)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(over ? "Dismiss the \(stepTitle) timer" : "Stop the \(stepTitle) \(duration) timer")
+                .accessibilityIdentifier(id("stop-timer"))
+            }
+        } else {
+            Button {
+                if let seconds = TimedText.seconds(in: duration) {
+                    quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                    Text("Start \(duration)")
+                }
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 14).frame(minHeight: 44)
+                .foregroundStyle(accentColor)
+                // The page's own card (Joe, October 15, 2:18 PM: the timers
+                // "change color to match the card"): frosted in the page's
+                // colors on a photo page, paper on the cream one.
+                .recipeSurface(cornerRadius: 22)
+            }
+            .buttonStyle(.plain)
+            .disabled(TimedText.seconds(in: duration) == nil)
+            .accessibilityLabel("Start a \(duration) timer for \(stepTitle), \(recipe.title)")
+            .accessibilityHint("Counts down and tells you when it’s up.")
+            .accessibilityIdentifier(id("start-timer"))
         }
     }
 }
