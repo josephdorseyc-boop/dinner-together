@@ -2,6 +2,15 @@
 Issue23 request from A3, October15,07:39 Denver. Status: SINGLE-RECIPE COMPOSITION APPROVED by Joe, October15,2026,08:26 Denver. TWO-RECIPE composition also approved by Joe at08:31 Denver. Three-/four-dish Cooking remains separately scoped. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
 
 
+## APPROVED fully-open UPRIGHT Duo — Joe, October15,08:35 Denver
+Joe approved the upright two-recipe Cooking mockup. Use one broad, readable cream cookbook page rather than a cramped two-column spread. A quiet Main / Side selector changes the displayed recipe. Each recipe retains its own Coming up / Directions tab and scroll position. Current recipe's compact Right now strip includes its current step, remaining time and state-appropriate primary action above reader content.
+
+A compact persistent strip above actual bottom navigation shows the OTHER recipe's name, live timer/state and View side (or View main) action. It is a view selector, not a timer reset or new session. If the other recipe has no running timer, show its actual existing state rather than fabricated countdown. If its timer ends, show named finished/check state and retain access without auto-completing. Selector and bottom strip route to the same recipe identity.
+
+Both recipes remain one coordinated dinner and serving time. Main/Side switching, right-tab changes and rotating must not replan, start/complete steps, reset deadlines or lose reading positions. Native placement/insets must account for the actual system rail and navigation; mockup bottom bar location is illustrative rather than an instruction to duplicate OS controls. Make all content reachable at AX3, hide the decorative leaf before crowding actions, and preserve cream Cooking under Tonight themes.
+
+This approval covers the upright TWO-recipe composition. Approved sideways one-/two-recipe designs remain as specified. Single-recipe upright can use the existing current-first presentation, with no unnecessary Main/Side switch;3–4dish adaptations are not approved by inference.
+
 ## APPROVED TWO-recipe direction — Joe, October15,08:31 Denver
 Joe approved the two-page no-photo mockup approach at08:31. Each page has a compact dish-local current-step/timer/action strip above independently selectable Coming up / Directions tabs. Illustrative timer values and generated recipe metadata are not fixtures or new timing rules.
 Joe explicitly requests NO hero photo for TWO recipes. Show BOTH recipes as two readable cream pages: SIDE dish LEFT, MAIN dish RIGHT, preserving the approved cookbook order. Each pane offers Coming up / Directions for that recipe, with independent selected tab and reading position. This supersedes the previous LEFT=current / RIGHT=combined-timeline proposal for the two-recipe case.
