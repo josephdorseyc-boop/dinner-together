@@ -809,6 +809,33 @@ final class RecipeCoverCropTests: XCTestCase {
         let crop = try XCTUnwrap(RecipeCoverCrop.rect(width: 800, height: 1200, zoom: 0, horizontal: -1, vertical: 2))
         XCTAssertEqual(crop, RecipeCoverCrop.Rect(x: 0, y: 600, width: 800, height: 600))
     }
+
+    // Joe, October 15: "the left to right slider doesn't do anything". A
+    // picture no wider than the 4:3 cover fills it side to side at 1×, so
+    // that slider has no room until the cook zooms in, and the sheet says so.
+    func testRoomToMoveTheCropAtEachZoom() {
+        // A portrait screenshot: up and down only, until zoomed.
+        var room = RecipeCoverCrop.room(width: 1179, height: 2556, zoom: 1)
+        XCTAssertFalse(RecipeCoverCrop.canMove(room.horizontal))
+        XCTAssertTrue(RecipeCoverCrop.canMove(room.vertical))
+        room = RecipeCoverCrop.room(width: 1179, height: 2556, zoom: 2)
+        XCTAssertTrue(RecipeCoverCrop.canMove(room.horizontal))
+        XCTAssertEqual(room.horizontal, 1179.0 / 2, accuracy: 0.001)
+        // The current cover cropped again is already 4:3: nothing moves at 1×.
+        room = RecipeCoverCrop.room(width: 1200, height: 900, zoom: 1)
+        XCTAssertFalse(RecipeCoverCrop.canMove(room.horizontal))
+        XCTAssertFalse(RecipeCoverCrop.canMove(room.vertical))
+        room = RecipeCoverCrop.room(width: 1200, height: 900, zoom: 1.5)
+        XCTAssertTrue(RecipeCoverCrop.canMove(room.horizontal) && RecipeCoverCrop.canMove(room.vertical))
+        // A wide photo: left and right only, until zoomed.
+        room = RecipeCoverCrop.room(width: 2400, height: 1200, zoom: 1)
+        XCTAssertTrue(RecipeCoverCrop.canMove(room.horizontal))
+        XCTAssertFalse(RecipeCoverCrop.canMove(room.vertical))
+        // Nothing to measure: nothing moves.
+        room = RecipeCoverCrop.room(width: 0, height: 900, zoom: 1)
+        XCTAssertEqual(room.horizontal, 0)
+        XCTAssertEqual(room.vertical, 0)
+    }
 }
 
 // Joe, build 8: choosing a 4-hour recipe left dinner an hour away, and the

@@ -1382,6 +1382,12 @@ extension DinnerTogetherUITestCase {
         guard revealCoverZoom(zoom) else { return }
         photograph("r11a-cover-before-zoom")
         let beforeZoom = zoom.value as? String
+        // Joe, October 15: a position slider with no room is dimmed and says
+        // why (a phone screenshot fills the 4:3 frame side to side at 1×).
+        let sideways = app.sliders["cover-horizontal"]
+        if app.staticTexts["cover-horizontal-hint"].exists {
+            XCTAssertFalse(sideways.isEnabled, "Left to right is dimmed while the full width is in the frame")
+        }
         zoom.adjust(toNormalizedSliderPosition: 0.3)
         guard zoom.waitForExistence(timeout: 3) else {
             photograph("r11-zoom-unexpected-dismissal")
@@ -1389,6 +1395,8 @@ extension DinnerTogetherUITestCase {
             return XCTFail("Adjusting Zoom must not close the crop editor")
         }
         XCTAssertNotEqual(zoom.value as? String, beforeZoom, "Zoom actually changed")
+        XCTAssertTrue(sideways.isEnabled, "Zoomed in, Left to right can move the photo")
+        XCTAssertFalse(app.staticTexts["cover-horizontal-hint"].exists, "the zoom-in hint goes once there's room")
         photograph("r11-cover-crop")
         tapPinned(app.buttons["use-cover-crop"], "Use this crop")
         XCTAssertTrue(app.images["Selected recipe cover"].waitForExistence(timeout: 5), "the cover shows in the form")

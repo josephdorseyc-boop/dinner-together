@@ -452,13 +452,26 @@ enum RecipeCoverCrop {
                      horizontal: Double, vertical: Double) -> Rect? {
         guard [width, height, zoom, horizontal, vertical].allSatisfy({ $0.isFinite }),
               width > 0, height > 0 else { return nil }
-        let ratio = 4.0 / 3.0
         let cropWidth = min(width, height * ratio) / max(1, min(4, zoom))
         let cropHeight = cropWidth / ratio
         return Rect(x: max(0, width - cropWidth) * max(0, min(1, horizontal)),
                     y: max(0, height - cropHeight) * max(0, min(1, vertical)),
                     width: cropWidth, height: cropHeight)
     }
+
+    /// How far the crop can travel at this zoom, in the picture's own units.
+    /// At 1× a picture no wider than the 4:3 cover already fills it side to
+    /// side, so Left to right has nowhere to go until the cook zooms in (Joe,
+    /// October 15: "the left to right slider doesn't do anything").
+    static func room(width: Double, height: Double, zoom: Double) -> (horizontal: Double, vertical: Double) {
+        guard let crop = rect(width: width, height: height, zoom: zoom, horizontal: 0, vertical: 0) else { return (0, 0) }
+        return (max(0, width - crop.width), max(0, height - crop.height))
+    }
+
+    /// Less than a pixel of travel moves nothing the cook could see.
+    static func canMove(_ room: Double) -> Bool { room >= 1 }
+
+    private static let ratio = 4.0 / 3.0
 }
 
 // MARK: - Fetching a pasted link

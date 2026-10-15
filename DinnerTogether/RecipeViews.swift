@@ -1636,6 +1636,12 @@ struct ScreenshotCoverSheet: View {
         return croppedImage(images[selected], width: 640)
     }
 
+    private var cropRoom: (horizontal: Double, vertical: Double) {
+        guard images.indices.contains(selected) else { return (0, 0) }
+        let size = images[selected].size
+        return RecipeCoverCrop.room(width: Double(size.width), height: Double(size.height), zoom: zoom)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -1665,14 +1671,33 @@ struct ScreenshotCoverSheet: View {
                             Slider(value: $zoom, in: 1...4, step: 0.05) { Text("Zoom") }
                                 .accessibilityValue(String(format: "%.1f times", zoom))
                                 .accessibilityIdentifier("cover-zoom")
+                            // A position slider with no room to travel is
+                            // dimmed and says why, rather than doing nothing.
+                            let room = cropRoom
+                            let sideways = RecipeCoverCrop.canMove(room.horizontal)
+                            let upDown = RecipeCoverCrop.canMove(room.vertical)
                             Text("Left to right").font(.headline)
                             Slider(value: $horizontal, in: 0...1) { Text("Horizontal crop position") }
-                                .accessibilityValue("\(Int(horizontal * 100)) percent")
+                                .disabled(!sideways)
+                                .accessibilityValue(sideways ? "\(Int(horizontal * 100)) percent" : "Full width showing")
                                 .accessibilityIdentifier("cover-horizontal")
+                            if !sideways {
+                                Text("The photo’s full width is in the frame. Zoom in to move it left or right.")
+                                    .font(.footnote).foregroundStyle(Theme.muted)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("cover-horizontal-hint")
+                            }
                             Text("Top to bottom").font(.headline)
                             Slider(value: $vertical, in: 0...1) { Text("Vertical crop position") }
-                                .accessibilityValue("\(Int(vertical * 100)) percent")
+                                .disabled(!upDown)
+                                .accessibilityValue(upDown ? "\(Int(vertical * 100)) percent" : "Full height showing")
                                 .accessibilityIdentifier("cover-vertical")
+                            if !upDown {
+                                Text("The photo’s full height is in the frame. Zoom in to move it up or down.")
+                                    .font(.footnote).foregroundStyle(Theme.muted)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("cover-vertical-hint")
+                            }
                         }
                         .dtCard()
                     }
