@@ -602,6 +602,9 @@ struct RecipeDetailView: View {
     let recipeID: UUID
     var onChoose: (() -> Void)? = nil
     var role: Role = .page
+    /// The spread's reader only: the main recipe on the right, so this page
+    /// can offer "Cook both together" (Joe, October 14).
+    var pairMain: UUID? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -625,7 +628,21 @@ struct RecipeDetailView: View {
     private var recipe: Recipe? { library.recipe(id: recipeID) }
     private var reader: Bool { role == .reader }
     private func pageID(_ base: String) -> String { reader ? base + "-second" : base }
-    private var tabs: [Tab] { reader ? [.ingredients, .directions] : Tab.allCases }
+    /// The reader reads (Ingredients, Directions); Timing appears there
+    /// only while this recipe's timing still needs its check, so it can be
+    /// cooked alongside the main.
+    private var tabs: [Tab] {
+        guard reader, let recipe, !recipe.needsTimingReview, tab != .timing else { return Tab.allCases }
+        return [.ingredients, .directions]
+    }
+    /// What "cook" means here: this recipe, or — on the spread's second
+    /// page — the main and this one together.
+    private var dinnerMenuID: String? {
+        guard let recipe else { return nil }
+        if reader { return pairMain.map { PairedDinner.menuID(main: $0, side: recipe.id) } }
+        return recipe.menuID
+    }
+    private var mainNeedsReview: Bool { pairMain.flatMap { library.recipe(id: $0) }?.needsTimingReview ?? false }
     /// The page's colors (photo or the cook's choice); nil = classic cream.
     private var pagePalette: RecipePalette? { recipe.flatMap { RecipePhotos.palette(for: $0, from: library) } }
     /// A colored page draws from its own colors whatever the phone's
@@ -636,10 +653,17 @@ struct RecipeDetailView: View {
     private var deepPage: Bool { pagePalette?.tone == .deep }
     private var labelColor: Color { deepPage ? Theme.pageAccent : Theme.olive }
     private var accentColor: Color { deepPage ? Theme.pageAccent : Theme.tomato }
-    private var isTonight: Bool { store.session.menuID == recipe?.menuID }
+    private var isTonight: Bool { dinnerMenuID != nil && store.session.menuID == dinnerMenuID }
     private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
     /// Timing is frozen while this recipe is being cooked, same rule as the catalog.
-    private var timingLocked: Bool { isTonight && hasProgress }
+    /// Timing is frozen while this recipe is being cooked — alone or as
+    /// half of a paired dinner.
+    private var timingLocked: Bool {
+        guard hasProgress, let recipe else { return false }
+        if store.session.menuID == recipe.menuID { return true }
+        if let pair = PairedDinner.parse(store.session.menuID) { return pair.main == recipe.id || pair.side == recipe.id }
+        return false
+    }
 
     var body: some View {
         Group {
@@ -678,7 +702,7 @@ struct RecipeDetailView: View {
                 .environment(\.recipePalette, pagePalette)
                 .environment(\.colorScheme, pageScheme)
                 .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if !reader {
+                    if !reader || pairMain != nil {
                         cookBar(recipe)
                             .environment(\.recipePalette, pagePalette)
                             .environment(\.colorScheme, pageScheme)
@@ -710,7 +734,7 @@ struct RecipeDetailView: View {
                     .uiTestTypeSize()
                 }
                 .confirmationDialog("Change dinner and clear progress?", isPresented: $confirmingReplace, titleVisibility: .visible) {
-                    Button("Cook \(recipe.title) instead", role: .destructive) { choose(recipe) }
+                    Button(reader ? "Cook both instead" : "Cook \(recipe.title) instead", role: .destructive) { choose(recipe) }
                     Button("Cancel", role: .cancel) { }
                 }
             } else {
@@ -1155,7 +1179,8 @@ struct RecipeDetailView: View {
     private func cookBar(_ recipe: Recipe) -> some View {
         let bar = VStack(spacing: 6) {
             if isTonight {
-                Text("This is tonight’s dinner. Set the time on Tonight, then build your plan.")
+                Text(reader ? "These two are tonight’s dinner. Set the time on Tonight, then build your plan."
+                            : "This is tonight’s dinner. Set the time on Tonight, then build your plan.")
                     .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             }
             if recipe.needsTimingReview && tab == .timing {
@@ -1169,7 +1194,25 @@ struct RecipeDetailView: View {
                 } label: { Label("Timing looks right", systemImage: "checkmark") }
                 .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
                 .disabled(timingLocked || recipe.steps.isEmpty)
-                .accessibilityIdentifier("timing-looks-right")
+                .accessibilityIdentifier(pageID("timing-looks-right"))
+            } else if reader {
+                if mainNeedsReview {
+                    Text("Check the main recipe’s timing on the right first.")
+                        .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
+                }
+                Button {
+                    if recipe.needsTimingReview { tab = .timing }
+                    else if isTonight { onChoose?() }
+                    else if hasProgress { confirmingReplace = true }
+                    else { choose(recipe) }
+                } label: {
+                    Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook both together"),
+                          systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
+                }
+                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
+                .disabled(recipe.steps.isEmpty || (mainNeedsReview && !recipe.needsTimingReview && !isTonight))
+                .accessibilityHint("Cooks this and the recipe on the right on one timeline, ready together.")
+                .accessibilityIdentifier("cook-both")
             } else {
                 Button {
                     if recipe.needsTimingReview { tab = .timing }
@@ -1286,8 +1329,11 @@ struct RecipeDetailView: View {
     }
 
     private func choose(_ recipe: Recipe) {
-        guard !recipe.needsTimingReview else { tab = .timing; return }
-        store.chooseMenu(recipe.menuID)
+        guard !recipe.needsTimingReview, !(reader && mainNeedsReview), let id = dinnerMenuID else {
+            if recipe.needsTimingReview { tab = .timing }
+            return
+        }
+        store.chooseMenu(id)
         if let onChoose { onChoose() } else { dismiss() }
     }
 

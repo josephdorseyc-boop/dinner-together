@@ -28,4 +28,53 @@ final class SpreadTests: XCTestCase {
         XCTAssertEqual(SpreadLeftPage.recipe(side).secondRecipeID, side)
         XCTAssertNil(SpreadLeftPage.cover.secondRecipeID)
     }
+
+    // MARK: Paired dinners (Joe, October 14: two recipes on the Duo)
+
+    func testPairedMenuIDRoundTrips() {
+        let a = UUID(), b = UUID()
+        let id = PairedDinner.menuID(main: a, side: b)
+        XCTAssertEqual(PairedDinner.parse(id)?.main, a)
+        XCTAssertEqual(PairedDinner.parse(id)?.side, b)
+        XCTAssertNil(PairedDinner.parse("recipe:" + a.uuidString), "a single recipe is not a pair")
+        XCTAssertNil(PairedDinner.parse(PairedDinner.prefix + a.uuidString), "half a pair is nothing")
+        XCTAssertNil(PairedDinner.parse(PairedDinner.menuID(main: a, side: a)), "a recipe is not its own side")
+        XCTAssertNil(PairedDinner.parse(""))
+    }
+
+    @MainActor
+    func testPairedDinnerCooksBothRecipesReadyTogether() async throws {
+        let dir = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("dt-pair-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let library = RecipeLibrary(directory: dir)
+        func add(_ text: String) throws -> Recipe {
+            let r = RecipeImporter.build(try RecipeImporter.parse(text: text), method: .text)
+            XCTAssertTrue(library.add(r)); return r
+        }
+        let main = try add("Lemon herb chicken\nDirections\n1. Marinate the chicken for 20 minutes.\n2. Roast for 35 minutes.")
+        let side = try add("Rosemary potatoes\nDirections\n1. Roast the potatoes for 40 minutes.")
+        let id = PairedDinner.menuID(main: main.id, side: side.id)
+
+        let menu = try XCTUnwrap(library.menu(id: id))
+        XCTAssertEqual(menu.title, "Lemon herb chicken + Rosemary potatoes")
+        XCTAssertEqual(Set(menu.steps.map(\.id)), Set(main.steps.map(\.id) + side.steps.map(\.id)), "every step of both recipes, once")
+        XCTAssertEqual(library.recipe(menuID: id)?.id, main.id, "Tonight's cover and title follow the main recipe")
+
+        let store = SessionStore(fileURL: dir.appendingPathComponent("session.json"), menuProvider: library)
+        store.chooseMenu(id)
+        XCTAssertTrue(store.hasDinner)
+        XCTAssertFalse(store.menuIsMissing)
+        let plan = store.plan
+        XCTAssertEqual(plan.count, main.steps.count + side.steps.count)
+        let serve = store.session.serveAt
+        for recipe in [main, side] {
+            let ids = Set(recipe.steps.map(\.id))
+            let last = try XCTUnwrap(plan.filter { ids.contains($0.id) }.map(\.end).max())
+            XCTAssertEqual(last.timeIntervalSince(serve), 0, accuracy: 1, "“\(recipe.title)” is ready at dinner time")
+        }
+
+        XCTAssertTrue(library.remove(id: side.id))
+        XCTAssertNil(library.menu(id: id), "a deleted half is a missing dinner, never half a plan")
+        XCTAssertTrue(store.menuIsMissing)
+    }
 }

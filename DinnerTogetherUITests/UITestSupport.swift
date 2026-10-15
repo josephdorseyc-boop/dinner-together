@@ -1896,8 +1896,8 @@ extension DinnerTogetherUITestCase {
         waitForExistence(secondTitle, timeout: 5, "the second recipe on the left page")
         XCTAssertTrue(secondTitle.label.hasPrefix(RecipeFixtureText.beanSpreadTitle), secondTitle.label)
         XCTAssertLessThan(secondTitle.frame.maxX, frame.midX + 1, "…on the left half: \(secondTitle.frame)")
-        XCTAssertFalse(app.buttons["recipe-tab-timing-second"].exists, "read alongside, never cooked: no Timing on the left")
-        XCTAssertFalse(app.buttons["cook-this-recipe"].frame.minX < frame.midX, "one cook bar, the main recipe's")
+        XCTAssertTrue(app.buttons["cook-both"].exists, "the left page offers Cook both together")
+        XCTAssertLessThan(app.buttons["cook-both"].frame.maxX, frame.midX + 1, "…on the left half")
         app.buttons["recipe-tab-directions-second"].tap()
         XCTAssertTrue(app.buttons["recipe-tab-directions-second"].isSelected, "the left page has its own tabs")
         XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "…and the right page kept its place")
@@ -1910,6 +1910,34 @@ extension DinnerTogetherUITestCase {
         XCTAssertFalse(secondTitle.exists, "the second recipe has left the page")
         XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "the right page still on Directions")
         photograph("r26d-spread-cover-again" + capture.suffix)
+
+        // Cook both together (Joe, October 14: two recipes, on the Duo).
+        // The main recipe's timing first, on the right…
+        let cook = app.buttons["cook-this-recipe"]
+        tapPinned(cook, "Check timing to continue")
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "the main recipe's Timing tab")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the main recipe's review is recorded")
+        // …then the side's, on the left, and both together.
+        more.tap()
+        waitForExistence(add, timeout: 5, "Add a second recipe")
+        add.tap()
+        waitForExistence(row, timeout: 5, "the second-recipe picker")
+        row.tap()
+        let both = app.buttons["cook-both"]
+        waitForExistence(both, timeout: 5, "Cook both together")
+        both.tap() // the side's timing check
+        let confirmSide = app.buttons["timing-looks-right-second"]
+        waitForExistence(confirmSide, timeout: 5, "the side's Timing tab")
+        confirmSide.tap()
+        waitForDisappearance(confirmSide, "the side's review is recorded")
+        XCTAssertTrue(both.label.hasPrefix("Cook both"), both.label)
+        photograph("r26e-spread-cook-both" + capture.suffix)
+        both.tap()
+        let pairTitle = "\(RecipeFixtureText.frozenBerryTitle) + \(RecipeFixtureText.beanSpreadTitle)"
+        XCTAssertTrue(app.staticTexts["Selected: \(pairTitle)"].waitForExistence(timeout: 8), "Tonight: both recipes, one dinner")
+        photograph("r26f-tonight-two-recipes" + capture.suffix)
     }
 
     /// r22 — tonight's recipe cover on Tonight and on Cooking's RIGHT NOW

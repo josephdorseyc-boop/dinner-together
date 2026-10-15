@@ -73,12 +73,21 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         #if DEBUG
         if SampleMenus.enabled, let sample = SampleMenus.menu(id: id) { return sample }
         #endif
+        if let pair = PairedDinner.parse(id) {
+            // Both recipes, or nothing: a deleted half is a missing dinner,
+            // which Tonight says plainly.
+            guard let main = recipe(id: pair.main), let side = recipe(id: pair.side) else { return nil }
+            return PairedDinner.menu(main: main, side: side)
+        }
         return recipe(menuID: id)?.menu
     }
 
     func recipe(id: UUID) -> Recipe? { recipes.first { $0.id == id } }
 
+    /// The recipe a menu id names — for a paired dinner, its main recipe
+    /// (Tonight's cover, title link and plate photo follow the main).
     func recipe(menuID: String) -> Recipe? {
+        if let pair = PairedDinner.parse(menuID) { return recipe(id: pair.main) }
         guard menuID.hasPrefix(Recipe.menuIDPrefix),
               let uuid = UUID(uuidString: String(menuID.dropFirst(Recipe.menuIDPrefix.count))) else { return nil }
         return recipe(id: uuid)

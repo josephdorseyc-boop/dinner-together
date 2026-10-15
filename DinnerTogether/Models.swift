@@ -155,3 +155,34 @@ struct UndoFrame {
     let label: String
     let session: DinnerSession
 }
+
+/// Two of the cook's recipes cooked together on one timeline — a main and
+/// a side (Joe, October 14: "the option for users to work on two recipes
+/// exclusively on the Duo"). The engine already runs dishes side by side;
+/// a paired dinner is the two recipes' dishes in one menu, finishing
+/// together. Chosen only from the Duo's cookbook spread; any screen can
+/// show and cook one.
+enum PairedDinner {
+    static let prefix = "pair:"
+
+    static func menuID(main: UUID, side: UUID) -> String {
+        prefix + main.uuidString + "+" + side.uuidString
+    }
+
+    /// (main, side), or nil for any other menu id.
+    static func parse(_ menuID: String) -> (main: UUID, side: UUID)? {
+        guard menuID.hasPrefix(prefix) else { return nil }
+        let parts = menuID.dropFirst(prefix.count).split(separator: "+", omittingEmptySubsequences: false)
+        guard parts.count == 2, let a = UUID(uuidString: String(parts[0])), let b = UUID(uuidString: String(parts[1])), a != b
+        else { return nil }
+        return (a, b)
+    }
+
+    static func menu(main: Recipe, side: Recipe) -> DinnerMenu {
+        let minutes = max(main.plannedMinutes, side.plannedMinutes)
+        let timing = minutes > 0 ? "About \(Scheduling.formatMinutes(minutes))" : "Timing not set"
+        return DinnerMenu(id: menuID(main: main.id, side: side.id), title: "\(main.title) + \(side.title)",
+                          subtitle: "Two recipes, ready together · \(timing)", symbol: "book.closed",
+                          dishes: main.dishes + side.dishes)
+    }
+}

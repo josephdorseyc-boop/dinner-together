@@ -84,7 +84,7 @@ struct RecipeSpreadView: View {
                     .background(Theme.cream)
                     .accessibilityAddTraits(.isHeader)
                 Divider()
-                RecipeDetailView(recipeID: id, role: .reader)
+                RecipeDetailView(recipeID: id, onChoose: onChoose, role: .reader, pairMain: recipeID)
                     .id(id) // a different recipe starts at its own first tab
             }
         }
