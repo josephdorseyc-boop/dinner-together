@@ -2066,6 +2066,19 @@ extension DinnerTogetherUITestCase {
             attachText("r26-orientation-evidence" + capture.suffix,
                        "requested=landscapeLeft; device=\(XCUIDevice.shared.orientation.rawValue); appFrame=\(observed); scene=\(sceneStatus)")
             photograph("r26-0-turned" + capture.suffix)
+            // The folded Duo turned sideways shows This Week over an idle
+            // Tonight (A2-63; Joe, October 15, 1:12 PM); Done returns to it.
+            if observed.width > observed.height && min(observed.width, observed.height) < 600 {
+                let showcase = app.descendants(matching: .any)["week-showcase"].firstMatch
+                if !showcase.waitForExistence(timeout: 5) { attachHierarchy("r26-0-week-showcase-missing-hierarchy" + capture.suffix) }
+                waitForExistence(showcase, timeout: 1, "This Week on the folded Duo turned sideways")
+                XCTAssertTrue(app.descendants(matching: .any)["week-showcase-title"].firstMatch.exists, "the day's dinner, or Nothing planned yet")
+                photograph("r26-0-week-showcase" + capture.suffix)
+                let done = app.buttons["week-showcase-done"]
+                waitForExistence(done, timeout: 3, "the showcase's Done")
+                done.tap()
+                waitForDisappearance(showcase, "Done returns to Tonight")
+            }
             if requireWideNativeWindow && !wideWindowObserved {
                 attachHierarchy("r26-orientation-not-landscape-hierarchy" + capture.suffix)
                 return XCTFail("Duo window/scene did not reach matching wide bounds: \(observed); \(sceneStatus)")

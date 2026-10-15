@@ -31,6 +31,29 @@ struct ContentView: View {
         horizontalSizeClass == .regular && UIDevice.current.userInterfaceIdiom != .phone
     }
 
+    /// The folded Duo turned sideways (A2-63; Joe, October 15, 1:12 PM):
+    /// its cover display's landscape window — short side under 600 pt —
+    /// shows This Week, the week's hero photos to swipe through, over an
+    /// idle Tonight. Ordinary iPhones stay upright (AppDelegate), so only
+    /// the Duo's cover gets here; the opened Duo (669 short) keeps Tonight.
+    @State private var windowSize: CGSize = .zero
+    /// Done: not again until the window stops being the sideways cover
+    /// (turned upright or opened).
+    @State private var showcaseDone = false
+
+    private var sidewaysCover: Bool {
+        let short = min(windowSize.width, windowSize.height)
+        return UIDevice.current.userInterfaceIdiom == .phone
+            && windowSize.width > windowSize.height && short > 0 && short < 600
+    }
+
+    /// Only from an idle Tonight: never over Cooking, a recipe, an import,
+    /// the stale-plan choice or a dinner in progress.
+    private var showsWeekShowcase: Bool {
+        sidewaysCover && !showcaseDone && destination == .tonight
+            && !store.hasProgress && library.pendingShare == nil && !store.needsStaleChoice
+    }
+
     @State private var recipePath: [UUID] = []
     /// The Add recipe sheet, in the Recipes destination; Tonight opens it
     /// too when the cookbook is empty.
@@ -93,6 +116,43 @@ struct ContentView: View {
             }
         }
         .tint(Theme.tomato)
+        // Behind the showcase, Tonight is out of VoiceOver's reach too.
+        .accessibilityHidden(showsWeekShowcase)
+        .overlay {
+            if showsWeekShowcase {
+                ZStack {
+                    // Takes every touch the photos let through.
+                    Color.black.ignoresSafeArea()
+                    WeekShowcaseView(
+                        onDone: { showcaseDone = true },
+                        openDinner: { id in
+                            // Read, never choose or cook: the main dish's page.
+                            if let main = WholeMeal.recipeIDs(id)?.first { openRecipe(main) }
+                        },
+                        chooseToday: { id in
+                            guard id != store.session.menuID, !store.hasProgress else { return }
+                            store.chooseMenu(id)
+                        },
+                        changeTodayDishes: { id in
+                            guard !store.hasProgress else { return }
+                            store.changeDishes(to: id)
+                        })
+                }
+                .accessibilityAddTraits(.isModal)
+                .transition(.opacity)
+            }
+        }
+        .background {
+            GeometryReader { g in
+                Color.clear
+                    .onAppear { windowSize = g.size }
+                    .onChange(of: g.size) { _, size in windowSize = size }
+            }
+            .ignoresSafeArea()
+        }
+        .onChange(of: sidewaysCover) { _, sideways in
+            if !sideways { showcaseDone = false }
+        }
         // The colored page's scheme — or, off such a page, the tests' forced
         // appearance (Debug; nil in Release) or else the system's — as this
         // window's own style.
