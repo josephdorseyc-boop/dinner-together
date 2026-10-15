@@ -58,10 +58,14 @@ struct RecipeSpreadView: View {
             SpreadCoverPage(recipeID: recipeID) { choosingSecond = true }
         case .recipe(let id):
             VStack(spacing: 0) {
+                // As in the approved mockup (Joe, October 14, "03 / Two
+                // recipes, side by side"): the way back to the photo first.
                 HStack(spacing: 8) {
-                    Label("Reading alongside", systemImage: "book")
-                        .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
-                        .lineLimit(1).minimumScaleFactor(0.8)
+                    Button { leftPage = .cover } label: {
+                        Label("Show cover photo", systemImage: "photo").lineLimit(1)
+                    }
+                    .buttonStyle(QuietButtonStyle())
+                    .accessibilityIdentifier("spread-show-cover")
                     Spacer(minLength: 8)
                     Button { choosingSecond = true } label: {
                         Label("Change", systemImage: "arrow.left.arrow.right").labelStyle(.iconOnly)
@@ -69,15 +73,16 @@ struct RecipeSpreadView: View {
                     .buttonStyle(QuietButtonStyle())
                     .accessibilityLabel("Change the second recipe")
                     .accessibilityIdentifier("spread-change-second")
-                    Button { leftPage = .cover } label: {
-                        Label("Cover photo", systemImage: "photo").lineLimit(1)
-                    }
-                    .buttonStyle(QuietButtonStyle())
-                    .accessibilityLabel("Show cover photo")
-                    .accessibilityIdentifier("spread-show-cover")
                 }
                 .padding(.horizontal, 16).padding(.vertical, 6)
                 .background(Theme.cream)
+                Text("SIDE DISH")
+                    .font(.caption.weight(.semibold)).tracking(1.6)
+                    .foregroundStyle(Theme.tomato)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 24).padding(.top, 6)
+                    .background(Theme.cream)
+                    .accessibilityAddTraits(.isHeader)
                 Divider()
                 RecipeDetailView(recipeID: id, role: .reader)
                     .id(id) // a different recipe starts at its own first tab
@@ -87,13 +92,14 @@ struct RecipeSpreadView: View {
 }
 
 /// The spread's default LEFT page: the main recipe's photo edge to edge
-/// (its plate photo, then its cover), the title and byline on it, and a
-/// discreet way to read a second recipe alongside. A recipe without a
+/// (its plate photo, then its cover), nothing over it but a
+/// discreet "…" to read a second recipe alongside. A recipe without a
 /// photo gets a warm page with its title large.
 struct SpreadCoverPage: View {
     let recipeID: UUID
     var addSecond: () -> Void
     @EnvironmentObject private var library: RecipeLibrary
+    @EnvironmentObject private var store: SessionStore
 
     private var recipe: Recipe? { library.recipe(id: recipeID) }
 
@@ -118,44 +124,53 @@ struct SpreadCoverPage: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Label("FROM YOUR COLLECTION", systemImage: "book.closed")
                         .font(.caption.weight(.semibold)).foregroundStyle(Theme.olive)
+                    Text(recipe?.title ?? "")
+                        .font(.system(.largeTitle, design: .serif).weight(.semibold))
+                        .foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                 }
                 .padding(28)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
+            // Mockup "01 / Photo-first cookbook": the photo says it all —
+            // the title is on the right page; a small "Tonight" when it is
+            // tonight's dinner, and the "…" for a second recipe.
             if let recipe {
                 let onPhoto = RecipePhotos.hero(recipe, from: library) != nil
-                VStack(alignment: .leading, spacing: 14) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(recipe.title)
-                            .font(.system(onPhoto ? .title : .largeTitle, design: .serif).weight(.semibold))
-                            .foregroundStyle(onPhoto ? .white : Theme.ink)
-                            .shadow(color: .black.opacity(onPhoto ? 0.35 : 0), radius: 6, y: 1)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                            .accessibilityIdentifier("spread-cover-title")
-                        if let byline = recipe.source.byline {
-                            Text(byline).font(.subheadline.weight(.medium))
-                                .foregroundStyle(onPhoto ? .white.opacity(0.9) : Theme.muted)
-                                .shadow(color: .black.opacity(onPhoto ? 0.35 : 0), radius: 4, y: 1)
-                        }
+                VStack(alignment: .leading) {
+                    if store.session.menuID == recipe.menuID && onPhoto {
+                        Text("Tonight")
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.45), radius: 4, y: 1)
+                            .accessibilityIdentifier("spread-tonight-tag")
                     }
-                    Button(action: addSecond) {
-                        Label("Add a second recipe", systemImage: "plus")
-                            .font(.subheadline.weight(.semibold))
-                            .padding(.horizontal, 14).frame(minHeight: 44)
-                            .foregroundStyle(onPhoto ? .white : Theme.ink)
-                            .background(onPhoto ? Color.white.opacity(0.18) : Theme.ink.opacity(0.06),
-                                        in: Capsule())
-                            .overlay(Capsule().strokeBorder((onPhoto ? Color.white : Theme.ink).opacity(0.25), lineWidth: 1))
+                    Spacer()
+                    Menu {
+                        // After the menu has closed: a sheet asked for while it
+                        // is closing does not appear (as the page's ••• does).
+                        Button {
+                            Task { @MainActor in
+                                try? await Task.sleep(nanoseconds: 350_000_000)
+                                addSecond()
+                            }
+                        } label: { Label("Add a second recipe", systemImage: "plus") }
+                            .disabled(library.recipes.count < 2)
+                    } label: {
+                        Image(systemName: "ellipsis")
+                            .font(.body.weight(.bold)).foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(Circle().fill(Color.black.opacity(0.32)))
+                            .overlay(Circle().strokeBorder(Color.white.opacity(0.25), lineWidth: 1))
                     }
-                    .buttonStyle(.plain)
-                    .disabled(library.recipes.count < 2)
-                    .accessibilityHint("Reads another of your recipes on this page.")
-                    .accessibilityIdentifier("spread-add-second")
+                    .accessibilityLabel("Page options")
+                    .accessibilityHint("Read a second recipe on this page.")
+                    .accessibilityIdentifier("spread-more")
                 }
-                .padding(24)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(20)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(recipe.title)
             }
         }
         .ignoresSafeArea(edges: .bottom)

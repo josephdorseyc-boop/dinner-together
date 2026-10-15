@@ -1883,7 +1883,10 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(app.buttons["recipe-tab-directions"].isSelected, "Directions on the right")
 
         // A second recipe on the left, with its own tabs.
-        let add = app.buttons["spread-add-second"]
+        let more = app.buttons["spread-more"]
+        waitForExistence(more, timeout: 5, "the photo page's …")
+        more.tap()
+        let add = app.buttons["Add a second recipe"]
         waitForExistence(add, timeout: 5, "Add a second recipe")
         add.tap()
         let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", RecipeFixtureText.beanSpreadTitle)).firstMatch
