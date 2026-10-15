@@ -1,0 +1,143 @@
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+index 1ea8141..fcc7365 100644
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -1919,6 +1919,30 @@ extension DinnerTogetherUITestCase {
+         }
+     }
+ 
++    /// A2-62: the window and scene must agree. A landscape-only mask can
++    /// produce a wide window drawn sideways inside a narrow scene.
++    private func wideSceneStatus() -> String {
++        let probe = app.descendants(matching: .any)["dt-scene-geometry-status"].firstMatch
++        return probe.exists ? ((probe.value as? String) ?? probe.label) : "probe absent"
++    }
++
++    private func hasUsableWideScene() -> Bool {
++        DuoWindowGeometry.accepts(status: wideSceneStatus(), frame: app.frame)
++    }
++
++    /// Geometry and accessibility are automated clipping checks, not a pixel
++    /// oracle. Retain the full capture for visual rail/safe-area inspection.
++    private func firstScreenFitsWideScene() -> Bool {
++        guard hasUsableWideScene() else { return false }
++        let frame = app.frame
++        let image = app.screenshot().image.size
++        guard image.width.isFinite, image.height.isFinite, image.height > 0,
++              abs(image.width / image.height - frame.width / frame.height) <= 0.02 else { return false }
++        let entry = app.buttons["open-recipes"].firstMatch
++        guard entry.exists, entry.isHittable, isFiniteFrame(entry.frame) else { return false }
++        return frame.insetBy(dx: -1, dy: -1).contains(entry.frame)
++    }
++
+     /// r26 — the cookbook spread (Joe and A2, October 14, for the iPhone
+     /// Duo): on a window open like a book the recipe page is two pages —
+     /// the cover photo on the left, the main recipe on the right; the cook
+@@ -1941,9 +1965,7 @@ extension DinnerTogetherUITestCase {
+             // window stays narrow. Only observed native spread-fit geometry
+             // earns wide-window coverage; scene orientation is diagnostic only.
+             let wideNativeWindow = NSPredicate { _, _ in
+-                let window = self.app.frame
+-                return self.isFiniteFrame(window) && window.width > window.height
+-                    && window.width >= 600 && window.height >= 450
++                self.hasUsableWideScene()
+             }
+             let wideWindowObserved: Bool
+             if requireWideNativeWindow {
+@@ -1960,16 +1982,22 @@ extension DinnerTogetherUITestCase {
+             photograph("r26-0-turned" + capture.suffix)
+             if requireWideNativeWindow && !wideWindowObserved {
+                 attachHierarchy("r26-orientation-not-landscape-hierarchy" + capture.suffix)
+-                return XCTFail("A wide native window was requested, but the Duo app did not expose spread-fit bounds: \(observed); device orientation \(XCUIDevice.shared.orientation.rawValue)")
++                return XCTFail("Duo window/scene did not reach matching wide bounds: \(observed); \(sceneStatus)")
+             }
+         }
+         if requireWideNativeWindow {
+             let observed = app.frame
+-            guard isFiniteFrame(observed), observed.width > observed.height,
+-                  observed.width >= 600, observed.height >= 450 else {
++            guard hasUsableWideScene() else {
+                 photograph("r26-landscape-window-missing" + capture.suffix)
+                 attachHierarchy("r26-landscape-window-missing-hierarchy" + capture.suffix)
+-                return XCTFail("This wide-window-required flow needs observed native spread-fit bounds, got \(observed)")
++                attachText("r26-invalid-scene-evidence" + capture.suffix, wideSceneStatus())
++                return XCTFail("Wide-window coverage requires matching wide scene/window bounds, got \(observed); \(wideSceneStatus())")
++            }
++            photograph("r26-wide-first-screen-fit" + capture.suffix)
++            attachHierarchy("r26-wide-first-screen-fit-hierarchy" + capture.suffix)
++            attachText("r26-wide-first-screen-fit-evidence" + capture.suffix, wideSceneStatus())
++            guard firstScreenFitsWideScene() else {
++                return XCTFail("Wide first screen must have a matching capture aspect and a fully contained, hittable Recipes entry; inspect r26-wide-first-screen-fit")
+             }
+         }
+         openRecipe(RecipeFixtureText.frozenBerryTitle)
+@@ -1979,7 +2007,7 @@ extension DinnerTogetherUITestCase {
+         let frame = app.frame
+         let phone = UIDevice.current.userInterfaceIdiom == .phone
+         let openBook = phone && frame.width >= 600 && frame.height >= 450 && capture.typeSize == nil
+-        if requireWideNativeWindow && (!openBook || frame.width <= frame.height) {
++        if requireWideNativeWindow && (!openBook || !hasUsableWideScene()) {
+             attachHierarchy("r26-landscape-lost-at-recipe-hierarchy" + capture.suffix)
+             return XCTFail("The wide-window-required recipe must retain native spread-fit bounds and spread eligibility: \(frame)")
+         }
+@@ -2460,11 +2488,60 @@ extension XCUIElement {
+     }
+ }
+ 
++/// Strict parsing fails closed for absent, stale-error, ambiguous or malformed telemetry.
++private enum DuoWindowGeometry {
++    static func accepts(status: String, frame: CGRect) -> Bool {
++        var fields: [String: String] = [:]
++        for item in status.split(separator: ";") {
++            let parts = item.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
++            guard parts.count == 2 else { return false }
++            let key = String(parts[0]).trimmingCharacters(in: .whitespaces)
++            guard fields[key] == nil else { return false }
++            fields[key] = String(parts[1]).trimmingCharacters(in: .whitespaces)
++        }
++        guard fields["phase"] == "requested", fields["error"] == "none",
++              let scene = size(fields["scene"]), let window = size(fields["window"]),
++              frame.origin.x.isFinite, frame.origin.y.isFinite,
++              frame.width.isFinite, frame.height.isFinite,
++              frame.width > frame.height, frame.width >= 600, frame.height >= 450,
++              window.width >= 600, window.height >= 450,
++              scene.width > scene.height, scene.width >= 600, scene.height >= 450,
++              window.width > window.height,
++              abs(scene.width - window.width) <= 2, abs(scene.height - window.height) <= 2,
++              abs(window.width - frame.width) <= 2, abs(window.height - frame.height) <= 2 else { return false }
++        return true
++    }
++
++    private static func size(_ text: String?) -> CGSize? {
++        guard let text else { return nil }
++        let parts = text.split(separator: "x", omittingEmptySubsequences: false)
++        guard parts.count == 2, let w = Double(parts[0]), let h = Double(parts[1]),
++              w.isFinite, h.isFinite, w > 0, h > 0 else { return nil }
++        return CGSize(width: CGFloat(w), height: CGFloat(h))
++    }
++}
++
+ /// Selected explicitly for Duo native-window validation. Kept outside the
+ /// ordinary iPhone/iPad classes and their discovery counts. This checks real
+ /// window fit; device/scene orientation is diagnostic, not a layout override.
+ final class DinnerTogetherDuoWindowTests: DinnerTogetherUITestCase {
+     func test01_wideNativeWindowCookbookSpread() {
++        // Exact observed false-positive plus malformed/missing/error regressions.
++        let frame = CGRect(x: 0, y: 0, width: 678, height: 466)
++        let good = "phase=requested;orientation=portrait;window=678x466;scene=678x466;error=none"
++        XCTAssertTrue(DuoWindowGeometry.accepts(status: good, frame: frame))
++        for invalid in [
++            good.replacingOccurrences(of: "scene=678x466", with: "scene=466x678"),
++            good.replacingOccurrences(of: "scene=678x466;", with: ""),
++            good.replacingOccurrences(of: "scene=678x466", with: "scene=nanx466"),
++            good.replacingOccurrences(of: "scene=678x466", with: "scene=678x0"),
++            good.replacingOccurrences(of: "scene=678x466", with: "scene=700x466"),
++            good.replacingOccurrences(of: "phase=requested", with: "phase=error"),
++            good.replacingOccurrences(of: "error=none", with: "error=UIKit:101:denied"),
++            good + ";scene=466x678", "probe absent"
++        ] {
++            XCTAssertFalse(DuoWindowGeometry.accepts(status: invalid, frame: frame), invalid)
++        }
+         flowCookbookSpread(requireWideNativeWindow: true)
+     }
+ }
