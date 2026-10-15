@@ -2,6 +2,15 @@
 Issue23 request from A3, October15,07:39 Denver. Status: SINGLE-RECIPE COMPOSITION APPROVED by Joe, October15,2026,08:26 Denver. Multi-dish Cooking composition remains a separate proposal. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
 
 
+## Current TWO-recipe direction — Joe, October15,08:27 Denver
+Joe explicitly requests NO hero photo for TWO recipes. Show BOTH recipes as two readable cream pages: SIDE dish LEFT, MAIN dish RIGHT, preserving the approved cookbook order. Each pane offers Coming up / Directions for that recipe, with independent selected tab and reading position. This supersedes the previous LEFT=current / RIGHT=combined-timeline proposal for the two-recipe case.
+
+Current step/timer and state-appropriate action must be clearly associated with their recipe when shown; no action for one dish should appear to complete the other. Keep these controls compact and reachable without burying recipe text. Only show actions already supported by the existing engine/session state. Both panes belong to ONE coordinated dinner and serving time, not independent cooking sessions.
+
+Switching either pane's tab, preview or scroll does not start/complete steps, change meal membership, replan or reset timers. A timer-ended notice identifies the actual dish/step and can reveal it in its own pane while preserving reading positions. Existing overlap warning can be a compact shared named notice; do not repeat a large warning inside both readers.
+
+Single-recipe approval remains unchanged: hero + adjustable frosted Right now card LEFT, Coming up / Directions RIGHT. Three-/four-dish Cooking remains a separate design decision; do not infer extra columns or claim those screens approved from this instruction. Narrow/AX3 fallback must keep all selected recipes accessible and retain state.
+
 ## Current single-recipe direction — Joe, October15,08:23 Denver
 This supersedes the earlier07:59 single-recipe composition below. LEFT: full-bleed hero photo overlaid by ONE adjustable transparent/frosted-glass Right now card, containing current step, remaining time and primary Start/Mark done/Mark done after checking action as existing state requires. RIGHT: cream reader with Coming up and Directions tabs, so upcoming steps and full saved directions are both available. Browsing preserves current timer/deadline/action on LEFT and each right-tab reading position.
 
