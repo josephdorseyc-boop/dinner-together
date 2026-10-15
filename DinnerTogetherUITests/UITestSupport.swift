@@ -885,6 +885,15 @@ class DinnerTogetherUITestCase: XCTestCase {
         XCTAssertTrue(action.isHittable, "the primary action is still on screen after scrolling")
         XCTAssertTrue(action.label.hasPrefix("Build"), "with a dinner the action builds the plan: \(action.label)")
         photograph("09-tonight-thanksgiving")
+        // A second tap unchecks it: no dinner chosen (Joe, build 19); a third
+        // chooses it again.
+        scrollAndTap(thanksgiving, "the checked Thanksgiving card")
+        XCTAssertTrue(app.staticTexts["Nothing chosen for tonight yet"].waitForExistence(timeout: 5), "tapping the checked card unchecks it")
+        XCTAssertFalse(thanksgiving.isSelected, "…and it is no longer selected")
+        photograph("09-tonight-thanksgiving-unchecked")
+        scrollAndTap(thanksgiving, "the Thanksgiving card again")
+        XCTAssertTrue(footer.waitForExistence(timeout: 5), "chosen again")
+        XCTAssertTrue(action.isHittable, "the primary action is still on screen")
         action.tap()
         waitForExistence(app.staticTexts["serving-time"], timeout: 10, "cooking screen after Build")
         photograph("09-tonight-into-cooking")

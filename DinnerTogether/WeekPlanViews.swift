@@ -252,7 +252,8 @@ struct DayPlanSheet: View {
 
     private func choose(_ dinner: PlannedDinner) {
         if day.isToday {
-            if case .menu(let id) = dinner { chooseToday(id) }
+            // Tonight's checked choice, tapped again, unchecks it (Joe, build 19).
+            if case .menu(let id) = dinner { chooseToday(dinner == current ? "" : id) }
             dismiss()
         } else if weekPlan.set(dinner, on: day.date) {
             dismiss()

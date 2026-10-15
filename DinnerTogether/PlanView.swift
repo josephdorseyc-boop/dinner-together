@@ -152,7 +152,7 @@ struct PlanView: View {
             ),
             titleVisibility: .visible
         ) {
-            Button("Change dinner", role: .destructive) {
+            Button(pendingMenuID == "" ? "Clear dinner" : "Change dinner", role: .destructive) {
                 if let id = pendingMenuID { store.chooseMenu(id) }
                 pendingMenuID = nil
                 recheckFeasibility()
@@ -539,8 +539,9 @@ struct PlanView: View {
         let selected = store.session.menuID == menu.id
         return VStack(alignment: .leading, spacing: 0) {
             Button {
-                guard menu.id != store.session.menuID else { return }
-                if hasProgress { pendingMenuID = menu.id } else { store.chooseMenu(menu.id); recheckFeasibility() }
+                // A second tap unchecks it: no dinner chosen (Joe, build 19).
+                let next = selected ? "" : menu.id
+                if hasProgress { pendingMenuID = next } else { store.chooseMenu(next); recheckFeasibility() }
             } label: {
                 HStack(spacing: 16) {
                     Image(systemName: menu.symbol)
@@ -566,6 +567,7 @@ struct PlanView: View {
             .buttonStyle(.plain)
             .accessibilityLabel("\(menu.title), \(menu.subtitle)")
             .accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityHint(selected ? "Unselects it: no dinner chosen for tonight." : "Makes it tonight’s dinner.")
 
             if menu.id == DinnerCatalog.thanksgivingID {
                 Text("Holiday guide: about 4 hours with the preset estimates. Match the roast time to your recipe. Check shared oven space and temperatures, and plan help for the final sides; the app flags overlaps but does not resolve them.")
