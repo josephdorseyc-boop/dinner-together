@@ -1247,8 +1247,11 @@ extension CookingView {
                         .frame(minWidth: 28, minHeight: 28)
                         .background(Circle().fill(Theme.olive))
                         .accessibilityLabel("Step \(i + 1)")
-                    TimedText.make(line).font(.body).lineSpacing(4)
-                        .fixedSize(horizontal: false, vertical: true)
+                    VStack(alignment: .leading, spacing: 10) {
+                        TimedText.make(line).font(.body).lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                        CookingDirectionTimers(recipe: recipe, stepIndex: i, line: line)
+                    }
                 }
                 Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
             }

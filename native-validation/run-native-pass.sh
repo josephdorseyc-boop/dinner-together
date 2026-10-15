@@ -71,8 +71,11 @@ want_ui_iphone() { [ "$PART" = all ] || [[ "$PART" == ui-iphone-* ]] || [ "$PART
 want_ui_ipad()   { [ "$PART" = all ] || [ "$PART" = ui-ipad ]; }
 IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherUITests"
 if [ "$PART" = ui-duo-window ]; then
-  IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherDuoWindowTests/test01_wideNativeWindowCookbookSpread"
-  EXPECTED_UI_IPHONE=1
+  # test01: the spread and two dishes cooking; test02: one dish cooking,
+  # with a direction's timer (build 21, board 03).
+  IPHONE_ONLY="DinnerTogetherUITests/DinnerTogetherDuoWindowTests/test01_wideNativeWindowCookbookSpread
+DinnerTogetherUITests/DinnerTogetherDuoWindowTests/test02_openedDuoCookingOneDish"
+  EXPECTED_UI_IPHONE=2
 fi
 if [[ "$PART" == ui-iphone-*-of-* ]]; then
   SHARE="${PART#ui-iphone-}"; K="${SHARE%%-of-*}"; N="${SHARE##*-of-}"

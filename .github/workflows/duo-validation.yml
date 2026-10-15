@@ -93,8 +93,16 @@ jobs:
               echo "::notice title=Duo runtime attempt 1::$runtime"
               if ! xcrun simctl create "iPhone Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo "$runtime" 2> create.err; then
                 echo "::warning title=simctl create (runtime $runtime)::$(tr '\n' ' ' < create.err | cut -c1-600)"
-                xcodebuild -downloadPlatform iOS 2>&1 | tail -3 || true
-                runtime=$(pick)
+                # The download is flaky: in run 38798460325 two of three parts
+                # came back still on 27.0 and failed with "Incompatible device".
+                # Try up to three times, and say what the download said.
+                for n in 1 2 3; do
+                  xcodebuild -downloadPlatform iOS > download.log 2>&1 || true
+                  runtime=$(pick)
+                  case "$runtime" in *iOS-27-0|"") ;; *) break ;; esac
+                  echo "::warning title=iOS platform download $n::$(tail -4 download.log | tr '\n' ' ' | cut -c1-600)"
+                  sleep $((n * 20))
+                done
                 echo "::notice title=Duo runtime attempt 2::$runtime"
                 xcrun simctl create "iPhone Duo" com.apple.CoreSimulator.SimDeviceType.iPhone-Duo "$runtime" 2> create.err \
                   || { echo "::error title=simctl create::$(tr '\n' ' ' < create.err | cut -c1-600)"; exit 1; }

@@ -98,6 +98,90 @@ struct RunningTimersStrip: View {
     }
 }
 
+/// A direction's timers on Cooking's cream pages (the opened Duo's
+/// Directions tab): the same timers as the recipe page — keyed by recipe,
+/// step and duration, so one started on either shows on both — on the
+/// paper card the cream page uses. "Start 15 minutes"; while it runs, the
+/// countdown (opens the timers) and its own Stop.
+struct CookingDirectionTimers: View {
+    let recipe: Recipe
+    let stepIndex: Int
+    let line: String
+    @EnvironmentObject private var quickTimers: QuickTimerStore
+    @EnvironmentObject private var timers: TimerCenter
+    @State private var showing = false
+
+    var body: some View {
+        let durations = TimedText.durations(in: line)
+        if !durations.isEmpty {
+            let stepTitle = recipe.steps.indices.contains(stepIndex) ? recipe.steps[stepIndex].title : "Step \(stepIndex + 1)"
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { ForEach(durations, id: \.self) { button(stepTitle: stepTitle, duration: $0) } }
+                VStack(alignment: .leading, spacing: 8) { ForEach(durations, id: \.self) { button(stepTitle: stepTitle, duration: $0) } }
+            }
+            .sheet(isPresented: $showing) { KitchenTimersView().uiTestTypeSize() }
+        }
+    }
+
+    private func card<S: InsettableShape>(_ shape: S) -> some View {
+        shape.fill(Theme.paper).overlay(shape.strokeBorder(Theme.line))
+    }
+
+    @ViewBuilder
+    private func button(stepTitle: String, duration: String) -> some View {
+        let now = timers.now
+        if let running = quickTimers.timer(recipeID: recipe.id, stepTitle: stepTitle, durationText: duration) {
+            let over = running.isOver(at: now)
+            HStack(spacing: 6) {
+                Button { showing = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: over ? "bell.fill" : "timer")
+                        Text(over ? "Time’s up" : QuickTimer.countdown(running.remaining(at: now))).monospacedDigit()
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 14).frame(minHeight: 44)
+                    .foregroundStyle(.white)
+                    .background(Capsule().fill(over ? Theme.warning : Theme.olive))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(stepTitle), \(duration) timer: \(over ? "time’s up" : QuickTimer.countdown(running.remaining(at: now)) + " remaining")")
+                .accessibilityHint("Opens the timers.")
+                .accessibilityIdentifier("cooking-timer-running")
+                Button { quickTimers.stop(running.id) } label: {
+                    Image(systemName: over ? "checkmark" : "stop.fill")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(width: 44, height: 44)
+                        .foregroundStyle(Theme.olive)
+                        .background(card(Circle()))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(over ? "Dismiss the \(stepTitle) timer" : "Stop the \(stepTitle) \(duration) timer")
+                .accessibilityIdentifier("cooking-stop-timer")
+            }
+        } else {
+            Button {
+                if let seconds = TimedText.seconds(in: duration) {
+                    quickTimers.start(recipeID: recipe.id, dish: recipe.title, stepTitle: stepTitle, durationText: duration, seconds: seconds)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "timer")
+                    Text("Start \(duration)")
+                }
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 14).frame(minHeight: 44)
+                .foregroundStyle(Theme.olive)
+                .background(card(Capsule()))
+            }
+            .buttonStyle(.plain)
+            .disabled(TimedText.seconds(in: duration) == nil)
+            .accessibilityLabel("Start a \(duration) timer for \(stepTitle), \(recipe.title)")
+            .accessibilityHint("Counts down and tells you when it’s up.")
+            .accessibilityIdentifier("cooking-start-timer")
+        }
+    }
+}
+
 /// Every kitchen timer, as rings: one big; several with the next to finish
 /// (or one that's up) leading and the rest named beside it; at large text
 /// or on a narrow screen, readable rows instead of small dials. Stop is its

@@ -2210,6 +2210,80 @@ extension DinnerTogetherUITestCase {
         let pairTitle = "\(RecipeFixtureText.frozenBerryTitle) + \(RecipeFixtureText.beanSpreadTitle)"
         XCTAssertTrue(app.staticTexts["Selected: \(pairTitle)"].waitForExistence(timeout: 8), "Tonight: both recipes, one dinner")
         photograph("r26f-tonight-two-recipes" + capture.suffix)
+        guard requireWideNativeWindow else { return }
+
+        // Cooking both on the opened Duo (board 03, Joe, October 15): the
+        // side dish's page on the left, the main's on the right, each with
+        // its own Right now.
+        buildDinnerPlan()
+        let sidePage = app.descendants(matching: .any)["duo-dish-page-side"].firstMatch
+        let mainPage = app.descendants(matching: .any)["duo-dish-page-main"].firstMatch
+        if !sidePage.waitForExistence(timeout: 8) { attachHierarchy("r26g-duo-cooking-two-hierarchy") }
+        waitForExistence(sidePage, timeout: 1, "the side dish's cooking page")
+        XCTAssertLessThan(sidePage.frame.midX, frame.midX, "…on the left: \(sidePage.frame)")
+        XCTAssertTrue(mainPage.exists, "the main dish's cooking page")
+        XCTAssertGreaterThan(mainPage.frame.midX, frame.midX, "…on the right: \(mainPage.frame)")
+        XCTAssertTrue(app.descendants(matching: .any)["duo-right-now-side"].exists, "the side's Right now")
+        XCTAssertTrue(app.descendants(matching: .any)["duo-right-now-main"].exists, "the main's Right now")
+        photograph("r26g-duo-cooking-two" + capture.suffix)
+    }
+
+    /// Tonight's Build → Cooking.
+    private func buildDinnerPlan() {
+        let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
+        waitForExistence(build, timeout: 5, "the build action")
+        tapPinned(build, "Build the plan")
+        waitForExistence(app.staticTexts["serving-time"].firstMatch, timeout: 10, "the Cooking screen")
+    }
+
+    /// r26h — one dish cooking on the opened Duo (board 03): the photo page
+    /// with the glass Right now card on the left, the dish's page with
+    /// Coming up / Directions on the right, and a direction's own timer
+    /// started from Directions (Joe, October 15).
+    func flowOpenedDuoCookingOneDish() {
+        launchRecipes([RecipeFixtureText.frozenBerry], .standard, extra: ["-dt-scene-geometry-probe"], photo: "pastel")
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+        let wide = NSPredicate { _, _ in self.hasUsableWideScene() }
+        guard XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: wide, object: app)], timeout: 15) == .completed else {
+            attachText("r26h-scene-evidence", wideSceneStatus())
+            return XCTFail("the opened Duo's wide window: \(screenFrame); \(wideSceneStatus())")
+        }
+        openRecipe(RecipeFixtureText.frozenBerryTitle)
+        let cook = app.buttons["cook-this-recipe"]
+        tapPinned(cook, "Check timing to continue")
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "the Timing tab")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the review is recorded")
+        tapPinned(cook, "Cook this for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(RecipeFixtureText.frozenBerryTitle)"].waitForExistence(timeout: 8), "Tonight")
+        buildDinnerPlan()
+
+        let frame = screenFrame
+        let photoPage = app.descendants(matching: .any)["duo-photo-page"].firstMatch
+        if !photoPage.waitForExistence(timeout: 8) { attachHierarchy("r26h-duo-cooking-one-hierarchy") }
+        waitForExistence(photoPage, timeout: 1, "the photo page")
+        XCTAssertLessThan(photoPage.frame.midX, frame.midX, "…on the left: \(photoPage.frame)")
+        XCTAssertTrue(app.descendants(matching: .any)["duo-right-now-card"].firstMatch.exists, "the Right now card on the photo")
+        let page = app.descendants(matching: .any)["duo-dish-page-main"].firstMatch
+        XCTAssertTrue(page.exists, "the dish's page")
+        XCTAssertGreaterThan(page.frame.midX, frame.midX, "…on the right: \(page.frame)")
+        photograph("r26h-duo-cooking-one")
+
+        // Directions on the right page, with a timer for a step's time.
+        let directions = app.buttons["duo-tab-directions"].firstMatch
+        waitForExistence(directions, timeout: 5, "the Directions tab")
+        directions.tap()
+        let start = app.buttons["cooking-start-timer"].firstMatch
+        waitForExistence(start, timeout: 5, "a direction's Start timer")
+        XCTAssertGreaterThan(start.frame.midX, frame.midX, "…on the dish's page: \(start.frame)")
+        start.tap()
+        waitForExistence(app.buttons["cooking-timer-running"].firstMatch, timeout: 5, "the timer counts down in the direction")
+        XCTAssertTrue(app.buttons["running-timers"].firstMatch.waitForExistence(timeout: 5), "the running-timers strip")
+        photograph("r26i-duo-cooking-one-directions-timer")
+        app.buttons["cooking-stop-timer"].firstMatch.tap()
+        waitForDisappearance(app.buttons["cooking-timer-running"].firstMatch, "Stop ends the timer")
     }
 
     /// r27 — favorites and the week's Add a new recipe (Joe, build 20): a
@@ -2650,4 +2724,6 @@ final class DinnerTogetherDuoWindowTests: DinnerTogetherUITestCase {
         }
         flowCookbookSpread(requireWideNativeWindow: true)
     }
+
+    func test02_openedDuoCookingOneDish() { flowOpenedDuoCookingOneDish() }
 }
