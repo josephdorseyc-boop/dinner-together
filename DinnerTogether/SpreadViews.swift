@@ -185,12 +185,21 @@ private struct SecondRecipePicker: View {
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    private var shown: [Recipe] { library.recipesFavoritesFirst.filter { $0.id != mainID && $0.matches(query) } }
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    ForEach(library.recipes.filter { $0.id != mainID }) { recipe in
+                    if shown.isEmpty {
+                        Text(query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                             ? "Add another recipe to read one alongside."
+                             : "No recipe matches “\(query.trimmingCharacters(in: .whitespacesAndNewlines))” by title or ingredient.")
+                            .font(.subheadline).foregroundStyle(Theme.muted)
+                            .listRowBackground(Theme.paper)
+                    }
+                    ForEach(shown) { recipe in
                         Button {
                             choose(recipe.id)
                             dismiss()
@@ -213,6 +222,7 @@ private struct SecondRecipePicker: View {
             }
             .scrollContentBackground(.hidden)
             .background(Theme.cream)
+            .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Title or ingredient")
             .navigationTitle("Second recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

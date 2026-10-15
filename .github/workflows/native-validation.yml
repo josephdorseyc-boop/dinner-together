@@ -278,7 +278,8 @@ jobs:
           git add -A && git commit -q -m "native-validation results for run ${{ github.run_id }} (${{ github.sha }})"
           published=false
           for attempt in 1 2 3 4; do
-            if git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results; then
+            # Bound each push: a stalled connection must fail fast so the retry loop runs (A1, issue #22: the 6-min step timeout killed a hung push before any retry).
+            if timeout 60 git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/ci-results; then
               published=true
               break
             fi

@@ -1966,6 +1966,19 @@ extension DinnerTogetherUITestCase {
         XCTAssertLessThan(first.frame.minY, berry.frame.minY, "the starred recipe leads Your Recipes")
         photograph("r27a-favorite-first" + capture.suffix)
 
+        // Search by an ingredient: only the recipe with lemon in it.
+        let search = app.searchFields.firstMatch
+        if search.waitForExistence(timeout: 3) {
+            search.tap()
+            search.typeText("olive")
+            XCTAssertTrue(first.waitForExistence(timeout: 5), "the bean spread (1 tablespoon olive oil) matches")
+            XCTAssertFalse(berry.exists, "the berry drink has no olive oil, and no 'olive' in its title")
+            photograph("r27a2-search-ingredient" + capture.suffix)
+            let cancel = app.buttons["Cancel"].firstMatch
+            if cancel.exists { cancel.tap() } else { search.buttons.firstMatch.tap() }
+            XCTAssertTrue(berry.waitForExistence(timeout: 5), "cleared: every recipe again")
+        }
+
         // The page shows the star, filled.
         scrollAndTap(first, "the starred recipe")
         let pageStar = app.buttons["recipe-favorite"]

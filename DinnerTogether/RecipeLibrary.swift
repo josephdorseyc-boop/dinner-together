@@ -95,8 +95,8 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     var isEmpty: Bool { recipes.isEmpty }
 
-    /// The cook's recipes with the starred ones first, each group in the
-    /// order they were added (Joe, build 20).
+    /// The cook's recipes with the starred ones first, each group newest
+    /// first as the list has always been (Joe, build 20).
     var recipesFavoritesFirst: [Recipe] {
         recipes.filter(\.isFavorite) + recipes.filter { !$0.isFavorite }
     }

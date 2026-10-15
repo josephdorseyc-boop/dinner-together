@@ -22,6 +22,9 @@ struct RecipesView: View {
     @State private var cannotDelete = false
     /// A delete that didn't reach disk, in words about deleting (A2-17).
     @State private var deleteProblem: String?
+    /// Search by title or ingredient (A2's build 20 shortlist).
+    @State private var query = ""
+    private var shown: [Recipe] { library.recipesFavoritesFirst.filter { $0.matches(query) } }
 
     private var hasProgress: Bool { store.session.records.values.contains { $0.state != .notStarted } }
 
@@ -86,7 +89,14 @@ struct RecipesView: View {
                 .dtCard()
                 .libraryRow()
             } else {
-                ForEach(library.recipesFavoritesFirst) { recipe in
+                if shown.isEmpty {
+                    Text("No recipe matches “\(query.trimmingCharacters(in: .whitespacesAndNewlines))” by title or ingredient.")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .libraryRow()
+                        .accessibilityIdentifier("recipe-search-empty")
+                }
+                ForEach(shown) { recipe in
                     Button { path.append(recipe.id) } label: {
                         RecipeRow(recipe: recipe, selected: store.session.menuID == recipe.menuID)
                     }
@@ -118,6 +128,10 @@ struct RecipesView: View {
         .scrollContentBackground(.hidden)
         .background(Theme.recipeBackground)
         .foregroundStyle(Theme.ink)
+        // The field sits in the bar, so it is at hand wherever the list is
+        // scrolled; nothing to search in an empty cookbook.
+        .searchable(text: $query, placement: .navigationBarDrawer(displayMode: library.isEmpty ? .automatic : .always),
+                    prompt: "Title or ingredient")
         .navigationTitle("Recipes")
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("recipe-library")

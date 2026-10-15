@@ -88,6 +88,17 @@ struct Recipe: Codable, Identifiable, Hashable {
     /// review until the cook has looked. nil when the import was clean.
     var importWarnings: [String]?
 
+    /// Found by a few letters of the title or of an ingredient, whatever
+    /// the case (A2's build 20 shortlist: cooks forget exact names). A
+    /// blank query matches every recipe.
+    func matches(_ query: String) -> Bool {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return true }
+        let options: String.CompareOptions = [.caseInsensitive, .diacriticInsensitive]
+        if title.range(of: q, options: options) != nil { return true }
+        return ingredients.contains { $0.range(of: q, options: options) != nil }
+    }
+
     static let menuIDPrefix = "recipe:"
     var menuID: String { Recipe.menuIDPrefix + id.uuidString }
     var steps: [CookingStep] { dishes.flatMap { $0 } }

@@ -29,6 +29,21 @@ final class SpreadTests: XCTestCase {
         XCTAssertNil(SpreadLeftPage.cover.secondRecipeID)
     }
 
+    // MARK: Search (A2's build 20 shortlist)
+
+    func testSearchMatchesTitleOrIngredientWhateverTheCase() {
+        var r = Recipe(title: "Crème brûlée")
+        r.ingredients = ["4 egg yolks", "1 vanilla bean"]
+        XCTAssertTrue(r.matches(""), "a blank query matches everything")
+        XCTAssertTrue(r.matches("   "))
+        XCTAssertTrue(r.matches("creme"), "accents and case do not matter")
+        XCTAssertTrue(r.matches("BRÛL"), "a few letters of the title")
+        XCTAssertTrue(r.matches("vanilla"), "an ingredient")
+        XCTAssertTrue(r.matches("Yolk"), "part of an ingredient")
+        XCTAssertFalse(r.matches("chicken"))
+        XCTAssertFalse(r.matches("crème chicken"), "the words are one phrase, not any-of")
+    }
+
     // MARK: Paired dinners (Joe, October 14: two recipes on the Duo)
 
     func testPairedMenuIDRoundTrips() {
