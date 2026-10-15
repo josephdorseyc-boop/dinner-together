@@ -1,8 +1,9 @@
 # A2-60 — Duo Cooking spread proposal
-Issue23 request from A3, October15,07:39 Denver. Status: SINGLE-RECIPE COMPOSITION APPROVED by Joe, October15,2026,08:26 Denver. Multi-dish Cooking composition remains a separate proposal. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
+Issue23 request from A3, October15,07:39 Denver. Status: SINGLE-RECIPE COMPOSITION APPROVED by Joe, October15,2026,08:26 Denver. TWO-RECIPE composition also approved by Joe at08:31 Denver. Three-/four-dish Cooking remains separately scoped. This extends the approved recipe-reader aesthetic to Cooking; it does not change engine, SessionStore, deadlines, task order or completion rules.
 
 
-## Current TWO-recipe direction — Joe, October15,08:27 Denver
+## APPROVED TWO-recipe direction — Joe, October15,08:31 Denver
+Joe approved the two-page no-photo mockup approach at08:31. Each page has a compact dish-local current-step/timer/action strip above independently selectable Coming up / Directions tabs. Illustrative timer values and generated recipe metadata are not fixtures or new timing rules.
 Joe explicitly requests NO hero photo for TWO recipes. Show BOTH recipes as two readable cream pages: SIDE dish LEFT, MAIN dish RIGHT, preserving the approved cookbook order. Each pane offers Coming up / Directions for that recipe, with independent selected tab and reading position. This supersedes the previous LEFT=current / RIGHT=combined-timeline proposal for the two-recipe case.
 
 Current step/timer and state-appropriate action must be clearly associated with their recipe when shown; no action for one dish should appear to complete the other. Keep these controls compact and reachable without burying recipe text. Only show actions already supported by the existing engine/session state. Both panes belong to ONE coordinated dinner and serving time, not independent cooking sessions.
