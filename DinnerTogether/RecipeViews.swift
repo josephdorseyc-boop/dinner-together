@@ -680,6 +680,12 @@ struct RecipeDetailView: View {
     /// The spread's reader only: the main recipe on the right, so this page
     /// can offer "Cook both together" (Joe, October 14).
     var pairMain: UUID? = nil
+    /// A page of the Duo's cookbook spread (Joe approved A2-59, October 15):
+    /// a small rounded photo beside a serif title, underlined tabs, olive
+    /// numbered steps between hairlines, a quiet cook button, and on the main
+    /// page a small terracotta leaf. `pageWidth` is the page's own width.
+    var bookPage = false
+    var pageWidth: CGFloat? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @EnvironmentObject private var store: SessionStore
     @Environment(\.dismiss) private var dismiss
@@ -746,17 +752,17 @@ struct RecipeDetailView: View {
             if let recipe {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        hero(recipe)
-                        VStack(alignment: .leading, spacing: 22) {
+                        if bookPage { bookHeader(recipe) } else { hero(recipe) }
+                        VStack(alignment: .leading, spacing: bookPage ? 18 : 22) {
                             if let problem = deleteProblem ?? library.saveError {
                                 Label(problem, systemImage: "exclamationmark.triangle")
                                     .font(.subheadline).foregroundStyle(Theme.warning)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .accessibilityIdentifier(pageID("recipe-save-error"))
                             }
-                            stats(recipe)
+                            if !bookPage { stats(recipe) }
                             if !reader && recipe.needsTimingReview && tab != .timing { reviewBanner(recipe) }
-                            tabBar
+                            if bookPage { bookTabs } else { tabBar }
                             importWarningCard(recipe)
                             switch tab {
                             case .ingredients: ingredients(recipe)
@@ -766,7 +772,7 @@ struct RecipeDetailView: View {
                             sourceLink(recipe)
                             if !reader { deleteButton }
                         }
-                        .padding(24)
+                        .padding(bookPage ? 18 : 24)
                         .frame(maxWidth: 720)
                         .frame(maxWidth: .infinity)
                     }
@@ -836,6 +842,98 @@ struct RecipeDetailView: View {
     }
 
     // MARK: Hero and header
+
+    /// The cookbook page's head (A2-59, approved): the photo small and
+    /// rounded beside the serif title, its time and yield under it; on a
+    /// narrow page the photo sits above. A small terracotta leaf marks the
+    /// main page, decorative only, and gives way at large text.
+    @ViewBuilder
+    private func bookHeader(_ recipe: Recipe) -> some View {
+        let narrow = (pageWidth ?? 400) < 340
+        let meta = [recipe.plannedMinutes > 0 ? RecipeFormat.compact(recipe.plannedMinutes) : nil,
+                    recipe.yield.map { "Serves \($0)" }].compactMap { $0 }.joined(separator: " • ")
+        let photo = RecipePhotos.load(recipe, from: library)?.image
+        let title = VStack(alignment: .leading, spacing: 6) {
+            Text(recipe.title)
+                .font(.system(narrow ? .title3 : .title2, design: .serif).weight(.semibold))
+                .foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier(pageID("recipe-title"))
+            if !meta.isEmpty {
+                Text(meta).font(.subheadline).foregroundStyle(Theme.muted)
+            }
+        }
+        let thumb = Group {
+            if let photo {
+                Color.clear
+                    .frame(width: narrow ? 72 : 96, height: narrow ? 72 : 96)
+                    .overlay(Image(uiImage: photo).resizable().scaledToFill())
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .accessibilityElement()
+                    .accessibilityLabel("Photo of \(recipe.title)")
+                    .accessibilityAddTraits(.isImage)
+                    .accessibilityIdentifier(pageID("recipe-hero"))
+            }
+        }
+        VStack(alignment: .leading, spacing: 12) {
+            if !reader && !dynamicTypeSize.isAccessibilitySize {
+                HStack {
+                    Spacer()
+                    Image(systemName: "leaf")
+                        .font(.title3).rotationEffect(.degrees(-35))
+                        .foregroundStyle(Theme.tomato.opacity(0.85))
+                        .accessibilityHidden(true)
+                }
+            }
+            if narrow || dynamicTypeSize.isAccessibilitySize {
+                thumb
+                title
+            } else {
+                HStack(alignment: .center, spacing: 16) { thumb; title }
+            }
+        }
+        .padding(.horizontal, 18).padding(.top, 12)
+        .frame(maxWidth: 720, alignment: .leading)
+        .frame(maxWidth: .infinity)
+    }
+
+    /// Underlined tabs on a hairline (A2-59), smaller type before they wrap.
+    private var bookTabs: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ViewThatFits(in: .horizontal) {
+                bookTabRow(spacing: 22, font: .subheadline)
+                bookTabRow(spacing: 12, font: .footnote)
+                VStack(alignment: .leading, spacing: 0) { bookTabButtons(font: .subheadline) }
+            }
+            Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
+        }
+    }
+
+    private func bookTabRow(spacing: CGFloat, font: Font) -> some View {
+        HStack(spacing: spacing) { bookTabButtons(font: font) }
+    }
+
+    @ViewBuilder
+    private func bookTabButtons(font: Font) -> some View {
+        ForEach(tabs) { t in
+            Button { tab = t } label: {
+                Text(t.rawValue)
+                    .font(font.weight(tab == t ? .semibold : .regular))
+                    .lineLimit(1)
+                    .foregroundStyle(tab == t ? Theme.ink : Theme.muted)
+                    .padding(.vertical, 10)
+                    .frame(minHeight: 44)
+                    .overlay(alignment: .bottom) {
+                        Rectangle().fill(tab == t ? Theme.olive : .clear).frame(height: 2)
+                    }
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(tab == t ? .isSelected : [])
+            .accessibilityIdentifier(pageID("recipe-tab-\(t.rawValue.lowercased())"))
+        }
+    }
 
     @ViewBuilder
     private func hero(_ recipe: Recipe) -> some View {
@@ -1089,6 +1187,12 @@ struct RecipeDetailView: View {
                         .foregroundStyle(labelColor)
                         .padding(.top, i == 0 ? 0 : 10)
                         .accessibilityAddTraits(.isHeader)
+                } else if bookPage {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(line).font(.body).frame(maxWidth: .infinity, alignment: .leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
+                    }
                 } else {
                     Text(line)
                         .font(.body)
@@ -1106,19 +1210,41 @@ struct RecipeDetailView: View {
                 Text("Total time: \(RecipeFormat.compact(total))").font(.subheadline).foregroundStyle(Theme.muted)
             }
             ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
-                        .foregroundStyle(labelColor)
-                        .accessibilityAddTraits(.isHeader)
-                    TimedText.make(line, accent: accentColor)
-                        .font(.title3).lineSpacing(7)
-                        .fixedSize(horizontal: false, vertical: true)
+                if bookPage {
+                    // Olive numbered steps between hairlines (A2-59).
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack(alignment: .firstTextBaseline, spacing: 12) {
+                            Text("\(i + 1)")
+                                .font(.subheadline.weight(.semibold)).monospacedDigit()
+                                .foregroundStyle(.white)
+                                .frame(minWidth: 28, minHeight: 28)
+                                .background(Circle().fill(Theme.olive))
+                                .accessibilityLabel("Step \(i + 1)")
+                            TimedText.make(line, accent: accentColor)
+                                .font(.body).lineSpacing(4)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
+                    }
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("STEP \(i + 1)").font(.footnote.weight(.semibold)).tracking(0.8)
+                            .foregroundStyle(labelColor)
+                            .accessibilityAddTraits(.isHeader)
+                        TimedText.make(line, accent: accentColor)
+                            .font(.title3).lineSpacing(7)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
             }
             // The recipe's notes — an import's own, and the cook's (A2,
             // build 19), edited from here or the ••• menu.
             VStack(alignment: .leading, spacing: 8) {
-                SectionLabel(text: "NOTES")
+                if bookPage {
+                    Text("Cooking notes").font(.system(.headline, design: .serif)).accessibilityAddTraits(.isHeader)
+                } else {
+                    SectionLabel(text: "NOTES")
+                }
                 if let notes = recipe.notes, !notes.isEmpty {
                     Text(notes).font(.subheadline).foregroundStyle(Theme.muted)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1276,7 +1402,7 @@ struct RecipeDetailView: View {
     @ViewBuilder
     private func cookBar(_ recipe: Recipe) -> some View {
         let bar = VStack(spacing: 6) {
-            if isTonight {
+            if isTonight && !bookPage {
                 Text(reader ? "These two are tonight’s dinner. Set the time on Tonight, then build your plan."
                             : "This is tonight’s dinner. Set the time on Tonight, then build your plan.")
                     .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
@@ -1290,7 +1416,7 @@ struct RecipeDetailView: View {
                     }
                     UIAccessibility.post(notification: .announcement, argument: "Timing confirmed.")
                 } label: { Label("Timing looks right", systemImage: "checkmark") }
-                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
+                .buttonStyle(CookBarStyle(book: bookPage, onColoredPage: deepPage))
                 .disabled(timingLocked || recipe.steps.isEmpty)
                 .accessibilityIdentifier(pageID("timing-looks-right"))
             } else if reader {
@@ -1307,7 +1433,7 @@ struct RecipeDetailView: View {
                     Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook both together"),
                           systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
                 }
-                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
+                .buttonStyle(CookBarStyle(book: bookPage, onColoredPage: deepPage))
                 .disabled(recipe.steps.isEmpty || (mainNeedsReview && !recipe.needsTimingReview && !isTonight))
                 .accessibilityHint("Cooks this and the recipe on the right on one timeline, ready together.")
                 .accessibilityIdentifier("cook-both")
@@ -1322,7 +1448,7 @@ struct RecipeDetailView: View {
                 } label: {
                     Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
                 }
-                .buttonStyle(BigButtonStyle(onColoredPage: deepPage))
+                .buttonStyle(CookBarStyle(book: bookPage, onColoredPage: deepPage))
                 .disabled(recipe.steps.isEmpty)
                 .accessibilityIdentifier("cook-this-recipe")
             }
@@ -1732,5 +1858,22 @@ struct EditCoverSheet: View {
         }
         // Close once the crop sheet has gone, not underneath it.
         .onChange(of: cropping) { _, open in if !open && saved { dismiss() } }
+    }
+}
+
+/// The recipe page's cook buttons: the big pill on a page of its own, a
+/// quiet one on the Duo's cookbook spread (A2-59: no giant plan button there).
+private struct CookBarStyle: ButtonStyle {
+    var book: Bool
+    var onColoredPage: Bool
+
+    @ViewBuilder
+    func makeBody(configuration: Configuration) -> some View {
+        if book {
+            QuietButtonStyle().makeBody(configuration: configuration)
+                .frame(maxWidth: .infinity)
+        } else {
+            BigButtonStyle(onColoredPage: onColoredPage).makeBody(configuration: configuration)
+        }
     }
 }

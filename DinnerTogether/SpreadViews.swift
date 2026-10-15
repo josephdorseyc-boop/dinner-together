@@ -17,14 +17,17 @@ struct RecipeSpreadView: View {
 
     var body: some View {
         GeometryReader { g in
+            // The window's own size: the bars are inside it.
             let spread = SpreadLayout.showsSpread(
-                width: g.size.width, height: g.size.height,
+                width: g.size.width + g.safeAreaInsets.leading + g.safeAreaInsets.trailing,
+                height: g.size.height + g.safeAreaInsets.top + g.safeAreaInsets.bottom,
                 phoneIdiom: UIDevice.current.userInterfaceIdiom == .phone,
                 accessibilitySize: dynamicTypeSize.isAccessibilitySize)
+            let half = (g.size.width / 2).rounded(.down)
             HStack(spacing: 0) {
                 if spread {
-                    leftPane
-                        .frame(width: (g.size.width / 2).rounded(.down))
+                    leftPane(pageWidth: half)
+                        .frame(width: half)
                         .clipped()
                         .accessibilityElement(children: .contain)
                         .accessibilityIdentifier("spread-left")
@@ -34,7 +37,8 @@ struct RecipeSpreadView: View {
                 }
                 // Always in this position, so its identity — tab, scroll,
                 // sheets — survives the spread opening and closing.
-                RecipeDetailView(recipeID: recipeID, onChoose: onChoose)
+                RecipeDetailView(recipeID: recipeID, onChoose: onChoose,
+                                 bookPage: spread, pageWidth: spread ? g.size.width / 2 : nil)
                     .frame(maxWidth: .infinity)
             }
             .frame(width: g.size.width, height: g.size.height)
@@ -52,7 +56,7 @@ struct RecipeSpreadView: View {
     }
 
     @ViewBuilder
-    private var leftPane: some View {
+    private func leftPane(pageWidth: CGFloat) -> some View {
         switch leftPage {
         case .cover:
             SpreadCoverPage(recipeID: recipeID) { choosingSecond = true }
@@ -84,7 +88,8 @@ struct RecipeSpreadView: View {
                     .background(Theme.cream)
                     .accessibilityAddTraits(.isHeader)
                 Divider()
-                RecipeDetailView(recipeID: id, onChoose: onChoose, role: .reader, pairMain: recipeID)
+                RecipeDetailView(recipeID: id, onChoose: onChoose, role: .reader, pairMain: recipeID,
+                                 bookPage: true, pageWidth: pageWidth)
                     .id(id) // a different recipe starts at its own first tab
             }
         }

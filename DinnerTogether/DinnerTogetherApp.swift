@@ -3,6 +3,7 @@ import UIKit
 
 @main
 struct DinnerTogetherApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var store: SessionStore
     @StateObject private var library: RecipeLibrary
@@ -384,5 +385,18 @@ extension View {
         #else
         self
         #endif
+    }
+}
+
+/// Which ways the app turns. iPad: every way. iPhone: upright, except on a
+/// near-square screen — the iPhone Duo's inner display — which turns like a
+/// book so the cookbook spread can open (its first run showed the Duo's
+/// screen upright at 466 × 678).
+final class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+        if UIDevice.current.userInterfaceIdiom == .pad { return .all }
+        let bounds = (window?.windowScene?.screen ?? UIScreen.main).bounds
+        let short = min(bounds.width, bounds.height), long = max(bounds.width, bounds.height)
+        return long > 0 && short / long >= 0.6 ? .allButUpsideDown : .portrait
     }
 }

@@ -1884,13 +1884,21 @@ extension DinnerTogetherUITestCase {
         // until its first run: 466 × 678 in run 38723119849).
         photograph("r26-0-first-screen" + capture.suffix)
         attachHierarchy("r26-0-first-screen-hierarchy")
+        // A near-square phone screen (the Duo) turns like a book for the spread.
+        let first = app.frame
+        if UIDevice.current.userInterfaceIdiom == .phone, min(first.width, first.height) / max(first.width, first.height) >= 0.6 {
+            XCUIDevice.shared.orientation = .landscapeLeft
+            addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+            Thread.sleep(forTimeInterval: 1.5)
+            photograph("r26-0-turned" + capture.suffix)
+        }
         openRecipe(RecipeFixtureText.frozenBerryTitle)
         photograph("r26-0-recipe-page" + capture.suffix)
         attachHierarchy("r26-0-recipe-page-hierarchy")
         let left = app.descendants(matching: .any)["spread-left"].firstMatch
         let frame = app.frame
         let phone = UIDevice.current.userInterfaceIdiom == .phone
-        let openBook = phone && frame.width >= 600 && frame.height >= 560 && capture.typeSize == nil
+        let openBook = phone && frame.width >= 600 && frame.height >= 450 && capture.typeSize == nil
         guard openBook else {
             XCTAssertFalse(left.exists, "a window that is not open like a book shows the single page (\(frame.size))")
             XCTAssertTrue(app.staticTexts["recipe-title"].exists, "…the recipe page as always")

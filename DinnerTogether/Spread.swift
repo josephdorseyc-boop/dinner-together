@@ -6,16 +6,17 @@ import Foundation
 /// edge, or, when the cook asks, a second recipe to read alongside (a side
 /// dish). One recipe per dinner stays: the left page is read, never cooked.
 ///
-/// Decided from the window's geometry, never from the device or its
-/// orientation (Apple's guidance for the Duo): a phone-idiom window wide
-/// and tall enough for two readable pages. No iPhone shows one today
-/// (a Pro Max on its side is 932 × 430); the Duo open does. iPad keeps its
-/// own layout, as Joe approved the spread for the Duo first.
+/// Decided from the window's geometry, never from the device (Apple's
+/// guidance for the Duo): a phone-idiom window wide enough for two pages of
+/// at least 300 pt and tall enough for a page. The Duo's inner display came
+/// up 466 × 678 in its first run (October 15), upright: one page there; the
+/// app turns with the Duo held like a book (678 wide), and the spread opens.
+/// Ordinary iPhones stay upright, so never qualify; iPad keeps its layout.
 enum SpreadLayout {
-    /// Two readable pages: an SE-width column each, at least.
+    /// Two readable pages of 300 pt or more.
     static let minimumWidth: Double = 600
-    /// …and a page's worth of height, which rules out a phone on its side.
-    static let minimumHeight: Double = 560
+    /// …and a page's worth of height (an iPhone on its side is 430–440).
+    static let minimumHeight: Double = 450
 
     /// `accessibilitySize`: Dynamic Type at an accessibility size — the main
     /// recipe needs the whole width then, so it is the single page.
