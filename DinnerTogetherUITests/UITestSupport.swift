@@ -859,7 +859,10 @@ class DinnerTogetherUITestCase: XCTestCase {
         let cancel = app.buttons["Cancel"].firstMatch
         if cancel.waitForExistence(timeout: 3) { tapEvenInPopover(cancel) } else { app.swipeDown() }
         waitForDisappearance(importButton, "the Add sheet closed")
-        XCTAssertTrue(app.buttons["add-first-recipe"].waitForExistence(timeout: 5), "Recipes offers the first recipe too")
+        let addButtons = app.buttons.matching(identifier: "add-recipe")
+        XCTAssertTrue(addButtons.firstMatch.waitForExistence(timeout: 5), "Recipes offers the first recipe too")
+        XCTAssertEqual(addButtons.count, 1, "…with one Add button, not two (Joe, build 18)")
+        XCTAssertEqual(addButtons.firstMatch.label, "Add your first recipe")
 
         // Cooking with nothing chosen (its own launch: the sidebar on iPad
         // is collapsed in portrait, and no flow drives it).
