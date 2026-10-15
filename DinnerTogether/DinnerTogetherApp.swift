@@ -235,15 +235,17 @@ enum LaunchOptions {
         // DT_SEED_RECIPE_PHOTO=landscape (a wide, warm still life) or
         // =pastel (pale blue icing, a pale page): give the first recipe a
         // photo drawn here, so the test never depends on a publisher's image.
-        let photoKind = ProcessInfo.processInfo.environment["DT_SEED_RECIPE_PHOTO"] ?? ""
-        if ["landscape", "pastel"].contains(photoKind), !seeded.isEmpty {
+        // "pastel+landscape": one kind per recipe, in order (two dishes,
+        // each with its own photo, on the Duo's cooking pages).
+        let photoKinds = (ProcessInfo.processInfo.environment["DT_SEED_RECIPE_PHOTO"] ?? "").split(separator: "+").map(String.init)
+        for (index, photoKind) in photoKinds.enumerated() where index < seeded.count && ["landscape", "pastel"].contains(photoKind) {
             let folder = URL.documentsDirectory.appending(path: "recipe-images", directoryHint: .isDirectory)
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-            let name = "\(seeded[0].id.uuidString).jpg"
+            let name = "\(seeded[index].id.uuidString).jpg"
             let photo = photoKind == "pastel" ? pastelTestPhoto() : landscapeTestPhoto()
             if let jpeg = photo.jpegData(compressionQuality: 0.85),
                (try? jpeg.write(to: folder.appending(path: name), options: .atomic)) != nil {
-                seeded[0].imageFilename = name
+                seeded[index].imageFilename = name
             }
         }
         let url = URL.documentsDirectory.appending(path: RecipeLibrary.fileName)

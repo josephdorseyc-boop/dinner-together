@@ -2048,7 +2048,10 @@ extension DinnerTogetherUITestCase {
         launchRecipes([RecipeFixtureText.frozenBerry, RecipeFixtureText.beanSpread], capture,
                       // Watch only: on the Duo the wide window comes from
                       // opening the hinge (DT_DUO_HINGE), never a request.
-                      extra: requireWideNativeWindow ? ["-dt-scene-geometry-probe"] : [], photo: "pastel")
+                      extra: requireWideNativeWindow ? ["-dt-scene-geometry-probe"] : [],
+                      // On the opened Duo each dish has its own photo (the
+                      // cooking pages show both, Joe, October 15).
+                      photo: requireWideNativeWindow ? "pastel+landscape" : "pastel")
         // The window as this device gives it (the Duo folded: its cover
         // display, 466 × 678 in run 38723119849; opened: the inner display).
         photograph("r26-0-first-screen" + capture.suffix)
