@@ -912,17 +912,18 @@ extension CookingView {
             HStack(spacing: 0) {
                 duoPhotoPage(recipe)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                Rectangle().fill(Theme.line).frame(width: 1).ignoresSafeArea().accessibilityHidden(true)
                 duoDishPage(recipe, label: nil, withRightNow: false)
                     .frame(maxWidth: .infinity)
+                    .overlay(alignment: .leading) { duoGutter(leading: true) }
             }
         case .bookTwo(let main, let side):
             HStack(spacing: 0) {
-                duoDishPage(side, label: "SIDE DISH", withRightNow: true)
+                duoDishPage(side, label: "SIDE DISH", withRightNow: true, showsDinnerTime: false)
                     .frame(maxWidth: .infinity)
-                Rectangle().fill(Theme.line).frame(width: 1).ignoresSafeArea().accessibilityHidden(true)
+                    .overlay(alignment: .trailing) { duoGutter(leading: false) }
                 duoDishPage(main, label: "MAIN DISH", withRightNow: true)
                     .frame(maxWidth: .infinity)
+                    .overlay(alignment: .leading) { duoGutter(leading: true) }
             }
         case .uprightTwo(let main, let side):
             let shown = duoShowingSide ? side : main
@@ -932,6 +933,18 @@ extension CookingView {
                 duoDishPage(shown, label: duoShowingSide ? "SIDE DISH" : "MAIN DISH", withRightNow: true, otherDish: other)
             }
         }
+    }
+
+    /// The book's binding at the fold: a soft shade into each page, as an
+    /// open cookbook falls into its spine, over a hairline.
+    private func duoGutter(leading: Bool) -> some View {
+        LinearGradient(colors: [Color(red: 0.30, green: 0.22, blue: 0.14).opacity(0.10), .clear],
+                       startPoint: leading ? .leading : .trailing, endPoint: leading ? .trailing : .leading)
+            .frame(width: 22)
+            .overlay(alignment: leading ? .leading : .trailing) { Rectangle().fill(Theme.line).frame(width: 0.5) }
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
     }
 
     // MARK: Pieces
@@ -1077,7 +1090,7 @@ extension CookingView {
             duoStepLine(item, state: .running, onGlass: onGlass)
         } else {
             VStack(alignment: .leading, spacing: 6) {
-                Text("A little breathing room.").font(.headline).foregroundStyle(Theme.ink)
+                Text("A little breathing room.").font(.system(.title3, design: .serif)).foregroundStyle(Theme.ink)
                 if let next = upNext(of: recipe).first {
                     Text("Next: \(next.step.title) · \(Scheduling.formatTime(next.plannedStart))")
                         .font(.subheadline).foregroundStyle(Theme.muted)
@@ -1127,59 +1140,90 @@ extension CookingView {
     /// (unless the photo page has it), then Coming up or Directions, each
     /// page keeping its tab. `otherDish`: the upright page's strip for the
     /// dish not shown (board 7).
-    private func duoDishPage(_ recipe: Recipe, label: String?, withRightNow: Bool, otherDish: Recipe? = nil) -> some View {
+    private func duoDishPage(_ recipe: Recipe, label: String?, withRightNow: Bool, otherDish: Recipe? = nil,
+                             showsDinnerTime: Bool = true) -> some View {
         let directions = duoDirections.contains(recipe.id)
         return ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                duoServingLine
-                if let label {
-                    Text(label).font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Theme.tomato)
-                }
-                HStack(alignment: .center, spacing: 14) {
-                    // Two dishes: each page shows its dish's photo small
-                    // beside the name (Joe, October 15, 5:40 PM: "it would
-                    // liven it up"; board 02). One dish has the photo page.
-                    if label != nil, !dynamicTypeSize.isAccessibilitySize,
-                       let photo = RecipePhotos.hero(recipe, from: library) {
-                        RecipeCoverThumbnail(image: photo.image, size: 72)
-                            .accessibilityIdentifier("duo-dish-photo")
-                    }
-                    Text(recipe.title)
-                        .font(.system(.title2, design: .serif).weight(.semibold)).foregroundStyle(Theme.ink)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 8)
-                    Image(systemName: "leaf").rotationEffect(.degrees(-35)).foregroundStyle(Theme.tomato.opacity(0.85))
-                        .accessibilityHidden(true)
-                }
-                if withRightNow {
-                    VStack(alignment: .leading, spacing: 8) {
-                        SectionLabel(text: "RIGHT NOW")
-                        duoRightNow(recipe, onGlass: false)
-                    }
-                    .dtCard()
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("duo-right-now-\(label == "SIDE DISH" ? "side" : "main")")
-                }
-                RunningTimersStrip()
-                // Coming up | Directions
+                duoDishHeader(recipe, label: label)
+                // Coming up | Directions, under the name (board 03).
                 HStack(spacing: 22) {
                     duoTab("Coming up", selected: !directions) { duoDirections.remove(recipe.id) }
                     duoTab("Directions", selected: directions) { duoDirections.insert(recipe.id) }
                     Spacer()
                 }
                 .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
+                if withRightNow {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionLabel(text: "RIGHT NOW")
+                        duoRightNow(recipe, onGlass: false)
+                    }
+                    .padding(18)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.paper, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(color: Color(red: 0.35, green: 0.25, blue: 0.15).opacity(0.10), radius: 14, y: 6)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("duo-right-now-\(label == "SIDE DISH" ? "side" : "main")")
+                }
+                RunningTimersStrip()
                 if directions {
                     duoDirectionsList(recipe)
                 } else {
                     duoComingUp(recipe, withRightNow: withRightNow)
                 }
                 if let otherDish { duoOtherDishStrip(otherDish) }
+                if showsDinnerTime {
+                    duoServingLine.padding(.top, 6)
+                }
             }
-            .padding(20)
+            .padding(.horizontal, 24).padding(.vertical, 22)
         }
         .background(Theme.cream)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("duo-dish-page-\(label == "SIDE DISH" ? "side" : "main")")
+    }
+
+    /// A cookbook page's heading (board 03; Joe, October 15, 5:41 PM: "the
+    /// cozy cookbook vibe"): the dish's label, its photo small beside a
+    /// large serif name when two dishes share the spread, the time and
+    /// servings beneath, and the sprig.
+    private func duoDishHeader(_ recipe: Recipe, label: String?) -> some View {
+        let details = [recipe.plannedMinutes > 0 ? RecipeFormat.duration(recipe.plannedMinutes) : nil,
+                       recipe.yield?.trimmingCharacters(in: .whitespacesAndNewlines)]
+            .compactMap { $0 }.filter { !$0.isEmpty }
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                if let label {
+                    Text(label).font(.caption.weight(.semibold)).tracking(1.8).foregroundStyle(Theme.tomato)
+                }
+                Spacer(minLength: 8)
+                Image(systemName: "leaf").font(.title3).rotationEffect(.degrees(-35))
+                    .foregroundStyle(Theme.tomato.opacity(0.85))
+                    .accessibilityHidden(true)
+            }
+            HStack(alignment: .center, spacing: 16) {
+                // Two dishes: each page shows its dish's photo small beside
+                // the name (Joe, 5:40 PM: "it would liven it up"; board 02).
+                // One dish has the whole photo page.
+                if label != nil, let photo = RecipePhotos.hero(recipe, from: library) {
+                    RecipeCoverThumbnail(image: photo.image, size: 84)
+                        .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                }
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(recipe.title)
+                        .font(.system(size: 32, weight: .regular, design: .serif))
+                        .foregroundStyle(Theme.ink)
+                        .lineLimit(3).minimumScaleFactor(0.75)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if !details.isEmpty {
+                        Text(details.joined(separator: "  ·  "))
+                            .font(.system(.subheadline, design: .serif)).foregroundStyle(Theme.muted)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
     }
 
     private func duoTab(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
@@ -1227,8 +1271,9 @@ extension CookingView {
                      ? "Every step of this dish is done." : "Nothing else waiting for this dish.")
                     .font(.subheadline).foregroundStyle(Theme.muted)
             }
-            ForEach(coming) { item in
-                duoRow(item, state: Scheduling.formatTime(item.plannedStart))
+            ForEach(Array(coming.enumerated()), id: \.element.id) { i, item in
+                duoRow(item, state: "\(Scheduling.formatTime(item.plannedStart)) · \(item.step.handsOn ? "needs you" : "hands-off") · \(Scheduling.formatMinutes(item.minutes))",
+                       number: i + 1)
             }
             // The dinner's overlaps, once, on the main dish's page.
             if !warnings.isEmpty && dinnerRecipes.first?.id == recipe.id {
@@ -1248,13 +1293,28 @@ extension CookingView {
         }
     }
 
-    private func duoRow<Action: View>(_ item: PlannedStep, state: String, @ViewBuilder action: () -> Action = { EmptyView() }) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline, spacing: 10) {
-                Text(state).font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(Theme.muted)
-                    .frame(minWidth: 64, alignment: .leading)
-                Text(item.step.title).font(.subheadline).foregroundStyle(Theme.ink)
-                    .fixedSize(horizontal: false, vertical: true)
+    private func duoRow<Action: View>(_ item: PlannedStep, state: String, number: Int? = nil,
+                                      @ViewBuilder action: () -> Action = { EmptyView() }) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .center, spacing: 14) {
+                // A cookbook's numbered steps (board 03): a soft round mark.
+                ZStack {
+                    Circle().fill(Theme.recipeWash)
+                    if let number {
+                        Text("\(number)").font(.system(.subheadline, design: .serif).weight(.medium)).foregroundStyle(Theme.ink)
+                    } else {
+                        Image(systemName: "timer").font(.footnote.weight(.semibold)).foregroundStyle(Theme.olive)
+                    }
+                }
+                .frame(width: 34, height: 34)
+                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(item.step.title)
+                        .font(.system(.body, design: .serif)).foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(state).font(.caption).monospacedDigit().foregroundStyle(Theme.muted)
+                }
+                Spacer(minLength: 0)
             }
             action()
             Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
