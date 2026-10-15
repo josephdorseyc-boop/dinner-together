@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Root view. iPhone gets the Tonight, Cooking and Recipes tabs; iPad gets a sidebar with a
 /// genuinely wider detail layout instead of a stretched phone screen.
@@ -28,9 +29,12 @@ struct ContentView: View {
 
     /// A colored recipe page draws from its own colors — light text and dark
     /// chrome on a deep page, dark text and light chrome on a pale one. Keep
-    /// the decision at the presentation root so the status bar, sidebar and
-    /// tab bar agree (A2-23); leaving the page returns to the system/test
-    /// appearance.
+    /// the decision at the window so the status bar, sidebar and tab bar
+    /// agree (A2-23); leaving the page returns to the system/test
+    /// appearance. Applied as the window's style (`WindowStyle`), never as
+    /// a root `.preferredColorScheme`: that took the clock away from
+    /// Tonight's dark top bar — in the forced-Light captures (A2-54) and,
+    /// after a pale recipe page, on Joe's iPhone (build 18).
     private var preferredPresentationScheme: ColorScheme? {
         if destination == .recipes,
            let id = recipePath.last,
@@ -38,11 +42,6 @@ struct ContentView: View {
            let palette = RecipePhotos.palette(for: recipe, from: library) {
             return palette.tone == .deep ? .dark : .light
         }
-        // The UI tests' forced Light/Dark is a window setting, like the
-        // system's (`LaunchOptions.applyForcedAppearance`): as a root color
-        // scheme it overrode the top bar's say over the clock, which then
-        // stayed black over Tonight's photo in every forced-Light capture
-        // (A2-54, run 38628522264).
         return nil
     }
 
@@ -80,13 +79,10 @@ struct ContentView: View {
             }
         }
         .tint(Theme.tomato)
-        .preferredColorScheme(preferredPresentationScheme)
-        .onAppear { LaunchOptions.applyForcedAppearance() }
-        // Leaving a colored recipe page resets the window's style; put the
-        // tests' forced appearance back (Debug only; nothing in Release).
-        .onChange(of: preferredPresentationScheme) { _, scheme in
-            if scheme == nil { LaunchOptions.applyForcedAppearance() }
-        }
+        // The colored page's scheme — or, off such a page, the tests' forced
+        // appearance (Debug; nil in Release) or else the system's — as this
+        // window's own style.
+        .background(WindowStyle(scheme: preferredPresentationScheme ?? LaunchOptions.forcedColorScheme))
         // Share → "Dinner, Together" from another app: the inbox item opens
         // Add recipe already filled in; the new recipe's page follows.
         .sheet(item: $library.pendingShare) { share in
@@ -144,5 +140,61 @@ struct ContentView: View {
                  goRecipes: { destination = .recipes },
                  addRecipe: { recipePath.removeAll(); destination = .recipes; addingRecipe = true },
                  openRecipe: openRecipe)
+    }
+}
+
+/// Sets the hosting window's `overrideUserInterfaceStyle` — the way the
+/// system's own Light/Dark setting applies — and has the status bar re-read
+/// its style. Build 18 set a colored recipe page's scheme as a root
+/// `.preferredColorScheme`; back on Tonight after a pale page (Whipped
+/// Frozen Apple Cider on Joe's iPhone) the clock stayed black over the
+/// photo, because nothing asked the status bar again once that scheme
+/// went back to nil. Per window, so a second iPad window keeps its own.
+private struct WindowStyle: UIViewRepresentable {
+    var scheme: ColorScheme?
+
+    func makeUIView(context: Context) -> Probe { Probe() }
+
+    func updateUIView(_ probe: Probe, context: Context) {
+        switch scheme {
+        case .dark?: probe.style = .dark
+        case .light?: probe.style = .light
+        default: probe.style = .unspecified
+        }
+    }
+
+    final class Probe: UIView {
+        var style: UIUserInterfaceStyle = .unspecified {
+            didSet { if style != oldValue { scheduleApply() } }
+        }
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            isUserInteractionEnabled = false
+            accessibilityElementsHidden = true
+        }
+
+        required init?(coder: NSCoder) { nil }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            scheduleApply()
+        }
+
+        /// After the SwiftUI update in progress: changing the window's
+        /// traits inside it would start another one.
+        private func scheduleApply() {
+            DispatchQueue.main.async { [weak self] in self?.apply() }
+        }
+
+        private func apply() {
+            guard let window else { return }
+            if window.overrideUserInterfaceStyle != style { window.overrideUserInterfaceStyle = style }
+            var controller = window.rootViewController
+            while let current = controller {
+                current.setNeedsStatusBarAppearanceUpdate()
+                controller = current.presentedViewController
+            }
+        }
     }
 }

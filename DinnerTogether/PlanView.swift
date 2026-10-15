@@ -36,6 +36,9 @@ struct PlanView: View {
     @State private var sheet: PageSheet?
     /// Whether the cover photo is under the navigation bar (at rest, yes).
     @State private var coverUnderBar = true
+    /// How dark the frosted dinner-time card is: the cook's own setting.
+    @AppStorage(TonightGlass.key) private var glassTint = TonightGlass.standard
+    @State private var showingGlassPanel = false
     /// The photo runs up behind the clock and the bar on iPhone.
     private var photoUnderBar: Bool { coverUnderBar && horizontalSizeClass != .regular }
 
@@ -361,11 +364,36 @@ struct PlanView: View {
         let apricot = PageText.accent.color
         let minutes = menuMinutes(store.menu)
         let startBy = store.session.serveAt.addingTimeInterval(-Double(minutes) * 60)
+        let shadow = solidCard ? 0 : TonightGlass.textShadow(glassTint)
         return VStack(alignment: .leading, spacing: 14) {
-            Text("DINNER ON THE TABLE")
-                .font(.caption.weight(.semibold)).tracking(1.4)
-                .foregroundStyle(cream.opacity(0.85))
-                .accessibilityAddTraits(.isHeader)
+            HStack(alignment: .center, spacing: 8) {
+                Text("DINNER ON THE TABLE")
+                    .font(.caption.weight(.semibold)).tracking(1.4)
+                    .foregroundStyle(cream.opacity(0.85))
+                    .accessibilityAddTraits(.isHeader)
+                    .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
+                Spacer(minLength: 0)
+                // "…": the card's glass, clearer or darker (Joe, build 18).
+                Button { showingGlassPanel = true } label: {
+                    Image(systemName: "ellipsis")
+                        .font(.body.weight(.bold))
+                        .foregroundStyle(cream)
+                        .frame(minWidth: 34, minHeight: 34)
+                        .background(Circle().fill(Color.white.opacity(0.16)))
+                        .contentShape(Circle())
+                }
+                .buttonStyle(.plain)
+                // A 44 pt target without making the header taller.
+                .padding(5).contentShape(Rectangle()).padding(-5)
+                .accessibilityLabel("Card glass")
+                .accessibilityHint("Makes this card clearer or darker.")
+                .accessibilityIdentifier("table-card-more")
+                .popover(isPresented: $showingGlassPanel, arrowEdge: .bottom) {
+                    GlassTintPanel(tint: $glassTint, solid: solidCard) { showingGlassPanel = false }
+                        .presentationCompactAdaptation(.popover)
+                        .uiTestTypeSize()
+                }
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(store.session.serveAt, format: .dateTime.hour().minute())
                     .font(.system(size: 60, weight: .semibold, design: .serif))
@@ -378,22 +406,26 @@ struct PlanView: View {
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("Dinner on the table at \(Scheduling.formatMoment(store.session.serveAt))")
+            .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
 
             if !store.hasDinner {
                 Label("Choose tonight’s recipe and we’ll say when to start cooking.", systemImage: "book.closed")
                     .font(.subheadline.weight(.medium)).foregroundStyle(apricot)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("table-time-no-dinner")
+                    .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
             } else if hasProgress {
                 Label("You’re cooking. Change the time from Cooking with Adjust time or Review dinner time.", systemImage: "flame")
                     .font(.subheadline).foregroundStyle(cream)
                     .fixedSize(horizontal: false, vertical: true)
+                    .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
             } else if case .startsInPast(let earliest) = feasibility {
                 VStack(alignment: .leading, spacing: 10) {
                     Label("Too soon for this menu. Starting now, the earliest realistic time is \(Scheduling.formatMoment(earliest)).",
                           systemImage: "exclamationmark.triangle")
                         .font(.subheadline.weight(.semibold)).foregroundStyle(apricot)
                         .fixedSize(horizontal: false, vertical: true)
+                        .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
                     Button("Use \(Scheduling.formatMoment(earliest))") {
                         store.setServeAt(earliest)
                         recheckFeasibility()
@@ -408,6 +440,7 @@ struct PlanView: View {
                     .font(.subheadline.weight(.medium)).foregroundStyle(apricot)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("table-time-start-by")
+                    .shadow(color: .black.opacity(shadow), radius: 3, y: 1)
             }
 
             DatePicker(
@@ -429,19 +462,24 @@ struct PlanView: View {
         .background { tableGlass }
     }
 
-    /// Dark frosted glass over the cover photo; solid espresso when the
-    /// cook asks for less transparency or more contrast (and in the
-    /// `-dt-solid-cards` captures). The tint keeps cream text ≥ 4.5:1 over
-    /// a white photo.
+    /// Solid espresso instead of glass: the cook asked for less
+    /// transparency or more contrast (or the `-dt-solid-cards` captures).
+    private var solidCard: Bool {
+        reduceTransparency || contrast == .increased || LaunchOptions.solidCards
+    }
+
+    /// Dark frosted glass over the cover photo, as dark as the cook set it
+    /// with the card's "…" (`TonightGlass`); solid espresso for Reduce
+    /// Transparency and Increase Contrast.
     @ViewBuilder
     private var tableGlass: some View {
         let shape = RoundedRectangle(cornerRadius: 26, style: .continuous)
-        if reduceTransparency || contrast == .increased || LaunchOptions.solidCards {
+        if solidCard {
             shape.fill(Self.tableSurface)
         } else {
             shape.fill(.ultraThinMaterial)
                 .environment(\.colorScheme, .dark)
-                .overlay(shape.fill(Self.tableSurface.opacity(0.64)))
+                .overlay(shape.fill(Self.tableSurface.opacity(TonightGlass.clamped(glassTint))))
                 .overlay(shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
         }
     }
@@ -585,4 +623,78 @@ struct PlanView: View {
 private struct CoverBottomKey: PreferenceKey {
     static var defaultValue: CGFloat = .infinity
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = min(value, nextValue()) }
+}
+
+/// How dark Tonight's frosted dinner-time card is (Joe, build 18: "It's a
+/// little dark … like slider?"). The cook sets it from the card's "…"; it
+/// stays on this device. The value is the espresso tint laid over the
+/// blurred photo; Reduce Transparency and Increase Contrast keep the card
+/// solid whatever it is.
+enum TonightGlass {
+    static let key = "tonightGlassTint"
+    static let range: ClosedRange<Double> = 0.25...0.85
+    /// Lighter than build 18's fixed 0.64.
+    static let standard = 0.50
+
+    static func clamped(_ tint: Double) -> Double {
+        tint.isFinite ? min(max(tint, range.lowerBound), range.upperBound) : standard
+    }
+
+    /// A soft shadow under the card's cream text as the glass clears, so
+    /// it still reads where the photo is pale; none from 0.65 up.
+    static func textShadow(_ tint: Double) -> Double {
+        max(0, 0.65 - clamped(tint)) * 1.3
+    }
+}
+
+/// The card's "…" panel: one slider from Clearer to Darker that changes the
+/// card live behind it, and a way back to the standard glass.
+private struct GlassTintPanel: View {
+    @Binding var tint: Double
+    /// Reduce Transparency or Increase Contrast: the card stays solid.
+    var solid: Bool
+    var done: () -> Void
+
+    private var atStandard: Bool { abs(TonightGlass.clamped(tint) - TonightGlass.standard) < 0.005 }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Card glass").font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 12)
+                Button("Done", action: done)
+                    .fontWeight(.semibold)
+                    .accessibilityIdentifier("glass-done")
+            }
+            if solid {
+                Text("Reduce Transparency or Increase Contrast is on, so the card stays solid.")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                VStack(spacing: 6) {
+                    Slider(value: Binding(get: { TonightGlass.clamped(tint) }, set: { tint = $0 }),
+                           in: TonightGlass.range) {
+                        Text("Card glass")
+                    }
+                    .tint(Theme.tomato)
+                    .accessibilityIdentifier("glass-slider")
+                    HStack {
+                        Text("Clearer")
+                        Spacer(minLength: 12)
+                        Text("Darker")
+                    }
+                    .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                }
+                Button("Reset to standard") { tint = TonightGlass.standard }
+                    .font(.subheadline)
+                    .disabled(atStandard)
+                    .accessibilityIdentifier("glass-reset")
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 280, idealWidth: 320, maxWidth: 360)
+        .fixedSize(horizontal: false, vertical: true)
+    }
 }

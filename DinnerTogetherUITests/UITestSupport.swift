@@ -949,13 +949,18 @@ struct RecipeCapture {
     var dark = false
     /// Extra launch flags, e.g. the solid-card rendering of Reduce Transparency.
     var extra: [String] = []
+    /// No -dt-appearance: the simulator's own setting, as on a real phone
+    /// (Joe's black clock on build 18 never showed with a forced appearance).
+    var systemAppearance = false
     static let standard = RecipeCapture()
     static let ax3 = RecipeCapture(suffix: "-ax3", typeSize: "accessibility3")
     static let darkMode = RecipeCapture(suffix: "-dark", dark: true)
     static let solidCards = RecipeCapture(suffix: "-solid", extra: ["-dt-solid-cards"])
+    static let system = RecipeCapture(suffix: "-system", systemAppearance: true)
 
     var launchArguments: [String] {
-        (typeSize.map { ["-dt-type-size", $0] } ?? []) + (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"]) + extra
+        let appearance = systemAppearance ? [] : (dark ? ["-dt-appearance", "dark"] : ["-dt-appearance", "light"])
+        return (typeSize.map { ["-dt-type-size", $0] } ?? []) + appearance + extra
     }
 }
 
@@ -1725,6 +1730,120 @@ extension DinnerTogetherUITestCase {
             launch(seed: UISeed.tonight(now: Date(), menuID: ""), extraLaunchArguments: capture.launchArguments, openCooking: false)
             waitForExistence(app.descendants(matching: .any)["tonight-cover"].firstMatch, timeout: 10, "Tonight")
             photograph("r24d-tonight-first-launch" + capture.suffix)
+        }
+    }
+
+    /// r25 — Tonight after a pale recipe page in the system's own
+    /// appearance, the way Joe reached it on build 18 (Whipped Frozen Apple
+    /// Cider: a black clock over the photo): back with "Cook this for
+    /// dinner", then back with the Tonight tab while the page stays open.
+    /// Then the card's "…" (Joe, build 18: "a little dark … like slider?"):
+    /// the glass at both ends and back to standard.
+    func flowTonightAfterPalePageAndGlass() {
+        launch(seed: UISeed.tonight(now: Date(), menuID: ""), extraLaunchArguments: RecipeCapture.system.launchArguments,
+               openCooking: false, recipes: [RecipeFixtureText.frozenBerry], photo: "pastel")
+        let title = RecipeFixtureText.frozenBerryTitle
+        let cover = app.descendants(matching: .any)["tonight-cover"].firstMatch
+
+        openRecipe(title)
+        let cook = app.buttons["cook-this-recipe"]
+        tapPinned(cook, "Check timing to continue")
+        let confirm = app.buttons["timing-looks-right"]
+        waitForExistence(confirm, timeout: 5, "the Timing tab")
+        tapPinned(confirm, "Timing looks right")
+        waitForDisappearance(confirm, "the review is recorded")
+        tapPinned(cook, "Cook this for dinner")
+        XCTAssertTrue(app.staticTexts["Selected: \(title)"].waitForExistence(timeout: 5), "Tonight with \(title)")
+        waitForExistence(cover, timeout: 10, "Tonight's cover")
+        scrollToTop(maxDrags: 3)
+        expectLightClock("r25a")
+        photograph("r25a-tonight-after-pale-page-system")
+
+        // Tonight's recipe → its page, then the Tonight tab (or sidebar row)
+        // with the page still open under Recipes.
+        scrollAndTap(app.buttons["tonight-recipe"], "tonight's recipe")
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page for “\(title)”")
+        goToTonight()
+        waitForExistence(cover, timeout: 10, "Tonight's cover")
+        scrollToTop(maxDrags: 3)
+        expectLightClock("r25b")
+        photograph("r25b-tonight-via-tab-system")
+
+        // The card's "…": clearer, darker, back to standard.
+        scrollAndTap(app.buttons["table-card-more"], "the dinner-time card's …")
+        let slider = app.sliders["glass-slider"]
+        waitForExistence(slider, timeout: 5, "the card-glass slider")
+        let standard = slider.value as? String
+        let reset = app.buttons["glass-reset"]
+        XCTAssertFalse(reset.isEnabled, "the glass starts standard: nothing to reset")
+        slider.adjust(toNormalizedSliderPosition: 0)
+        photograph("r25c-glass-clearest")
+        slider.adjust(toNormalizedSliderPosition: 1)
+        photograph("r25d-glass-darkest")
+        XCTAssertNotEqual(slider.value as? String, standard, "the slider moved")
+        XCTAssertTrue(reset.isEnabled, "Reset is offered once the glass has changed")
+        reset.tap()
+        XCTAssertEqual(slider.value as? String, standard, "Reset puts the standard glass back")
+        app.buttons["glass-done"].tap()
+        waitForDisappearance(slider, "the panel closes with Done")
+        XCTAssertTrue(cover.exists, "Tonight is still there")
+    }
+
+    /// The Tonight tab on iPhone, the sidebar row on iPad.
+    private func goToTonight() {
+        let tab = app.tabBars.buttons["Tonight"].firstMatch
+        if tab.exists { tab.tap(); return }
+        let row = app.buttons["Tonight"].firstMatch.exists ? app.buttons["Tonight"].firstMatch
+            : app.staticTexts["Tonight"].firstMatch
+        waitForExistence(row, timeout: 5, "the Tonight tab or sidebar row")
+        row.tap()
+    }
+
+    /// On iPhone the photo runs up behind the status bar, so the clock must
+    /// be light there. Reads the clock's corner of a real screenshot:
+    /// near-white against near-black pixels (the scrim keeps the photo in
+    /// the middle tones there). Fails only on a clock that is plainly dark;
+    /// a layout where neither shows (another device's status bar) is noted,
+    /// with the crop attached either way. iPad: the photo starts below the
+    /// clock, which follows the sidebar.
+    private func expectLightClock(_ step: String, file: StaticString = #filePath, line: UInt = #line) {
+        guard app.frame.width < 700 else { return }
+        var light = 0, dark = 0
+        for attempt in 0..<4 {
+            if attempt > 0 { Thread.sleep(forTimeInterval: 0.5) } // the bar's style animates in
+            let image = XCUIScreen.main.screenshot().image
+            guard let cg = image.cgImage, image.size.width > 0 else { return XCTFail("\(step): no screenshot pixels", file: file, line: line) }
+            let scale = CGFloat(cg.width) / image.size.width
+            // The status bar's left ear, where the time is on Face ID iPhones.
+            let region = CGRect(x: 12 * scale, y: 6 * scale, width: image.size.width * 0.3 * scale, height: 44 * scale).integral
+            guard let crop = cg.cropping(to: region) else { return XCTFail("\(step): could not crop the clock", file: file, line: line) }
+            let w = crop.width, h = crop.height
+            var pixels = [UInt8](repeating: 0, count: w * h * 4)
+            let drawn: Bool = pixels.withUnsafeMutableBytes { buffer in
+                guard let ctx = CGContext(data: buffer.baseAddress, width: w, height: h, bitsPerComponent: 8, bytesPerRow: w * 4,
+                                          space: CGColorSpaceCreateDeviceRGB(),
+                                          bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return false }
+                ctx.draw(crop, in: CGRect(x: 0, y: 0, width: w, height: h))
+                return true
+            }
+            guard drawn else { return XCTFail("\(step): could not read the clock's pixels", file: file, line: line) }
+            light = 0; dark = 0
+            for i in stride(from: 0, to: pixels.count, by: 4) {
+                let l = (0.2126 * Double(pixels[i]) + 0.7152 * Double(pixels[i + 1]) + 0.0722 * Double(pixels[i + 2])) / 255
+                if l > 0.88 { light += 1 } else if l < 0.12 { dark += 1 }
+            }
+            if attempt == 3 || (light >= 40 && light > dark * 2) {
+                let attachment = XCTAttachment(image: UIImage(cgImage: crop))
+                attachment.name = "\(step)-clock-light\(light)-dark\(dark)"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+            if light >= 40 && light > dark * 2 { return }
+        }
+        if dark >= 40 && dark >= light {
+            XCTFail("\(step): the clock over Tonight's photo is dark (near-black px \(dark), near-white px \(light))", file: file, line: line)
+        } else {
+            print("\(step): clock check inconclusive (near-white px \(light), near-black px \(dark)); see the attached crop")
         }
     }
 

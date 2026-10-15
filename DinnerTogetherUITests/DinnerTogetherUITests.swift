@@ -120,4 +120,7 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test43_weekPlan() { flowWeekPlan() }
     /// r24 — A2-44 checks 2 and 3: imported but not chosen, A with a photo → B without → A.
     func test44_coverSwitching() { flowCoverSwitching() }
+    /// r25 — Tonight after a pale recipe page in the system appearance (Joe's
+    /// black clock, build 18), and the card-glass slider.
+    func test45_tonightAfterPalePageAndGlass() { flowTonightAfterPalePageAndGlass() }
 }
