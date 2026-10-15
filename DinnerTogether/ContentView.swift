@@ -2,7 +2,10 @@ import SwiftUI
 import UIKit
 
 /// Root view. iPhone gets the Tonight, Cooking and Recipes tabs; iPad gets a sidebar with a
-/// genuinely wider detail layout instead of a stretched phone screen.
+/// genuinely wider detail layout instead of a stretched phone screen. The
+/// opened iPhone Duo is a phone with a regular-width window (951 × 669, run
+/// 38766905435): it keeps the tabs, so the cookbook spread has the whole
+/// screen as in the approved mockups (Joe, October 15: no sidebar there).
 struct ContentView: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var library: RecipeLibrary
@@ -20,6 +23,12 @@ struct ContentView: View {
         Binding(get: { destination }, set: { next in
             if let next { destination = next }
         })
+    }
+
+    /// The sidebar is iPad's: a regular-width window on a phone (the opened
+    /// Duo) keeps the tabs, whose bar the system puts in its rail.
+    private var usesSidebar: Bool {
+        horizontalSizeClass == .regular && UIDevice.current.userInterfaceIdiom != .phone
     }
 
     @State private var recipePath: [UUID] = []
@@ -52,7 +61,7 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if horizontalSizeClass == .regular {
+            if usesSidebar {
                 NavigationSplitView {
                     List(selection: sidebarSelection) {
                         Label("Tonight", systemImage: "fork.knife").tag(Destination.tonight)
