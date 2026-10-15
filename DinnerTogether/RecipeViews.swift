@@ -871,8 +871,15 @@ struct RecipeDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier(pageID("recipe-title"))
-            if !meta.isEmpty {
-                Text(meta).font(.subheadline).foregroundStyle(Theme.muted)
+            if reader {
+                if !meta.isEmpty {
+                    Text(meta).font(.subheadline).foregroundStyle(Theme.muted)
+                }
+            } else {
+                // The page's own recipe: its time stays editable here as on
+                // the full page (the Duo's first book-page run: no way to add
+                // a missing time, run 38756129312).
+                bookTimeLine(recipe)
             }
         }
         let thumb = Group {
@@ -888,13 +895,25 @@ struct RecipeDetailView: View {
             }
         }
         VStack(alignment: .leading, spacing: 12) {
-            if !reader && !dynamicTypeSize.isAccessibilitySize {
+            // A typed recipe has no photo to take colors from, so Page color
+            // is on the page here too, not only in ••• (as on the full page).
+            let pageColorHere = !reader && photo == nil
+            if pageColorHere || (!reader && !dynamicTypeSize.isAccessibilitySize) {
                 HStack {
+                    if pageColorHere {
+                        Button { choosingPageStyle = true } label: {
+                            Label("Page color", systemImage: "paintpalette")
+                        }
+                        .buttonStyle(QuietButtonStyle())
+                        .accessibilityIdentifier(pageID("page-color-button"))
+                    }
                     Spacer()
-                    Image(systemName: "leaf")
-                        .font(.title3).rotationEffect(.degrees(-35))
-                        .foregroundStyle(Theme.tomato.opacity(0.85))
-                        .accessibilityHidden(true)
+                    if !dynamicTypeSize.isAccessibilitySize {
+                        Image(systemName: "leaf")
+                            .font(.title3).rotationEffect(.degrees(-35))
+                            .foregroundStyle(Theme.tomato.opacity(0.85))
+                            .accessibilityHidden(true)
+                    }
                 }
             }
             if narrow || dynamicTypeSize.isAccessibilitySize {
@@ -907,6 +926,44 @@ struct RecipeDetailView: View {
         .padding(.horizontal, 18).padding(.top, 12)
         .frame(maxWidth: 720, alignment: .leading)
         .frame(maxWidth: .infinity)
+    }
+
+    /// The book page's time and yield line. The time is the recipe's own,
+    /// tappable like the full page's RECIPE TIME stat: "Add time" when the
+    /// import found none. Same identifier and labels as that stat.
+    private func bookTimeLine(_ recipe: Recipe) -> some View {
+        let serves = recipe.yield.map { "Serves \($0)" }
+        return ViewThatFits(in: .horizontal) {
+            HStack(spacing: 8) {
+                bookTimeButton(recipe)
+                if let serves { Text("•  \(serves)").font(.subheadline).foregroundStyle(Theme.muted).lineLimit(1) }
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                bookTimeButton(recipe)
+                if let serves {
+                    Text(serves).font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private func bookTimeButton(_ recipe: Recipe) -> some View {
+        Button { editingRecipeTime = true } label: {
+            HStack(spacing: 4) {
+                Text(recipe.totalMinutes.map(RecipeFormat.compact) ?? "Add time")
+                    .font(.subheadline.weight(recipe.totalMinutes == nil ? .semibold : .regular))
+                    .foregroundStyle(recipe.totalMinutes == nil ? accentColor : Theme.muted)
+                Image(systemName: recipe.totalMinutes == nil ? "plus.circle" : "pencil.circle")
+                    .font(.footnote).foregroundStyle(Theme.muted)
+            }
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(recipe.totalMinutes.map { "Recipe time, \(RecipeFormat.compact($0))" } ?? "Recipe time not stated")
+        .accessibilityHint(recipe.totalMinutes == nil ? "Adds the recipe’s total time." : "Edits the recipe’s total time.")
+        .accessibilityIdentifier(pageID("recipe-time"))
     }
 
     /// Underlined tabs on a hairline (A2-59), smaller type before they wrap.

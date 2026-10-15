@@ -308,6 +308,12 @@ class DinnerTogetherUITestCase: XCTestCase {
         return (screen.minY + 60, screen.maxY - bottomBand)
     }
 
+    /// The first step's heading: "STEP 1" on the full page, the olive "1"
+    /// (read as "Step 1") on the cookbook page the Duo shows upright.
+    func firstStepHeading() -> XCUIElement {
+        app.staticTexts.matching(NSPredicate(format: "label ==[c] 'step 1'")).firstMatch
+    }
+
     func isComfortablyVisible(_ element: XCUIElement) -> Bool {
         guard element.exists, element.isHittable else { return false }
         let screen = app.frame
@@ -1576,7 +1582,7 @@ extension DinnerTogetherUITestCase {
         let colored = pageLuminance()
         XCTAssertLessThan(colored, 0.35, "the page took the photo’s deep colors, not cream: luminance below the tabs \(colored)")
         app.buttons["recipe-tab-directions"].tap()
-        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the colored page")
+        XCTAssertTrue(firstStepHeading().waitForExistence(timeout: 5), "directions on the colored page")
         photograph("r14b-photo-colors-directions" + capture.suffix)
 
         openPageColorFromMenu()
@@ -1609,8 +1615,8 @@ extension DinnerTogetherUITestCase {
         let pale = pageLuminance()
         XCTAssertGreaterThan(pale, 0.55, "a pastel photo gives a pale page, not slate: luminance below the tabs \(pale)")
         app.buttons["recipe-tab-directions"].tap()
-        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the pale page")
-        bringIntoView(app.staticTexts["STEP 1"])   // the render shows step text, not only the header (A2-33)
+        XCTAssertTrue(firstStepHeading().waitForExistence(timeout: 5), "directions on the pale page")
+        bringIntoView(firstStepHeading())   // the render shows step text, not only the header (A2-33)
         photograph("r19b-pale-directions" + capture.suffix)
         let timingTab = app.buttons["recipe-tab-timing"]
         timingTab.tap()
@@ -2410,7 +2416,7 @@ extension DinnerTogetherUITestCase {
         scrollRecipeToTop()
         photograph("r15c-typed-\(preset)" + capture.suffix)
         app.buttons["recipe-tab-directions"].tap()
-        XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the \(preset) page")
+        XCTAssertTrue(firstStepHeading().waitForExistence(timeout: 5), "directions on the \(preset) page")
         photograph("r15d-typed-\(preset)-directions" + capture.suffix)
     }
 
