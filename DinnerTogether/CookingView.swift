@@ -340,8 +340,16 @@ struct CookingView: View {
             VStack(alignment: .leading, spacing: 16) {
                 ForEach(upNext) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(Scheduling.formatTime(item.plannedStart))
-                            .font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(Theme.muted)
+                        // The dish beside the time on a whole meal (A2-63):
+                        // the cook knows which pan the step belongs to.
+                        HStack(spacing: 6) {
+                            Text(Scheduling.formatTime(item.plannedStart))
+                                .font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(Theme.muted)
+                            if WholeMeal.isWholeMeal(store.session.menuID) {
+                                Text("·").font(.caption).foregroundStyle(Theme.muted).accessibilityHidden(true)
+                                Text(item.step.dish).font(.caption.weight(.semibold)).foregroundStyle(Theme.olive).lineLimit(1)
+                            }
+                        }
                         Text(item.step.title).font(.subheadline).foregroundStyle(Theme.ink)
                     }.accessibilityElement(children: .combine)
                 }
@@ -457,7 +465,35 @@ struct CookingView: View {
                 .id(store.session.serveAt)
             Text(store.session.serveAt, format: .dateTime.weekday().month().day())
                 .font(.caption).foregroundStyle(Theme.muted)
+            dishSummary
         }.padding(.bottom, 8)
+    }
+
+    /// The whole meal's dishes, named, ready together (A2-63, build 21):
+    /// "Sunday herb chicken · Mashed potatoes · Green beans". Nothing for a
+    /// single recipe or Thanksgiving, whose title already says it.
+    @ViewBuilder
+    private var dishSummary: some View {
+        let dishes = (WholeMeal.recipeIDs(store.session.menuID) ?? []).compactMap { library.recipe(id: $0) }
+        if dishes.count > 1 {
+            HStack(alignment: .top, spacing: 8) {
+                HStack(spacing: -8) {
+                    ForEach(dishes.prefix(4)) { dish in
+                        if let photo = RecipePhotos.hero(dish, from: library) {
+                            RecipeCoverThumbnail(image: photo.image, size: 28)
+                                .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Theme.cream, lineWidth: 2))
+                        }
+                    }
+                }
+                Text(dishes.map(\.title).joined(separator: " · "))
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.top, 4)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(dishes.count) dishes, ready together: \(dishes.map(\.title).joined(separator: ", "))")
+            .accessibilityIdentifier("dish-summary")
+        }
     }
 
     /// Routine timing drift, stated inline and left alone: the chosen dinner
