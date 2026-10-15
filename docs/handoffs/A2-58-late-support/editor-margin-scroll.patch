@@ -1,0 +1,35 @@
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+index 15c7409..d884f00 100644
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -1953,7 +1953,29 @@ extension DinnerTogetherUITestCase {
+         // before the title, while no keyboard covers them (runs 38670042839
+         // and 38677804763 failed reaching Notes under the title's keyboard).
+         let notes = app.descendants(matching: .any)["recipe-edit-notes"]
+-        scrollTo(notes)
++        // Vertical title/yield fields can consume a centre-column drag.
++        // Use this editor's 24 pt outer padding to scroll the host instead
++        // (run 38682393276 repeated twelve centre drags without moving Notes).
++        let editorScroll = app.scrollViews.containing(.any, identifier: "recipe-edit-notes").firstMatch
++        for _ in 0..<4 where !isComfortablyVisible(notes) {
++            guard editorScroll.exists else { break }
++            let viewport = editorScroll.frame
++            guard isFiniteFrame(viewport), viewport.height > 80, viewport.width > 24 else { break }
++            let screen = app.frame
++            let startPoint = CGPoint(x: viewport.minX + 12, y: viewport.minY + viewport.height * 0.70)
++            let endPoint = CGPoint(x: viewport.minX + 12, y: viewport.minY + viewport.height * 0.25)
++            guard screen.contains(startPoint), screen.contains(endPoint) else { break }
++            let origin = editorScroll.coordinate(withNormalizedOffset: .zero)
++            let start = origin.withOffset(CGVector(dx: 12, dy: viewport.height * 0.70))
++            let end = origin.withOffset(CGVector(dx: 12, dy: viewport.height * 0.25))
++            start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .default, thenHoldForDuration: 0.3)
++            Thread.sleep(forTimeInterval: 0.4)
++        }
++        if !isComfortablyVisible(notes) {
++            photograph("r20-notes-before-scroll-fallback" + capture.suffix)
++            attachHierarchy("r20-notes-before-scroll-fallback-hierarchy" + capture.suffix)
++        }
++        scrollTo(notes) // retain the full hittability + unobscured-frame assertion
+         notes.tap()
+         notes.typeText("Use extra lime. Check five minutes early.")
+         // The title is at the top of the sheet, above the keyboard.
