@@ -1506,9 +1506,14 @@ extension DinnerTogetherUITestCase {
             // Close it through More and open it again — the retry that
             // passed on iPad in every run before A2-39.
             let more = app.descendants(matching: .any)["recipe-more"].firstMatch
-            if item.exists, more.exists {
+            if item.exists, more.exists, more.isHittable {
                 tapEvenInPopover(more)
                 waitForDisappearance(item, timeout: 3, "the stale menu closed")
+            } else if item.exists {
+                // The Duo's ••• sits in the system rail, under its own open
+                // menu (run 38738590746): press the item again instead.
+                item.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+                if sheetDone.waitForExistence(timeout: 6) { return }
             }
         }
         waitForExistence(sheetDone, timeout: 1, "the Page color sheet")
@@ -1516,6 +1521,11 @@ extension DinnerTogetherUITestCase {
 
     private func closePageColorSheet() {
         let done = app.buttons["page-style-done"]
+        // At AX3 on the Duo the sheet's bar slides away as its grid scrolls
+        // (run 38738590746); scrolling back to the top brings Done back.
+        for _ in 0..<3 where !done.waitForExistence(timeout: 2) {
+            app.swipeDown(velocity: .slow)
+        }
         guard done.waitForExistence(timeout: 3) else {
             photograph("page-color-before-close-done-missing")
             attachHierarchy("page-color-before-close-done-missing-hierarchy")
@@ -1588,8 +1598,12 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(app.staticTexts["STEP 1"].waitForExistence(timeout: 5), "directions on the pale page")
         bringIntoView(app.staticTexts["STEP 1"])   // the render shows step text, not only the header (A2-33)
         photograph("r19b-pale-directions" + capture.suffix)
-        app.buttons["recipe-tab-timing"].tap()
+        let timingTab = app.buttons["recipe-tab-timing"]
+        timingTab.tap()
         let remove = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'remove-step-'")).firstMatch
+        // A tap that landed while the page was still settling (the Duo, run
+        // 38738590746) leaves Directions selected: once more, then judge.
+        if !remove.waitForExistence(timeout: 5) && !timingTab.isSelected { timingTab.tap() }
         XCTAssertTrue(remove.waitForExistence(timeout: 5), "each step offers Remove (A2 S2)")
         photograph("r19c-pale-timing" + capture.suffix)
         openPageColorFromMenu()
