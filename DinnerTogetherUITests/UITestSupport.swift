@@ -218,16 +218,22 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// The inner panel captures upright with the landscape app turned a
     /// quarter anticlockwise; turned back, the picture reads as the cook sees it.
     static func turnedToReading(_ image: UIImage, for screen: CGRect) -> UIImage {
-        guard image.size.width < image.size.height, screen.width > screen.height else { return image }
-        let size = CGSize(width: image.size.height, height: image.size.width)
+        // Bake any orientation flag into the pixels first: pngData() writes
+        // the raw bitmap and drops it (run 38788484544's captures came out
+        // upright-panel again).
         let format = UIGraphicsImageRendererFormat()
         format.scale = image.scale
+        let baked = UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+        guard baked.size.width < baked.size.height, screen.width > screen.height else { return baked }
+        let size = CGSize(width: baked.size.height, height: baked.size.width)
         return UIGraphicsImageRenderer(size: size, format: format).image { context in
             let cg = context.cgContext
             cg.translateBy(x: size.width / 2, y: size.height / 2)
             cg.rotate(by: .pi / 2)
-            image.draw(in: CGRect(x: -image.size.width / 2, y: -image.size.height / 2,
-                                  width: image.size.width, height: image.size.height))
+            baked.draw(in: CGRect(x: -baked.size.width / 2, y: -baked.size.height / 2,
+                                  width: baked.size.width, height: baked.size.height))
         }
     }
 
@@ -2128,7 +2134,10 @@ extension DinnerTogetherUITestCase {
         XCTAssertGreaterThan(title.frame.minX, frame.midX - 1, "…on the right half: \(title.frame)")
         let photo = app.descendants(matching: .any)["spread-cover-photo"].firstMatch
         XCTAssertTrue(photo.exists, "the cover photo leads the left page")
-        XCTAssertLessThan(photo.frame.maxX, frame.midX + 1, "…on the left half: \(photo.frame)")
+        // The photo fills its page and is clipped to it; XCTest reports the
+        // picture's full extent, not the clip (run 38788484544: −106…539 on
+        // a 433 pt page), so its middle says which half it's on.
+        XCTAssertLessThan(photo.frame.midX, frame.midX, "…on the left half: \(photo.frame)")
         XCTAssertGreaterThan(photo.frame.height, frame.height * 0.8, "…edge to edge: \(photo.frame)")
         photograph("r26b-spread-cover" + capture.suffix)
 
