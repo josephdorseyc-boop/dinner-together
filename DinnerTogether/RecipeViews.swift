@@ -1442,7 +1442,7 @@ struct RecipeDetailView: View {
                         .font(.subheadline.weight(.semibold))
                         .frame(width: 44, height: 44)
                         .foregroundStyle(accentColor)
-                        .background(Circle().fill(accentColor.opacity(0.14)))
+                        .recipeSurface(cornerRadius: 22)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(over ? "Dismiss the \(stepTitle) timer" : "Stop the \(stepTitle) \(duration) timer")
@@ -1461,7 +1461,10 @@ struct RecipeDetailView: View {
                 .font(.subheadline.weight(.semibold))
                 .padding(.horizontal, 14).frame(minHeight: 44)
                 .foregroundStyle(accentColor)
-                .background(Capsule().fill(accentColor.opacity(0.14)))
+                // The page's own card (Joe, October 15, 2:18 PM: the timers
+                // "change color to match the card"): frosted in the page's
+                // colors on a photo page, paper on the cream one.
+                .recipeSurface(cornerRadius: 22)
             }
             .buttonStyle(.plain)
             .disabled(TimedText.seconds(in: duration) == nil)
