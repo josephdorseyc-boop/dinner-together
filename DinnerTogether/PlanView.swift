@@ -627,7 +627,7 @@ struct PlanView: View {
 
     /// Deep espresso in Light Mode, a lifted warm brown in Dark Mode (so it
     /// still stands off the dark page). Cream text ≥ 9:1 on both.
-    private static let tableSurface = Color(uiColor: UIColor { traits in
+    static let tableSurface = Color(uiColor: UIColor { traits in
         traits.userInterfaceStyle == .dark
             ? UIColor(red: 0.30, green: 0.20, blue: 0.15, alpha: 1)
             : UIColor(red: 0.188, green: 0.169, blue: 0.145, alpha: 1)
@@ -801,7 +801,7 @@ enum TonightGlass {
 
 /// The card's "…" panel: one slider from See-through to Solid that changes
 /// the card live behind it, and a way back to the standard card.
-private struct GlassTintPanel: View {
+struct GlassTintPanel: View {
     @Binding var tint: Double
     /// Reduce Transparency or Increase Contrast: the card stays solid.
     var solid: Bool

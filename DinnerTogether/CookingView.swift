@@ -36,6 +36,16 @@ struct CookingView: View {
     /// "Review start" on a comfortably visible card and no alert appeared,
     /// while the second modifier's alert worked. One modifier, one state.
     @State private var prompt: CookingPrompt?
+    /// The opened Duo's cooking layouts (Joe approved A2's boards 5–7,
+    /// October 15): each dish page keeps its own Coming up / Directions tab,
+    /// the upright page its Main / Side choice, the one-recipe photo card its
+    /// glass (the same dial as Tonight's card).
+    @State private var duoDirections: Set<UUID> = []
+    @State private var duoShowingSide = false
+    @State private var duoGlassPanel = false
+    @AppStorage(TonightGlass.key) private var duoGlassTint = TonightGlass.standard
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorContrast
 
     enum CookingPrompt: Identifiable {
         case blocked(BlockedRequest)
@@ -104,6 +114,22 @@ struct CookingView: View {
     private static let readinessEmphasisMinutes = 10
 
     var body: some View {
+        prompts(
+            GeometryReader { g in
+                if let layout = duoLayout(g) {
+                    duoBody(layout)
+                } else {
+                    phoneAndPadBody
+                }
+            }
+            .background(Theme.cream)
+            .navigationTitle(store.hasDinner ? store.menu.title : "Cooking")
+            .sensoryFeedback(.success, trigger: completionFeedback)
+            .navigationBarTitleDisplayMode(.inline)
+        )
+    }
+
+    private var phoneAndPadBody: some View {
         ScrollView {
             if !store.hasDinner {
                 // Nothing chosen yet (the app starts here, Joe, October 14).
@@ -143,9 +169,11 @@ struct CookingView: View {
                 .onAppear { viewportHeight = geo.size.height }
                 .onChange(of: geo.size.height) { _, h in viewportHeight = h }
         })
-        .navigationTitle(store.hasDinner ? store.menu.title : "Cooking")
-        .sensoryFeedback(.success, trigger: completionFeedback)
-        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// The observers, dialogs, sheets and the one alert, on whichever layout shows.
+    private func prompts<C: View>(_ content: C) -> some View {
+        content
         // Observe outside the conditional group, including transitions through
         // an empty list. Removal/reordering must respect the cook's collapse.
         .onChange(of: warnings.map(\.message), initial: true) { oldMessages, newMessages in
@@ -832,4 +860,466 @@ struct CookingView: View {
 
 extension DelayProposal: Identifiable {
     var id: String { "\(minutes)-\(newServeAt.timeIntervalSince1970)" }
+}
+
+// MARK: - The opened Duo's cooking layouts (Joe approved A2's boards 5–7, October 15)
+
+/// Which of the approved layouts the window gets: the Duo open like a book
+/// with one recipe (the photo and a glass Right now card left, Coming up /
+/// Directions right), with two (side left, main right, each with its own
+/// Right now and tabs), or open and held upright with two (one page, a
+/// Main / Side switch, the other dish's strip). Three or four dishes keep
+/// the iPhone timeline; so does a cover display, an iPad, or large text.
+enum DuoCooking {
+    case bookOne(Recipe)
+    case bookTwo(main: Recipe, side: Recipe)
+    case uprightTwo(main: Recipe, side: Recipe)
+}
+
+extension CookingView {
+    private var dinnerRecipes: [Recipe] {
+        (WholeMeal.recipeIDs(store.session.menuID) ?? []).compactMap { library.recipe(id: $0) }
+    }
+
+    private func duoLayout(_ g: GeometryProxy) -> DuoCooking? {
+        guard UIDevice.current.userInterfaceIdiom == .phone, store.hasDinner, !allDone,
+              !dynamicTypeSize.isAccessibilitySize else { return nil }
+        let mode = SpreadLayout.mode(
+            width: g.size.width + g.safeAreaInsets.leading + g.safeAreaInsets.trailing,
+            height: g.size.height + g.safeAreaInsets.top + g.safeAreaInsets.bottom,
+            phoneIdiom: true, accessibilitySize: false)
+        let recipes = dinnerRecipes
+        guard let ids = WholeMeal.recipeIDs(store.session.menuID), recipes.count == ids.count else { return nil }
+        switch (mode, recipes.count) {
+        case (.spread, 1): return .bookOne(recipes[0])
+        case (.spread, 2): return .bookTwo(main: recipes[0], side: recipes[1])
+        case (.book, 2): return .uprightTwo(main: recipes[0], side: recipes[1])
+        default: return nil
+        }
+    }
+
+    @ViewBuilder
+    private func duoBody(_ layout: DuoCooking) -> some View {
+        switch layout {
+        case .bookOne(let recipe):
+            HStack(spacing: 0) {
+                duoPhotoPage(recipe)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Rectangle().fill(Theme.line).frame(width: 1).ignoresSafeArea().accessibilityHidden(true)
+                duoDishPage(recipe, label: nil, withRightNow: false)
+                    .frame(maxWidth: .infinity)
+            }
+        case .bookTwo(let main, let side):
+            HStack(spacing: 0) {
+                duoDishPage(side, label: "SIDE DISH", withRightNow: true)
+                    .frame(maxWidth: .infinity)
+                Rectangle().fill(Theme.line).frame(width: 1).ignoresSafeArea().accessibilityHidden(true)
+                duoDishPage(main, label: "MAIN DISH", withRightNow: true)
+                    .frame(maxWidth: .infinity)
+            }
+        case .uprightTwo(let main, let side):
+            let shown = duoShowingSide ? side : main
+            let other = duoShowingSide ? main : side
+            VStack(spacing: 0) {
+                duoSwitch
+                duoDishPage(shown, label: duoShowingSide ? "SIDE DISH" : "MAIN DISH", withRightNow: true, otherDish: other)
+            }
+        }
+    }
+
+    // MARK: Pieces
+
+    /// The dish's own steps, in the plan.
+    private func items(of recipe: Recipe) -> [PlannedStep] {
+        let ids = Set(recipe.steps.map(\.id))
+        return plan.filter { ids.contains($0.id) }
+    }
+    private func urgent(of recipe: Recipe) -> PlannedStep? {
+        let ids = Set(recipe.steps.map(\.id))
+        return urgentTimer.flatMap { ids.contains($0.id) ? $0 : nil }
+            ?? onHeat.first { ids.contains($0.id) && (store.record($0.id).timerDeadline ?? $0.end) <= now }
+    }
+    private func doNow(of recipe: Recipe) -> PlannedStep? {
+        let ids = Set(recipe.steps.map(\.id))
+        return doNow.first { ids.contains($0.id) }
+    }
+    private func running(of recipe: Recipe) -> [PlannedStep] {
+        let ids = Set(recipe.steps.map(\.id))
+        return onHeat.filter { ids.contains($0.id) }
+    }
+    private func upNext(of recipe: Recipe) -> [PlannedStep] {
+        let ids = Set(recipe.steps.map(\.id))
+        return upNext.filter { ids.contains($0.id) }
+    }
+
+    /// "Dinner at 7:00 PM · Adjust time", compact, on every Duo layout.
+    private var duoServingLine: some View {
+        HStack(spacing: 10) {
+            SectionLabel(text: "DINNER AT")
+            Text(store.session.serveAt, format: .dateTime.hour().minute())
+                .font(.system(.title3, design: .rounded).weight(.medium)).monospacedDigit()
+                .foregroundStyle(Theme.ink)
+                .accessibilityLabel("Chosen dinner time \(Scheduling.formatTime(store.session.serveAt))")
+                .accessibilityIdentifier("serving-time")
+                .id(store.session.serveAt)
+            Spacer(minLength: 8)
+            Button("Adjust time") { showDelayChoice = true }
+                .buttonStyle(QuietButtonStyle()).disabled(allDone)
+        }
+    }
+
+    /// Board 5's left page: the dish's photo edge to edge, the glass Right
+    /// now card on it (the same dial as Tonight's card: ••• opens it), the
+    /// step, its countdown and the one action.
+    private func duoPhotoPage(_ recipe: Recipe) -> some View {
+        let art = DinnerHeroArt.of(store.session.menuID, library: library)
+        let solid = reduceTransparency || colorContrast == .increased || LaunchOptions.solidCards
+        return ZStack(alignment: .bottom) {
+            if case .cover(let image, _)? = art {
+                Color.clear
+                    .overlay(Image(uiImage: image).resizable().scaledToFill())
+                    .clipped()
+                    .accessibilityElement()
+                    .accessibilityLabel("Photo of \(recipe.title)")
+                    .accessibilityAddTraits(.isImage)
+                // Legible text over any photo: a scrim at the foot.
+                LinearGradient(stops: [.init(color: .black.opacity(0), location: 0.3),
+                                       .init(color: .black.opacity(0.45), location: 1)],
+                               startPoint: .top, endPoint: .bottom)
+                    .allowsHitTesting(false)
+            } else {
+                Theme.cream
+            }
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("DINNER, TOGETHER").font(.caption2.weight(.semibold)).tracking(1.6)
+                            .foregroundStyle(art == nil ? Theme.muted : .white.opacity(0.85))
+                        Text(recipe.title)
+                            .font(.system(.title, design: .serif).weight(.medium))
+                            .foregroundStyle(art == nil ? Theme.ink : .white)
+                            .shadow(color: .black.opacity(art == nil ? 0 : 0.45), radius: 6, y: 1)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer()
+                }
+                .padding(20)
+                Spacer(minLength: 0)
+                duoGlassCard(recipe, solid: solid)
+                    .padding(16)
+            }
+        }
+        .clipped()
+        .ignoresSafeArea(edges: .bottom)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("duo-photo-page")
+    }
+
+    private func duoGlassCard(_ recipe: Recipe, solid: Bool) -> some View {
+        let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("RIGHT NOW").font(.caption.weight(.bold)).tracking(1.2).foregroundStyle(Theme.pageAccent)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button { duoGlassPanel = true } label: {
+                    Image(systemName: "ellipsis").font(.body.weight(.bold)).foregroundStyle(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(Color.white.opacity(0.18)))
+                }
+                .accessibilityLabel("Card options")
+                .accessibilityIdentifier("duo-card-options")
+                .popover(isPresented: $duoGlassPanel) {
+                    GlassTintPanel(tint: $duoGlassTint, solid: solid) { duoGlassPanel = false }
+                        .presentationCompactAdaptation(.popover)
+                }
+            }
+            duoRightNow(recipe, onGlass: true)
+        }
+        .padding(18)
+        .background {
+            if solid {
+                shape.fill(PlanView.tableSurface)
+            } else {
+                ZStack {
+                    shape.fill(.ultraThinMaterial).environment(\.colorScheme, .dark)
+                        .opacity(TonightGlass.blur(duoGlassTint))
+                    shape.fill(PlanView.tableSurface.opacity(TonightGlass.tint(duoGlassTint)))
+                }
+                .overlay(shape.strokeBorder(Color.white.opacity(0.18), lineWidth: 1))
+            }
+        }
+        .environment(\.colorScheme, .dark)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("duo-right-now-card")
+    }
+
+    /// The dish's current thing: an ended timer to check, a step to start, a
+    /// running timer, or breathing room — with its one action.
+    @ViewBuilder
+    private func duoRightNow(_ recipe: Recipe, onGlass: Bool) -> some View {
+        if let item = urgent(of: recipe) {
+            duoStepLine(item, state: .ended, onGlass: onGlass)
+        } else if let item = doNow(of: recipe) {
+            duoStepLine(item, state: .ready, onGlass: onGlass)
+        } else if let item = running(of: recipe).min(by: { (store.record($0.id).timerDeadline ?? $0.end) < (store.record($1.id).timerDeadline ?? $1.end) }) {
+            duoStepLine(item, state: .running, onGlass: onGlass)
+        } else {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("A little breathing room.").font(.headline).foregroundStyle(Theme.ink)
+                if let next = upNext(of: recipe).first {
+                    Text("Next: \(next.step.title) · \(Scheduling.formatTime(next.plannedStart))")
+                        .font(.subheadline).foregroundStyle(Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("Nothing waiting for this dish right now.").font(.subheadline).foregroundStyle(Theme.muted)
+                }
+            }
+        }
+    }
+
+    private enum DuoStepState { case ended, ready, running }
+
+    private func duoStepLine(_ item: PlannedStep, state: DuoStepState, onGlass: Bool) -> some View {
+        let record = store.record(item.id)
+        let deadline = record.timerDeadline ?? item.end
+        let remaining = timers.remaining(until: deadline)
+        return VStack(alignment: .leading, spacing: 10) {
+            Text(item.step.title)
+                .font(.system(.title2, design: .serif).weight(.medium)).foregroundStyle(Theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            switch state {
+            case .ended, .running:
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(Scheduling.formatCountdown(remaining: remaining))
+                        .font(.system(size: 40, weight: .medium, design: .rounded)).monospacedDigit()
+                        .foregroundStyle(remaining <= 0 ? Theme.warning : Theme.ink)
+                        .accessibilityLabel("Timer \(Scheduling.formatCountdown(remaining: remaining))")
+                    Text(remaining <= 0 ? "Check the food" : "remaining").font(.caption).foregroundStyle(remaining <= 0 ? Theme.warning : Theme.muted)
+                }
+                Button { doneTapped(item) } label: {
+                    Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")
+                }
+                .buttonStyle(BigButtonStyle(onColoredPage: onGlass))
+                .accessibilityLabel("Mark \(item.step.title) done")
+            case .ready:
+                Text(item.step.handsOn ? "Needs your attention · \(Scheduling.formatMinutes(item.minutes))" : "Hands-off after you start · \(Scheduling.formatMinutes(item.minutes))")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+                Button { startTapped(item) } label: { Label("Start this step", systemImage: "play.fill") }
+                    .buttonStyle(BigButtonStyle(onColoredPage: onGlass))
+                    .accessibilityLabel("Start \(item.step.title)")
+            }
+        }
+    }
+
+    /// A cookbook page for one dish: its label and title, its Right now
+    /// (unless the photo page has it), then Coming up or Directions, each
+    /// page keeping its tab. `otherDish`: the upright page's strip for the
+    /// dish not shown (board 7).
+    private func duoDishPage(_ recipe: Recipe, label: String?, withRightNow: Bool, otherDish: Recipe? = nil) -> some View {
+        let directions = duoDirections.contains(recipe.id)
+        return ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                duoServingLine
+                if let label {
+                    Text(label).font(.caption.weight(.semibold)).tracking(1.6).foregroundStyle(Theme.tomato)
+                }
+                HStack(alignment: .firstTextBaseline) {
+                    Text(recipe.title)
+                        .font(.system(.title2, design: .serif).weight(.semibold)).foregroundStyle(Theme.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 8)
+                    Image(systemName: "leaf").rotationEffect(.degrees(-35)).foregroundStyle(Theme.tomato.opacity(0.85))
+                        .accessibilityHidden(true)
+                }
+                if withRightNow {
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionLabel(text: "RIGHT NOW")
+                        duoRightNow(recipe, onGlass: false)
+                    }
+                    .dtCard()
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("duo-right-now-\(label == "SIDE DISH" ? "side" : "main")")
+                }
+                RunningTimersStrip()
+                // Coming up | Directions
+                HStack(spacing: 22) {
+                    duoTab("Coming up", selected: !directions) { duoDirections.remove(recipe.id) }
+                    duoTab("Directions", selected: directions) { duoDirections.insert(recipe.id) }
+                    Spacer()
+                }
+                .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
+                if directions {
+                    duoDirectionsList(recipe)
+                } else {
+                    duoComingUp(recipe, withRightNow: withRightNow)
+                }
+                if let otherDish { duoOtherDishStrip(otherDish) }
+            }
+            .padding(20)
+        }
+        .background(Theme.cream)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("duo-dish-page-\(label == "SIDE DISH" ? "side" : "main")")
+    }
+
+    private func duoTab(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Theme.ink : Theme.muted)
+                .padding(.vertical, 10).frame(minHeight: 44)
+                .overlay(alignment: .bottom) { Rectangle().fill(selected ? Theme.olive : .clear).frame(height: 2) }
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityIdentifier("duo-tab-\(title.lowercased().replacingOccurrences(of: " ", with: "-"))")
+    }
+
+    /// The dish's running timers (beyond the one in Right now), what's ready
+    /// to start, and what's coming, each with its planned time.
+    @ViewBuilder
+    private func duoComingUp(_ recipe: Recipe, withRightNow: Bool) -> some View {
+        let featured = withRightNow ? (urgent(of: recipe) ?? doNow(of: recipe) ?? running(of: recipe).first)?.id : nil
+        let timersHere = running(of: recipe).filter { $0.id != featured }
+        let ready = doNow.filter { Set(recipe.steps.map(\.id)).contains($0.id) && $0.id != featured }
+        VStack(alignment: .leading, spacing: 14) {
+            if urgentTimer == nil { readinessNotice }
+            if !withRightNow, let item = urgent(of: recipe) ?? doNow(of: recipe) {
+                // Board 5: the action lives on the photo page; here the same
+                // step heads the list so the right page reads complete.
+                duoRow(item, state: store.record(item.id).state == .cooking ? "Check the food" : "Ready to start")
+            }
+            ForEach(timersHere) { item in
+                let deadline = store.record(item.id).timerDeadline ?? item.end
+                duoRow(item, state: "Running · \(Scheduling.formatCountdown(remaining: timers.remaining(until: deadline)))") {
+                    Button("Mark done") { doneTapped(item) }.buttonStyle(QuietButtonStyle())
+                }
+            }
+            ForEach(ready) { item in
+                duoRow(item, state: "Ready to start") {
+                    Button("Start step") { startTapped(item) }.buttonStyle(SecondaryButtonStyle())
+                }
+            }
+            let coming = upNext(of: recipe)
+            if coming.isEmpty && timersHere.isEmpty && ready.isEmpty {
+                Text(items(of: recipe).allSatisfy { store.record($0.id).state == .done }
+                     ? "Every step of this dish is done." : "Nothing else waiting for this dish.")
+                    .font(.subheadline).foregroundStyle(Theme.muted)
+            }
+            ForEach(coming) { item in
+                duoRow(item, state: Scheduling.formatTime(item.plannedStart))
+            }
+            if !warnings.isEmpty {
+                Label("\(warnings.count) attention overlap\(warnings.count == 1 ? "" : "s") — see the timeline on an iPhone layout",
+                      systemImage: "exclamationmark.triangle")
+                    .font(.caption).foregroundStyle(Theme.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func duoRow<Action: View>(_ item: PlannedStep, state: String, @ViewBuilder action: () -> Action = { EmptyView() }) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 10) {
+                Text(state).font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(Theme.muted)
+                    .frame(minWidth: 64, alignment: .leading)
+                Text(item.step.title).font(.subheadline).foregroundStyle(Theme.ink)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            action()
+            Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Read-only directions beside the cooking (board 5's right page): olive
+    /// numbers, the durations as timer buttons would be on the recipe page
+    /// are not here — reading never starts or stops anything.
+    private func duoDirectionsList(_ recipe: Recipe) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach(Array(recipe.directions.enumerated()), id: \.offset) { i, line in
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("\(i + 1)")
+                        .font(.subheadline.weight(.semibold)).monospacedDigit()
+                        .foregroundStyle(.white)
+                        .frame(minWidth: 28, minHeight: 28)
+                        .background(Circle().fill(Theme.olive))
+                        .accessibilityLabel("Step \(i + 1)")
+                    TimedText.make(line).font(.body).lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true)
+            }
+            Text("Reading never stops a timer or marks a step done.")
+                .font(.caption).foregroundStyle(Theme.muted)
+        }
+    }
+
+    /// Board 7's strip for the dish not shown: its state or countdown, and
+    /// the way to it.
+    private func duoOtherDishStrip(_ other: Recipe) -> some View {
+        let state: String = {
+            if let item = urgent(of: other) { return "\(item.step.title) · check the food" }
+            if let item = running(of: other).first {
+                let deadline = store.record(item.id).timerDeadline ?? item.end
+                return "\(item.step.title) · \(Scheduling.formatCountdown(remaining: timers.remaining(until: deadline)))"
+            }
+            if let item = doNow(of: other) { return "\(item.step.title) · ready to start" }
+            if let next = upNext(of: other).first { return "Next: \(next.step.title) · \(Scheduling.formatTime(next.plannedStart))" }
+            return items(of: other).allSatisfy { store.record($0.id).state == .done } ? "Every step done" : "Nothing waiting"
+        }()
+        let isSide = dinnerRecipes.first?.id != other.id
+        return Button { duoShowingSide = isSide } label: {
+            HStack(spacing: 12) {
+                if let photo = RecipePhotos.hero(other, from: library) {
+                    RecipeCoverThumbnail(image: photo.image, size: 44)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(other.title).font(.headline).foregroundStyle(Theme.ink)
+                    Text(state).font(.caption).monospacedDigit().foregroundStyle(urgent(of: other) != nil ? Theme.warning : Theme.muted)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                Text(isSide ? "View side" : "View main").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.olive)
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+            }
+            .padding(14)
+            .background(Theme.paper, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Theme.line))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(other.title): \(state). \(isSide ? "View side" : "View main")")
+        .accessibilityIdentifier("duo-other-dish")
+    }
+
+    /// The upright page's Main / Side capsule (the recipe page's, approved
+    /// mockup 04).
+    private var duoSwitch: some View {
+        HStack(spacing: 0) {
+            duoSwitchTab("Main", selected: !duoShowingSide, id: "duo-switch-main") { duoShowingSide = false }
+            duoSwitchTab("Side", selected: duoShowingSide, id: "duo-switch-side") { duoShowingSide = true }
+        }
+        .padding(3)
+        .background(Capsule().fill(Theme.line.opacity(0.6)))
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial)
+    }
+
+    private func duoSwitchTab(_ title: String, selected: Bool, id: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline.weight(selected ? .semibold : .regular))
+                .foregroundStyle(selected ? Theme.cream : Theme.ink)
+                .padding(.horizontal, 22).frame(minHeight: 44)
+                .background(Capsule().fill(selected ? Theme.olive : .clear))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityIdentifier(id)
+    }
 }
