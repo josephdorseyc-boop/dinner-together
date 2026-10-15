@@ -698,7 +698,6 @@ enum TonightGlass {
         max(0, 0.6 - clamped(value)) * 1.1
     }
 }
-}
 
 /// The card's "…" panel: one slider from See-through to Solid that changes
 /// the card live behind it, and a way back to the standard card.
