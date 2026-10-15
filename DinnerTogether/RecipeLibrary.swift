@@ -169,7 +169,12 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     /// new title, so the Cooking screen shows it too. A blank title is
     /// refused; a blank yield clears it.
     @discardableResult
-    func rename(recipeID: UUID, title: String, yield: String?) -> Bool {
+    /// Title, yield and — the cook's own notes (A2, build 19: "use extra
+    /// garlic", "check five minutes earlier"), kept with the recipe in the
+    /// same field an import's own notes arrive in. Notes never touch the
+    /// directions, the steps or the timing. `notes` nil leaves them as they
+    /// are; blank clears them.
+    func rename(recipeID: UUID, title: String, yield: String?, notes: String? = nil) -> Bool {
         guard var r = recipe(id: recipeID) else { return false }
         let newTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !newTitle.isEmpty else { return false }
@@ -183,6 +188,10 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         r.title = String(newTitle.prefix(200))
         let y = yield?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         r.yield = y.isEmpty ? nil : String(y.prefix(120))
+        if let notes {
+            let n = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+            r.notes = n.isEmpty ? nil : String(n.prefix(2000))
+        }
         r.dishes = r.dishes.map { dish in
             dish.map { s in
                 CookingStep(id: s.id, dish: relabel(s.dish), title: s.title, minutes: s.minutes,

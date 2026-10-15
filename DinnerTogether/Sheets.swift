@@ -365,7 +365,7 @@ struct RecipeTimeSheet: View {
 }
 
 /// Edit a recipe's title and yield: swipe → Edit in Your Recipes, or ••• →
-/// Edit title and yield on its page (Joe, build 12). Saves through the
+/// Edit title, yield and the cook's notes on its page (Joe, build 12; A2, build 19). Saves through the
 /// library's rollback; a failed save keeps the sheet open with the edit.
 struct RecipeEditSheet: View {
     let recipeID: UUID
@@ -373,28 +373,38 @@ struct RecipeEditSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var title: String
     @State private var yield: String
+    @State private var notes: String
     @State private var saveError: String?
     private let originalTitle: String
     private let originalYield: String
+    private let originalNotes: String
+    /// Opens with the cursor in Notes (the page's "Add your notes").
+    private let startInNotes: Bool
+    @FocusState private var notesFocused: Bool
 
-    init(recipe: Recipe) {
+    init(recipe: Recipe, startInNotes: Bool = false) {
         recipeID = recipe.id
         originalTitle = recipe.title
         originalYield = recipe.yield ?? ""
+        originalNotes = recipe.notes ?? ""
+        self.startInNotes = startInNotes
         _title = State(initialValue: recipe.title)
         _yield = State(initialValue: recipe.yield ?? "")
+        _notes = State(initialValue: recipe.notes ?? "")
     }
 
     private var trimmedTitle: String { title.trimmingCharacters(in: .whitespacesAndNewlines) }
     private var changed: Bool {
-        trimmedTitle != originalTitle || yield.trimmingCharacters(in: .whitespacesAndNewlines) != originalYield
+        trimmedTitle != originalTitle
+            || yield.trimmingCharacters(in: .whitespacesAndNewlines) != originalYield
+            || notes.trimmingCharacters(in: .whitespacesAndNewlines) != originalNotes.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
-                    Text("Change the title or yield. Review timing or remove steps on the Timing tab.")
+                    Text("Change the title or yield, or keep your own notes with the recipe. Review timing or remove steps on the Timing tab.")
                         .foregroundStyle(Theme.muted)
                         .fixedSize(horizontal: false, vertical: true)
                     field("TITLE", text: $title, prompt: "Recipe title", identifier: "recipe-edit-title")
@@ -403,6 +413,11 @@ struct RecipeEditSheet: View {
                             .font(.subheadline).foregroundStyle(Theme.warning)
                     }
                     field("YIELD", text: $yield, prompt: "Optional — for example, 4 servings", identifier: "recipe-edit-yield")
+                    // The cook's own notes (A2, build 19): what to remember
+                    // next time. Shown under the directions; never a step.
+                    field("NOTES", text: $notes, prompt: "Optional — for example, use extra garlic, or check five minutes early",
+                          identifier: "recipe-edit-notes", lines: 2...8)
+                        .focused($notesFocused)
                     if let saveError {
                         Text(saveError)
                             .font(.subheadline).foregroundStyle(Theme.warning)
@@ -422,22 +437,24 @@ struct RecipeEditSheet: View {
                     .padding(.horizontal, 24).padding(.vertical, 12)
                     .background(Theme.cream)
             }
-            .navigationTitle("Title and yield")
+            .navigationTitle("Edit recipe")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
             }
+            .onAppear { if startInNotes { notesFocused = true } }
         }
         .presentationDetents([.large])
     }
 
-    private func field(_ label: String, text: Binding<String>, prompt: String, identifier: String) -> some View {
+    private func field(_ label: String, text: Binding<String>, prompt: String, identifier: String,
+                       lines: ClosedRange<Int> = 1...4) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             SectionLabel(text: label)
             HStack(alignment: .top, spacing: 8) {
                 TextField(prompt, text: text, axis: .vertical)
                     .font(.title3)
-                    .lineLimit(1...4)
+                    .lineLimit(lines)
                     .accessibilityLabel(label.capitalized)
                     .accessibilityIdentifier(identifier)
                 if !text.wrappedValue.isEmpty {
@@ -458,7 +475,7 @@ struct RecipeEditSheet: View {
     }
 
     private func save() {
-        guard library.rename(recipeID: recipeID, title: title, yield: yield) else {
+        guard library.rename(recipeID: recipeID, title: title, yield: yield, notes: notes) else {
             saveError = "Your changes couldn’t be saved. The recipe is unchanged. Try saving again."
             UIAccessibility.post(notification: .announcement, argument: saveError)
             return

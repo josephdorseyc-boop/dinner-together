@@ -608,6 +608,7 @@ struct RecipeDetailView: View {
     @State private var choosingPageStyle = false
     @State private var editingRecipeTime = false
     @State private var editingDetails = false
+    @State private var editInNotes = false
     @State private var editingCover = false
     /// A delete that didn't reach disk, in words about deleting (A2-17).
     @State private var deleteProblem: String?
@@ -679,8 +680,8 @@ struct RecipeDetailView: View {
                 .sheet(isPresented: $editingRecipeTime) {
                     RecipeTimeSheet(recipeID: recipeID, initialMinutes: recipe.totalMinutes).uiTestTypeSize()
                 }
-                .sheet(isPresented: $editingDetails) {
-                    RecipeEditSheet(recipe: recipe).uiTestTypeSize()
+                .sheet(isPresented: $editingDetails, onDismiss: { editInNotes = false }) {
+                    RecipeEditSheet(recipe: recipe, startInNotes: editInNotes).uiTestTypeSize()
                 }
                 .sheet(isPresented: $editingCover) {
                     EditCoverSheet(recipe: recipe).uiTestTypeSize()
@@ -978,15 +979,37 @@ struct RecipeDetailView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if let notes = recipe.notes, !notes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    SectionLabel(text: "NOTES")
+            // The recipe's notes — an import's own, and the cook's (A2,
+            // build 19), edited from here or the ••• menu.
+            VStack(alignment: .leading, spacing: 8) {
+                SectionLabel(text: "NOTES")
+                if let notes = recipe.notes, !notes.isEmpty {
                     Text(notes).font(.subheadline).foregroundStyle(Theme.muted)
                         .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("recipe-notes")
+                    Button { startEditing(inNotes: true) } label: {
+                        Label("Edit notes", systemImage: "pencil").font(.subheadline.weight(.semibold))
+                    }
+                    .tint(accentColor)
+                    .accessibilityIdentifier("edit-notes")
+                } else {
+                    Button { startEditing(inNotes: true) } label: {
+                        Label("Add your notes — what to remember next time", systemImage: "square.and.pencil")
+                            .font(.subheadline.weight(.semibold))
+                            .multilineTextAlignment(.leading)
+                    }
+                    .tint(accentColor)
+                    .accessibilityIdentifier("add-notes")
                 }
-                .accessibilityIdentifier("recipe-notes")
             }
         }
+    }
+
+    /// The Edit sheet, in Notes when asked. (The page's own menu waits for
+    /// the menu to close first; from the page body there is no menu.)
+    private func startEditing(inNotes: Bool) {
+        editInNotes = inNotes
+        editingDetails = true
     }
 
     private func timing(_ recipe: Recipe) -> some View {
@@ -1186,7 +1209,7 @@ struct RecipeDetailView: View {
                         try? await Task.sleep(nanoseconds: 350_000_000)
                         editingDetails = true
                     }
-                } label: { Label("Edit title and yield", systemImage: "pencil") }
+                } label: { Label("Edit title, yield and notes", systemImage: "pencil") }
                 Button {
                     Task { @MainActor in
                         try? await Task.sleep(nanoseconds: 350_000_000)

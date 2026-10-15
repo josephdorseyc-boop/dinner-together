@@ -1949,11 +1949,29 @@ extension DinnerTogetherUITestCase {
         XCTAssertFalse(save.isEnabled, "…and cannot be saved")
         field.tap()
         field.typeText("Berry lime slush")
+        // The cook's own notes, on the same sheet (A2, build 19).
+        let notes = app.descendants(matching: .any)["recipe-edit-notes"]
+        scrollTo(notes)
+        notes.tap()
+        notes.typeText("Use extra lime. Check five minutes early.")
         photograph("r20b-edit-recipe" + capture.suffix)
         tapPinned(save, "Save changes")
         waitForDisappearance(save, "the Edit sheet closed")
         XCTAssertTrue(row("Berry lime slush").waitForExistence(timeout: 5), "the list shows the new title")
         XCTAssertFalse(row(RecipeFixtureText.frozenBerryTitle).exists, "…not the old one")
+
+        // The notes are on the page, under the directions, with a way to edit them.
+        scrollAndTap(row("Berry lime slush"), "the renamed recipe's row")
+        waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the recipe page")
+        app.buttons["recipe-tab-directions"].tap()
+        let shown = app.staticTexts["recipe-notes"]
+        scrollTo(shown, requireHittable: false)
+        XCTAssertEqual(shown.label, "Use extra lime. Check five minutes early.", "the page shows the cook's notes")
+        XCTAssertTrue(app.buttons["edit-notes"].exists, "…with Edit notes beside them")
+        photograph("r20b2-recipe-notes" + capture.suffix)
+        let back = app.navigationBars.buttons.matching(NSPredicate(format: "label == 'Recipes' OR label == 'Back'")).firstMatch
+        (back.exists ? back : app.navigationBars.buttons.element(boundBy: 0)).tap()
+        waitForExistence(app.buttons["add-recipe"], timeout: 5, "back in Your Recipes")
 
         let bean = row(RecipeFixtureText.beanSpreadTitle)
         scrollTo(bean)

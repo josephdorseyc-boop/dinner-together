@@ -205,6 +205,41 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertFalse(library.rename(recipeID: UUID(), title: "x", yield: nil), "unknown recipe")
     }
 
+    /// A2, build 19: the cook's own notes save with the recipe through the
+    /// Edit sheet's path, survive a relaunch, clear when blanked, and never
+    /// touch the directions, the steps or the timing.
+    func testCookNotesSaveWithTheRecipe() throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        var imported = ImportedRecipe(title: "Garlic toast")
+        imported.ingredients = ["4 slices bread", "2 cloves garlic"]
+        imported.sections = [ImportedSection(name: nil, steps: ["Toast the bread for 4 minutes.", "Rub with garlic."])]
+        imported.notes = ["Do ahead: the garlic butter keeps for a week."]
+        let recipe = RecipeImporter.build(imported, method: .text, now: Date())
+        XCTAssertTrue(library.add(recipe))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.notes, "Do ahead: the garlic butter keeps for a week.", "an import's own notes arrive in the field")
+
+        // Title and yield alone leave the notes as they are.
+        XCTAssertTrue(library.rename(recipeID: recipe.id, title: "Garlic toast", yield: "4 slices"))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.notes, "Do ahead: the garlic butter keeps for a week.")
+
+        XCTAssertTrue(library.rename(recipeID: recipe.id, title: "Garlic toast", yield: "4 slices",
+                                     notes: "  Use extra garlic. Check five minutes earlier.\n"))
+        let saved = try XCTUnwrap(RecipeLibrary(directory: dir).recipe(id: recipe.id))
+        XCTAssertEqual(saved.notes, "Use extra garlic. Check five minutes earlier.", "the notes survive a relaunch, trimmed")
+        XCTAssertEqual(saved.directions, recipe.directions, "the directions are untouched")
+        XCTAssertEqual(saved.steps.map(\.minutes), recipe.steps.map(\.minutes), "timing untouched")
+        XCTAssertEqual(saved.steps.map(\.title), recipe.steps.map(\.title), "no step came from the notes")
+        XCTAssertEqual(saved.ingredients, recipe.ingredients)
+
+        XCTAssertTrue(library.rename(recipeID: recipe.id, title: "Garlic toast", yield: "4 slices", notes: "   "))
+        XCTAssertNil(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.notes, "blank notes clear them")
+
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.rename(recipeID: recipe.id, title: "Garlic toast", yield: "4 slices", notes: "Lost"))
+        XCTAssertNil(library.recipe(id: recipe.id)?.notes, "a failed save changes nothing in memory")
+    }
+
     func testImportWarningsSurviveARelaunch() async throws {
         let dir = tempDir()
         let library = RecipeLibrary(directory: dir)
