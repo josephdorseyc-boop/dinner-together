@@ -223,12 +223,14 @@ struct SpreadCoverPage: View {
                 .padding(28)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
-            // Mockup "01 / Photo-first cookbook": the photo says it all —
-            // the title is on the right page; a small "Tonight" when it is
-            // tonight's dinner, and the "…" for a second recipe.
+            // The opened Duo reading one recipe (Joe approved the consolidated
+            // boards, October 15, 11:58 AM): the photo full-bleed with a
+            // minimal title low on it; a small "Tonight" when it is tonight's
+            // dinner, and the "…" for a second recipe. The reading itself is
+            // on the right page.
             if let recipe {
                 let onPhoto = RecipePhotos.hero(recipe, from: library) != nil
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 10) {
                     if store.session.menuID == recipe.menuID && onPhoto {
                         Text("Tonight")
                             .font(.subheadline.weight(.semibold)).foregroundStyle(.white)
@@ -236,6 +238,16 @@ struct SpreadCoverPage: View {
                             .accessibilityIdentifier("spread-tonight-tag")
                     }
                     Spacer()
+                    if onPhoto {
+                        // Read once, on the right page: decorative here.
+                        Text(recipe.title)
+                            .font(.system(.title2, design: .serif).weight(.semibold))
+                            .foregroundStyle(.white)
+                            .lineLimit(2)
+                            .shadow(color: .black.opacity(0.5), radius: 6, y: 1)
+                            .accessibilityHidden(true)
+                            .accessibilityIdentifier("spread-cover-title")
+                    }
                     Menu {
                         // After the menu has closed: a sheet asked for while it
                         // is closing does not appear (as the page's ••• does).
