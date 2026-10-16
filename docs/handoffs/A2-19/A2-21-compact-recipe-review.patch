@@ -1,0 +1,26 @@
+diff --git a/DinnerTogether/RecipeViews.swift b/DinnerTogether/RecipeViews.swift
+--- a/DinnerTogether/RecipeViews.swift
++++ b/DinnerTogether/RecipeViews.swift
+@@ -720,7 +720,7 @@
+             HStack(alignment: .top, spacing: 12) {
+                 Image(systemName: "clock.badge.questionmark").font(.title3).foregroundStyle(Theme.warning)
+                 VStack(alignment: .leading, spacing: 4) {
+-                    Text("Check the timing before you cook").font(.headline)
++                    Text(dynamicTypeSize.isAccessibilitySize ? "Review timing" : "Check the timing before you cook").font(.headline)
+                     Text(reviewBannerText(recipe))
+                         .font(.subheadline).foregroundStyle(Theme.muted)
+                 }
+@@ -736,6 +736,13 @@
+     }
+ 
+     private func reviewBannerText(_ recipe: Recipe) -> String {
++        if dynamicTypeSize.isAccessibilitySize {
++            let estimateCount = recipe.estimatedStepCount
++            var summary = estimateCount == 0 ? "Check step times." :
++                "\(estimateCount) estimated \(estimateCount == 1 ? "step" : "steps")."
++            if recipe.totalMinutes == nil { summary += " Add recipe time." }
++            return summary
++        }
+         var text = recipe.estimatedStepCount == 0
+             ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
+             : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them."

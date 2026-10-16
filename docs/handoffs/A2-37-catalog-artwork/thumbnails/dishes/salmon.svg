@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Salmon</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 59 91 Q 126 54 193 81 L 203 153 Q 140 189 66 160 Z" fill="#D97B5A" stroke="#885238" stroke-width="4" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 66 153 Q 138 174 201 146 L 203 153 Q 140 189 66 160 Z" fill="#5C392B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 70 94 Q 127 82 190 74" fill="none" stroke="#E8A568" stroke-width="5" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 70 116 Q 127 104 190 96" fill="none" stroke="#E8A568" stroke-width="5" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 70 138 Q 127 126 190 118" fill="none" stroke="#E8A568" stroke-width="5" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="173" cy="176" rx="20" ry="20" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="173" cy="176" rx="17" ry="17" fill="#EBCB88" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

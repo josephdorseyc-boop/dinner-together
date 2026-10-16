@@ -1,0 +1,20 @@
+[
+  {
+    "scenario": "mac204",
+    "exit": 0,
+    "required_failures": 0,
+    "result": "pass"
+  },
+  {
+    "scenario": "mac203",
+    "exit": 1,
+    "required_failures": 1,
+    "result": "pass"
+  },
+  {
+    "scenario": "ios204",
+    "exit": 1,
+    "required_failures": 1,
+    "result": "pass"
+  }
+]

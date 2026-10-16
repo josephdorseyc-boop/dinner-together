@@ -1,0 +1,25 @@
+--- a/.github/workflows/native-validation.yml
++++ b/.github/workflows/native-validation.yml
+@@ -239,6 +239,11 @@
+           path: ${{ runner.temp }}/parts
+       - name: Merge the parts
+         run: python3 native-validation/merge-parts.py "$RUNNER_TEMP/parts" "$RUNNER_TEMP/merged"
++      - name: Record merged evidence provenance
++        if: always()
++        run: |
++          mkdir -p "$RUNNER_TEMP/merged"
++          printf 'run_id=%s\nsha=%s\nparts=core,ui-iphone-1-of-2,ui-iphone-2-of-2,ui-ipad\nverdict=see each native-ios part\n' "${{ github.run_id }}" "${{ github.sha }}" > "$RUNNER_TEMP/merged/RUN.txt"
+       - name: Upload combined review evidence
+         if: always()
+         uses: actions/upload-artifact@v4
+@@ -247,6 +252,10 @@
+           path: |
+             ${{ runner.temp }}/merged/ui-screenshots/**
+             ${{ runner.temp }}/merged/screenshots/**
++            ${{ runner.temp }}/merged/RUN.txt
++            ${{ runner.temp }}/merged/parts/*/SUMMARY.md
++            ${{ runner.temp }}/merged/parts/*/status.txt
++            ${{ runner.temp }}/merged/parts/*/25-ui-test-*-summary.json
+             ${{ runner.temp }}/merged/SUMMARY.md
+             ${{ runner.temp }}/merged/status.txt
+             ${{ runner.temp }}/merged/devices.env

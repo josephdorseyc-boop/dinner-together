@@ -1,0 +1,160 @@
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -1225,14 +1225,78 @@
+         // The food photo is the second stubbed screenshot.
+         tapEvenInPopover(source)
+         let second = app.buttons["Screenshot 2"].firstMatch
+-        if second.waitForExistence(timeout: 5) { tapEvenInPopover(second) }
++        waitForExistence(second, timeout: 5, "Screenshot 2 is offered")
++        tapEvenInPopover(second)
++        let selectedSecond = NSPredicate { _, _ in
++            source.exists && (source.label.contains("Screenshot 2") ||
++                              (source.value as? String)?.contains("Screenshot 2") == true)
++        }
++        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: selectedSecond, object: source)], timeout: 5),
++                       .completed, "Screenshot 2 is selected, not just offered")
+         XCTAssertTrue(app.images["cover-preview"].waitForExistence(timeout: 5), "crop preview")
+         XCTAssertTrue(app.sliders["cover-zoom"].exists && app.sliders["cover-horizontal"].exists && app.sliders["cover-vertical"].exists,
+                       "zoom and position sliders")
+-        app.sliders["cover-zoom"].adjust(toNormalizedSliderPosition: 0.3)
++        let zoom = app.sliders["cover-zoom"]
++        guard revealCoverZoom(zoom) else { return }
++        photograph("r11a-cover-before-zoom")
++        let beforeZoom = zoom.value as? String
++        zoom.adjust(toNormalizedSliderPosition: 0.3)
++        guard zoom.waitForExistence(timeout: 3) else {
++            photograph("r11-zoom-unexpected-dismissal")
++            attachHierarchy("r11-zoom-unexpected-dismissal-hierarchy")
++            return XCTFail("Adjusting Zoom must not close the crop editor")
++        }
++        XCTAssertNotEqual(zoom.value as? String, beforeZoom, "Zoom actually changed")
+         photograph("r11-cover-crop")
+         tapPinned(app.buttons["use-cover-crop"], "Use this crop")
+         XCTAssertTrue(app.images["Selected recipe cover"].waitForExistence(timeout: 5), "the cover shows in the form")
++    }
++
++    /// The slider may exist below a form sheet's visible scroll area. Never
++    /// synthesize its gesture across the pinned Use action (Duo run 38448870850).
++    private func revealCoverZoom(_ zoom: XCUIElement) -> Bool {
++        let use = app.buttons["use-cover-crop"]
++        // Descendant containment identifies the crop scroll view, not the
++        // recipe form behind it; its frame is already in screen coordinates.
++        let scroll = app.scrollViews.containing(.slider, identifier: "cover-zoom").firstMatch
++        guard scroll.waitForExistence(timeout: 5), use.waitForExistence(timeout: 5) else {
++            attachHierarchy("r11-crop-scroll-missing")
++            XCTFail("The crop editor's scroll viewport and Use action must exist")
++            return false
++        }
++        func viewport() -> CGRect {
++            var v = scroll.frame.intersection(app.windows.firstMatch.frame)
++            if isFiniteFrame(use.frame), use.frame.minY > v.minY {
++                v.size.height = min(v.maxY, use.frame.minY - 12) - v.minY
++            }
++            return v.insetBy(dx: 8, dy: 16)
++        }
++        func safe() -> Bool {
++            let f = zoom.frame, v = viewport()
++            return zoom.exists && zoom.isHittable && isFiniteFrame(f) && !f.isEmpty &&
++                isFiniteFrame(v) && !v.isEmpty && v.contains(f) && !f.intersects(use.frame)
++        }
++        for _ in 0..<8 {
++            if safe() {
++                let before = zoom.frame
++                Thread.sleep(forTimeInterval: 0.4)
++                if safe(), abs(zoom.frame.midY - before.midY) < 1 { return true }
++            }
++            let v = viewport()
++            guard isFiniteFrame(v), v.width > 40, v.height > 80 else { break }
++            // Drag through the scroll content, clear of both pinned controls.
++            let origin = app.coordinate(withNormalizedOffset: .zero)
++            let towardBottom = zoom.exists && zoom.frame.midY < v.minY
++            let high = v.minY + v.height * 0.2, low = v.minY + v.height * 0.8
++            origin.withOffset(CGVector(dx: v.midX, dy: towardBottom ? high : low))
++                .press(forDuration: 0.1,
++                       thenDragTo: origin.withOffset(CGVector(dx: v.midX, dy: towardBottom ? low : high)))
++            Thread.sleep(forTimeInterval: 0.4)
++        }
++        photograph("r11-zoom-not-safely-visible")
++        attachHierarchy("r11-zoom-not-safely-visible-hierarchy")
++        XCTFail("Zoom must settle fully inside the crop viewport, clear of Use this crop")
++        return false
+     }
+ 
+     /// r11/r12 — screenshots → cover crop → Add → the recipe page shows the
+@@ -1274,35 +1338,44 @@
+     // MARK: Page colors (Joe, Oct 12): photo colors, a chosen color, frosted cards.
+ 
+     private func openPageColorFromMenu() {
+-        // By identifier first (iOS 27 dropped the glyph's "More" label on
+-        // colored pages), then by label; a Menu reports as a button on
+-        // iPhone and sometimes as its own element type on iPad.
+-        var more = app.descendants(matching: .any)["recipe-more"].firstMatch
+-        if !more.waitForExistence(timeout: 5) {
+-            // iOS 27 (duo-validation 38448870850): after the page has been
+-            // scrolled the toolbar's More item was absent from the hierarchy
+-            // in the Dark, AX3 and pale flows. Back at the top of the page it
+-            // is there on iOS 26; try that before giving up, and leave the
+-            // hierarchy as evidence if it still is not.
+-            scrollRecipeToTop()
+-            if !more.waitForExistence(timeout: 4) { more = app.buttons["More"].firstMatch }
+-        }
+-        if !more.waitForExistence(timeout: 5) { attachHierarchy("recipe-more-missing-hierarchy") }
+-        waitForExistence(more, timeout: 1, "the recipe’s More menu")
+         let sheetDone = app.buttons["page-style-done"]
+-        // iPad: the menu is a popover and a tap can be swallowed while it
+-        // animates (same retry as the delete flow).
+-        for attempt in 0..<2 where !sheetDone.exists {
+-            tapEvenInPopover(more)
+-            let item = app.buttons["Page color"].firstMatch
+-            if item.waitForExistence(timeout: 5) { tapEvenInPopover(item) }
+-            if sheetDone.waitForExistence(timeout: attempt == 0 ? 5 : 8) { break }
++        let item = app.buttons["Page color"].firstMatch
++        // A retry can start with the menu already open. Its More trigger is
++        // then absent from automation; reopening it is the wrong transition.
++        for attempt in 0..<2 {
++            if sheetDone.exists { return }
++            if !item.exists {
++                var more = app.descendants(matching: .any)["recipe-more"].firstMatch
++                if !more.waitForExistence(timeout: 3) {
++                    scrollRecipeToTop()
++                    if !more.waitForExistence(timeout: 3) { more = app.buttons["More"].firstMatch }
++                }
++                guard more.waitForExistence(timeout: 2) else {
++                    attachHierarchy("recipe-more-missing-hierarchy")
++                    return XCTFail("The recipe’s More menu must exist before opening it")
++                }
++                tapEvenInPopover(more)
++            }
++            guard item.waitForExistence(timeout: 5) else {
++                photograph("page-color-menu-item-missing")
++                attachHierarchy("page-color-menu-item-missing-hierarchy")
++                return XCTFail("The opened More menu must offer Page color")
++            }
++            tapEvenInPopover(item)
++            if sheetDone.waitForExistence(timeout: attempt == 0 ? 5 : 8) { return }
++            photograph("page-color-after-menu-tap-\(attempt)")
++            attachHierarchy("page-color-after-menu-tap-\(attempt)-hierarchy")
+         }
+         waitForExistence(sheetDone, timeout: 1, "the Page color sheet")
+     }
+ 
+     private func closePageColorSheet() {
+         let done = app.buttons["page-style-done"]
++        guard done.waitForExistence(timeout: 3) else {
++            photograph("page-color-before-close-done-missing")
++            attachHierarchy("page-color-before-close-done-missing-hierarchy")
++            return XCTFail("Page color must retain its Done control after a selection")
++        }
+         done.tap()
+         waitForDisappearance(done, "the Page color sheet closed")
+     }
+@@ -1627,6 +1700,9 @@
+         XCTAssertTrue(problem.waitForExistence(timeout: 5), "the save problem is shown in the sheet")
+         XCTAssertTrue(problem.label.contains("page color couldn’t be saved"), "…in words about the page color: \(problem.label)")
+         if capture.typeSize == nil { XCTAssertTrue(problem.isHittable, "…and it is visible without scrolling the sheet") }
++        // The inserted error can also evict Lagoon from the lazy grid.
++        // Reveal without selecting, preserving the rollback assertion.
++        revealSwatch("lagoon")
+         XCTAssertFalse(swatch("lagoon").isSelected, "the failed choice is not shown as chosen")
+         // At AX3 the error pushes Classic, last in the lazy grid, below the
+         // sheet's viewport, where it does not exist yet (run 38425982728,

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img">
+<title>Roasted tofu</title>
+<ellipse cx="128" cy="133" rx="117" ry="117" fill="#D7C7AD" stroke="none" stroke-width="0" opacity="0.3" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="117" ry="117" fill="#FFF9ED" stroke="#D8CBB1" stroke-width="3" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="99" ry="99" fill="none" stroke="#D8CBB1" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<ellipse cx="128" cy="126" rx="94" ry="94" fill="#FFFCF4" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 50 82 L 87 73 L 106 89 L 67 101 Z" fill="#EBCB88" stroke="#D7A45B" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 50 82 L 67 101 L 67 136 L 50 117 Z" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 67 101 L 106 89 L 106 121 L 67 136 Z" fill="#E8A568" stroke="#885238" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 106 70 L 143 61 L 162 77 L 123 89 Z" fill="#EBCB88" stroke="#D7A45B" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 106 70 L 123 89 L 123 124 L 106 105 Z" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 123 89 L 162 77 L 162 109 L 123 124 Z" fill="#E8A568" stroke="#885238" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 77 130 L 114 121 L 133 137 L 94 149 Z" fill="#EBCB88" stroke="#D7A45B" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 77 130 L 94 149 L 94 184 L 77 165 Z" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 94 149 L 133 137 L 133 169 L 94 184 Z" fill="#E8A568" stroke="#885238" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 133 126 L 170 117 L 189 133 L 150 145 Z" fill="#EBCB88" stroke="#D7A45B" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 133 126 L 150 145 L 150 180 L 133 161 Z" fill="#D7A45B" stroke="none" stroke-width="0" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M 150 145 L 189 133 L 189 165 L 150 180 Z" fill="#E8A568" stroke="#885238" stroke-width="2" opacity="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

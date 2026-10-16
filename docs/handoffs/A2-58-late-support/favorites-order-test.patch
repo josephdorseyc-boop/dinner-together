@@ -1,0 +1,39 @@
+--- a/DinnerTogetherTests/DurationPersistenceTests.swift
++++ b/DinnerTogetherTests/DurationPersistenceTests.swift
+@@ -245,19 +245,27 @@
+     func testFavoritesStarFirstAndPersist() async throws {
+         let dir = tempDir()
+         let library = RecipeLibrary(directory: dir)
+-        func add(_ title: String) throws -> Recipe {
+-            let r = RecipeImporter.build(try RecipeImporter.parse(text: "\(title)\nDirections\n1. Cook for 5 minutes."), method: .text)
++        func add(_ title: String, at seconds: TimeInterval) throws -> Recipe {
++            // Distinct whole-second times survive JSON's date encoding and
++            // make the newest-first reload order deterministic.
++            let r = RecipeImporter.build(try RecipeImporter.parse(text: "\(title)\nDirections\n1. Cook for 5 minutes."),
++                                         method: .text, now: Date(timeIntervalSince1970: seconds))
+             XCTAssertTrue(library.add(r)); return r
+         }
+-        let a = try add("Alpha soup"), b = try add("Bravo salad"), c = try add("Charlie stew")
+-        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [a.id, b.id, c.id], "no stars: the order they were added")
+-        XCTAssertTrue(library.setFavorite(id: c.id, true))
+-        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [c.id, a.id, b.id], "the starred one first")
++        let a = try add("Alpha soup", at: 1_600_000_000)
++        let b = try add("Bravo salad", at: 1_600_000_001)
++        let c = try add("Charlie stew", at: 1_600_000_002)
++        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [c.id, b.id, a.id], "no stars: preserve the library's newest-first order")
++        // Star the middle recipe so the assertion proves that it moves.
++        XCTAssertTrue(library.setFavorite(id: b.id, true))
++        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [b.id, c.id, a.id], "the starred one first, other recipes still newest first")
+         let reopened = RecipeLibrary(directory: dir)
+-        XCTAssertEqual(reopened.recipe(id: c.id)?.isFavorite, true, "the star survives a relaunch")
++        XCTAssertEqual(reopened.recipe(id: b.id)?.isFavorite, true, "the star survives a relaunch")
+         XCTAssertEqual(reopened.recipe(id: a.id)?.isFavorite, false)
+-        XCTAssertTrue(library.setFavorite(id: c.id, false))
+-        XCTAssertNil(library.recipe(id: c.id)?.favorite, "unstarring leaves no trace")
++        XCTAssertEqual(reopened.recipesFavoritesFirst.map(\.id), [b.id, c.id, a.id], "favorite grouping and newest-first order survive a relaunch")
++        XCTAssertTrue(library.setFavorite(id: b.id, false))
++        XCTAssertNil(library.recipe(id: b.id)?.favorite, "unstarring leaves no trace")
++        XCTAssertEqual(library.recipesFavoritesFirst.map(\.id), [c.id, b.id, a.id], "unstarring restores the original newest-first order")
+ 
+         // A recipe saved before stars existed (no "favorite" key) decodes.
+         var json = try JSONSerialization.jsonObject(with: JSONEncoder().encode(a)) as! [String: Any]

@@ -1,0 +1,33 @@
+diff --git a/.github/workflows/duo-validation.yml b/.github/workflows/duo-validation.yml
+index f6e1179..8adb883 100644
+--- a/.github/workflows/duo-validation.yml
++++ b/.github/workflows/duo-validation.yml
+@@ -41,6 +41,10 @@ jobs:
+       RESULTS: ${{ github.workspace }}/native-validation/results
+     steps:
+       - uses: actions/checkout@v4
++      - name: Record evidence provenance
++        run: |
++          mkdir -p "$RESULTS"
++          printf 'run_id=%s\nsha=%s\npass=%s\n' "$GITHUB_RUN_ID" "$GITHUB_SHA" "${{ matrix.pass }}" > "$RESULTS/RUN.txt"
+       - name: Select Xcode
+         run: |
+           app="/Applications/Xcode_${{ inputs.xcode }}.app"
+@@ -109,6 +113,7 @@ jobs:
+         with:
+           name: duo-${{ matrix.pass }}-evidence-${{ github.run_id }}
+           path: |
++            native-validation/results/RUN.txt
+             native-validation/results/ui-screenshots/**
+             native-validation/results/screenshots/**
+             native-validation/results/SUMMARY.md
+@@ -123,6 +128,9 @@ jobs:
+       - name: Gate
+         if: always()
+         run: |
++          [ -s "$RESULTS/SUMMARY.md" ] || { echo "::error::SUMMARY.md missing or empty — the pass did not produce its record"; exit 1; }
++          [ "${{ steps.native.outputs.native-pass-failed }}" != "true" ] || { echo "::error::native harness exited nonzero"; exit 1; }
++          if grep -q '❌' "$RESULTS/SUMMARY.md"; then echo "::error::SUMMARY.md contains a failed step"; exit 1; fi
+           status=$(sed -n 's/^REQUIRED_FAILURES=//p' "$RESULTS/status.txt" 2>/dev/null | head -1)
+           echo "required failures: ${status:-unknown}"
+           [ "${status:-1}" = "0" ] && [ "${{ steps.shots.outputs.screenshots-failed }}" != "true" ]

@@ -1,0 +1,40 @@
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -1387,7 +1387,36 @@
+                 attachHierarchy("page-color-menu-item-missing-hierarchy")
+                 return XCTFail("The opened More menu must offer Page color")
+             }
+-            tapEvenInPopover(item)
++            if attempt == 0 {
++                tapEvenInPopover(item)
++            } else {
++                // The first element-relative tap can leave the menu visibly open
++                // (run 38497304286, iPad test12). Try the same visible target once
++                // in application coordinates; do not toggle an obscured More.
++                guard waitForOnScreenFrame(item, timeout: 6) else {
++                    attachHierarchy("page-color-retry-frame-missing")
++                    return XCTFail("Page color must have a finite on-screen retry frame")
++                }
++                usleep(250_000)
++                let target = item.frame
++                let bounds = app.frame
++                guard target.minX.isFinite, target.minY.isFinite,
++                      target.width.isFinite, target.height.isFinite,
++                      bounds.minX.isFinite, bounds.minY.isFinite,
++                      target.width > 0, target.height > 0,
++                      bounds.contains(CGPoint(x: target.midX, y: target.midY)) else {
++                    attachHierarchy("page-color-retry-frame-invalid")
++                    return XCTFail("Page color retry center must remain inside the application")
++                }
++                let evidence = XCTAttachment(string:
++                    "Page color retry target: \(target); application: \(bounds)")
++                evidence.name = "page-color-retry-coordinate"
++                evidence.lifetime = .keepAlways
++                add(evidence)
++                app.coordinate(withNormalizedOffset: .zero)
++                    .withOffset(CGVector(dx: target.midX - bounds.minX,
++                                         dy: target.midY - bounds.minY)).tap()
++            }
+             if sheetDone.waitForExistence(timeout: attempt == 0 ? 5 : 8) { return }
+             photograph("page-color-after-menu-tap-\(attempt)")
+             attachHierarchy("page-color-after-menu-tap-\(attempt)-hierarchy")

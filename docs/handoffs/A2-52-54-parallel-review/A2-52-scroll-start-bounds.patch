@@ -1,0 +1,41 @@
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+index c078f65..5a392e8 100644
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -351,7 +351,8 @@ class DinnerTogetherUITestCase: XCTestCase {
+             // button + tab bar) reaches up to ~0.68 of the screen, and a drag
+             // that starts on it scrolls nothing (run 38330367116, test18:
+             // twelve identical drags).
+-            let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30)
++            let zone = comfortZone(excluding: element.exists ? element.frame : .zero)
++            let start = dragStart(preferring: delta >= 0 ? 0.55 : 0.30, within: zone)
+             let endY = max(0.12, min(0.92, start.dy - Double(delta / screen.height)))
+             let from = app.coordinate(withNormalizedOffset: start)
+             let to = app.coordinate(withNormalizedOffset: CGVector(dx: start.dx, dy: endY))
+@@ -418,7 +419,7 @@ class DinnerTogetherUITestCase: XCTestCase {
+     /// starting on "Choose screenshots" and opening Photos instead of
+     /// scrolling (A2-25). Tries the preferred height first, then nearby ones,
+     /// at the center column and then to its left where cards have margins.
+-    func dragStart(preferring y: Double) -> CGVector {
++    func dragStart(preferring y: Double, within zone: (top: CGFloat, bottom: CGFloat)? = nil) -> CGVector {
+         let screen = app.frame
+         let buttons = app.buttons.allElementsBoundByIndex.map { $0.frame }.filter { $0.height > 0 }
+         // The center column at other heights before a side column: on iPad a
+@@ -426,9 +427,17 @@ class DinnerTogetherUITestCase: XCTestCase {
+         for dx in [0.5, 0.12, 0.88] {
+             for dy in [y, y - 0.08, y + 0.08, y - 0.16, y + 0.16] where dy > 0.1 && dy < 0.9 {
+                 let p = CGPoint(x: screen.minX + screen.width * dx, y: screen.minY + screen.height * dy)
++                // A caption is not a button: Tonight's "Selected: …" can
++                // occupy this point even though the button filter allows it.
++                // Keep scrollTo gestures inside its measured content zone.
++                if let zone = zone, p.y < zone.top + 12 || p.y > zone.bottom - 12 { continue }
+                 if !buttons.contains(where: { $0.contains(p) }) { return CGVector(dx: dx, dy: dy) }
+             }
+         }
++        if let zone = zone {
++            let middle = (zone.top + zone.bottom) / 2
++            return CGVector(dx: 0.5, dy: Double((middle - screen.minY) / screen.height))
++        }
+         return CGVector(dx: 0.5, dy: y)
+     }
+ 

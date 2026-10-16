@@ -1,0 +1,158 @@
+diff --git a/DinnerTogether/ContentView.swift b/DinnerTogether/ContentView.swift
+--- a/DinnerTogether/ContentView.swift
++++ b/DinnerTogether/ContentView.swift
+@@ -6,2 +6,3 @@
+     @EnvironmentObject private var store: SessionStore
++    @EnvironmentObject private var library: RecipeLibrary
+     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+@@ -9,6 +10,27 @@
+     // (simulator screenshots). Release builds always start on Tonight.
+-    @State private var tab = LaunchOptions.openCooking ? 1 : 0
+-    @State private var sidebarSelection: String? = LaunchOptions.openCooking ? "cooking" : "tonight"
++    private enum Destination: Hashable {
++        case tonight, cooking, recipes
++    }
++    // One destination survives compact/regular layout changes.
++    @State private var destination: Destination = LaunchOptions.openCooking ? .cooking : .tonight
++
++    private var sidebarSelection: Binding<Destination?> {
++        Binding(get: { destination }, set: { next in
++            if let next { destination = next }
++        })
++    }
+ 
+     @State private var recipePath: [UUID] = []
++
++    /// Match the presentation root to the active deep-colored recipe page.
++    /// Leaving the page restores the system or DEBUG-forced appearance.
++    private var preferredPresentationScheme: ColorScheme? {
++        if destination == .recipes,
++           let id = recipePath.last,
++           let recipe = library.recipe(id: id),
++           RecipePhotos.palette(for: recipe, from: library) != nil {
++            return .dark
++        }
++        return LaunchOptions.forcedColorScheme // nil in Release
++    }
+ 
+@@ -18,6 +40,6 @@
+                 NavigationSplitView {
+-                    List(selection: $sidebarSelection) {
+-                        Label("Tonight", systemImage: "fork.knife").tag("tonight")
+-                        Label("Cooking", systemImage: "timer").tag("cooking")
+-                        Label("Recipes", systemImage: "book.closed").tag("recipes")
++                    List(selection: sidebarSelection) {
++                        Label("Tonight", systemImage: "fork.knife").tag(Destination.tonight)
++                        Label("Cooking", systemImage: "timer").tag(Destination.cooking)
++                        Label("Recipes", systemImage: "book.closed").tag(Destination.recipes)
+                     }
+@@ -25,3 +47,3 @@
+                 } detail: {
+-                    if sidebarSelection == "recipes" {
++                    if destination == .recipes {
+                         recipeNavigation
+@@ -32,12 +54,12 @@
+             } else {
+-                TabView(selection: $tab) {
+-                    NavigationStack { PlanView(goCooking: { tab = 1 }, goRecipes: { tab = 2 }, openRecipe: openRecipe) }
++                TabView(selection: $destination) {
++                    NavigationStack { PlanView(goCooking: { destination = .cooking }, goRecipes: { destination = .recipes }, openRecipe: openRecipe) }
+                         .tabItem { Label("Tonight", systemImage: "fork.knife") }
+-                        .tag(0)
++                        .tag(Destination.tonight)
+                     NavigationStack { CookingView() }
+                         .tabItem { Label("Cooking", systemImage: "timer") }
+-                        .tag(1)
++                        .tag(Destination.cooking)
+                     recipeNavigation
+                         .tabItem { Label("Recipes", systemImage: "book.closed") }
+-                        .tag(2)
++                        .tag(Destination.recipes)
+                 }
+@@ -48,2 +70,3 @@
+         .tint(Theme.tomato)
++        .preferredColorScheme(preferredPresentationScheme)
+         .sheet(isPresented: $store.needsStaleChoice) {
+@@ -70,4 +93,3 @@
+         recipePath = [id]
+-        tab = 2
+-        sidebarSelection = "recipes"
++        destination = .recipes
+     }
+@@ -78,7 +100,5 @@
+                 recipePath.removeAll()
+-                tab = 0
+-                sidebarSelection = "tonight"
++                destination = .tonight
+             }, goCooking: {
+-                tab = 1
+-                sidebarSelection = "cooking"
++                destination = .cooking
+             })
+@@ -89,7 +109,7 @@
+     private var detailView: some View {
+-        if sidebarSelection == "cooking" {
++        if destination == .cooking {
+             CookingView()
+         } else {
+-            PlanView(goCooking: { sidebarSelection = "cooking" },
+-                     goRecipes: { sidebarSelection = "recipes" },
++            PlanView(goCooking: { destination = .cooking },
++                     goRecipes: { destination = .recipes },
+                      openRecipe: openRecipe)
+diff --git a/DinnerTogether/DinnerTogetherApp.swift b/DinnerTogether/DinnerTogetherApp.swift
+--- a/DinnerTogether/DinnerTogetherApp.swift
++++ b/DinnerTogether/DinnerTogetherApp.swift
+@@ -43,5 +43,4 @@
+                 }
+-                // UI-test forced appearance (-dt-appearance dark|light); nil
+-                // otherwise, which leaves the system setting in charge.
+-                .preferredColorScheme(LaunchOptions.forcedColorScheme)
++                // ContentView resolves forced appearance and recipe-page
++                // appearance together at the presentation root.
+                 #endif
+diff --git a/DinnerTogether/RecipePageStyle.swift b/DinnerTogether/RecipePageStyle.swift
+--- a/DinnerTogether/RecipePageStyle.swift
++++ b/DinnerTogether/RecipePageStyle.swift
+@@ -170,2 +170,3 @@
+     @Environment(\.dismiss) private var dismiss
++    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+     @State private var problem: String?
+@@ -222,3 +223,3 @@
+                         }
+-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 96), spacing: 12)], spacing: 14) {
++                        LazyVGrid(columns: [GridItem(.adaptive(minimum: dynamicTypeSize.isAccessibilitySize ? 160 : 96), spacing: 12)], spacing: 14) {
+                             let selected = current(recipe)
+@@ -242,3 +243,3 @@
+         }
+-        .presentationDetents([.medium, .large])
++        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.medium, .large])
+         .tint(Theme.tomato)
+diff --git a/DinnerTogether/RecipeViews.swift b/DinnerTogether/RecipeViews.swift
+--- a/DinnerTogether/RecipeViews.swift
++++ b/DinnerTogether/RecipeViews.swift
+@@ -698,6 +698,4 @@
+                 VStack(alignment: .leading, spacing: 4) {
+-                    Text("Check the timing before you cook").font(.headline)
+-                    Text(recipe.estimatedStepCount == 0
+-                         ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
+-                         : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them.")
++                    Text(dynamicTypeSize.isAccessibilitySize ? "Review timing" : "Check the timing before you cook").font(.headline)
++                    Text(reviewBannerText(recipe))
+                         .font(.subheadline).foregroundStyle(Theme.muted)
+@@ -713,2 +711,15 @@
+         .accessibilityIdentifier("timing-review-banner")
++    }
++
++    private func reviewBannerText(_ recipe: Recipe) -> String {
++        if dynamicTypeSize.isAccessibilitySize {
++            let count = recipe.estimatedStepCount
++            var text = count == 0 ? "Check step times." :
++                "\(count) estimated \(count == 1 ? "step" : "steps")."
++            if recipe.totalMinutes == nil { text += " Add recipe time." }
++            return text
++        }
++        return recipe.estimatedStepCount == 0
++            ? "We found a time for each step. Check the amounts, step order and attention labels against your recipe."
++            : "\(recipe.estimatedStepCount) of \(recipe.steps.count) steps had no time, so we estimated them."
+     }

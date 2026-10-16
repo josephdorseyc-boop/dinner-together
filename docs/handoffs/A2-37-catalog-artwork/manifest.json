@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "baseline": "cd98223dbb79cd31fff1e1653be638cd7068f9e3",
+  "palette": {
+    "paper": "#FFF9ED",
+    "rim": "#D8CBB1",
+    "shadow": "#D7C7AD",
+    "olive": "#4A583B",
+    "leaf": "#718451",
+    "sage": "#A6AC78",
+    "tomato": "#AC3526",
+    "apricot": "#E8A568",
+    "gold": "#D7A45B",
+    "bread": "#EBCB88",
+    "cream": "#F1E2BC",
+    "brown": "#885238",
+    "sear": "#5C392B",
+    "salmon": "#D97B5A",
+    "rose": "#B77D64",
+    "white": "#FFFCF4",
+    "plum": "#89635B"
+  },
+  "menus": [
+    {
+      "id": "steak",
+      "title": "Steak night",
+      "dishes": [
+        "Steak",
+        "Mash",
+        "Green beans"
+      ]
+    },
+    {
+      "id": "pasta",
+      "title": "A little pasta therapy",
+      "dishes": [
+        "Pasta",
+        "Salad"
+      ]
+    },
+    {
+      "id": "salmon",
+      "title": "An easy salmon evening",
+      "dishes": [
+        "Salmon",
+        "Rice",
+        "Broccoli"
+      ]
+    },
+    {
+      "id": "lemon-chicken",
+      "title": "A lemon chicken evening",
+      "dishes": [
+        "Lemon chicken",
+        "Couscous",
+        "Zucchini"
+      ]
+    },
+    {
+      "id": "turkey-tacos",
+      "title": "A taco kind of night",
+      "dishes": [
+        "Turkey tacos",
+        "Black beans",
+        "Crunchy slaw"
+      ]
+    },
+    {
+      "id": "tofu-bowls",
+      "title": "Crisp tofu, cozy bowls",
+      "dishes": [
+        "Roasted tofu",
+        "Rice",
+        "Cucumber slaw"
+      ]
+    },
+    {
+      "id": "chickpea-curry",
+      "title": "Chickpea comfort",
+      "dishes": [
+        "Chickpea curry",
+        "Rice",
+        "Cucumber yogurt"
+      ]
+    },
+    {
+      "id": "gnocchi-greens",
+      "title": "Golden gnocchi & greens",
+      "dishes": [
+        "Skillet gnocchi",
+        "Lemony salad"
+      ]
+    },
+    {
+      "id": "pork-supper",
+      "title": "A slower Sunday supper",
+      "dishes": [
+        "Pork tenderloin",
+        "Mash",
+        "Green beans"
+      ]
+    },
+    {
+      "id": "thanksgiving",
+      "title": "Thanksgiving, together",
+      "dishes": [
+        "Turkey",
+        "Stuffing",
+        "Mash",
+        "Gravy",
+        "Green beans",
+        "Rolls"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "id": "dish:Steak",
+      "label": "Steak",
+      "kind": "dish",
+      "svg": "dishes/steak.svg",
+      "thumbnailSVG": "thumbnails/dishes/steak.svg"
+    },
+    {
+      "id": "dish:Mash",
+      "label": "Mash",
+      "kind": "dish",
+      "svg": "dishes/mash.svg",
+      "thumbnailSVG": "thumbnails/dishes/mash.svg"
+    },
+    {
+      "id": "dish:Green beans",
+      "label": "Green beans",
+      "kind": "dish",
+      "svg": "dishes/green-beans.svg",
+      "thumbnailSVG": "thumbnails/dishes/green-beans.svg"
+    },
+    {
+      "id": "dish:Pasta",
+      "label": "Pasta",
+      "kind": "dish",
+      "svg": "dishes/pasta.svg",
+      "thumbnailSVG": "thumbnails/dishes/pasta.svg"
+    },
+    {
+      "id": "dish:Salad",
+      "label": "Salad",
+      "kind": "dish",
+      "svg": "dishes/salad.svg",
+      "thumbnailSVG": "thumbnails/dishes/salad.svg"
+    },
+    {
+      "id": "dish:Salmon",
+      "label": "Salmon",
+      "kind": "dish",
+      "svg": "dishes/salmon.svg",
+      "thumbnailSVG": "thumbnails/dishes/salmon.svg"
+    },
+    {
+      "id": "dish:Rice",
+      "label": "Rice",
+      "kind": "dish",
+      "svg": "dishes/rice.svg",
+      "thumbnailSVG": "thumbnails/dishes/rice.svg"
+    },
+    {
+      "id": "dish:Broccoli",
+      "label": "Broccoli",
+      "kind": "dish",
+      "svg": "dishes/broccoli.svg",
+      "thumbnailSVG": "thumbnails/dishes/broccoli.svg"
+    },
+    {
+      "id": "dish:Lemon chicken",
+      "label": "Lemon chicken",
+      "kind": "dish",
+      "svg": "dishes/lemon-chicken.svg",
+      "thumbnailSVG": "thumbnails/dishes/lemon-chicken.svg"
+    },
+    {
+      "id": "dish:Couscous",
+      "label": "Couscous",
+      "kind": "dish",
+      "svg": "dishes/couscous.svg",
+      "thumbnailSVG": "thumbnails/dishes/couscous.svg"
+    },
+    {
+      "id": "dish:Zucchini",
+      "label": "Zucchini",
+      "kind": "dish",
+      "svg": "dishes/zucchini.svg",
+      "thumbnailSVG": "thumbnails/dishes/zucchini.svg"
+    },
+    {
+      "id": "dish:Turkey tacos",
+      "label": "Turkey tacos",
+      "kind": "dish",
+      "svg": "dishes/turkey-tacos.svg",
+      "thumbnailSVG": "thumbnails/dishes/turkey-tacos.svg"
+    },
+    {
+      "id": "dish:Black beans",
+      "label": "Black beans",
+      "kind": "dish",
+      "svg": "dishes/black-beans.svg",
+      "thumbnailSVG": "thumbnails/dishes/black-beans.svg"
+    },
+    {
+      "id": "dish:Crunchy slaw",
+      "label": "Crunchy slaw",
+      "kind": "dish",
+      "svg": "dishes/crunchy-slaw.svg",
+      "thumbnailSVG": "thumbnails/dishes/crunchy-slaw.svg"
+    },
+    {
+      "id": "dish:Roasted tofu",
+      "label": "Roasted tofu",
+      "kind": "dish",
+      "svg": "dishes/roasted-tofu.svg",
+      "thumbnailSVG": "thumbnails/dishes/roasted-tofu.svg"
+    },
+    {
+      "id": "dish:Cucumber slaw",
+      "label": "Cucumber slaw",
+      "kind": "dish",
+      "svg": "dishes/cucumber-slaw.svg",
+      "thumbnailSVG": "thumbnails/dishes/cucumber-slaw.svg"
+    },
+    {
+      "id": "dish:Chickpea curry",
+      "label": "Chickpea curry",
+      "kind": "dish",
+      "svg": "dishes/chickpea-curry.svg",
+      "thumbnailSVG": "thumbnails/dishes/chickpea-curry.svg"
+    },
+    {
+      "id": "dish:Cucumber yogurt",
+      "label": "Cucumber yogurt",
+      "kind": "dish",
+      "svg": "dishes/cucumber-yogurt.svg",
+      "thumbnailSVG": "thumbnails/dishes/cucumber-yogurt.svg"
+    },
+    {
+      "id": "dish:Skillet gnocchi",
+      "label": "Skillet gnocchi",
+      "kind": "dish",
+      "svg": "dishes/skillet-gnocchi.svg",
+      "thumbnailSVG": "thumbnails/dishes/skillet-gnocchi.svg"
+    },
+    {
+      "id": "dish:Lemony salad",
+      "label": "Lemony salad",
+      "kind": "dish",
+      "svg": "dishes/lemony-salad.svg",
+      "thumbnailSVG": "thumbnails/dishes/lemony-salad.svg"
+    },
+    {
+      "id": "dish:Pork tenderloin",
+      "label": "Pork tenderloin",
+      "kind": "dish",
+      "svg": "dishes/pork-tenderloin.svg",
+      "thumbnailSVG": "thumbnails/dishes/pork-tenderloin.svg"
+    },
+    {
+      "id": "dish:Turkey",
+      "label": "Turkey",
+      "kind": "dish",
+      "svg": "dishes/turkey.svg",
+      "thumbnailSVG": "thumbnails/dishes/turkey.svg"
+    },
+    {
+      "id": "dish:Stuffing",
+      "label": "Stuffing",
+      "kind": "dish",
+      "svg": "dishes/stuffing.svg",
+      "thumbnailSVG": "thumbnails/dishes/stuffing.svg"
+    },
+    {
+      "id": "dish:Gravy",
+      "label": "Gravy",
+      "kind": "dish",
+      "svg": "dishes/gravy.svg",
+      "thumbnailSVG": "thumbnails/dishes/gravy.svg"
+    },
+    {
+      "id": "dish:Rolls",
+      "label": "Rolls",
+      "kind": "dish",
+      "svg": "dishes/rolls.svg",
+      "thumbnailSVG": "thumbnails/dishes/rolls.svg"
+    },
+    {
+      "id": "menu:steak",
+      "label": "Steak night",
+      "kind": "menu",
+      "svg": "plates/steak.svg",
+      "thumbnailSVG": "thumbnails/plates/steak.svg",
+      "dishes": [
+        "Steak",
+        "Mash",
+        "Green beans"
+      ]
+    },
+    {
+      "id": "menu:pasta",
+      "label": "A little pasta therapy",
+      "kind": "menu",
+      "svg": "plates/pasta.svg",
+      "thumbnailSVG": "thumbnails/plates/pasta.svg",
+      "dishes": [
+        "Pasta",
+        "Salad"
+      ]
+    },
+    {
+      "id": "menu:salmon",
+      "label": "An easy salmon evening",
+      "kind": "menu",
+      "svg": "plates/salmon.svg",
+      "thumbnailSVG": "thumbnails/plates/salmon.svg",
+      "dishes": [
+        "Salmon",
+        "Rice",
+        "Broccoli"
+      ]
+    },
+    {
+      "id": "menu:lemon-chicken",
+      "label": "A lemon chicken evening",
+      "kind": "menu",
+      "svg": "plates/lemon-chicken.svg",
+      "thumbnailSVG": "thumbnails/plates/lemon-chicken.svg",
+      "dishes": [
+        "Lemon chicken",
+        "Couscous",
+        "Zucchini"
+      ]
+    },
+    {
+      "id": "menu:turkey-tacos",
+      "label": "A taco kind of night",
+      "kind": "menu",
+      "svg": "plates/turkey-tacos.svg",
+      "thumbnailSVG": "thumbnails/plates/turkey-tacos.svg",
+      "dishes": [
+        "Turkey tacos",
+        "Black beans",
+        "Crunchy slaw"
+      ]
+    },
+    {
+      "id": "menu:tofu-bowls",
+      "label": "Crisp tofu, cozy bowls",
+      "kind": "menu",
+      "svg": "plates/tofu-bowls.svg",
+      "thumbnailSVG": "thumbnails/plates/tofu-bowls.svg",
+      "dishes": [
+        "Roasted tofu",
+        "Rice",
+        "Cucumber slaw"
+      ]
+    },
+    {
+      "id": "menu:chickpea-curry",
+      "label": "Chickpea comfort",
+      "kind": "menu",
+      "svg": "plates/chickpea-curry.svg",
+      "thumbnailSVG": "thumbnails/plates/chickpea-curry.svg",
+      "dishes": [
+        "Chickpea curry",
+        "Rice",
+        "Cucumber yogurt"
+      ]
+    },
+    {
+      "id": "menu:gnocchi-greens",
+      "label": "Golden gnocchi & greens",
+      "kind": "menu",
+      "svg": "plates/gnocchi-greens.svg",
+      "thumbnailSVG": "thumbnails/plates/gnocchi-greens.svg",
+      "dishes": [
+        "Skillet gnocchi",
+        "Lemony salad"
+      ]
+    },
+    {
+      "id": "menu:pork-supper",
+      "label": "A slower Sunday supper",
+      "kind": "menu",
+      "svg": "plates/pork-supper.svg",
+      "thumbnailSVG": "thumbnails/plates/pork-supper.svg",
+      "dishes": [
+        "Pork tenderloin",
+        "Mash",
+        "Green beans"
+      ]
+    },
+    {
+      "id": "menu:thanksgiving",
+      "label": "Thanksgiving, together",
+      "kind": "menu",
+      "svg": "plates/thanksgiving.svg",
+      "thumbnailSVG": "thumbnails/plates/thanksgiving.svg",
+      "dishes": [
+        "Turkey",
+        "Stuffing",
+        "Mash",
+        "Gravy",
+        "Green beans",
+        "Rolls"
+      ]
+    }
+  ],
+  "thumbnailCutoffPoints": 64,
+  "decorative": true,
+  "source": "Original vector artwork authored for Dinner, Together. No third-party assets or generated food photos."
+}
