@@ -2614,9 +2614,11 @@ extension DinnerTogetherUITestCase {
     /// (-dt-appearance dark) — the page goes dark and dim (Joe, October 16,
     /// 8:19 AM) — by hand only, one capture.
     func flowFullScreenTimers(night: Bool = false) {
-        launchRecipes([RecipeFixtureText.chicken], .standard,
-                      extra: ["-dt-recipes-reviewed", "-dt-fullscreen-auto", "-dt-assume-charging"]
-                             + (night ? ["-dt-appearance", "dark"] : []))
+        // The capture's own appearance flag comes first and wins (run
+        // 38915092856: a second -dt-appearance after .standard's "light"
+        // was never read), so night is the dark capture.
+        launchRecipes([RecipeFixtureText.chicken], night ? .darkMode : .standard,
+                      extra: ["-dt-recipes-reviewed", "-dt-fullscreen-auto", "-dt-assume-charging"])
         chooseTonight([RecipeFixtureText.chickenTitle])
         buildDinnerPlan()
         let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
