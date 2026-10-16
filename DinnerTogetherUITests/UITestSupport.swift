@@ -175,8 +175,9 @@ class DinnerTogetherUITestCase: XCTestCase {
         // are the turned layout. The screen's capture is tried instead.
         let sideways = !Self.duoOpen && app.frame.width > app.frame.height
         let shot = Self.duoOpen ? Self.innerScreenShot() : (sideways ? XCUIScreen.main.screenshot() : app.screenshot())
-        let image = Self.duoOpen ? Self.turnedToReading(shot.image, for: screenFrame) : shot.image
-        let attachment = Self.duoOpen ? XCTAttachment(image: image) : XCTAttachment(screenshot: shot)
+        let needsOrientationBake = Self.duoOpen || sideways
+        let image = needsOrientationBake ? Self.turnedToReading(shot.image, for: screenFrame) : shot.image
+        let attachment = needsOrientationBake ? XCTAttachment(image: image) : XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
@@ -185,13 +186,17 @@ class DinnerTogetherUITestCase: XCTestCase {
         // with it went every capture (run 38723119849).
         if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
             let safe = name.replacingOccurrences(of: "/", with: "-")
-            let png = Self.duoOpen ? image.pngData() : shot.pngRepresentation
+            let png = needsOrientationBake ? image.pngData() : shot.pngRepresentation
             try? png?.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
         }
         if sideways {
-            // Preserve both original routes at the same UI state. Do not
-            // rotate, crop, or replace the normal evidence: compare the raw
-            // captures with their pixel sizes and the measured app/window.
+            // PNG drops UIImage's orientation flag. Keep both original
+            // routes alongside the readable, orientation-baked primary so
+            // the presentation can be checked against unmodified evidence.
+            let rawScreen = XCTAttachment(screenshot: shot)
+            rawScreen.name = name + "-raw-screen-comparison"
+            rawScreen.lifetime = .keepAlways
+            add(rawScreen)
             let appShot = app.screenshot()
             let comparison = XCTAttachment(screenshot: appShot)
             comparison.name = name + "-raw-app-comparison"
@@ -199,6 +204,8 @@ class DinnerTogetherUITestCase: XCTestCase {
             add(comparison)
             if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
                 let safe = name.replacingOccurrences(of: "/", with: "-")
+                try? shot.pngRepresentation.write(to: URL(fileURLWithPath: dir)
+                    .appendingPathComponent("\(safe)-raw-screen-comparison.png"))
                 try? appShot.pngRepresentation.write(to: URL(fileURLWithPath: dir)
                     .appendingPathComponent("\(safe)-raw-app-comparison.png"))
             }
@@ -208,7 +215,7 @@ class DinnerTogetherUITestCase: XCTestCase {
                 return "points=\(bitmap.size) pixels=\(pixels) scale=\(bitmap.scale) imageOrientation=\(bitmap.imageOrientation.rawValue) pngBytes=\(capture.pngRepresentation.count)"
             }
             attachText(name + "-capture-provenance", """
-                primaryRoute=XCUIScreen.main.screenshot; primaryPNG=unmodified
+                primaryRoute=XCUIScreen.main.screenshot; primaryPNG=orientation-baked; rawScreenPNG=unmodified
                 screenCapture: \(describe(shot))
                 appComparison: \(describe(appShot))
                 applicationFrame=\(app.frame)
