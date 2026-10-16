@@ -1,0 +1,85 @@
+From f27e18b9a3c5b36590c4a9fe1589dd3566ca04b0 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Fri, 16 Oct 2026 13:18:38 -0300
+Subject: [PATCH] Scope unposed nightstand accommodation to verified closed Duo
+
+---
+ DinnerTogetherUITests/UITestSupport.swift | 24 ++++++++++++++++++++---
+ native-validation/run-native-pass.sh      |  6 ++++++
+ 2 files changed, 27 insertions(+), 3 deletions(-)
+
+diff --git a/DinnerTogetherUITests/UITestSupport.swift b/DinnerTogetherUITests/UITestSupport.swift
+index 71bd8c6..2b2d1bf 100644
+--- a/DinnerTogetherUITests/UITestSupport.swift
++++ b/DinnerTogetherUITests/UITestSupport.swift
+@@ -2683,6 +2683,10 @@ extension DinnerTogetherUITestCase {
+         XCTAssertTrue(mark.waitForExistence(timeout: 3) && mark.label == markLabel, "the step is still cooking, as it was: \(mark.label)")
+ 
+         guard UIDevice.current.userInterfaceIdiom == .phone, !night else { return }
++        // Subscribe before the requested turn; starting notifications only
++        // after a failed presentation can leave the runner's pose unknown.
++        UIDevice.current.beginGeneratingDeviceOrientationNotifications()
++        addTeardownBlock { UIDevice.current.endGeneratingDeviceOrientationNotifications() }
+         // The nightstand: on its side, charging.
+         XCUIDevice.shared.orientation = .landscapeLeft
+         addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+@@ -2691,14 +2695,23 @@ extension DinnerTogetherUITestCase {
+             // 38921685281: the runner itself still sees it upright), so the
+             // pose can't be made there; the real cover is Joe's hardware
+             // check. An iPhone that turned and didn't open the page fails.
+-            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+             let seen = UIDevice.current.orientation
+-            attachText("r31-nightstand-geometry", "no page; runner orientation=\(seen.rawValue) frame=\(screenFrame)")
+-            if !seen.isLandscape {
++            let environment = ProcessInfo.processInfo.environment
++            let simulator = environment["DT_SIMULATOR_NAME"] ?? ""
++            let hinge = environment["DT_DUO_HINGE"] ?? ""
++            let frame = screenFrame
++            let knownClosedDuo = simulator == "iPhone Duo" && ["", "closed", "0"].contains(hinge)
++            let observedPortrait = frame.width > 0 && frame.height > frame.width && seen == .portrait
++            attachText("r31-nightstand-geometry", "no page; simulator=\(simulator); hinge=\(hinge); runner orientation=\(seen.rawValue); frame=\(frame)")
++            if knownClosedDuo && observedPortrait {
++                // The manual assertions above passed; automatic presentation,
++                // landscape fit, suppression and re-entry did not execute.
++                attachText("r31-nightstand-coverage", "manual=verified; automatic=UNVERIFIED; landscape=UNVERIFIED; dismissal-reentry=UNVERIFIED; reason=known closed Duo simulator stayed portrait; hardware check required")
+                 photograph("r31b-nightstand-not-posed")
+                 return
+             }
+             attachHierarchy("r31-nightstand-missing-hierarchy")
++            return XCTFail("nightstand did not open after the requested turn; unsupported-pose accommodation applies only to a verified closed Duo destination with an observed portrait pose")
+         }
+         waitForExistence(page, timeout: 1, "the nightstand opens the timers on its own")
+         XCTAssertTrue(lead.waitForExistence(timeout: 3), "…with the step's timer")
+@@ -2706,6 +2719,11 @@ extension DinnerTogetherUITestCase {
+         // turn at all (run 38817138530), so that capture stays upright.
+         let turned = NSPredicate { _, _ in self.screenFrame.width > self.screenFrame.height }
+         let sideways = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: turned, object: app)], timeout: 6) == .completed
++        guard sideways else {
++            attachText("r31-nightstand-coverage", "automatic=opened; landscape=FAILED; frame=\(screenFrame)")
++            photograph("r31b-nightstand-upright-display")
++            return XCTFail("the automatically opened nightstand must reach landscape bounds before landscape layout is credited")
++        }
+         // The frame flips as the turn begins; the page is still being laid
+         // out for a moment after (run 38906195142: r31b caught the upright
+         // page mid-turn, rotated, with black beside it). Let it settle.
+diff --git a/native-validation/run-native-pass.sh b/native-validation/run-native-pass.sh
+index 122095e..2d9a2f3 100644
+--- a/native-validation/run-native-pass.sh
++++ b/native-validation/run-native-pass.sh
+@@ -367,7 +367,13 @@ run_ui_tests() { # label udid only_testing expected
+   # here silently, with the summary ending at this heading.)
+   local attempt=1 verbose="" wall=6600
+   while :; do
++    # Name of the exact selected destination, not the runner's orientation:
++    # only the known closed Duo cover may record partial nightstand coverage.
++    local simulator_name=""
++    if [ "$udid" = "$IPHONE_UDID" ]; then simulator_name="$IPHONE_NAME"; fi
++    if [ "$udid" = "$IPAD_UDID" ]; then simulator_name="$IPAD_NAME"; fi
+     TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
++      TEST_RUNNER_DT_SIMULATOR_NAME="$simulator_name" \
+       python3 "$ROOT/native-validation/run-with-deadline.py" \
+       --seconds "$wall" --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
+       --start-pattern "Test Suite '" --start-seconds "${DT_UI_START_SECONDS:-300}" \
+-- 
+2.51.1
+
