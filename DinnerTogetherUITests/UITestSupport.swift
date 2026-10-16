@@ -445,8 +445,12 @@ class DinnerTogetherUITestCase: XCTestCase {
         // page allows (run 38827686283, test42 at AX3: Tonight's 285 pt
         // recipe title near the page's end, its foot under the pinned bar,
         // twelve drags leaving it exactly where it was).
+        // Hittability is not asked here (A1, issue #15): an element whose
+        // foot sits under the bar is the case this is for, and XCTest may
+        // call it not hittable; tapping it is the caller's concern
+        // (scrollAndTap taps such an element near its top, by coordinate).
         let atEnd = { (e: XCUIElement) -> Bool in
-            guard unmoved >= 2, e.exists, !requireHittable || e.isHittable else { return false }
+            guard unmoved >= 2, e.exists else { return false }
             let zone = self.comfortZone(excluding: e.frame)
             return e.frame.minY >= zone.top && e.frame.minY <= zone.bottom - 44
         }
@@ -576,7 +580,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         // A tall element whose foot runs under the pinned bar is tapped near
         // its top, where it is on screen, not at its centre.
         let zoneBottom = comfortZone(excluding: element.frame).bottom
-        if element.frame.maxY > zoneBottom {
+        if element.frame.maxY > zoneBottom || !element.isHittable {
             let y = min(40, element.frame.height / 2) / element.frame.height
             element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: y)).tap()
         } else {
