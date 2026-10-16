@@ -63,14 +63,17 @@ final class TimerAlarm: ObservableObject {
         let fresh = over.filter { !rung.contains($0.key) && now.timeIntervalSince($0.value) < Self.freshSeconds }
             .sorted { $0.value < $1.value }
         rung.formUnion(over.keys)
-        // System alarms (build 22) ring these themselves, app open or not,
-        // with their own Stop: no second sound here.
-        if !fresh.isEmpty && !SystemAlarms.shared.enabled {
+        // A system alarm (build 22) rings its timer itself, app open or not,
+        // with its own Stop: no second sound for that one. A timer the
+        // system wouldn't take (its reminder is a notification) still
+        // rings here.
+        let unCovered = fresh.filter { !SystemAlarms.shared.covers(stepByKey[$0.key] ?? $0.key) }
+        if !unCovered.isEmpty {
             var steps: [String: String] = [:]
-            if fresh.contains(where: { stepByKey[$0.key] != nil }) {
+            if unCovered.contains(where: { stepByKey[$0.key] != nil }) {
                 for item in store.plan { steps[item.id] = item.step.title }
             }
-            for (key, _) in fresh {
+            for (key, _) in unCovered {
                 if let t = quickByKey[key] {
                     labels[key] = t.label
                 } else if let id = stepByKey[key] {
@@ -78,7 +81,7 @@ final class TimerAlarm: ObservableObject {
                 }
                 ringingKeys.append(key)
             }
-            startSound(now: now, announce: fresh.compactMap { labels[$0.key] })
+            startSound(now: now, announce: unCovered.compactMap { labels[$0.key] })
         }
         if ringingKeys.isEmpty {
             stopSound()

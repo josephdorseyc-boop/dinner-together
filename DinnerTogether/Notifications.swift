@@ -135,19 +135,20 @@ final class NotificationManager: NotificationService {
             // Only this app feature's reminders, never unrelated requests.
             center.removePendingNotificationRequests(withIdentifiers:
                 pending.map(\.identifier).filter { $0.hasPrefix(prefix) })
-            // System alarms allowed (build 22): they carry every reminder,
-            // and no notification doubles them.
+            // System alarms allowed (build 22): they carry every reminder
+            // they could be scheduled for, and no notification doubles
+            // those. One the system refused gets its notification instead
+            // (A2's review, #24, October 16), so a visible timer always
+            // has something to ring it.
+            var covered: Set<String> = []
             if SystemAlarms.shared.enabled {
                 var wanted: [String: (title: String, deadline: Date)] = [:]
                 for reminder in snapshot { wanted[reminder.stepID] = (reminder.title, reminder.deadline) }
-                await SystemAlarms.shared.reconcile(wanted)
+                covered = await SystemAlarms.shared.reconcile(wanted)
                 if version != revision { continue }
-                onStatusChange?(denied, nil)
-                reconciling = false
-                return
             }
             var failure: String?
-            for reminder in snapshot {
+            for reminder in snapshot where !covered.contains(reminder.stepID) {
                 if version != revision { break }
                 let interval = reminder.deadline.timeIntervalSinceNow
                 guard interval > 0 else { continue } // No instant stale alerts.

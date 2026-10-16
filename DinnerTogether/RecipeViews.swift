@@ -1456,6 +1456,33 @@ struct RecipeDetailView: View {
                  ? "Changes update your cooking plan. Steps already started stay unchanged."
                  : "These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
+            // The dinner running late while its timing is edited (board 02,
+            // approved October 16): Cooking's own report, in one line, and
+            // the way there. Never a second warning of its own.
+            if timingLocked, isTonight, let report = store.readinessReport() {
+                Button { onCook?() } label: {
+                    HStack(alignment: .firstTextBaseline, spacing: 10) {
+                        Image(systemName: "clock.badge.exclamationmark").accessibilityHidden(true)
+                        Text(report.estimateIsLowerBound
+                             ? "Dinner at least \(Scheduling.formatMinutes(report.lowerBoundMinutes)) behind"
+                             : "Dinner may finish about \(Scheduling.formatMinutes(report.driftMinutes)) late")
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 8)
+                        Text("Review plan").font(.subheadline.weight(.semibold))
+                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).accessibilityHidden(true)
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.warning)
+                    .padding(.horizontal, 14).padding(.vertical, 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Theme.warning.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.warning.opacity(0.35)))
+                }
+                .buttonStyle(.plain)
+                .disabled(onCook == nil)
+                .accessibilityHint("Opens Cooking, where the plan can be reviewed.")
+                .accessibilityIdentifier(pageID("timing-readiness"))
+            }
             ForEach(recipe.dishes, id: \.self) { dish in
                 VStack(alignment: .leading, spacing: 10) {
                     if recipe.dishes.count > 1 {
@@ -1520,10 +1547,7 @@ struct RecipeDetailView: View {
                     Label("Estimated time - tap to edit", systemImage: "clock.badge.questionmark")
                         .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
                 }
-                ViewThatFits(in: .horizontal) {
-                    timingControls(step, stacked: false)
-                    timingControls(step, stacked: true)
-                }
+                timingControls(step)
             }
         }
         .padding(14)
@@ -1532,19 +1556,26 @@ struct RecipeDetailView: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// One side of the Needs you / Hands-off control.
+    /// One side of the Needs you / Hands-off control (board 02, approved
+    /// October 16): the chosen side filled, with a check — never color
+    /// alone — the other quiet; both half the row.
     private func attentionChoice(_ step: CookingStep, handsOn: Bool) -> some View {
         let selected = step.handsOn == handsOn
+        let fill = deepPage ? Theme.pageAccent : Theme.olive
         return Button {
             guard !selected, !stepLocked(step) else { return }
             library.setStep(recipeID: recipeID, stepID: step.id, handsOn: handsOn)
         } label: {
-            Label(handsOn ? "Needs you" : "Hands-off", systemImage: handsOn ? "hand.raised" : "moon.zzz")
-                .font(.subheadline.weight(selected ? .semibold : .regular))
-                .padding(.horizontal, 12).frame(minHeight: 40)
-                .foregroundStyle(selected ? (deepPage ? Theme.ink : Color.white) : accentColor)
-                .background(Capsule().fill(selected ? accentColor : Color.clear))
-                .contentShape(Capsule())
+            HStack(spacing: 6) {
+                if selected { Image(systemName: "checkmark").font(.subheadline.weight(.bold)) }
+                Text(handsOn ? "Needs you" : "Hands-off")
+            }
+            .font(.subheadline.weight(selected ? .semibold : .regular))
+            .padding(.horizontal, 10).frame(maxWidth: .infinity, minHeight: 44)
+            .foregroundStyle(selected ? Color.white : Theme.ink)
+            .background(RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(selected ? fill : Theme.ink.opacity(0.045)))
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(selected ? .isSelected : [])
@@ -1560,59 +1591,80 @@ struct RecipeDetailView: View {
             .lowercased()
     }
 
-    private func timingControls(_ step: CookingStep, stacked: Bool) -> some View {
-        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
-        return layout {
-                Button { editingStep = step } label: {
-                    Label("\(RecipeFormat.compact(step.minutes)) · Edit time", systemImage: "timer")
-                        .monospacedDigit()
+    /// The card's controls (board 02, approved October 16): the time on
+    /// its own full-width row, the two-state attention control under it,
+    /// then Edit directions and the quieter Remove step side by side — or
+    /// stacked when the row can't fit them, as at large text.
+    private func timingControls(_ step: CookingStep) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button { editingStep = step } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                    Text("\(RecipeFormat.compact(step.minutes)) · Edit time").monospacedDigit()
+                    Spacer(minLength: 8)
+                    Image(systemName: "pencil").foregroundStyle(Theme.muted)
                 }
-                .buttonStyle(QuietButtonStyle())
-                .accessibilityLabel("\(step.title), \(step.minutes) minutes\(step.estimated == true ? ", estimated" : ""). Edit.")
-                // Two states, the chosen one marked (A2's copy, #24); checked
-                // again when tapped, in case the step started meanwhile.
-                HStack(spacing: 2) {
-                    attentionChoice(step, handsOn: true)
-                    attentionChoice(step, handsOn: false)
-                }
-                .padding(2)
-                .background(Capsule().strokeBorder(Theme.line))
-                // The cook's own wording (build 22): the step, its title and
-                // its direction change together.
-                Button { rewordingStep = step } label: {
-                    Label("Edit directions", systemImage: "pencil")
-                }
-                .buttonStyle(QuietButtonStyle())
-                .accessibilityIdentifier(pageID("edit-step-text"))
-                .accessibilityLabel("Edit the wording of \(step.title)")
-                // Text the import mistook for a step leaves the recipe here
-                // (A2 S2). The dialog hangs off its own button: on iOS 26 a
-                // dialog presented from a scrolling page shows as a bubble
-                // at the button, and tapping away cancels it.
-                Button(role: .destructive) { removingStep = step } label: {
-                    Label("Remove step", systemImage: "minus.circle")
-                }
-                .buttonStyle(QuietButtonStyle())
-                .accessibilityIdentifier("remove-step-\(step.id)")
-                .accessibilityLabel("Remove \(step.title)")
-                .accessibilityHint("Removes the step and its matching direction from this recipe and its timing plan.")
-                .confirmationDialog("Remove this step?",
-                                    isPresented: Binding(get: { removingStep?.id == step.id },
-                                                         set: { if !$0 { removingStep = nil } }),
-                                    titleVisibility: .visible) {
-                    Button("Remove step", role: .destructive) {
-                        if stepLocked(step) {
-                            UIAccessibility.post(notification: .announcement, argument: "This step has started, so it stays.")
-                        } else if !library.removeStep(recipeID: recipeID, stepID: step.id) {
-                            UIAccessibility.post(notification: .announcement, argument: library.saveError)
-                        }
-                    }
-                    Button("Cancel", role: .cancel) { removingStep = nil }
-                } message: {
-                    Text("This removes the step and its matching direction from this saved recipe and its timing plan. Use this for text that isn’t a cooking instruction.")
-                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(QuietButtonStyle())
+            .accessibilityLabel("\(step.title), \(step.minutes) minutes\(step.estimated == true ? ", estimated" : ""). Edit.")
+            // Two states, the chosen one marked (A2's copy, #24); checked
+            // again when tapped, in case the step started meanwhile.
+            HStack(spacing: 4) {
+                attentionChoice(step, handsOn: true)
+                attentionChoice(step, handsOn: false)
+            }
+            .padding(3)
+            .background(RoundedRectangle(cornerRadius: 15, style: .continuous).strokeBorder(Theme.line))
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 8) { editWording(step); removeStep(step) }
+                VStack(alignment: .leading, spacing: 8) { editWording(step); removeStep(step) }
+            }
         }
-        .fixedSize(horizontal: !stacked, vertical: false)
+    }
+
+    /// The cook's own wording (build 22): the step, its title and its
+    /// direction change together.
+    private func editWording(_ step: CookingStep) -> some View {
+        Button { rewordingStep = step } label: {
+            Label("Edit directions", systemImage: "pencil").frame(maxWidth: .infinity)
+        }
+        .buttonStyle(QuietButtonStyle())
+        .accessibilityIdentifier(pageID("edit-step-text"))
+        .accessibilityLabel("Edit the wording of \(step.title)")
+    }
+
+    /// Text the import mistook for a step leaves the recipe here (A2 S2).
+    /// The dialog hangs off its own button: on iOS 26 a dialog presented
+    /// from a scrolling page shows as a bubble at the button, and tapping
+    /// away cancels it.
+    private func removeStep(_ step: CookingStep) -> some View {
+        Button(role: .destructive) { removingStep = step } label: {
+            Label("Remove step", systemImage: "trash")
+                .font(.subheadline.weight(.semibold))
+                .padding(.horizontal, 12).frame(maxWidth: .infinity, minHeight: 44)
+                .foregroundStyle(Theme.tomato)
+                .background(Theme.tomato.opacity(0.08), in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("remove-step-\(step.id)")
+        .accessibilityLabel("Remove \(step.title)")
+        .accessibilityHint("Removes the step and its matching direction from this recipe and its timing plan.")
+        .confirmationDialog("Remove this step?",
+                            isPresented: Binding(get: { removingStep?.id == step.id },
+                                                 set: { if !$0 { removingStep = nil } }),
+                            titleVisibility: .visible) {
+            Button("Remove step", role: .destructive) {
+                if stepLocked(step) {
+                    UIAccessibility.post(notification: .announcement, argument: "This step has started, so it stays.")
+                } else if !library.removeStep(recipeID: recipeID, stepID: step.id) {
+                    UIAccessibility.post(notification: .announcement, argument: library.saveError)
+                }
+            }
+            Button("Cancel", role: .cancel) { removingStep = nil }
+        } message: {
+            Text("This removes the step and its matching direction from this saved recipe and its timing plan. Use this for text that isn’t a cooking instruction.")
+        }
     }
 
     @ViewBuilder

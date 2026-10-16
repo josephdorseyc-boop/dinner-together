@@ -23,11 +23,20 @@ final class SystemAlarms {
 
     /// Timer reminders ring as system alarms now.
     private(set) var enabled = false
-    /// What this launch has handed the system, by reminder key.
+    /// What this launch has handed the system, by reminder key — and so
+    /// what is covered: a reminder not here (its schedule call failed) gets
+    /// the notification instead (A2's review, #24, October 16).
     private var scheduled: [String: Date] = [:]
+    /// Alarms whose cancel call failed: tried again on every reconcile,
+    /// so a stopped timer can't leave a stray alarm behind for good.
+    private var cancelling: Set<UUID> = []
     /// Alarms left with the system by an earlier launch are only trusted
-    /// once checked against what is wanted now.
+    /// once checked against what is wanted now (and the check itself has
+    /// to succeed to count).
     private var checkedSystemList = false
+
+    /// This reminder rings as a system alarm: nothing else needs to.
+    func covers(_ key: String) -> Bool { scheduled[key] != nil }
 
     /// The alarm's ID for a reminder: the same key always gives the same
     /// ID, so a relaunch or a moved deadline finds and replaces its alarm.
@@ -67,34 +76,60 @@ final class SystemAlarms {
 
     /// Brings the system's alarms in line with the wanted reminders: new or
     /// moved ones scheduled, gone ones cancelled. Past deadlines are left
-    /// alone (an alarm that has rung is the system's until Stop).
-    func reconcile(_ wanted: [String: (title: String, deadline: Date)], now: Date = Date()) async {
+    /// alone (an alarm that has rung is the system's until Stop). Returns
+    /// the keys that now have a system alarm; the caller gives the rest a
+    /// notification, so a schedule call that fails never leaves a timer
+    /// with nothing to ring it.
+    @discardableResult
+    func reconcile(_ wanted: [String: (title: String, deadline: Date)], now: Date = Date()) async -> Set<String> {
         #if canImport(AlarmKit)
-        guard #available(iOS 26.1, *), enabled else { return }
+        guard #available(iOS 26.1, *), enabled else { return [] }
         let manager = AlarmManager.shared
         let wantedIDs = Set(wanted.keys.map(Self.alarmID(for:)))
-        if !checkedSystemList {
+        if !checkedSystemList, let existing = try? manager.alarms {
             checkedSystemList = true
-            for alarm in (try? manager.alarms) ?? [] where !wantedIDs.contains(alarm.id) {
-                try? manager.cancel(id: alarm.id)
-            }
+            for alarm in existing where !wantedIDs.contains(alarm.id) { cancelling.insert(alarm.id) }
         }
         for key in scheduled.keys where wanted[key] == nil {
-            try? manager.cancel(id: Self.alarmID(for: key))
+            cancelling.insert(Self.alarmID(for: key))
             scheduled[key] = nil
         }
         for (key, reminder) in wanted where reminder.deadline > now && scheduled[key] != reminder.deadline {
             let id = Self.alarmID(for: key)
-            try? manager.cancel(id: id) // a moved deadline replaces its alarm
-            do {
-                _ = try await manager.schedule(id: id, configuration: Self.configuration(title: reminder.title, deadline: reminder.deadline))
-                scheduled[key] = reminder.deadline
-            } catch {
-                scheduled[key] = nil // the notification path can't take over mid-reconcile; the next change retries
+            // A moved deadline replaces its alarm; a cancel that fails is
+            // retried below, before the new schedule.
+            cancelling.insert(id)
+            if cancel(id, manager: manager) {
+                do {
+                    _ = try await manager.schedule(id: id, configuration: Self.configuration(title: reminder.title, deadline: reminder.deadline))
+                    scheduled[key] = reminder.deadline
+                } catch {
+                    scheduled[key] = nil // the notification covers it; the next reconcile tries again
+                }
             }
         }
+        // Whatever still couldn't be cancelled: once more now, and on every
+        // reconcile until the system agrees.
+        for id in cancelling { _ = cancel(id, manager: manager) }
+        return Set(scheduled.keys)
+        #else
+        return []
         #endif
     }
+
+    #if canImport(AlarmKit)
+    /// Cancels, and forgets the tombstone only once the system agreed.
+    @available(iOS 26.1, *)
+    private func cancel(_ id: UUID, manager: AlarmManager) -> Bool {
+        do {
+            try manager.cancel(id: id)
+            cancelling.remove(id)
+            return true
+        } catch {
+            return false
+        }
+    }
+    #endif
 
     #if canImport(AlarmKit)
     @available(iOS 26.1, *)
