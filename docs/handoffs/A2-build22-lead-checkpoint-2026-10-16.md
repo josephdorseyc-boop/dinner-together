@@ -48,3 +48,27 @@ Do not treat native baseline success as validation of continuation changes.
 
 The continuation branch's non-wip name triggers native-validation on code push.
 No TestFlight upload or release is requested by this checkpoint.
+
+## A1 review follow-up
+
+A1 acknowledged the assignments and supplied read-only findings. Harness changes
+are staged on `wip/a2-build22-harness-20261016` for review while native run
+38947972243 validates the orientation export commit `ff86f2a`:
+
+- Exclude test53 only on the exact selected closed/default-hinge Duo simulator.
+  Filter after sharding, retain all other assignments, recompute counts and
+  report missing Duo rotation coverage. Ordinary iPhone remains required.
+- Reject invalid shard indices and empty/zero-count test selections before
+  invoking Xcode. This prevents both the latent Bash 3.2 empty-array crash and
+  accidental unfiltered execution. No skipped-test allowance is introduced.
+- Eight targeted selection/guard regression checks pass; the full fake-toolchain
+  suite is rerun before publishing. These checks do not validate native behavior.
+
+A1's proposed `.unknown` accommodation for test55 is not adopted. Automatic entry
+remains unverified on closed Duo; an explicit manual/automatic test split has
+been requested. Test03/test35 remain open pending targeted native evidence.
+
+Baseline capture provenance was read directly: screen pixels 1206x2622,
+imageOrientation=2; app comparison 2622x1206 with the same orientation flag;
+application/window bounds 874x402. This supports normalizing the screen route;
+new screenshots must still verify the visible result.

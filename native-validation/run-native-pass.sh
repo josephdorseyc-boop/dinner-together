@@ -79,6 +79,10 @@ DinnerTogetherUITests/DinnerTogetherDuoWindowTests/test02_openedDuoCookingOneDis
 fi
 if [[ "$PART" == ui-iphone-*-of-* ]]; then
   SHARE="${PART#ui-iphone-}"; K="${SHARE%%-of-*}"; N="${SHARE##*-of-}"
+  if ! [[ "$K" =~ ^[1-9][0-9]*$ && "$N" =~ ^[1-9][0-9]*$ ]] || [ "$K" -gt "$N" ]; then
+    fail "invalid UI share DT_PART=$PART (requires 1 <= K <= N)"
+    finish; exit 2
+  fi
   IPHONE_ONLY=$(grep -oE 'func test[A-Za-z0-9_]+' "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" | sed 's/^func //' \
     | awk -v k="$K" -v n="$N" '(NR-1) % n == k-1 { print "DinnerTogetherUITests/DinnerTogetherUITests/" $1 }')
   EXPECTED_UI_IPHONE=$(printf '%s\n' "$IPHONE_ONLY" | grep -c . || true)
@@ -132,6 +136,27 @@ note "## Simulators (both required)"
 if [ -n "$IPHONE_UDID" ]; then pass "iPhone simulator: $IPHONE_NAME"; else fail "no available iPhone simulator (see environment.txt)"; fi
 if [ -n "$IPAD_UDID" ];   then pass "iPad simulator: $IPAD_NAME";     else fail "no available iPad simulator (see environment.txt)"; fi
 note ""
+# A1's review: test53 has no assertions executable on the non-rotating
+# closed Duo cover. Keep it required on ordinary iPhone; record this device
+# gap explicitly instead of weakening the gate for skipped tests. Filter
+# AFTER sharding so all other tests retain their original part assignment.
+if [ "$IPHONE_NAME" = "iPhone Duo" ] && want_ui_iphone && [ "$PART" != ui-duo-window ]; then
+  case "${DT_DUO_HINGE:-}" in
+    ""|closed|0)
+      if [ "$PART" = all ]; then
+        IPHONE_ONLY=$(grep -oE 'func test[A-Za-z0-9_]+' "$ROOT/DinnerTogetherUITests/DinnerTogetherUITests.swift" \
+          | sed 's|^func |DinnerTogetherUITests/DinnerTogetherUITests/|')
+      fi
+      IPHONE_ONLY=$(printf '%s\n' "$IPHONE_ONLY" \
+        | awk '$0 != "DinnerTogetherUITests/DinnerTogetherUITests/test53_weekShowcaseSideways"')
+      EXPECTED_UI_IPHONE=$(printf '%s\n' "$IPHONE_ONLY" | grep -c . || true)
+      note "## Device-specific coverage"
+      note "- Closed Duo: test53_weekShowcaseSideways excluded (cover rotation unavailable); ordinary iPhone coverage remains required; Duo hardware check remains open."
+      note "- Selected UI tests after device filtering: $EXPECTED_UI_IPHONE (iPhone). All selected tests must execute without skips."
+      note ""
+      ;;
+  esac
+fi
 # Quoted: simulator names contain spaces and parentheses ("iPad Pro 13-inch (M4)").
 printf "IPHONE_NAME='%s'\nIPHONE_UDID='%s'\nIPAD_NAME='%s'\nIPAD_UDID='%s'\n" \
   "$IPHONE_NAME" "$IPHONE_UDID" "$IPAD_NAME" "$IPAD_UDID" > "$RESULTS/devices.env"
@@ -296,8 +321,14 @@ run_ui_tests() { # label udid only_testing expected
   local label="$1" udid="$2" only_testing="$3" expected="$4"
   local bundle="$RESULTS/$label-ui.xcresult"
   # One target or class, or a part's list of tests (whitespace-separated).
-  local mainonly=() t
-  for t in $only_testing; do mainonly+=("-only-testing:$t"); done
+  local mainonly=() t selected_count=0
+  for t in $only_testing; do mainonly+=("-only-testing:$t"); selected_count=$((selected_count + 1)); done
+  # Bash 3.2 + nounset cannot expand an empty array. More importantly, an
+  # empty filter must never become an unfiltered XCTest run.
+  if [ "$selected_count" -eq 0 ] || [ "$expected" -le 0 ]; then
+    fail "$label UI: empty test selection (part $PART); refusing an unfiltered test run"
+    return 1
+  fi
   local log="$RESULTS/25-ui-test-$label.log"
   rm -rf "$bundle"
   # Warm the simulator before XCTest asks it to launch the app: on a cold

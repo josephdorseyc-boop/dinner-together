@@ -15,6 +15,7 @@ chmod +x "$HERE"/faketools/*
 bad=0
 python3 "$HERE/test_ui_log_counts.py" || exit 1
 python3 "$HERE/test_screenshot_process.py" || exit 1
+python3 "$HERE/test_ui_selection.py" || exit 1
 run_case() { # name expect_pass_rc expect_shots_rc expect_required_failures expect_pngs expect_upngs env...
   local name="$1" e_pass="$2" e_shots="$3" e_fail="$4" e_png="$5" e_upng="$6"; shift 6
   local R="$WORK/$name"; rm -rf "$R"; mkdir -p "$R"
