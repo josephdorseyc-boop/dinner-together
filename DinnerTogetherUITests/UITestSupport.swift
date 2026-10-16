@@ -385,9 +385,12 @@ class DinnerTogetherUITestCase: XCTestCase {
         let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
-        // An element taller than the zone (an AX3 paragraph) can never fit
-        // whole; its top inside the zone is what "on screen" can mean.
-        if f.height > zoneBottom - zoneTop {
+        // An element taller than the zone (an AX3 paragraph), or most of it
+        // (Tonight's 285 pt recipe title at AX3 on the Duo's 678 pt cover
+        // under its 272 pt pinned bar, run 38827688888: no drag could land
+        // its top in the 60 pt that would fit it whole), can't fit whole;
+        // its top inside the zone is what "on screen" can mean.
+        if f.height > (zoneBottom - zoneTop) * 0.7 {
             return f.minY >= zoneTop && f.minY <= zoneBottom - 44
         }
         // Top band: the status bar plus a little; a navigation bar that
@@ -406,7 +409,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
-        if f.height > zoneBottom - zoneTop {
+        if f.height > (zoneBottom - zoneTop) * 0.7 {
             return f.minY >= zoneTop && f.minY <= zoneBottom - 44
         }
         return f.minY >= screen.minY + 60 && f.maxY <= zoneBottom
@@ -554,7 +557,15 @@ class DinnerTogetherUITestCase: XCTestCase {
         waitForExistence(element, timeout: 10, message, file: file, line: line)
         scrollTo(element, file: file, line: line)
         waitForStableFrame(element)
-        element.tap()
+        // A tall element whose foot runs under the pinned bar is tapped near
+        // its top, where it is on screen, not at its centre.
+        let zoneBottom = comfortZone(excluding: element.frame).bottom
+        if element.frame.maxY > zoneBottom {
+            let y = min(40, element.frame.height / 2) / element.frame.height
+            element.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: y)).tap()
+        } else {
+            element.tap()
+        }
     }
 
     /// Waits until the element's frame stops moving. After "Move dinner" the
