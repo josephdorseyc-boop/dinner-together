@@ -10,6 +10,7 @@ import UIKit
 struct RecipeSpreadView: View {
     let recipeID: UUID
     var onChoose: (() -> Void)? = nil
+    var onCook: (() -> Void)? = nil
     @EnvironmentObject private var library: RecipeLibrary
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var leftPage: SpreadLeftPage = .cover
@@ -42,7 +43,7 @@ struct RecipeSpreadView: View {
                 ZStack(alignment: .top) {
                     // Always in this position, so its identity — tab, scroll,
                     // sheets — survives the spread opening and closing.
-                    RecipeDetailView(recipeID: recipeID, onChoose: onChoose,
+                    RecipeDetailView(recipeID: recipeID, onChoose: onChoose, onCook: onCook,
                                      bookPage: mode != .single,
                                      pageWidth: mode == .spread ? half : g.size.width,
                                      inBackground: sideInFront,

@@ -131,7 +131,7 @@ struct RecipesView: View {
         .accessibilityIdentifier("recipe-library")
         .navigationDestination(for: UUID.self) { id in
             // The page — or, with the phone open like a book, the spread.
-            RecipeSpreadView(recipeID: id, onChoose: goTonight)
+            RecipeSpreadView(recipeID: id, onChoose: goTonight, onCook: goCooking)
         }
         .sheet(isPresented: $adding) {
             AddRecipeSheet { id in path.append(id) }.uiTestTypeSize()
@@ -679,6 +679,8 @@ struct RecipeDetailView: View {
 
     let recipeID: UUID
     var onChoose: (() -> Void)? = nil
+    /// Back to Cooking, while tonight's dinner is cooking (build 22).
+    var onCook: (() -> Void)? = nil
     var role: Role = .page
     /// The spread's reader only: the main recipe on the right, so this page
     /// can offer "Cook both together" (Joe, October 14).
@@ -1490,25 +1492,39 @@ struct RecipeDetailView: View {
                 Text(step.detail).font(.subheadline).foregroundStyle(Theme.muted)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if step.estimated == true {
-                Label("Estimated time - tap to edit", systemImage: "clock.badge.questionmark")
-                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
-            }
             if stepLocked(step) {
-                let note = store.record(step.id).state == .done ? "Completed — can’t edit this step" : "Cooking — can’t edit this step"
-                Label(note, systemImage: "lock")
-                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
-                    // One element that says the words (the lock's own label,
-                    // "Lock", was read first — run 38879707257).
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(note)
-                    .accessibilityIdentifier(pageID("step-locked"))
+                // A started or finished step keeps its words and its time;
+                // the controls go, not merely grey out (A2, board 02).
+                let record = store.record(step.id)
+                let note = record.state == .done ? "Completed — can’t edit this step" : "Cooking — can’t edit this step"
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Label(note, systemImage: "lock")
+                        .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                        // One element that says the words (the lock's own label,
+                        // "Lock", was read first — run 38879707257).
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(note)
+                        .accessibilityIdentifier(pageID("step-locked"))
+                    Spacer(minLength: 8)
+                    if record.state == .cooking, let deadline = record.timerDeadline {
+                        Text(deadline, style: .time)
+                            .font(.subheadline.weight(.semibold)).monospacedDigit()
+                            .accessibilityLabel("Ends at \(deadline.formatted(date: .omitted, time: .shortened))")
+                    } else {
+                        Text(RecipeFormat.compact(step.minutes))
+                            .font(.subheadline.weight(.semibold)).monospacedDigit()
+                    }
+                }
+            } else {
+                if step.estimated == true {
+                    Label("Estimated time - tap to edit", systemImage: "clock.badge.questionmark")
+                        .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
+                }
+                ViewThatFits(in: .horizontal) {
+                    timingControls(step, stacked: false)
+                    timingControls(step, stacked: true)
+                }
             }
-            ViewThatFits(in: .horizontal) {
-                timingControls(step, stacked: false)
-                timingControls(step, stacked: true)
-            }
-            .disabled(stepLocked(step))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1617,8 +1633,12 @@ struct RecipeDetailView: View {
     private func cookBar(_ recipe: Recipe) -> some View {
         let bar = VStack(spacing: 6) {
             if isTonight && !bookPage {
-                Text(reader ? "These two are tonight’s dinner. Set the time on Tonight, then build your plan."
-                            : "This is tonight’s dinner. Set the time on Tonight, then build your plan.")
+                // While it cooks, the page is for reading and for editing the
+                // steps not yet started (build 22, r30 capture).
+                Text(hasProgress ? (reader ? "These two are cooking now. Changes to steps not yet started update your plan."
+                                           : "This is cooking now. Changes to steps not yet started update your plan.")
+                     : (reader ? "These two are tonight’s dinner. Set the time on Tonight, then build your plan."
+                               : "This is tonight’s dinner. Set the time on Tonight, then build your plan."))
                     .font(.caption).foregroundStyle(Theme.muted).multilineTextAlignment(.center)
             }
             if recipe.needsTimingReview && tab == .timing {
@@ -1652,15 +1672,20 @@ struct RecipeDetailView: View {
                 .accessibilityHint("Cooks this and the recipe on the right on one timeline, ready together.")
                 .accessibilityIdentifier("cook-both")
             } else {
+                let cookingNow = (isTonight || inTonightsDinner) && hasProgress && onCook != nil
                 Button {
                     if recipe.needsTimingReview { tab = .timing }
-                    // "Back to Tonight" goes to Tonight — not just back to the
-                    // collection with the recipe ticked (Joe, build 10).
+                    // Cooking: back to the kitchen. Otherwise "Back to Tonight"
+                    // goes to Tonight — not just back to the collection with
+                    // the recipe ticked (Joe, build 10).
+                    else if cookingNow { onCook?() }
                     else if isTonight || inTonightsDinner { if let onChoose { onChoose() } else { dismiss() } }
                     else if hasProgress { confirmingReplace = true }
                     else { choose(recipe) }
                 } label: {
-                    Label(recipe.needsTimingReview ? "Check timing to continue" : (isTonight || inTonightsDinner ? "Back to Tonight" : "Cook this for dinner"), systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : "frying.pan")
+                    Label(recipe.needsTimingReview ? "Check timing to continue"
+                          : (cookingNow ? "Back to Cooking" : (isTonight || inTonightsDinner ? "Back to Tonight" : "Cook this for dinner")),
+                          systemImage: recipe.needsTimingReview ? "clock.badge.questionmark" : (cookingNow ? "timer" : "frying.pan"))
                 }
                 .buttonStyle(CookBarStyle(book: bookPage, onColoredPage: deepPage))
                 .disabled(recipe.steps.isEmpty)
