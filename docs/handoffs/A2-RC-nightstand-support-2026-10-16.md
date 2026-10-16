@@ -3,7 +3,9 @@
 Reviewed baseline: `9dd34692ad75c79735aaa33c7c7711d0f2b91849`, `wip/build22`.
 Joe requested three parallel reviews and direct GitHub delivery. A3 remains implementation lead; these isolated candidates do not modify his branch or dispatch CI.
 
-## Candidates (independently cherry-pickable)
+## Candidates (independent mail patches)
+
+Apply the desired files from `docs/handoffs/rc-nightstand-patches/` with `git am`; the commit IDs below identify patch contents and are local provenance, not published source commits. The GitHub branch carries handoff files only; do not cherry-pick its packaging commits as app fixes.
 
 1. `188e3e6`: small production copy correction. Selecting a later countdown now says **SELECTED TIMER**, rather than falsely claiming **NEXT TO FINISH**. Expired/single-timer wording is retained.
 2. `ca994d8`: optional capture diagnostics. Keeps A3's XCUIScreen primary capture unchanged; adds a separately named raw application capture and text provenance (pixel sizes, image orientation, scale, app/window bounds, runner orientation). No image rotation, cropping, or evidence replacement. Consecutive captures are not atomic.
@@ -19,6 +21,6 @@ Source review found no additional confirmed timer persistence/night-mode lifecyc
 
 ## Validation
 
-`git diff --check` and `bash -n native-validation/run-native-pass.sh` pass. Swift/Xcode are unavailable locally: native compilation, UI regression, and paired-capture results remain pending. Harness fake-toolchain results are reported separately in the GitHub handoff and prove shell control flow only.
+`git diff --check` and `bash -n native-validation/run-native-pass.sh` pass. The nightstand test candidate also passed all 25 fake-toolchain harness scenarios, 10 parser checks, seven screenshot-process checks, and three destination-selection checks. Swift/Xcode are unavailable locally: native compilation, UI regression, and paired-capture results remain pending. Harness fake-toolchain results are reported separately in the GitHub handoff and prove shell control flow only.
 
 At review, RC native run `38930011797` had Linux and JS checks green, iPhone part 1 started, and remaining Apple jobs queued. Duo run `38930015333` was queued. These baseline results do not validate these new candidates.
