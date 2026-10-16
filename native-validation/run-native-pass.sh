@@ -367,7 +367,13 @@ run_ui_tests() { # label udid only_testing expected
   # here silently, with the summary ending at this heading.)
   local attempt=1 verbose="" wall=6600
   while :; do
+    # Name of the exact selected destination, not the runner's orientation:
+    # only the known closed Duo cover may record partial nightstand coverage.
+    local simulator_name=""
+    if [ "$udid" = "$IPHONE_UDID" ]; then simulator_name="$IPHONE_NAME"; fi
+    if [ "$udid" = "$IPAD_UDID" ]; then simulator_name="$IPAD_NAME"; fi
     TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
+      TEST_RUNNER_DT_SIMULATOR_NAME="$simulator_name" \
       python3 "$ROOT/native-validation/run-with-deadline.py" \
       --seconds "$wall" --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
       --start-pattern "Test Suite '" --start-seconds "${DT_UI_START_SECONDS:-300}" \
