@@ -10,7 +10,10 @@ import UIKit
 // Duo's cover is stood sideways (tent) or an iPhone lies on its side while
 // charging (nightstand), and by hand from Cooking or the Timers page. It
 // keeps the screen awake while a timer shows, so the phone doesn't lock
-// over it. Locked or closed, the Live Activity is the system's version of
+// over it. At night it goes dark and dim (Joe, October 16, 8:19 AM: "I'd
+// like it to change dark/dim at nighttime"): when the phone is in Dark
+// Mode, or between 9 PM and 6 AM whatever the phone says — the only page
+// besides Tonight that does. Locked or closed, the Live Activity is the system's version of
 // this (StandBy fills the screen with it) and AlarmKit rings; neither is
 // drawn here. Nothing on this page starts, restarts or completes anything:
 // Stop and Dismiss end a kitchen timer, and a cooking step is marked done
@@ -107,6 +110,19 @@ final class FullScreenTimers {
         UIDevice.current.isBatteryMonitoringEnabled = true
     }
 
+    /// Night: the phone in Dark Mode (its own schedule or the cook's
+    /// choice), or 9 PM to 6 AM by the clock. UI tests force it with
+    /// -dt-appearance dark.
+    nonisolated static func isNight(at now: Date = Date(), calendar: Calendar = .current) -> Bool {
+        let hour = calendar.component(.hour, from: now)
+        return hour >= 21 || hour < 6
+    }
+
+    static var night: Bool {
+        if let forced = LaunchOptions.forcedColorScheme { return forced == .dark }
+        return isNight() || UIScreen.main.traitCollection.userInterfaceStyle == .dark
+    }
+
     /// By hand, from Cooking or the Timers page.
     func open() { present(.byHand) }
 
@@ -150,6 +166,11 @@ final class FullScreenTimers {
         if UIApplication.shared.isIdleTimerDisabled != awake {
             UIApplication.shared.isIdleTimerDisabled = awake
         }
+        // Night falls (or Dark Mode switches) while it's up.
+        if let host {
+            let style: UIUserInterfaceStyle = Self.night ? .dark : .light
+            if host.overrideUserInterfaceStyle != style { host.overrideUserInterfaceStyle = style }
+        }
     }
 
     /// Tent: the folded Duo's cover turned sideways — a window that turns
@@ -191,7 +212,7 @@ final class FullScreenTimers {
         host.modalPresentationStyle = .overFullScreen
         host.modalPresentationCapturesStatusBarAppearance = true
         host.modalTransitionStyle = .crossDissolve
-        host.overrideUserInterfaceStyle = .light // Cooking's cream (Joe: dark is Tonight's alone)
+        host.overrideUserInterfaceStyle = Self.night ? .dark : .light // cream by day; dark at night
         self.host = host
         top.present(host, animated: true) {
             host.setNeedsUpdateOfSupportedInterfaceOrientations()
@@ -302,6 +323,7 @@ struct FullScreenTimersView: View {
 
     var body: some View {
         let now = timers.now
+        let night = FullScreenTimers.night
         let entries = FullScreenTimerEntry.all(now: now, quick: quickTimers.timers, store: store)
         let lead = entries.first { $0.id == selectedID } ?? entries.first
         let others = entries.filter { $0.id != lead?.id }
@@ -350,6 +372,9 @@ struct FullScreenTimersView: View {
             .padding(.horizontal, landscape ? 32 : 24)
             .padding(.bottom, 12)
         }
+        // At night the whole page is dim as well as dark: a nightstand
+        // isn't read at arm's length in full contrast.
+        .opacity(night ? 0.72 : 1)
         .background(Theme.cream.ignoresSafeArea())
         .foregroundStyle(Theme.ink)
         .overlay(alignment: .top) {
@@ -357,10 +382,12 @@ struct FullScreenTimersView: View {
                 .padding(.top, 8)
                 .animation(.easeOut(duration: 0.25), value: alarm.ringing)
         }
-        .environment(\.colorScheme, .light)
+        .environment(\.colorScheme, night ? .dark : .light)
+        .animation(.easeInOut(duration: 0.6), value: night)
         .tint(Theme.tomato)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("fullscreen-timers")
+        .accessibilityValue(night ? "Night" : "Day")
         .onChange(of: entries.map(\.id)) { _, ids in
             if let selectedID, !ids.contains(selectedID) { self.selectedID = nil }
         }

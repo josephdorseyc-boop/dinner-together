@@ -2610,10 +2610,13 @@ extension DinnerTogetherUITestCase {
     /// and turning it once more brings it back. Tent mode is the same page
     /// from the Duo's sideways cover, which this simulator can't pose
     /// (its cover doesn't turn): Joe's hardware check. iPad has the page by
-    /// hand only (the poses are a phone's).
-    func flowFullScreenTimers() {
+    /// hand only (the poses are a phone's). `night`: the phone in Dark Mode
+    /// (-dt-appearance dark) — the page goes dark and dim (Joe, October 16,
+    /// 8:19 AM) — by hand only, one capture.
+    func flowFullScreenTimers(night: Bool = false) {
         launchRecipes([RecipeFixtureText.chicken], .standard,
-                      extra: ["-dt-recipes-reviewed", "-dt-fullscreen-auto", "-dt-assume-charging"])
+                      extra: ["-dt-recipes-reviewed", "-dt-fullscreen-auto", "-dt-assume-charging"]
+                             + (night ? ["-dt-appearance", "dark"] : []))
         chooseTonight([RecipeFixtureText.chickenTitle])
         buildDinnerPlan()
         let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
@@ -2635,12 +2638,14 @@ extension DinnerTogetherUITestCase {
         XCTAssertTrue(lead.waitForExistence(timeout: 3), "the step's timer leads")
         XCTAssertTrue(app.buttons["fullscreen-cooking"].exists, "a step's timer offers Go to Cooking, never Stop")
         XCTAssertFalse(app.buttons["fullscreen-stop"].exists, "nothing here stops a cooking step")
-        photograph("r31a-fullscreen-by-hand")
+        if page.value as? String == nil { attachHierarchy("r31-fullscreen-value-hierarchy") }
+        XCTAssertEqual(page.value as? String, night ? "Night" : "Day", "the page knows whether it's night")
+        photograph(night ? "r31d-fullscreen-night" : "r31a-fullscreen-by-hand")
         app.buttons["fullscreen-timers-done"].tap()
         waitForDisappearance(page, "Done closes it")
         XCTAssertTrue(mark.waitForExistence(timeout: 3) && mark.label == markLabel, "the step is still cooking, as it was: \(mark.label)")
 
-        guard UIDevice.current.userInterfaceIdiom == .phone else { return }
+        guard UIDevice.current.userInterfaceIdiom == .phone, !night else { return }
         // The nightstand: on its side, charging.
         XCUIDevice.shared.orientation = .landscapeLeft
         addTeardownBlock { XCUIDevice.shared.orientation = .portrait }

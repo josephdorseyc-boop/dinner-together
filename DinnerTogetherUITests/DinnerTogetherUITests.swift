@@ -138,4 +138,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test54_timingWhileCooking() { flowTimingWhileCooking() }
     /// r31 — build 22: the timers full screen, by hand and on the nightstand.
     func test55_fullScreenTimers() { flowFullScreenTimers() }
+    /// r31d — the full-screen timers at night: dark and dim.
+    func test56_fullScreenTimersNight() { flowFullScreenTimers(night: true) }
 }
