@@ -1067,7 +1067,12 @@ enum RecipeFixtureText {
     /// A whole meal (A1's r28; titles the text importer reads as titles —
     /// "Roast chicken" alone reads as a direction, SpreadTests).
     static let chickenTitle = "Sunday herb chicken"
-    static let chicken = "Sunday herb chicken\nDirections\n1. Season the chicken.\n2. Roast for 60 minutes.\n3. Rest for 10 minutes."
+    /// Short enough (about 45 min) that choosing it leaves the default
+    /// dinner time an hour out with slack: a 70-minute main pinned dinner to
+    /// its earliest time, and the clock crossing a 5-minute mark mid-test
+    /// then moved it on its own (run 38856622510, test50 — the app moving a
+    /// dinner that can no longer be ready in time, as it should).
+    static let chicken = "Sunday herb chicken\nDirections\n1. Season the chicken.\n2. Roast for 30 minutes.\n3. Rest for 10 minutes."
     static let potatoesTitle = "Mashed potatoes"
     static let potatoes = "Mashed potatoes\nDirections\n1. Boil the potatoes for 20 minutes.\n2. Mash with butter for 5 minutes."
     static let beansTitle = "Green beans"
