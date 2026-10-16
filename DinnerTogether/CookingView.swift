@@ -925,8 +925,17 @@ extension CookingView {
         switch layout {
         case .bookOne(let recipe):
             HStack(spacing: 0) {
-                duoPhotoPage(recipe)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // No photo of the dish: the cream cookbook page with the
+                // Right now card, not an empty photo frame (board 03,
+                // approved October 16).
+                if DinnerHeroArt.of(store.session.menuID, library: library) != nil {
+                    duoPhotoPage(recipe)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    duoDishPage(recipe, label: "MAIN DISH", withRightNow: true, showsDinnerTime: false, showsList: false)
+                        .frame(maxWidth: .infinity)
+                        .overlay(alignment: .trailing) { duoGutter(leading: false) }
+                }
                 duoDishPage(recipe, label: nil, withRightNow: false)
                     .frame(maxWidth: .infinity)
                     .overlay(alignment: .leading) { duoGutter(leading: true) }
@@ -1129,18 +1138,33 @@ extension CookingView {
                 .fixedSize(horizontal: false, vertical: true)
             switch state {
             case .ended, .running:
-                HStack(alignment: .firstTextBaseline, spacing: 8) {
-                    Text(Scheduling.formatCountdown(remaining: remaining))
-                        .font(.system(size: 40, weight: .medium, design: .rounded)).monospacedDigit()
-                        .foregroundStyle(remaining <= 0 ? Theme.warning : Theme.ink)
-                        .accessibilityLabel("Timer \(Scheduling.formatCountdown(remaining: remaining))")
-                    Text(remaining <= 0 ? "Check the food" : "remaining").font(.caption).foregroundStyle(remaining <= 0 ? Theme.warning : Theme.muted)
+                // The countdown in the timer faces' ring (board 03, approved
+                // October 16): olive draining, amber once it's up. The ring
+                // never marks the step done; the button beside it does.
+                let ring = QuickTimer(id: "step-" + item.id, recipeID: nil, dish: item.step.dish, stepTitle: item.step.title,
+                                      durationText: "", seconds: max(1, Int(deadline.timeIntervalSince(record.actualStart ?? item.start).rounded())),
+                                      startedAt: record.actualStart ?? item.start, deadline: deadline)
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 16) {
+                        TimerRing(timer: ring, now: now, size: 104, lineWidth: 8)
+                        Button { doneTapped(item) } label: {
+                            Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")
+                        }
+                        .buttonStyle(BigButtonStyle(onColoredPage: onGlass))
+                        .accessibilityLabel("Mark \(item.step.title) done")
+                    }
+                    VStack(alignment: .leading, spacing: 12) {
+                        TimerRing(timer: ring, now: now, size: 104, lineWidth: 8)
+                        Button { doneTapped(item) } label: {
+                            Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")
+                        }
+                        .buttonStyle(BigButtonStyle(onColoredPage: onGlass))
+                        .accessibilityLabel("Mark \(item.step.title) done")
+                    }
                 }
-                Button { doneTapped(item) } label: {
-                    Label(remaining <= 0 ? "Mark done after checking" : "Mark done", systemImage: "checkmark")
+                if remaining <= 0 {
+                    Text("Check the food.").font(.subheadline.weight(.semibold)).foregroundStyle(Theme.warning)
                 }
-                .buttonStyle(BigButtonStyle(onColoredPage: onGlass))
-                .accessibilityLabel("Mark \(item.step.title) done")
             case .ready:
                 Text(item.step.handsOn ? "Needs your attention · \(Scheduling.formatMinutes(item.minutes))" : "Hands-off after you start · \(Scheduling.formatMinutes(item.minutes))")
                     .font(.subheadline).foregroundStyle(Theme.muted)
@@ -1156,18 +1180,20 @@ extension CookingView {
     /// page keeping its tab. `otherDish`: the upright page's strip for the
     /// dish not shown (board 7).
     private func duoDishPage(_ recipe: Recipe, label: String?, withRightNow: Bool, otherDish: Recipe? = nil,
-                             showsDinnerTime: Bool = true) -> some View {
+                             showsDinnerTime: Bool = true, showsList: Bool = true) -> some View {
         let directions = duoDirections.contains(recipe.id)
         return ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 duoDishHeader(recipe, label: label)
                 // Coming up | Directions, under the name (board 03).
-                HStack(spacing: 22) {
-                    duoTab("Coming up", selected: !directions) { duoDirections.remove(recipe.id) }
-                    duoTab("Directions", selected: directions) { duoDirections.insert(recipe.id) }
-                    Spacer()
+                if showsList {
+                    HStack(spacing: 22) {
+                        duoTab("Coming up", selected: !directions) { duoDirections.remove(recipe.id) }
+                        duoTab("Directions", selected: directions) { duoDirections.insert(recipe.id) }
+                        Spacer()
+                    }
+                    .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
                 }
-                .overlay(alignment: .bottom) { Rectangle().fill(Theme.line).frame(height: 1).accessibilityHidden(true) }
                 if withRightNow {
                     VStack(alignment: .leading, spacing: 8) {
                         SectionLabel(text: "RIGHT NOW")
@@ -1181,7 +1207,10 @@ extension CookingView {
                     .accessibilityIdentifier("duo-right-now-\(label == "SIDE DISH" ? "side" : "main")")
                 }
                 RunningTimersStrip()
-                if directions {
+                if !showsList {
+                    // The reader page beside this one has the list.
+                    if urgentTimer == nil { readinessNotice }
+                } else if directions {
                     duoDirectionsList(recipe)
                 } else {
                     duoComingUp(recipe, withRightNow: withRightNow)
@@ -1292,7 +1321,9 @@ extension CookingView {
                 duoRow(item, state: "\(Scheduling.formatTime(item.plannedStart)) · \(item.step.handsOn ? "needs you" : "hands-off") · \(Scheduling.formatMinutes(item.minutes))",
                        number: i + 1)
             }
-            // The dinner's overlaps, once, on the main dish's page.
+            // The dinner's overlaps, once, on the main dish's page: an amber
+            // note that names them (board 03, approved October 16). It
+            // warns; it resolves nothing.
             if !warnings.isEmpty && dinnerRecipes.first?.id == recipe.id {
                 DisclosureGroup(isExpanded: $warningsExpanded) {
                     VStack(alignment: .leading, spacing: 10) {
@@ -1306,6 +1337,9 @@ extension CookingView {
                         .font(.subheadline.weight(.medium)).foregroundStyle(Theme.warning)
                 }
                 .tint(Theme.warning)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(Theme.warning.opacity(0.10), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(Theme.warning.opacity(0.35)))
             }
         }
     }
