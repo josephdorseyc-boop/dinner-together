@@ -1,0 +1,1 @@
+phase=observed;orientation=landscapeLeft;window=951x669;scene=951x669;safe=0,0,34,84;session=05A25069-C786-4CAB-B1E2-C71E4F92B84E;traits=h2,v2;error=none

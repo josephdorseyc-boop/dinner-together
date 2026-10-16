@@ -1,0 +1,13 @@
+== warm-up iphone (410EAD1E-1ECF-4808-A2B3-AB9085B465A7) 21:35:06
+Monitoring boot status for iPhone Duo (410EAD1E-1ECF-4808-A2B3-AB9085B465A7).
+Device already booted, nothing to do.
+
+== duo-hinge flat 21:39:08
+hinge set to 180°
+com.example.dinnertogether: 37512
+Detected file type from extension: PNG
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/ui-screenshots/iphone/direct/hinge-flat-inner-screen.png
+Detected file type from extension: PNG
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/ui-screenshots/iphone/direct/hinge-flat-cover-screen.png
+== pre-flight: the simulator answers
+== warm-up done 21:41:17
