@@ -393,10 +393,13 @@ run_ui_tests() { # label udid only_testing expected
   local expectedfail=0
   if [ -s "$summary" ] && counts=$(python3 -c 'import json,sys; j=json.load(open(sys.argv[1])); print(j["totalTestCount"], j["passedTests"], j["failedTests"], j.get("skippedTests", 0), j.get("expectedFailures", 0))' "$summary" 2>/dev/null); then
     set -- $counts; executed=$1; passed=$2; failed=$3; skipped=$4; expectedfail=$5; source="xcresult"
-  elif counts=$(grep -oE "Executed [0-9]+ tests?, with [0-9]+ failures?" "$log" | tail -1 | grep -oE "[0-9]+" | tr '\n' ' ') && [ -n "$counts" ]; then
+  elif counts=$(python3 "$ROOT/native-validation/read-ui-log-counts.py" "$log" 2>/dev/null); then
     # No readable bundle: the suite's own last line still says how it went.
     # Evidence only — a run that had to be stopped stays a failure below.
-    set -- $counts; executed=$1; failed=$2; passed=$((executed - failed)); skipped=0; source="log (result bundle unreadable)"
+    # XCTest inserts "1 test skipped and" before failures when a flow
+    # skips (Duo 38906198562). Report it as skipped, never as zero tests
+    # or as a pass. The killed-process and attachment gates stay intact.
+    set -- $counts; executed=$1; failed=$2; skipped=$3; passed=$((executed - failed - skipped)); source="log (result bundle unreadable)"
   else
     executed=0; passed=0; failed=0; skipped=0; source="unavailable"
   fi

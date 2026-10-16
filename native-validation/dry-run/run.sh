@@ -13,6 +13,7 @@ WORK="${TMPDIR:-/tmp}/dinner-dry-run-$$"
 mkdir -p "$WORK"
 chmod +x "$HERE"/faketools/*
 bad=0
+python3 "$HERE/test_ui_log_counts.py" || exit 1
 run_case() { # name expect_pass_rc expect_shots_rc expect_required_failures expect_pngs expect_upngs env...
   local name="$1" e_pass="$2" e_shots="$3" e_fail="$4" e_png="$5" e_upng="$6"; shift 6
   local R="$WORK/$name"; rm -rf "$R"; mkdir -p "$R"
@@ -57,6 +58,14 @@ run_case ui-retry-pass-then-fail 1   0     4    32   $((UPNG+2))   FAKE_UI_FAIL_
 run_case ui-runner-hang         1    0     2    32   $UPNG   FAKE_UI_HANG=1 DT_UI_IDLE_SECONDS=2   # A2-40: a silent runner is ended by the deadline (exit 124) and fails, never retried
 run_case ui-attachments-missing 1    0     2    32   0    FAKE_UI_ATTACHMENTS_RC=1  # A1-U: export failure → the flows were not photographed
 run_case ui-skipped             1    0     2    32   $UPNG   FAKE_UI_SKIPPED=1      # A1-U: a skipped UI test on each device fails the gate
+# An unreadable xcresult must retain XCTest's skip count (Duo 38906198562),
+# never silently count a skipped flow as passed. These fake processes exit
+# normally: the skip gate alone must still fail both device parts.
+run_case ui-log-skipped         1    0     2    32   $UPNG   FAKE_UI_SUMMARY_UNREADABLE=1 FAKE_UI_SKIPPED=1
+if [ "$(grep -c 'UI cases on .* (log (result bundle unreadable)):.*skipped 1' "$WORK/ui-log-skipped/SUMMARY.md")" -ne 2 ]; then
+  echo 'FAIL ui-log-skipped: missing skipped count in the fallback diagnostics'; bad=$((bad+1))
+fi
+run_case ui-log-normal          0    0     0    32   $UPNG   FAKE_UI_SUMMARY_UNREADABLE=1
 run_case release-build-fails    1    0     1    32   $UPNG   FAKE_RELEASE_BUILD_RC=65  # build 9, release run 9: a DEBUG-only symbol must fail validation, not the archive
 rm -rf "$WORK"
-if [ "$bad" -eq 0 ]; then echo "PASS: 23 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi
+if [ "$bad" -eq 0 ]; then echo "PASS: 25 harness dry-run scenarios (fake toolchain; no Swift executed)."; else echo "FAIL: $bad scenario(s)"; exit 1; fi

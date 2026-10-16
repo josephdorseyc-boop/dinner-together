@@ -51,16 +51,21 @@ case "$1" in
       class="${only##*/}"; ui_file="DinnerTogetherUITests/DinnerTogetherUITests.swift"
       [ "$class" = "DinnerTogetherUITests_iPad" ] && ui_file="DinnerTogetherUITests/DinnerTogetherUITests_iPad.swift"
       dflt=$([ -f "$ui_file" ] && grep -c 'func test' "$ui_file" || echo 9)
-      n=${FAKE_UI_EXECUTED:-$dflt}; f=${FAKE_UI_FAIL_CASES:-0}
+      n=${FAKE_UI_EXECUTED:-$dflt}; f=${FAKE_UI_FAIL_CASES:-0}; s=${FAKE_UI_SKIPPED:-0}
       # FAKE_UI_LOG_HIDE: the first failure's line never reaches the log
       # (a truncated or interleaved line); the xcresult still counts it.
       for ((k=1;k<=n;k++)); do
         if [ $k -le $f ]; then
           if [ $k -eq 1 ] && [ -n "${FAKE_UI_LOG_HIDE:-}" ]; then continue; fi
           echo "Test Case '-[DinnerTogetherUITests.$class test$k]' failed (0.1 seconds)"
+        elif [ "$k" -gt "$((n-s))" ]; then echo "Test Case '-[DinnerTogetherUITests.$class test$k]' skipped (0.1 seconds)"
         else echo "Test Case '-[DinnerTogetherUITests.$class test$k]' passed (0.1 seconds)"; fi
       done
-      echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+      if [ "$s" -gt 0 ]; then
+        echo "Executed $n tests, with $s tests skipped and $f failures (0 unexpected) in 2.0 (2.0) seconds"
+      else
+        echo "Executed $n tests, with $f failures (0 unexpected) in 2.0 (2.0) seconds"
+      fi
       [ "$f" -eq 0 ] && echo "** TEST SUCCEEDED **" || { echo "** TEST FAILED **"; exit 65; }; exit 0
     fi
     n=${FAKE_EXECUTED:-$(default_tests)}; f=${FAKE_FAIL_CASES:-0}
