@@ -3,6 +3,8 @@
 <plist version="1.0">
 <dict>
 	<!-- Merged with the generated Info.plist (GENERATE_INFOPLIST_FILE). -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSAlarmKitUsageDescription</key>
 	<string>Your cooking timers ring like an alarm, even on silent, so you hear when it’s time to check the food.</string>
 </dict>

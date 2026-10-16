@@ -159,6 +159,8 @@ struct TimerAlarmDriver: View {
             .accessibilityHidden(true)
             .onChange(of: timers.now) { _, now in
                 alarm.tick(now: now, quick: quickTimers.timers, store: store)
+                // The Lock Screen / Dynamic Island / tent-mode countdowns (build 22).
+                LiveDinnerTimers.shared.refresh(now: now, quick: quickTimers.timers, store: store)
             }
             .onChange(of: scenePhase) { _, phase in
                 // Inactive (Control Center, the app switcher) still rings;
