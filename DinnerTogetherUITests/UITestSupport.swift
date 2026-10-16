@@ -2499,8 +2499,11 @@ extension DinnerTogetherUITestCase {
         let add = app.buttons["add-to-dinner"]
         if !add.waitForExistence(timeout: 5) { attachHierarchy("r28c-add-to-dinner-missing-hierarchy") }
         tapPinned(add, "Add to tonight’s dinner")
-        goToTonight()
+        // Adding returns to Tonight by itself (the page's onChoose); on the
+        // Duo there is no tab bar to tap and no page left to go back from
+        // (run 38827688888).
         let both = "Selected: \(RecipeFixtureText.chickenTitle) + \(RecipeFixtureText.potatoesTitle)"
+        if !app.staticTexts[both].waitForExistence(timeout: 5) { goToTonight() }
         XCTAssertTrue(app.staticTexts[both].waitForExistence(timeout: 8), "the recipe joined tonight's dinner")
         let dish = app.buttons["tonight-dish"].firstMatch
         scrollTo(dish, requireHittable: false)
