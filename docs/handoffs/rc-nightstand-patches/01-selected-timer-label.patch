@@ -1,0 +1,26 @@
+From 188e3e6a9b4f927c148ac756d13d139357b577f0 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Fri, 16 Oct 2026 13:18:22 -0300
+Subject: [PATCH] Full-screen timers: name an explicitly selected countdown
+ accurately
+
+---
+ DinnerTogether/FullScreenTimers.swift | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/DinnerTogether/FullScreenTimers.swift b/DinnerTogether/FullScreenTimers.swift
+index 5a770c9..747ee95 100644
+--- a/DinnerTogether/FullScreenTimers.swift
++++ b/DinnerTogether/FullScreenTimers.swift
+@@ -423,7 +423,7 @@ struct FullScreenTimersView: View {
+         let over = lead.isOver(at: now)
+         let size = max(140, ring)
+         let words = VStack(alignment: centered ? .center : .leading, spacing: 8) {
+-            SectionLabel(text: over ? "TIME’S UP" : (others.isEmpty ? "ONE TIMER" : "NEXT TO FINISH"))
++            SectionLabel(text: over ? "TIME’S UP" : (others.isEmpty ? "ONE TIMER" : (selectedID == lead.id ? "SELECTED TIMER" : "NEXT TO FINISH")))
+             Text(lead.dish)
+                 .font(.system(.title, design: .serif).weight(.medium))
+                 .multilineTextAlignment(centered ? .center : .leading)
+-- 
+2.51.1
+
