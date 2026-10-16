@@ -188,6 +188,36 @@ class DinnerTogetherUITestCase: XCTestCase {
             let png = Self.duoOpen ? image.pngData() : shot.pngRepresentation
             try? png?.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(safe).png"))
         }
+        if sideways {
+            // Preserve both original routes at the same UI state. Do not
+            // rotate, crop, or replace the normal evidence: compare the raw
+            // captures with their pixel sizes and the measured app/window.
+            let appShot = app.screenshot()
+            let comparison = XCTAttachment(screenshot: appShot)
+            comparison.name = name + "-raw-app-comparison"
+            comparison.lifetime = .keepAlways
+            add(comparison)
+            if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
+                let safe = name.replacingOccurrences(of: "/", with: "-")
+                try? appShot.pngRepresentation.write(to: URL(fileURLWithPath: dir)
+                    .appendingPathComponent("\(safe)-raw-app-comparison.png"))
+            }
+            func describe(_ capture: XCUIScreenshot) -> String {
+                let bitmap = capture.image
+                let pixels = bitmap.cgImage.map { "\($0.width)x\($0.height)" } ?? "unavailable"
+                return "points=\(bitmap.size) pixels=\(pixels) scale=\(bitmap.scale) imageOrientation=\(bitmap.imageOrientation.rawValue) pngBytes=\(capture.pngRepresentation.count)"
+            }
+            attachText(name + "-capture-provenance", """
+                primaryRoute=XCUIScreen.main.screenshot; primaryPNG=unmodified
+                screenCapture: \(describe(shot))
+                appComparison: \(describe(appShot))
+                applicationFrame=\(app.frame)
+                windowFrame=\(app.windows.firstMatch.frame)
+                runnerDeviceOrientation=\(UIDevice.current.orientation.rawValue)
+                Captures are consecutive, not atomic. Geometry is layout evidence;
+                this diagnostic does not certify pixel fit or device behavior.
+                """)
+        }
     }
 
     /// The Duo with its hinge opened by the harness (DT_DUO_HINGE half/flat
