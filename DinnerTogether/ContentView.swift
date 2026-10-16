@@ -152,6 +152,8 @@ struct ContentView: View {
                 .animation(.easeOut(duration: 0.25), value: alarm.ringing)
         }
         .background(TimerAlarmDriver(alarm: alarm))
+        // Tent and nightstand: the timers full screen (build 22).
+        .background(FullScreenTimersDriver(alarm: alarm, openCooking: { destination = .cooking }))
         .background {
             GeometryReader { g in
                 Color.clear

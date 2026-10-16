@@ -3,9 +3,9 @@ import SwiftUI
 import WidgetKit
 
 /// The Live Activity's faces (build 22, #24) in the timer faces' language
-/// (A2-64, options 1 and 3): warm cream, the next to finish leading with a
-/// large countdown, the others named beside it. A2's board will refine
-/// these; the system draws the countdowns from the deadlines.
+/// (A2-64, options 1 and 3; board 01): warm cream, the next to finish
+/// leading in a ring, the others named beside it. The system draws the
+/// countdowns from the deadlines.
 @main
 struct DinnerTimersBundle: WidgetBundle {
     var body: some Widget {
@@ -19,6 +19,7 @@ private enum Palette {
     static let muted = Color(red: 0.420, green: 0.384, blue: 0.341)
     static let olive = Color(red: 0.400, green: 0.443, blue: 0.239)
     static let tomato = Color(red: 0.737, green: 0.247, blue: 0.180)
+    static let line = Color(red: 0.902, green: 0.875, blue: 0.824)
 }
 
 struct DinnerTimersLiveActivity: Widget {
@@ -94,55 +95,68 @@ private struct Countdown: View {
     }
 }
 
-/// The Lock Screen, StandBy and — on the folded Duo — the cover in tent
-/// mode: the next to finish large, with its dish and step; up to three
-/// others named beside it.
+/// The Lock Screen, StandBy (which enlarges this to fill the screen —
+/// nightstand while locked) and the Duo's cover (board 01, A2, October 16):
+/// the next to finish in a ring with its countdown, its dish and step
+/// beside it, then up to three others with their own countdowns and
+/// "+N more" past that. The ring is drawn whole: the system keeps the
+/// numbers current, and an arc it can't keep moving would be wrong (A2's
+/// rule: a static ring with a system countdown).
 private struct LockScreenTimers: View {
     let title: String
     let timers: [DinnerTimersAttributes.ContentState.Timer]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text("DINNER, TOGETHER").font(.caption2.weight(.semibold)).tracking(1.4).foregroundStyle(Palette.muted)
-                Spacer()
-                Image(systemName: "leaf").rotationEffect(.degrees(-35)).foregroundStyle(Palette.tomato.opacity(0.85))
-            }
+        HStack(alignment: .center, spacing: 14) {
             if let lead = timers.first {
-                HStack(alignment: .center, spacing: 14) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(lead.dish).font(.system(.title3, design: .serif).weight(.medium)).foregroundStyle(Palette.ink).lineLimit(1)
-                        if !lead.step.isEmpty {
-                            Text(lead.step).font(.subheadline).foregroundStyle(Palette.muted).lineLimit(1)
-                        }
-                        ProgressView(timerInterval: min(lead.startedAt, lead.deadline)...lead.deadline, countsDown: true) {
-                            EmptyView()
-                        } currentValueLabel: {
-                            EmptyView()
-                        }
-                        .tint(Palette.olive)
-                        .padding(.top, 4)
-                    }
-                    Spacer(minLength: 8)
+                ZStack {
+                    Circle().stroke(Palette.line, lineWidth: 7)
+                    Circle().stroke(Palette.olive, style: StrokeStyle(lineWidth: 7, lineCap: .round))
                     Countdown(timer: lead)
-                        .font(.system(size: 40, weight: .semibold, design: .rounded))
+                        .font(.system(size: 20, weight: .semibold, design: .rounded))
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(Palette.ink)
-                        .frame(maxWidth: 140, alignment: .trailing)
+                        .minimumScaleFactor(0.6)
+                        .lineLimit(1)
+                        .padding(.horizontal, 12)
                 }
-            }
-            let others = Array(timers.dropFirst().prefix(3))
-            if !others.isEmpty {
-                HStack(spacing: 16) {
-                    ForEach(others) { t in
-                        VStack(alignment: .leading, spacing: 1) {
-                            Countdown(timer: t).font(.headline).foregroundStyle(Palette.ink)
-                            Text(t.dish).font(.caption).foregroundStyle(Palette.muted).lineLimit(1)
+                .frame(width: 84, height: 84)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(lead.dish).font(.system(.title3, design: .serif).weight(.medium))
+                        .foregroundStyle(Palette.ink).lineLimit(2).minimumScaleFactor(0.8)
+                    if !lead.step.isEmpty {
+                        Text(lead.step).font(.subheadline).foregroundStyle(Palette.muted).lineLimit(2)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                let others = Array(timers.dropFirst().prefix(3))
+                if !others.isEmpty {
+                    Rectangle().fill(Palette.line).frame(width: 1).padding(.vertical, 4)
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(others) { t in
+                            HStack(spacing: 6) {
+                                Text(t.dish).font(.caption).foregroundStyle(Palette.ink).lineLimit(1)
+                                Spacer(minLength: 4)
+                                Countdown(timer: t).font(.caption.weight(.semibold)).foregroundStyle(Palette.ink)
+                                    .frame(maxWidth: 52, alignment: .trailing)
+                            }
+                        }
+                        if timers.count > 4 {
+                            Text("+\(timers.count - 4) more").font(.caption2).foregroundStyle(Palette.muted)
                         }
                     }
-                    Spacer(minLength: 0)
+                    .frame(width: 122)
                 }
+            } else {
+                Text(title).font(.system(.headline, design: .serif)).foregroundStyle(Palette.ink)
             }
         }
         .padding(16)
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: "leaf").font(.caption).rotationEffect(.degrees(-35))
+                .foregroundStyle(Palette.tomato.opacity(0.85))
+                .padding(8)
+                .accessibilityHidden(true)
+        }
     }
 }

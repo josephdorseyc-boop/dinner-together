@@ -274,6 +274,24 @@ duo_hinge() { # udid state — logs to the warm-up log; never fails the pass
   sleep 4
 }
 
+# A simulator that answers nothing (A1, issue #15: the Duo's part 2 sat at
+# "Running tests..." until killed, before any test code ran). Shut it down
+# and boot it again; the hinge goes back where the pass wants it.
+sim_reboot() { # udid — logs only; never fails the pass
+  echo "== reboot $1 $(date -u +%H:%M:%S)"
+  xcrun simctl shutdown "$1" 2>&1 || true
+  xcrun simctl boot "$1" 2>&1 || true
+  xcrun simctl bootstatus "$1" -b 2>&1 || true
+  if [ -n "${DT_DUO_HINGE:-}" ]; then duo_hinge "$1" "$DT_DUO_HINGE"; fi
+  echo "== reboot done $(date -u +%H:%M:%S)"
+}
+
+# Does the booted simulator answer a trivial command within a minute?
+sim_answers() { # udid
+  python3 "$ROOT/native-validation/run-with-deadline.py" --seconds 60 --idle-seconds 60 -- \
+    xcrun simctl spawn "$1" launchctl list > /dev/null 2>&1
+}
+
 run_ui_tests() { # label udid only_testing expected
   local label="$1" udid="$2" only_testing="$3" expected="$4"
   local bundle="$RESULTS/$label-ui.xcresult"
@@ -314,6 +332,15 @@ run_ui_tests() { # label udid only_testing expected
     # 38588198150, test01: "is installing or uninstalling, and cannot be
     # launched").
     sleep "${DT_UI_WARMUP_SECONDS:-8}"
+    # Pre-flight (A1, issue #15): a wedged simulator is rebooted now, not
+    # found out ten silent minutes into xcodebuild.
+    if sim_answers "$udid"; then
+      echo "== pre-flight: the simulator answers"
+    else
+      echo "== pre-flight: no answer within 60 s; rebooting"
+      sim_reboot "$udid"
+      sim_answers "$udid" && echo "== pre-flight: answers after the reboot" || echo "== pre-flight: still no answer (xcodebuild will tell)"
+    fi
     echo "== warm-up done $(date -u +%H:%M:%S)"
   } > "$RESULTS/24-ui-warmup-$label.log" 2>&1 || true
   # Per-test time allowance (DT_UI_TEST_ALLOWANCE, default 360 s, at most
@@ -330,15 +357,31 @@ run_ui_tests() { # label udid only_testing expected
   # result bundle cannot be read still shows its flows (Duo run 38723119849).
   local direct="$RESULTS/ui-screenshots/$label/direct"
   mkdir -p "$direct"
-  TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
-    python3 "$ROOT/native-validation/run-with-deadline.py" \
-    --seconds 6600 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
-    --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
-    --done-idle-seconds 120 -- \
-    xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
-    "${mainonly[@]}" -resultBundlePath "$bundle" \
-    -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
-    > "$log" 2>&1; rc=$?
+  # No test started within DT_UI_START_SECONDS (exit 125; A1, issue #15):
+  # the runner never launched, so nothing ran. Reboot the simulator and run
+  # the whole part once more from scratch, verbose, so a repeat shows
+  # where it stops. The first attempt's log is kept; its bundle had no
+  # results. Not retry credit — no test had a result to credit.
+  local attempt=1 verbose=() wall=6600
+  while :; do
+    TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
+      python3 "$ROOT/native-validation/run-with-deadline.py" \
+      --seconds "$wall" --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
+      --start-pattern "Test Suite '" --start-seconds "${DT_UI_START_SECONDS:-300}" \
+      --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
+      --done-idle-seconds 120 -- \
+      xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+      "${mainonly[@]}" -resultBundlePath "$bundle" "${verbose[@]}" \
+      -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
+      > "$log" 2>&1; rc=$?
+    [ "$rc" -eq 125 ] && [ "$attempt" -eq 1 ] || break
+    echo "::warning title=ui-no-start-$label::No UI test started within ${DT_UI_START_SECONDS:-300} s on $label; rebooting the simulator and running the part again (A1, issue #15)"
+    note "  - $label: no test started within ${DT_UI_START_SECONDS:-300} s (runner never launched); simulator rebooted, part run again verbose — \`25-ui-test-$label-nostart.log\`"
+    mv "$log" "$RESULTS/25-ui-test-$label-nostart.log"
+    rm -rf "$bundle"
+    sim_reboot "$udid" >> "$RESULTS/24-ui-warmup-$label.log" 2>&1
+    attempt=2; verbose=(-verbose); wall=6000
+  done
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
   if [ -d "$bundle" ]; then

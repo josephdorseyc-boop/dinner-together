@@ -244,7 +244,12 @@ struct KitchenTimersView: View {
             .foregroundStyle(Theme.ink)
             .navigationTitle(all.count > 1 ? "Timers" : "Timer")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("timers-done") } }
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.accessibilityIdentifier("timers-done") }
+                if !all.isEmpty {
+                    ToolbarItem(placement: .topBarLeading) { FullScreenTimersButton() }
+                }
+            }
         }
         .tint(Theme.tomato)
     }

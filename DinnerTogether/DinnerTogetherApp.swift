@@ -138,6 +138,10 @@ enum LaunchOptions {
         }
     }
     static var inertReminders: Bool { arguments.contains("-dt-inert-reminders") }
+    /// The full-screen timers open on their own in tent and nightstand
+    /// poses; UI tests opt in (-dt-fullscreen-auto), so rotating a phone in
+    /// another flow never brings them up.
+    static var fullScreenAuto: Bool { !inertReminders || arguments.contains("-dt-fullscreen-auto") }
     /// A UI test seeded the session (DT_SEED_JSON): the week plan never
     /// replaces it, and the plan file is reset for the test.
     static var seededSession: Bool { ProcessInfo.processInfo.environment["DT_SEED_JSON"] != nil }
@@ -182,6 +186,7 @@ enum LaunchOptions {
     static var stubAppleNews: Bool { false }
     static var forcedColorScheme: ColorScheme? { nil }
     static var inertReminders: Bool { false }
+    static var fullScreenAuto: Bool { true }
     static var forcedTypeSize: DynamicTypeSize? { nil }
     static var seededSession: Bool { false }
     #endif
@@ -420,8 +425,21 @@ final class AppDelegate: NSObject, UIApplicationDelegate {
         // its side stands in for it (run 38817138530).
         if ProcessInfo.processInfo.arguments.contains("-dt-allow-landscape") { return .allButUpsideDown }
         #endif
+        // The full-screen timers turn with the phone on the nightstand
+        // (build 22, Joe, October 16); the rest of the app stays upright.
+        if FullScreenTimers.allowsLandscape { return .allButUpsideDown }
+        return Self.turnsOnItsOwn(window) ? .allButUpsideDown : .portrait
+    }
+
+    /// A near-square screen (the Duo) turns either way; and, in UI tests,
+    /// an iPhone allowed to turn stands in for the Duo's cover.
+    @MainActor
+    static func turnsOnItsOwn(_ window: UIWindow?) -> Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("-dt-allow-landscape") { return true }
+        #endif
         let bounds = (window?.windowScene?.screen ?? UIScreen.main).bounds
         let short = min(bounds.width, bounds.height), long = max(bounds.width, bounds.height)
-        return long > 0 && short / long >= 0.6 ? .allButUpsideDown : .portrait
+        return long > 0 && short / long >= 0.6
     }
 }

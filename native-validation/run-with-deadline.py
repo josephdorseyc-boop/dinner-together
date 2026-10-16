@@ -44,6 +44,13 @@ def main():
     # (SIGINT) so xcodebuild can still close its result bundle.
     parser.add_argument('--done-pattern', action='append', default=[])
     parser.add_argument('--done-idle-seconds', type=float, default=120)
+    # The Duo's part-2 hang (A1, issue #15): xcodebuild printed "Running
+    # tests..." and never launched the runner. If none of these texts has
+    # appeared this long after the command started, stop it with its own
+    # exit code (125), so the harness can reboot the simulator and run the
+    # part again from scratch — nothing has run, so nothing is credited.
+    parser.add_argument('--start-pattern', action='append', default=[])
+    parser.add_argument('--start-seconds', type=float, default=0)
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
@@ -60,11 +67,16 @@ def main():
     done = False
     tail = b''
     patterns = [p.encode() for p in args.done_pattern]
+    start_patterns = [p.encode() for p in args.start_pattern]
+    begun = not (start_patterns and args.start_seconds > 0)
     try:
         while selector.get_map() or process.poll() is None:
             now = time.monotonic()
             if now - started >= args.seconds:
                 reason = 'wall-clock deadline'
+                break
+            if not begun and now - started >= args.start_seconds:
+                reason = 'start deadline (no test started)'
                 break
             if now - last_output >= (args.done_idle_seconds if done else args.idle_seconds):
                 reason = 'no-output deadline after the tests finished' if done else 'no-output deadline'
@@ -75,14 +87,21 @@ def main():
                     sys.stdout.buffer.write(chunk)
                     sys.stdout.buffer.flush()
                     last_output = time.monotonic()
-                    if patterns and not done:
+                    if (patterns and not done) or not begun:
                         tail = (tail + chunk)[-65536:]
+                    if patterns and not done:
                         done = any(p in tail for p in patterns)
+                    if not begun:
+                        begun = any(p in tail for p in start_patterns)
                 else:
                     selector.unregister(key.fileobj)
         if reason:
-            print(f'::error::Native command exceeded {reason}; terminating its process group. '
-                  'Partial results remain failures, never retry credit.', flush=True)
+            if not begun:
+                print(f'::warning::Native command exceeded the {reason}; terminating its process group '
+                      '(exit 125: nothing ran, so the harness may reboot the simulator and run it again).', flush=True)
+            else:
+                print(f'::error::Native command exceeded {reason}; terminating its process group. '
+                      'Partial results remain failures, never retry credit.', flush=True)
             # Gently first: xcodebuild closes its result bundle on SIGINT.
             if done:
                 signal_group(process, signal.SIGINT)
@@ -103,7 +122,7 @@ def main():
                         selector.unregister(key.fileobj)
             signal_group(process, signal.SIGKILL)
             process.wait()
-            return 124
+            return 124 if begun else 125
         code = process.wait()
         return code if code >= 0 else 128 - code
     finally:

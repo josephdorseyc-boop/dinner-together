@@ -12,6 +12,7 @@ struct CookingView: View {
     @EnvironmentObject private var store: SessionStore
     @EnvironmentObject private var timers: TimerCenter
     @EnvironmentObject private var library: RecipeLibrary
+    @EnvironmentObject private var quickTimers: QuickTimerStore
     /// The scroll view's height: a photo strip on RIGHT NOW only when the
     /// screen is tall enough that it cannot push the action down (A2-35).
     @State private var viewportHeight: CGFloat = 0
@@ -126,7 +127,21 @@ struct CookingView: View {
             .navigationTitle(store.hasDinner ? store.menu.title : "Cooking")
             .sensoryFeedback(.success, trigger: completionFeedback)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                // The timers across the whole screen (build 22). The Duo's
+                // pages hide this bar; folded and stood up, tent mode opens
+                // the same page on its own.
+                if hasAnyTimer {
+                    ToolbarItem(placement: .topBarTrailing) { FullScreenTimersButton() }
+                }
+            }
         )
+    }
+
+    /// A kitchen timer, or a step whose timer runs or is up.
+    private var hasAnyTimer: Bool {
+        !quickTimers.timers.isEmpty
+            || store.session.records.values.contains { $0.state == .cooking && $0.timerDeadline != nil }
     }
 
     private var phoneAndPadBody: some View {

@@ -2602,6 +2602,73 @@ extension DinnerTogetherUITestCase {
         photograph("r30c-directions-reworded")
     }
 
+    /// r31 — build 22, Joe, October 16: the timers full screen. By hand
+    /// from Cooking's bar while a step's timer runs; Done leaves the step
+    /// cooking as it was. Then the nightstand: the phone turned on its side
+    /// while charging (-dt-assume-charging) opens the page on its own and
+    /// turns with it; Done keeps it away until the phone is upright again,
+    /// and turning it once more brings it back. Tent mode is the same page
+    /// from the Duo's sideways cover, which this simulator can't pose
+    /// (its cover doesn't turn): Joe's hardware check. iPad has the page by
+    /// hand only (the poses are a phone's).
+    func flowFullScreenTimers() {
+        launchRecipes([RecipeFixtureText.chicken], .standard,
+                      extra: ["-dt-recipes-reviewed", "-dt-fullscreen-auto", "-dt-assume-charging"])
+        chooseTonight([RecipeFixtureText.chickenTitle])
+        buildDinnerPlan()
+        let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
+        waitForExistence(start, timeout: 10, "a step to start")
+        scrollTo(start)
+        start.tap()
+        let mark = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mark '")).firstMatch
+        XCTAssertTrue(mark.waitForExistence(timeout: 8), "the step is cooking")
+        let markLabel = mark.label
+
+        // By hand, from Cooking's bar.
+        let button = app.buttons["timers-fullscreen"].firstMatch
+        waitForExistence(button, timeout: 5, "Full screen on Cooking's bar while a timer runs")
+        button.tap()
+        let page = app.descendants(matching: .any)["fullscreen-timers"].firstMatch
+        if !page.waitForExistence(timeout: 8) { attachHierarchy("r31-fullscreen-missing-hierarchy") }
+        waitForExistence(page, timeout: 1, "the timers across the screen")
+        let lead = app.descendants(matching: .any)["fullscreen-lead"].firstMatch
+        XCTAssertTrue(lead.waitForExistence(timeout: 3), "the step's timer leads")
+        XCTAssertTrue(app.buttons["fullscreen-cooking"].exists, "a step's timer offers Go to Cooking, never Stop")
+        XCTAssertFalse(app.buttons["fullscreen-stop"].exists, "nothing here stops a cooking step")
+        photograph("r31a-fullscreen-by-hand")
+        app.buttons["fullscreen-timers-done"].tap()
+        waitForDisappearance(page, "Done closes it")
+        XCTAssertTrue(mark.waitForExistence(timeout: 3) && mark.label == markLabel, "the step is still cooking, as it was: \(mark.label)")
+
+        guard UIDevice.current.userInterfaceIdiom == .phone else { return }
+        // The nightstand: on its side, charging.
+        XCUIDevice.shared.orientation = .landscapeLeft
+        addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
+        if !page.waitForExistence(timeout: 12) { attachHierarchy("r31-nightstand-missing-hierarchy") }
+        waitForExistence(page, timeout: 1, "the nightstand opens the timers on its own")
+        XCTAssertTrue(lead.waitForExistence(timeout: 3), "…with the step's timer")
+        // Ordinary iPhones turn with it; the Duo simulator's cover doesn't
+        // turn at all (run 38817138530), so that capture stays upright.
+        let turned = NSPredicate { _, _ in self.screenFrame.width > self.screenFrame.height }
+        let sideways = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: turned, object: app)], timeout: 6) == .completed
+        attachText("r31-nightstand-geometry", "turned=\(sideways) frame=\(screenFrame)")
+        photograph(sideways ? "r31b-nightstand-landscape" : "r31b-nightstand-upright-display")
+        // Done while still on its side: not again until it's picked up.
+        app.buttons["fullscreen-timers-done"].tap()
+        waitForDisappearance(page, "Done closes it")
+        Thread.sleep(forTimeInterval: 3.5)
+        XCTAssertFalse(page.exists, "Done keeps it away while the phone stays on its side")
+        XCTAssertTrue(mark.waitForExistence(timeout: 5) && mark.label == markLabel, "the step is still cooking: \(mark.label)")
+        photograph("r31c-cooking-after-done")
+        // Upright, then on its side again: back.
+        XCUIDevice.shared.orientation = .portrait
+        Thread.sleep(forTimeInterval: 3)
+        XCUIDevice.shared.orientation = .landscapeLeft
+        XCTAssertTrue(page.waitForExistence(timeout: 12), "laid down again, the timers come back")
+        XCUIDevice.shared.orientation = .portrait
+        waitForDisappearance(page, timeout: 12, "picked up, the page leaves on its own")
+    }
+
     /// Tonight's Build → Cooking.
     private func buildDinnerPlan() {
         let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
