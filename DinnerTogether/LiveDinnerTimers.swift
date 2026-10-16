@@ -12,7 +12,13 @@ final class LiveDinnerTimers {
 
     private var activity: Activity<DinnerTimersAttributes>?
     private var adopted = false
-    private var signature: [String] = []
+    /// The running timers last shown successfully — not merely wanted
+    /// (A2, #24: a refused or failed request must be able to try again).
+    private var applied: [String] = []
+    /// A start that didn't take (Live Activities off, or the request
+    /// failed) is retried at most this often, not every second.
+    private var lastFailedStart: Date?
+    private static let retryInterval: TimeInterval = 30
 
     /// Called every second with what's running; cheap unless something changed.
     func refresh(now: Date, quick: [QuickTimer], store: SessionStore) {
@@ -29,9 +35,20 @@ final class LiveDinnerTimers {
         }
         let next = (runningQuick.map { "q\($0.id)@\($0.deadline.timeIntervalSince1970)" }
                     + runningSteps.map { "s\($0.0)@\($0.2.timeIntervalSince1970)" }).sorted()
-        guard next != signature else { return }
-        signature = next
-        guard !next.isEmpty else { end(); return }
+        // Dismissed from the Lock Screen or ended by the system: nothing is
+        // showing, whatever was applied before.
+        if let current = activity, current.activityState != .active {
+            activity = nil
+            applied = []
+        }
+        if next.isEmpty {
+            end()
+            applied = []
+            lastFailedStart = nil
+            return
+        }
+        if next == applied && activity != nil { return }
+        if activity == nil, let lastFailedStart, now.timeIntervalSince(lastFailedStart) < Self.retryInterval { return }
 
         var timers = runningQuick.map {
             DinnerTimersAttributes.ContentState.Timer(id: "q" + $0.id, dish: $0.dish, step: $0.stepTitle,
@@ -49,13 +66,20 @@ final class LiveDinnerTimers {
         timers.sort { $0.deadline < $1.deadline }
         let content = ActivityContent(state: DinnerTimersAttributes.ContentState(timers: timers),
                                       staleDate: timers.last?.deadline)
-        if let current = activity, current.activityState == .active {
+        if let current = activity {
             Task { await current.update(content) }
+            applied = next
         } else {
-            guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+            guard ActivityAuthorizationInfo().areActivitiesEnabled else { lastFailedStart = now; return }
             let title = store.hasDinner ? store.menu.title : "Kitchen timers"
-            activity = try? Activity.request(attributes: DinnerTimersAttributes(dinnerTitle: title),
-                                             content: content, pushType: nil)
+            do {
+                activity = try Activity.request(attributes: DinnerTimersAttributes(dinnerTitle: title),
+                                                content: content, pushType: nil)
+                applied = next
+                lastFailedStart = nil
+            } catch {
+                lastFailedStart = now
+            }
         }
     }
 

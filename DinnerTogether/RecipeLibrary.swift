@@ -279,8 +279,8 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
 
     /// The cook's own wording for a step (Joe, build 22: "edit directions"
     /// from the Timing tab). The step's text and title follow, and so does
-    /// its direction when it can be matched, so Directions, Timing and
-    /// Cooking say the same thing; a step numbering like "3. " stays.
+    /// its direction, so Directions, Timing and Cooking say the same thing;
+    /// a step numbering like "3. " stays. Unmatched steps are refused.
     /// Minutes and hands-off are untouched. Blank text is refused.
     @discardableResult
     func editStep(recipeID: UUID, stepID: String, text: String) -> Bool {
@@ -288,12 +288,16 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
         guard !newText.isEmpty, var r = recipe(id: recipeID),
               let step = r.steps.first(where: { $0.id == stepID }) else { return false }
         if newText == step.detail { return true }
-        if let i = directionIndex(of: step, in: r) {
-            let original = r.directions[i]
-            let stripped = RecipeImporter.stripStepPrefix(original)
-            let numbering = original.hasSuffix(stripped) ? String(original.dropLast(stripped.count)) : ""
-            r.directions[i] = numbering + newText
+        // All three views change together, or none (A2, #24): a step that
+        // can't be told apart from its direction is refused, as Remove does.
+        guard let i = self.directionIndex(of: step, in: r) else {
+            saveError = "This step couldn’t be matched to its direction. Re-import the recipe before rewording it."
+            return false
         }
+        let original = r.directions[i]
+        let stripped = RecipeImporter.stripStepPrefix(original)
+        let numbering = original.hasSuffix(stripped) ? String(original.dropLast(stripped.count)) : ""
+        r.directions[i] = numbering + newText
         r.dishes = r.dishes.map { dish in
             dish.map { s in
                 guard s.id == stepID else { return s }

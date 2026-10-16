@@ -1451,7 +1451,7 @@ struct RecipeDetailView: View {
     private func timing(_ recipe: Recipe) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(timingLocked
-                 ? "You’re cooking this now. Steps you’ve started keep their timing; the rest you can still change, and Cooking plans around them."
+                 ? "Changes update your cooking plan. Steps already started stay unchanged."
                  : "These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ForEach(recipe.dishes, id: \.self) { dish in
@@ -1495,7 +1495,8 @@ struct RecipeDetailView: View {
                     .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
             }
             if stepLocked(step) {
-                Label("Started — its timing stays", systemImage: "lock")
+                Label(store.record(step.id).state == .done ? "Completed — can’t edit this step" : "Cooking — can’t edit this step",
+                      systemImage: "lock")
                     .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
                     .accessibilityIdentifier(pageID("step-locked"))
             }
@@ -1511,6 +1512,26 @@ struct RecipeDetailView: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// One side of the Needs you / Hands-off control.
+    private func attentionChoice(_ step: CookingStep, handsOn: Bool) -> some View {
+        let selected = step.handsOn == handsOn
+        return Button {
+            guard !selected, !stepLocked(step) else { return }
+            library.setStep(recipeID: recipeID, stepID: step.id, handsOn: handsOn)
+        } label: {
+            Label(handsOn ? "Needs you" : "Hands-off", systemImage: handsOn ? "hand.raised" : "moon.zzz")
+                .font(.subheadline.weight(selected ? .semibold : .regular))
+                .padding(.horizontal, 12).frame(minHeight: 40)
+                .foregroundStyle(selected ? (deepPage ? Theme.ink : Color.white) : accentColor)
+                .background(Capsule().fill(selected ? accentColor : Color.clear))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityHint(selected ? "" : (handsOn ? "Marks this step as needing your hands." : "Marks this step as mostly waiting."))
+        .accessibilityIdentifier(pageID(handsOn ? "step-needs-you" : "step-hands-off"))
+    }
+
     /// Keep the full detail when it adds instructions; avoid repeating a
     /// complete short instruction just because its title omitted a period.
     private func normalizedDirection(_ text: String) -> String {
@@ -1523,23 +1544,23 @@ struct RecipeDetailView: View {
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 10)) : AnyLayout(HStackLayout(spacing: 10))
         return layout {
                 Button { editingStep = step } label: {
-                    Label(RecipeFormat.compact(step.minutes), systemImage: "timer")
+                    Label("\(RecipeFormat.compact(step.minutes)) · Edit time", systemImage: "timer")
                         .monospacedDigit()
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityLabel("\(step.title), \(step.minutes) minutes\(step.estimated == true ? ", estimated" : ""). Edit.")
-                Button {
-                    library.setStep(recipeID: recipeID, stepID: step.id, handsOn: !step.handsOn)
-                } label: {
-                    Label(step.handsOn ? "Needs you" : "Hands-off",
-                          systemImage: step.handsOn ? "hand.raised" : "moon.zzz")
+                // Two states, the chosen one marked (A2's copy, #24); checked
+                // again when tapped, in case the step started meanwhile.
+                HStack(spacing: 2) {
+                    attentionChoice(step, handsOn: true)
+                    attentionChoice(step, handsOn: false)
                 }
-                .buttonStyle(QuietButtonStyle())
-                .accessibilityHint("Switches between needs you and hands-off.")
+                .padding(2)
+                .background(Capsule().strokeBorder(Theme.line))
                 // The cook's own wording (build 22): the step, its title and
                 // its direction change together.
                 Button { rewordingStep = step } label: {
-                    Label("Edit", systemImage: "pencil")
+                    Label("Edit directions", systemImage: "pencil")
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityIdentifier(pageID("edit-step-text"))
@@ -1549,7 +1570,7 @@ struct RecipeDetailView: View {
                 // dialog presented from a scrolling page shows as a bubble
                 // at the button, and tapping away cancels it.
                 Button(role: .destructive) { removingStep = step } label: {
-                    Label("Remove", systemImage: "minus.circle")
+                    Label("Remove step", systemImage: "minus.circle")
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityIdentifier("remove-step-\(step.id)")
