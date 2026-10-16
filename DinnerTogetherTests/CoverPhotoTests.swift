@@ -279,5 +279,15 @@ final class QuickTimerReminderTests: XCTestCase {
         XCTAssertEqual(second.scheduled.map(\.id), [QuickTimerStore.reminderPrefix + running.id], "only the running one is reminded again")
         XCTAssertEqual(second.scheduled.first?.deadline, running.deadline, "…at its original deadline")
     }
+
+    /// Build 22: a reminder's system alarm has an ID derived from the
+    /// reminder, so a relaunch or a moved deadline replaces the same alarm.
+    func testSystemAlarmIDsAreStablePerReminder() {
+        let id = SystemAlarms.alarmID(for: "quick-123")
+        XCTAssertEqual(id, SystemAlarms.alarmID(for: "quick-123"), "the same reminder finds its alarm again")
+        XCTAssertNotEqual(id, SystemAlarms.alarmID(for: "quick-124"))
+        XCTAssertNotEqual(id, SystemAlarms.alarmID(for: "r1a2b3c4d-1"), "a step's alarm is not a kitchen timer's")
+        XCTAssertEqual(Array(id.uuidString)[14], "5", "a name-based UUID: \(id)")
+    }
 }
 #endif

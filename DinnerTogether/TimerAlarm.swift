@@ -63,7 +63,9 @@ final class TimerAlarm: ObservableObject {
         let fresh = over.filter { !rung.contains($0.key) && now.timeIntervalSince($0.value) < Self.freshSeconds }
             .sorted { $0.value < $1.value }
         rung.formUnion(over.keys)
-        if !fresh.isEmpty {
+        // System alarms (build 22) ring these themselves, app open or not,
+        // with their own Stop: no second sound here.
+        if !fresh.isEmpty && !SystemAlarms.shared.enabled {
             var steps: [String: String] = [:]
             if fresh.contains(where: { stepByKey[$0.key] != nil }) {
                 for item in store.plan { steps[item.id] = item.step.title }

@@ -48,8 +48,14 @@ final class NotificationManager: NotificationService {
 
     func refreshAuthorization() async {
         let settings = await center.notificationSettings()
-        denied = settings.authorizationStatus == .denied
+        let alarms = SystemAlarms.shared
+        let wasAlarms = alarms.enabled
+        alarms.refresh()
+        // Reminders are off only when neither path can reach the cook.
+        denied = settings.authorizationStatus == .denied && !alarms.enabled
         onStatusChange?(denied, nil)
+        // Alarms allowed or taken away in Settings: move the reminders over.
+        if alarms.enabled != wasAlarms { changed() }
     }
 
     /// Concurrent starts await the same settings check/permission request.
@@ -59,21 +65,29 @@ final class NotificationManager: NotificationService {
         let task = Task { @MainActor [weak self] () -> Bool in
             guard let self = self else { return false }
             let settings = await self.center.notificationSettings()
+            var notified: Bool
             if settings.authorizationStatus != .notDetermined {
-                self.denied = settings.authorizationStatus == .denied
-                self.onStatusChange?(self.denied, nil)
-                return self.isAllowed(settings.authorizationStatus)
+                notified = self.isAllowed(settings.authorizationStatus)
+            } else {
+                do {
+                    notified = try await self.center.requestAuthorization(options: [.alert, .sound])
+                } catch {
+                    let alarms = await SystemAlarms.shared.requestAuthorization()
+                    self.denied = !alarms
+                    self.onStatusChange?(self.denied, alarms ? nil
+                        : "Reminder permission couldn't be checked. In-app timers still work.")
+                    if alarms { self.changed() }
+                    return alarms
+                }
             }
-            do {
-                let granted = try await self.center.requestAuthorization(options: [.alert, .sound])
-                self.denied = !granted
-                self.onStatusChange?(self.denied, nil)
-                return granted
-            } catch {
-                self.onStatusChange?(self.denied,
-                    "Reminder permission couldn't be checked. In-app timers still work.")
-                return false
-            }
+            // Timers that ring like alarms (build 22): asked once, after the
+            // notification question, the first time a timer starts.
+            let wasAlarms = SystemAlarms.shared.enabled
+            let alarms = await SystemAlarms.shared.requestAuthorization()
+            self.denied = !notified && !alarms
+            self.onStatusChange?(self.denied, nil)
+            if alarms != wasAlarms { self.changed() }
+            return notified || alarms
         }
         authorizationTask = task
         let granted = await task.value
@@ -121,6 +135,17 @@ final class NotificationManager: NotificationService {
             // Only this app feature's reminders, never unrelated requests.
             center.removePendingNotificationRequests(withIdentifiers:
                 pending.map(\.identifier).filter { $0.hasPrefix(prefix) })
+            // System alarms allowed (build 22): they carry every reminder,
+            // and no notification doubles them.
+            if SystemAlarms.shared.enabled {
+                var wanted: [String: (title: String, deadline: Date)] = [:]
+                for reminder in snapshot { wanted[reminder.stepID] = (reminder.title, reminder.deadline) }
+                await SystemAlarms.shared.reconcile(wanted)
+                if version != revision { continue }
+                onStatusChange?(denied, nil)
+                reconciling = false
+                return
+            }
             var failure: String?
             for reminder in snapshot {
                 if version != revision { break }
