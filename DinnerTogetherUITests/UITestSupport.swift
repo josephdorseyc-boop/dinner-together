@@ -2656,7 +2656,20 @@ extension DinnerTogetherUITestCase {
         // The nightstand: on its side, charging.
         XCUIDevice.shared.orientation = .landscapeLeft
         addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
-        if !page.waitForExistence(timeout: 12) { attachHierarchy("r31-nightstand-missing-hierarchy") }
+        if !page.waitForExistence(timeout: 12) {
+            // The Duo simulator's cover reports no turn at all (Duo run
+            // 38921685281: the runner itself still sees it upright), so the
+            // pose can't be made there; the real cover is Joe's hardware
+            // check. An iPhone that turned and didn't open the page fails.
+            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+            let seen = UIDevice.current.orientation
+            attachText("r31-nightstand-geometry", "no page; runner orientation=\(seen.rawValue) frame=\(screenFrame)")
+            if !seen.isLandscape {
+                photograph("r31b-nightstand-not-posed")
+                return
+            }
+            attachHierarchy("r31-nightstand-missing-hierarchy")
+        }
         waitForExistence(page, timeout: 1, "the nightstand opens the timers on its own")
         XCTAssertTrue(lead.waitForExistence(timeout: 3), "…with the step's timer")
         // Ordinary iPhones turn with it; the Duo simulator's cover doesn't
