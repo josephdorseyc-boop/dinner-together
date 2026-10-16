@@ -362,7 +362,9 @@ run_ui_tests() { # label udid only_testing expected
   # the whole part once more from scratch, verbose, so a repeat shows
   # where it stops. The first attempt's log is kept; its bundle had no
   # results. Not retry credit — no test had a result to credit.
-  local attempt=1 verbose=() wall=6600
+  # Bash 3.2 (the macOS runner's /bin/bash) treats an empty array as
+  # unbound under set -u. This optional flag is a single argument.
+  local attempt=1 verbose="" wall=6600
   while :; do
     TEST_RUNNER_DT_SHOT_DIR="$direct" TEST_RUNNER_DT_DUO_HINGE="${DT_DUO_HINGE:-}" \
       python3 "$ROOT/native-validation/run-with-deadline.py" \
@@ -371,7 +373,7 @@ run_ui_tests() { # label udid only_testing expected
       --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
       --done-idle-seconds 120 -- \
       xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
-      "${mainonly[@]}" -resultBundlePath "$bundle" "${verbose[@]}" \
+      "${mainonly[@]}" -resultBundlePath "$bundle" ${verbose:+"$verbose"} \
       -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
       > "$log" 2>&1; rc=$?
     [ "$rc" -eq 125 ] && [ "$attempt" -eq 1 ] || break
@@ -380,7 +382,7 @@ run_ui_tests() { # label udid only_testing expected
     mv "$log" "$RESULTS/25-ui-test-$label-nostart.log"
     rm -rf "$bundle"
     sim_reboot "$udid" >> "$RESULTS/24-ui-warmup-$label.log" 2>&1
-    attempt=2; verbose=(-verbose); wall=6000
+    attempt=2; verbose="-verbose"; wall=6000
   done
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
