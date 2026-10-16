@@ -1201,13 +1201,15 @@ extension CookingView {
                     .foregroundStyle(Theme.tomato.opacity(0.85))
                     .accessibilityHidden(true)
             }
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .top, spacing: 16) {
                 // Two dishes: each page shows its dish's photo small beside
-                // the name (Joe, 5:40 PM: "it would liven it up"; board 02).
-                // One dish has the whole photo page.
+                // the name (Joe, 5:40 PM: "it would liven it up"; board 02),
+                // at the top of the name so a long name doesn't sink it (run
+                // 38825327811). One dish has the whole photo page.
                 if label != nil, let photo = RecipePhotos.hero(recipe, from: library) {
                     RecipeCoverThumbnail(image: photo.image, size: 84)
                         .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
+                        .padding(.top, 4)
                 }
                 VStack(alignment: .leading, spacing: 6) {
                     Text(recipe.title)
