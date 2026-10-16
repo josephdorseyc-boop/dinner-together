@@ -1,6 +1,6 @@
 # Build 22 contingency handoff — A2 backup
 
-> **Current status:** see [A2-build22-current-checkpoint.md](A2-build22-current-checkpoint.md), reconciled October 16 at 14:27 UTC. It supersedes historical head/approval/run observations below. Current source is 928660b; boards 02/03 and Joe-relayed patches are implemented, current-head native/Duo verification is pending, and a newly reproduced screenshot-probe false-negative hazard needs A3/A1 review. The older P1 alarm-cancellation finding is now addressed in source, not yet native/device-verified.
+> **Current status:** see [A2-build22-current-checkpoint.md](A2-build22-current-checkpoint.md), reconciled October 16 at 16:05 UTC. It supersedes historical head/approval/run observations below. Current source is 84ac8c8; follow-up screenshot/alarm, Timers-sheet route and release safeguards are integrated. Current core is native-green but UI validation is incomplete: 928660b night-mode test56 failed twice, and current-head Duo test55 fails automatic nightstand entry with a separate exit-124/finalization failure. A3 remains lead, A1 owns testing; no handoff or release.
 
 Prepared October 16, 2026, at Joe's request. Backup preparation only: A3 remains implementation/integration/release lead; A1 owns test review and investigation. No takeover or release has been initiated.
 
