@@ -1,0 +1,92 @@
+diff --git a/DinnerTogether/RecipeLibrary.swift b/DinnerTogether/RecipeLibrary.swift
+--- a/DinnerTogether/RecipeLibrary.swift
++++ b/DinnerTogether/RecipeLibrary.swift
+@@ -161,16 +161,40 @@
+ 
+     /// Takes a step out of the plan and the directions: text the import
+     /// mistook for a step (a story teaser, a repeated title) is the cook's
+-    /// to remove (A2 S2, build 11). Directions are matched by text, so a
+-    /// second removal still finds the right line.
++    /// to remove (A2 S2, build 11). Repeated text is matched by source
++    /// occurrence, so removing a later duplicate preserves direction order.
+     @discardableResult
+     func removeStep(recipeID: UUID, stepID: String) -> Bool {
+         guard var r = recipe(id: recipeID),
+               let step = r.steps.first(where: { $0.id == stepID }) else { return false }
++        let matches = r.steps.filter { $0.detail == step.detail }
++        let directions = r.directions.indices.filter {
++            RecipeImporter.stripStepPrefix(r.directions[$0]) == step.detail
++        }
++        var directionIndex: Int?
++        if matches.count == 1, directions.count == 1 {
++            directionIndex = directions[0]
++        } else if matches.count > 1, directions.count == matches.count {
++            // Imported IDs retain source order even when meanwhile work
++            // lives in another dish, or earlier directions were removed.
++            let prefix = "r\(String(r.id.uuidString.prefix(8)).lowercased())-"
++            let ranked = matches.compactMap { candidate -> (step: CookingStep, ordinal: Int)? in
++                guard candidate.id.hasPrefix(prefix),
++                      let ordinal = Int(candidate.id.dropFirst(prefix.count)), ordinal > 0 else { return nil }
++                return (candidate, ordinal)
++            }.sorted { $0.ordinal < $1.ordinal }
++            if ranked.count == matches.count,
++               Set(ranked.map { $0.ordinal }).count == matches.count,
++               let occurrence = ranked.firstIndex(where: { $0.step.id == stepID }) {
++                directionIndex = directions[occurrence]
++            }
++        }
++        guard let directionIndex else {
++            saveError = "This step couldn’t be matched to a direction. Re-import the recipe before removing it."
++            return false
++        }
+         r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
+-        if let i = r.directions.firstIndex(where: { RecipeImporter.stripStepPrefix($0) == step.detail }) {
+-            r.directions.remove(at: i)
+-        }
++        r.directions.remove(at: directionIndex)
+         return update(r)
+     }
+ 
+diff --git a/DinnerTogetherTests/DurationPersistenceTests.swift b/DinnerTogetherTests/DurationPersistenceTests.swift
+--- a/DinnerTogetherTests/DurationPersistenceTests.swift
++++ b/DinnerTogetherTests/DurationPersistenceTests.swift
+@@ -139,6 +139,39 @@
+         XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: "nope"), "unknown step")
+     }
+ 
++    func testRemovingLaterDuplicatePreservesSourceDirectionOrder() async throws {
++        let library = RecipeLibrary(directory: tempDir())
++        var imported = ImportedRecipe(title: "Double stir")
++        imported.sections = [ImportedSection(name: nil, steps: ["Stir.", "Add salt.", "Stir."])]
++        let recipe = RecipeImporter.build(imported, method: .text)
++        XCTAssertTrue(library.add(recipe))
++
++        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: recipe.steps[2].id))
++        let saved = try XCTUnwrap(library.recipe(id: recipe.id))
++        XCTAssertEqual(saved.directions, ["Stir.", "Add salt."])
++        XCTAssertEqual(saved.steps.map { $0.detail }, ["Stir.", "Add salt."])
++    }
++
++    func testRemovingDuplicateFromParallelDishKeepsSourceOccurrence() async throws {
++        let directory = tempDir()
++        let library = RecipeLibrary(directory: directory)
++        var imported = ImportedRecipe(title: "Parallel stir")
++        imported.sections = [ImportedSection(name: nil, steps: ["Stir.", "Chop herbs.", "Stir.", "Plate.", "Stir."])]
++        var recipe = RecipeImporter.build(imported, method: .text)
++        let steps = recipe.steps
++        // Dish order differs from source order, as it can with meanwhile work.
++        recipe.dishes = [[steps[0], steps[3], steps[4]], [steps[1], steps[2]]]
++        XCTAssertTrue(library.add(recipe))
++        XCTAssertTrue(library.removeStep(recipeID: recipe.id, stepID: steps[2].id))
++        let saved = try XCTUnwrap(library.recipe(id: recipe.id))
++        XCTAssertEqual(saved.directions, ["Stir.", "Chop herbs.", "Plate.", "Stir."])
++        XCTAssertEqual(RecipeLibrary(directory: directory).recipe(id: recipe.id)?.directions, saved.directions)
++
++        library.simulateSaveFailure = true
++        XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: steps[4].id))
++        XCTAssertEqual(library.recipe(id: recipe.id), saved, "failed removal restores the whole recipe")
++    }
++
+     func testImportWarningsSurviveARelaunch() async throws {
+         let dir = tempDir()
+         let library = RecipeLibrary(directory: dir)

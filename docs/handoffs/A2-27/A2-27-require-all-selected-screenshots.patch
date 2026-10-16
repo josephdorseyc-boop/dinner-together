@@ -1,0 +1,35 @@
+diff --git a/DinnerTogether/RecipeViews.swift b/DinnerTogether/RecipeViews.swift
+--- a/DinnerTogether/RecipeViews.swift
++++ b/DinnerTogether/RecipeViews.swift
+@@ -190,6 +190,17 @@
+ 
+ // MARK: - Add a recipe
+ 
++private enum ScreenshotReadError: LocalizedError {
++    case unavailable(number: Int)
++
++    nonisolated var errorDescription: String? {
++        switch self {
++        case .unavailable(let number):
++            return "Screenshot \(number) couldn’t be opened. Choose it again and retry."
++        }
++    }
++}
++
+ struct AddRecipeSheet: View {
+     enum Mode: String, CaseIterable, Identifiable {
+         case link = "Link", screenshots = "Screenshots", text = "Text"
+@@ -214,8 +225,11 @@
+     private func screenshotData() async throws -> [Data] {
+         if !stubbed.isEmpty { return stubbed }
+         var out: [Data] = []
+-        for item in picked {
+-            if let data = try await item.loadTransferable(type: Data.self) { out.append(data) }
++        for (index, item) in picked.enumerated() {
++            guard let data = try await item.loadTransferable(type: Data.self) else {
++                throw ScreenshotReadError.unavailable(number: index + 1)
++            }
++            out.append(data)
+         }
+         return out
+     }

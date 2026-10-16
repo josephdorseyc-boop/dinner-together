@@ -1,0 +1,7 @@
+supplemental narrow Python mirror; NOT Swift or Vision execution
+selected title: 0001 -
+short heads: {3: ['Lavender-Ginger Meringue Twists', 'Set aside.']} chosen: {3: 'Lavender-Ginger Meringue Twists'}
+long heads: {4: ['Lavender-Ginger Meringue Twists', 'Gently stir ginger and lavender extract into remaining Basic Meringue in mixing bowl using a rubber spatula until evenly incorporated.']} chosen: {4: 'Gently stir ginger and lavender extract into remaining Basic Meringue in mixing bowl using a rubber spatula until evenly incorporated.'}
+counter below16% fallback: 0001 -
+combined News row filtered: True
+split News words filtered: [False, False, False, False, False]
