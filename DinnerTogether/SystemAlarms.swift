@@ -96,6 +96,11 @@ final class SystemAlarms {
         }
         for (key, reminder) in wanted where reminder.deadline > now && scheduled[key] != reminder.deadline {
             let id = Self.alarmID(for: key)
+            // The old deadline cannot cover the wanted reminder. Invalidate
+            // it before cancelling: a failed cancel may succeed in the
+            // tombstone pass below without scheduling the replacement.
+            // Keep that key uncovered so notifications/chime can fall back.
+            scheduled[key] = nil
             // A moved deadline replaces its alarm; a cancel that fails is
             // retried below, before the new schedule.
             cancelling.insert(id)
