@@ -1023,6 +1023,18 @@ enum RecipeFixtureText {
         2. Serve for 1 minute.
         """
     static let missingTextWarning = "Source step 2 wasn’t found in the screenshots."
+    /// A whole meal (A1's r28; titles the text importer reads as titles —
+    /// "Roast chicken" alone reads as a direction, SpreadTests).
+    static let chickenTitle = "Sunday herb chicken"
+    static let chicken = "Sunday herb chicken\nDirections\n1. Season the chicken.\n2. Roast for 60 minutes.\n3. Rest for 10 minutes."
+    static let potatoesTitle = "Mashed potatoes"
+    static let potatoes = "Mashed potatoes\nDirections\n1. Boil the potatoes for 20 minutes.\n2. Mash with butter for 5 minutes."
+    static let beansTitle = "Green beans"
+    static let beans = "Green beans\nDirections\n1. Steam the beans for 6 minutes."
+    static let gravyTitle = "Pan gravy"
+    static let gravy = "Pan gravy\nDirections\n1. Simmer the drippings for 8 minutes."
+    static let rollsTitle = "Dinner rolls"
+    static let rolls = "Dinner rolls\nDirections\n1. Warm the rolls for 10 minutes."
 
     static let beanSpread = """
         Bean spread with an untimed step
@@ -1759,28 +1771,7 @@ extension DinnerTogetherUITestCase {
         // behind the sheet and kept dragging past the four-minute limit
         // (run 38610973412). Tap what is already tappable; otherwise drag
         // inside the sheet itself.
-        func showInSheet(_ option: XCUIElement) {
-            // Measured against the sheet's own list, not the window: on iPad
-            // the form sheet ends above the screen's foot, and a row just
-            // below its edge was "on screen" yet outside the sheet — the tap
-            // landed on the dimmed page and dismissed the sheet, choosing
-            // nothing (run 38815605161, test22: Thanksgiving under the taller
-            // build 21 sheet).
-            let list = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
-            for _ in 0..<6 {
-                let inList = list.exists && isFiniteFrame(list.frame) && list.frame.height > 100
-                let bounds = inList ? list.frame : app.windows.firstMatch.frame
-                let (topInset, bottomInset): (CGFloat, CGFloat) = inList ? (8, 16) : (60, 30)
-                if option.exists && option.isHittable && option.frame.maxY < bounds.maxY - bottomInset && option.frame.minY > bounds.minY + topInset { return }
-                let up = !option.exists || option.frame.midY > bounds.midY
-                let from = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.75 : 0.3))
-                                  : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
-                let to = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.3 : 0.75))
-                                : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
-                from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
-                Thread.sleep(forTimeInterval: 0.4)
-            }
-        }
+        func showInSheet(_ option: XCUIElement) { showInDaySheet(option) }
         func plan(day index: Int, choose identifier: String) {
             openDay(index)
             let option = app.descendants(matching: .any)[identifier].firstMatch
@@ -2312,6 +2303,204 @@ extension DinnerTogetherUITestCase {
         Thread.sleep(forTimeInterval: 1.5)
         XCTAssertFalse(showcase.exists, "Done keeps it away while the phone stays sideways")
         photograph("r29c-tonight-sideways-after-done")
+    }
+
+    /// Inside the day sheet: `scrollTo` measures Tonight's pinned bar
+    /// behind the sheet and kept dragging past the four-minute limit (run
+    /// 38610973412), so: tap what is already tappable, otherwise drag inside
+    /// the sheet's own list. Measured against that list, not the window: on
+    /// iPad the form sheet ends above the screen's foot, and a row just
+    /// below its edge was "on screen" yet outside the sheet — the tap landed
+    /// on the dimmed page and dismissed it, choosing nothing (run
+    /// 38815605161, test22: Thanksgiving under the taller build 21 sheet).
+    func showInDaySheet(_ option: XCUIElement) {
+        let list = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
+        for _ in 0..<6 {
+            let inList = list.exists && isFiniteFrame(list.frame) && list.frame.height > 100
+            let bounds = inList ? list.frame : app.windows.firstMatch.frame
+            let (topInset, bottomInset): (CGFloat, CGFloat) = inList ? (8, 16) : (60, 30)
+            if option.exists && option.isHittable && option.frame.maxY < bounds.maxY - bottomInset && option.frame.minY > bounds.minY + topInset { return }
+            let up = !option.exists || option.frame.midY > bounds.midY
+            let from = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.75 : 0.3))
+                              : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.75 : 0.35))
+            let to = inList ? list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: up ? 0.3 : 0.75))
+                            : screenCoordinate(CGVector(dx: 0.5, dy: up ? 0.4 : 0.7))
+            from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
+            Thread.sleep(forTimeInterval: 0.4)
+        }
+    }
+
+    // MARK: r28 — the whole meal (A1's plan, issue #23; build 21)
+
+    /// A day's chip on Tonight's This week → its plan sheet.
+    private func openWeekDay(_ index: Int) {
+        let chip = app.descendants(matching: .any)["week-day-\(index)"].firstMatch
+        waitForExistence(chip, timeout: 10, "This week's day \(index)")
+        scrollTo(chip)
+        waitForStableFrame(chip)
+        let sheet = app.descendants(matching: .any)["day-plan-sheet"].firstMatch
+        chip.tap()
+        if !sheet.waitForExistence(timeout: 5) {
+            chip.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        }
+        waitForExistence(sheet, timeout: 5, "the day's plan sheet")
+        waitForExistence(app.buttons["day-plan-done"], timeout: 3, "the sheet's Done")
+    }
+
+    /// The day sheet's row for a recipe.
+    private func dayRecipeRow(_ title: String) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "identifier == 'day-plan-recipe' AND label BEGINSWITH %@", title)).firstMatch
+    }
+
+    private func checkDayRecipe(_ title: String) {
+        let row = dayRecipeRow(title)
+        waitForExistence(row, timeout: 5, "\(title) in the day sheet")
+        showInDaySheet(row)
+        tapEvenInPopover(row)
+        XCTAssertTrue(row.waitForSelection(), "\(title) is checked")
+    }
+
+    private func closeDaySheet() {
+        let done = app.buttons["day-plan-done"]
+        tapEvenInPopover(done)
+        waitForDisappearance(done, "Done closes the day sheet")
+    }
+
+    private func dayCount() -> String {
+        let count = app.staticTexts["day-plan-count"]
+        return count.exists ? count.label : ""
+    }
+
+    /// Today's dishes from the day sheet: the first check chooses tonight's
+    /// dinner, the rest join it.
+    private func chooseTonight(_ titles: [String]) {
+        openWeekDay(0)
+        for title in titles { checkDayRecipe(title) }
+        closeDaySheet()
+        let selected = "Selected: " + titles.joined(separator: " + ")
+        XCTAssertTrue(app.staticTexts[selected].waitForExistence(timeout: 8), "Tonight: \(selected)")
+    }
+
+    private func dinnerTimeLabel() -> String {
+        let time = app.descendants(matching: .any)["tonight-dinner-time"].firstMatch
+        if !time.exists { scrollToTop(maxDrags: 3) }
+        return time.exists ? time.label : ""
+    }
+
+    /// r28a — a future day takes several recipes: the first checked is the
+    /// main, the count says how many of four, Done keeps them, and the
+    /// day's chip names them all.
+    func flowDayPlanMultiCheck() {
+        launchRecipes([RecipeFixtureText.chicken, RecipeFixtureText.potatoes, RecipeFixtureText.beans], .standard)
+        openWeekDay(1)
+        checkDayRecipe(RecipeFixtureText.chickenTitle)
+        XCTAssertTrue(dayRecipeRow(RecipeFixtureText.chickenTitle).label.contains("Main dish"),
+                      "the first checked is the main: \(dayRecipeRow(RecipeFixtureText.chickenTitle).label)")
+        checkDayRecipe(RecipeFixtureText.potatoesTitle)
+        XCTAssertTrue(dayCount().hasPrefix("2 of 4 dishes chosen"), dayCount())
+        checkDayRecipe(RecipeFixtureText.beansTitle)
+        XCTAssertTrue(dayCount().hasPrefix("3 of 4 dishes chosen"), dayCount())
+        XCTAssertFalse(dayRecipeRow(RecipeFixtureText.potatoesTitle).label.contains("Main dish"), "only the first is the main")
+        photograph("r28a-day-sheet-three-checked")
+        closeDaySheet()
+        let day1 = app.descendants(matching: .any)["week-day-1"].firstMatch
+        let meal = [RecipeFixtureText.chickenTitle, RecipeFixtureText.potatoesTitle, RecipeFixtureText.beansTitle].joined(separator: " + ")
+        XCTAssertTrue(day1.label.hasSuffix(meal), "the day names the whole meal: \(day1.label)")
+        // Done kept them: open again, three checked.
+        openWeekDay(1)
+        XCTAssertTrue(dayRecipeRow(RecipeFixtureText.beansTitle).waitForSelection(), "still checked after Done")
+        XCTAssertTrue(dayCount().hasPrefix("3 of 4 dishes chosen"), dayCount())
+        // Unchecking the main makes the next one the main.
+        let chicken = dayRecipeRow(RecipeFixtureText.chickenTitle)
+        showInDaySheet(chicken)
+        tapEvenInPopover(chicken)
+        let unchecked = NSPredicate { _, _ in !chicken.isSelected }
+        _ = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: unchecked, object: nil)], timeout: 3)
+        XCTAssertTrue(dayCount().hasPrefix("2 of 4 dishes chosen"), dayCount())
+        XCTAssertTrue(dayRecipeRow(RecipeFixtureText.potatoesTitle).label.contains("Main dish"),
+                      "the next checked becomes the main: \(dayRecipeRow(RecipeFixtureText.potatoesTitle).label)")
+        closeDaySheet()
+    }
+
+    /// r28b — Tonight's whole meal: ALSO TONIGHT lists the other dishes,
+    /// × takes one off and the main stays; Add a dish puts one back; the
+    /// dinner time stays through both.
+    func flowAlsoTonight() {
+        launchRecipes([RecipeFixtureText.chicken, RecipeFixtureText.potatoes, RecipeFixtureText.beans], .standard,
+                      extra: ["-dt-recipes-reviewed"])
+        chooseTonight([RecipeFixtureText.chickenTitle, RecipeFixtureText.potatoesTitle, RecipeFixtureText.beansTitle])
+        let time = dinnerTimeLabel()
+        XCTAssertTrue(time.hasPrefix("Dinner on the table at"), "the dinner time: \(time)")
+        let dishes = app.buttons.matching(identifier: "tonight-dish")
+        let first = dishes.firstMatch
+        scrollTo(first, requireHittable: false)
+        XCTAssertEqual(dishes.count, 2, "ALSO TONIGHT: the two other dishes")
+        XCTAssertTrue(app.buttons["tonight-recipe"].label.hasPrefix(RecipeFixtureText.chickenTitle), "the main leads")
+        photograph("r28b-also-tonight")
+
+        let remove = app.buttons.matching(NSPredicate(format: "identifier == 'remove-dish' AND label == %@",
+                                                      "Remove \(RecipeFixtureText.potatoesTitle) from tonight’s dinner")).firstMatch
+        waitForExistence(remove, timeout: 5, "× on Mashed potatoes")
+        remove.tap()
+        let twoDishes = "Selected: \(RecipeFixtureText.chickenTitle) + \(RecipeFixtureText.beansTitle)"
+        XCTAssertTrue(app.staticTexts[twoDishes].waitForExistence(timeout: 5), "the dish is off tonight's dinner")
+        XCTAssertEqual(app.buttons.matching(identifier: "tonight-dish").count, 1)
+        XCTAssertTrue(app.buttons["tonight-recipe"].label.hasPrefix(RecipeFixtureText.chickenTitle), "the main stays")
+        XCTAssertEqual(dinnerTimeLabel(), time, "removing a dish keeps the dinner time")
+
+        let add = app.buttons["tonight-add-dish"]
+        scrollTo(add)
+        add.tap()
+        let pick = app.buttons.matching(NSPredicate(format: "identifier == 'pick-recipe' AND label BEGINSWITH %@", RecipeFixtureText.potatoesTitle)).firstMatch
+        waitForExistence(pick, timeout: 5, "the Add a dish picker offers Mashed potatoes")
+        XCTAssertFalse(app.buttons.matching(NSPredicate(format: "identifier == 'pick-recipe' AND label BEGINSWITH %@", RecipeFixtureText.beansTitle)).firstMatch.exists,
+                       "a dish already tonight isn't offered again")
+        pick.tap()
+        let threeDishes = "Selected: \(RecipeFixtureText.chickenTitle) + \(RecipeFixtureText.beansTitle) + \(RecipeFixtureText.potatoesTitle)"
+        XCTAssertTrue(app.staticTexts[threeDishes].waitForExistence(timeout: 5), "added after the others")
+        XCTAssertEqual(dinnerTimeLabel(), time, "adding a dish keeps the dinner time")
+    }
+
+    /// r28c — from a recipe's page, Add to tonight's dinner joins the
+    /// dinner already chosen, ready with it.
+    func flowAddToDinnerFromRecipe() {
+        launchRecipes([RecipeFixtureText.chicken, RecipeFixtureText.potatoes], .standard, extra: ["-dt-recipes-reviewed"])
+        chooseTonight([RecipeFixtureText.chickenTitle])
+        let time = dinnerTimeLabel()
+        openRecipe(RecipeFixtureText.potatoesTitle)
+        let add = app.buttons["add-to-dinner"]
+        if !add.waitForExistence(timeout: 5) { attachHierarchy("r28c-add-to-dinner-missing-hierarchy") }
+        tapPinned(add, "Add to tonight’s dinner")
+        goToTonight()
+        let both = "Selected: \(RecipeFixtureText.chickenTitle) + \(RecipeFixtureText.potatoesTitle)"
+        XCTAssertTrue(app.staticTexts[both].waitForExistence(timeout: 8), "the recipe joined tonight's dinner")
+        let dish = app.buttons["tonight-dish"].firstMatch
+        scrollTo(dish, requireHittable: false)
+        XCTAssertTrue(dish.label.hasPrefix(RecipeFixtureText.potatoesTitle), "under ALSO TONIGHT: \(dish.label)")
+        XCTAssertEqual(dinnerTimeLabel(), time, "joining keeps the dinner time")
+        photograph("r28c-added-from-recipe")
+    }
+
+    /// r28d — four dishes is the most: a fifth can't be checked, and Tonight
+    /// stops offering Add a dish.
+    func flowFourDishCap() {
+        launchRecipes([RecipeFixtureText.chicken, RecipeFixtureText.potatoes, RecipeFixtureText.beans,
+                       RecipeFixtureText.gravy, RecipeFixtureText.rolls], .standard, extra: ["-dt-recipes-reviewed"])
+        openWeekDay(0)
+        for title in [RecipeFixtureText.chickenTitle, RecipeFixtureText.potatoesTitle, RecipeFixtureText.beansTitle, RecipeFixtureText.gravyTitle] {
+            checkDayRecipe(title)
+        }
+        XCTAssertTrue(dayCount().hasPrefix("4 of 4 dishes chosen"), dayCount())
+        let fifth = dayRecipeRow(RecipeFixtureText.rollsTitle)
+        showInDaySheet(fifth)
+        XCTAssertFalse(fifth.isEnabled, "a fifth dish can't be checked")
+        XCTAssertTrue(fifth.label.contains("Four dishes is the most"), fifth.label)
+        photograph("r28d-four-dish-cap")
+        closeDaySheet()
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH 'Selected: Sunday herb chicken + '")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertEqual(app.buttons.matching(identifier: "tonight-dish").count, 3, "three under ALSO TONIGHT")
+        XCTAssertFalse(app.buttons["tonight-add-dish"].exists, "no Add a dish at four")
     }
 
     /// Tonight's Build → Cooking.

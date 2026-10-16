@@ -223,6 +223,12 @@ enum LaunchOptions {
             return RecipeImporter.build(imported, method: .text, now: base.addingTimeInterval(-Double(i)))
         }
         var seeded = recipes
+        // -dt-recipes-reviewed: the seeded recipes' timing already checked,
+        // so whole-meal flows can put them on tonight's dinner directly
+        // (build 21, A1's r28 tests).
+        if ProcessInfo.processInfo.arguments.contains("-dt-recipes-reviewed") {
+            for i in seeded.indices { seeded[i].needsTimingReview = false }
+        }
         // DT_SEED_RECIPE_WARNINGS: a JSON array of warning lists, parallel to
         // the texts — the text path never produces import warnings, so the
         // warning card's persistence is tested from a seed (A1 #20, A2 PR #16).
