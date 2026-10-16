@@ -1,12 +1,12 @@
 # Build 22 — current A2 handoff checkpoint
 
-Observed **October 16, 2026, 16:36 UTC (10:36 Denver)**. Supersedes historical state in the [backup runbook](A2-build22-contingency-2026-10-16.md). Refresh source, comments and jobs before acting.
+Observed **October 16, 2026, 16:38 UTC (10:38 Denver)**. Supersedes historical state in the [backup runbook](A2-build22-contingency-2026-10-16.md). Refresh source, comments and jobs before acting.
 
 ## Ownership and current source
 
 - **A3 remains implementation/integration/release lead; A1 owns assigned testing.** No explicit handoff, successor branch or unavailability announcement in current #24/#15. Silence is not evidence of unavailability.
 - Active `wip/build22`: **4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667**, committed 16:23:26 UTC. Six commits ahead of the previous checkpoint's 84ac8c8; no divergence.
-- Latest coordination: [A3 #24/6219905889](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6219905889), 16:24:24 UTC. #24 has 43 comments; #15 has 55, latest [A1 #15/6217247846](https://github.com/josephdorseyc-boop/dinner-together/issues/15#issuecomment-6217247846). Both issue bodies and all comments read.
+- Latest coordination: [A3 #24/6219905889](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6219905889), 16:24:24 UTC, integrates the three patches; [A1 #24/6220139352](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6220139352), posted 16:36:42 UTC, is reconciled below. #24 has 44 comments; #15 has 55, latest [A1 #15/6217247846](https://github.com/josephdorseyc-boop/dinner-together/issues/15#issuecomment-6217247846). Both issue bodies and all comments read.
 - A2 updates documentation only on this dedicated branch. No active-branch writes, duplicate patches, CI dispatch/rerun, release changes, takeover or release.
 
 ## Material change: RC support is integrated, not yet native-verified
@@ -37,6 +37,8 @@ All rows bind source **4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667**; snapshot 16:3
 | Native Linux **117076786933** | Success: **228/228** engine/store harness tests, zero failures, expected-count check passed. Does not execute UIKit/AlarmKit UI. |
 | Native JS/harness **117076786234** | Success: **128** JS model assertions, **5** async model scenarios, **10** parser checks, **7** screenshot-process checks, **25** harness and **7** release fake-toolchain scenarios. No signing or native alarm/device execution. |
 | [38931629825 Duo](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38931629825) | No final verdict. Part 1 **117076797059** in progress; parts 2 **117076797429** and 3 **117076797641** queued. No opened-window job in this dispatched selection; do not imply opened-window validation. |
+
+A1's latest queue note names native #172 / Duo #44, the superseded 9dd3469 runs. Its projected read time and “no jobs started” statement are not current-SHA evidence: the job endpoints above already show work in progress. The run-level queued label does not mean every job is queued. No final verdict or new runner-capacity blocker is inferred from that note.
 
 A3 cancelled 9dd3469's [native 38930011797](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38930011797) and [Duo 38930015333](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38930015333). Neither is a pass or current-candidate evidence. The mutable ci-results branch now points at **2ef502e46c35ac49a5d5330e9899fa40383be12e**: its RUN.txt identifies the cancelled 9dd3469 run and its summary is incomplete. Never attribute it to 4ae4f31.
 
