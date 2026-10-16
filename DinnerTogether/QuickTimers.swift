@@ -7,6 +7,9 @@ import SwiftUI
 /// "15 minutes", whether or not dinner is being timed.
 @MainActor
 final class QuickTimerStore: ObservableObject {
+    /// Kitchen timers' reminder IDs: their own namespace, so the plan's
+    /// cancelAll leaves them alone.
+    static let reminderPrefix = "quick-"
     @Published private(set) var timers: [QuickTimer] = []
     private let fileURL: URL
     private let notifications: NotificationService
@@ -18,6 +21,11 @@ final class QuickTimerStore: ObservableObject {
            let loaded = try? JSONDecoder().decode([QuickTimer].self, from: data) {
             // Timers long over are of no use after a relaunch.
             timers = loaded.filter { $0.remaining(at: Date()) > -3600 }
+        }
+        // A relaunch: the running timers' reminders again, at their original
+        // deadlines (scheduling the same ID and deadline twice is a no-op).
+        for t in timers where !t.isOver(at: Date()) {
+            notifications.schedule(stepID: Self.reminderPrefix + t.id, title: "\(t.durationText) is up: \(t.label)", deadline: t.deadline)
         }
     }
 
@@ -44,18 +52,18 @@ final class QuickTimerStore: ObservableObject {
         timers.append(timer)
         save()
         Task { _ = await notifications.ensureAuthorization() }
-        notifications.schedule(stepID: "quick-" + timer.id, title: "\(timer.durationText) is up: \(timer.label)", deadline: timer.deadline)
+        notifications.schedule(stepID: Self.reminderPrefix + timer.id, title: "\(timer.durationText) is up: \(timer.label)", deadline: timer.deadline)
         return timer
     }
 
     func stop(_ id: String) {
         timers.removeAll { $0.id == id }
-        notifications.cancel(stepID: "quick-" + id)
+        notifications.cancel(stepID: Self.reminderPrefix + id)
         save()
     }
 
     func dismissOver(at now: Date = Date()) {
-        for t in timers where t.isOver(at: now) { notifications.cancel(stepID: "quick-" + t.id) }
+        for t in timers where t.isOver(at: now) { notifications.cancel(stepID: Self.reminderPrefix + t.id) }
         timers.removeAll { $0.isOver(at: now) }
         save()
     }

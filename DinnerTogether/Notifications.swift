@@ -95,8 +95,13 @@ final class NotificationManager: NotificationService {
         changed()
     }
 
+    /// The cooking plan's reminders, all of them: a new dinner, a reset or
+    /// a resync. The kitchen timers' (`quick-…`, QuickTimerStore) are the
+    /// cook's own and stay — a 15-minute timer started from a recipe's
+    /// directions keeps its reminder through a change of dinner or a return
+    /// to the foreground (A2's review, issue #23, October 15).
     func cancelAll() {
-        desired = [:]
+        desired = desired.filter { $0.key.hasPrefix(QuickTimerStore.reminderPrefix) }
         changed()
     }
 

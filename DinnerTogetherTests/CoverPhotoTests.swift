@@ -242,4 +242,42 @@ final class DirectionTimerTests: XCTestCase {
         XCTAssertNil(TimedText.seconds(in: "a while"), "no duration, no timer")
     }
 }
+
+/// Kitchen timers keep their reminders (A2's review, issue #23): their
+/// IDs have their own prefix, and a relaunch schedules the running ones
+/// again at their original deadlines.
+@MainActor
+final class QuickTimerReminderTests: XCTestCase {
+    private func temporaryFile() -> URL {
+        FileManager.default.temporaryDirectory.appending(path: "quick-timers-\(UUID().uuidString).json")
+    }
+
+    func testStartSchedulesAReminderInTheTimersOwnNamespace() {
+        let notifications = MockNotifications()
+        let store = QuickTimerStore(fileURL: temporaryFile(), notifications: notifications)
+        let now = Date()
+        let timer = store.start(recipeID: UUID(), dish: "Green beans", stepTitle: "Steam", durationText: "6 minutes", seconds: 360, now: now)
+        XCTAssertNotNil(timer)
+        XCTAssertEqual(notifications.scheduled.count, 1)
+        XCTAssertTrue(notifications.scheduled[0].id.hasPrefix(QuickTimerStore.reminderPrefix), notifications.scheduled[0].id)
+        XCTAssertEqual(notifications.scheduled[0].deadline, now.addingTimeInterval(360))
+        store.stop(timer!.id)
+        XCTAssertEqual(notifications.cancelled, [QuickTimerStore.reminderPrefix + timer!.id])
+    }
+
+    func testRelaunchSchedulesRunningTimersAgainAtTheirDeadlines() {
+        let file = temporaryFile()
+        let first = MockNotifications()
+        let store = QuickTimerStore(fileURL: file, notifications: first)
+        let now = Date()
+        let running = store.start(recipeID: nil, dish: "Stew", stepTitle: "Simmer", durationText: "2 hours", seconds: 7200, now: now)!
+        _ = store.start(recipeID: nil, dish: "Rolls", stepTitle: "Warm", durationText: "1 minute", seconds: 60, now: now.addingTimeInterval(-600))
+
+        let second = MockNotifications()
+        let relaunched = QuickTimerStore(fileURL: file, notifications: second)
+        XCTAssertEqual(relaunched.timers.count, 2, "both timers come back; the one that's up is shown until dismissed")
+        XCTAssertEqual(second.scheduled.map(\.id), [QuickTimerStore.reminderPrefix + running.id], "only the running one is reminded again")
+        XCTAssertEqual(second.scheduled.first?.deadline, running.deadline, "…at its original deadline")
+    }
+}
 #endif
