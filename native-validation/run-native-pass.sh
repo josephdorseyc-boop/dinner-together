@@ -316,10 +316,13 @@ run_ui_tests() { # label udid only_testing expected
     sleep "${DT_UI_WARMUP_SECONDS:-8}"
     echo "== warm-up done $(date -u +%H:%M:%S)"
   } > "$RESULTS/24-ui-warmup-$label.log" 2>&1 || true
-  # Per-test time allowance (240 s, at most 360: the macOS runners slowed
-  # until iPad test01 hit the old 240 s cap in run 38628522264, whose job
-  # took 149 of its 150 minutes): a flow stuck on a missing element fails in
-  # minutes instead of running the job into its timeout (run 12: 45 min).
+  # Per-test time allowance (DT_UI_TEST_ALLOWANCE, default 360 s, at most
+  # 480; was 240/360): a flow stuck on a missing element fails in minutes
+  # instead of running the job into its timeout (run 12: 45 min). 360 because
+  # a slow simulator stalls XCTest's "wait for app to idle" for its full
+  # 60 s ("App animations complete notification not received"), three times
+  # in one flow in run 38827686283 (test40) and 38815605161 (test35), and
+  # the flows then passed every check; 240 failed them on time alone.
   # XCTest allowances did not stop the 95-minute silent runner hang in
   # Duo run 38468245512. Bound the process independently and retain logs.
   # Screenshots also go straight to the results folder from the test runner
@@ -334,7 +337,7 @@ run_ui_tests() { # label udid only_testing expected
     --done-idle-seconds 120 -- \
     xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
     "${mainonly[@]}" -resultBundlePath "$bundle" \
-    -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
+    -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
     > "$log" 2>&1; rc=$?
   local passed failed executed skipped source counts
   local summary="$RESULTS/25-ui-test-$label-summary.json"
@@ -382,7 +385,7 @@ run_ui_tests() { # label udid only_testing expected
         --seconds 900 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
         xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
-        -test-timeouts-enabled YES -default-test-execution-time-allowance 240 -maximum-test-execution-time-allowance 360 \
+        -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
         > "$retrylog" 2>&1; local retryrc=$?
       retried="$names"
       for t in $names; do
