@@ -1,4 +1,7 @@
 # Build 22 contingency handoff — A2 backup
+
+> **Current status:** see [A2-build22-current-checkpoint.md](A2-build22-current-checkpoint.md), reconciled October 16 at 13:51 UTC. It supersedes the historical source head, approval, unfinished-work and run-status observations below. Boards 02/03 are approved; both are implemented in source at 73a4aeb, with exact-head native validation still pending. The current checkpoint also records an open P1 alarm-cancellation retry finding.
+
 Prepared October 16, 2026, at Joe's request. Backup preparation only: A3 remains implementation/integration/release lead; A1 owns test review and investigation. No takeover or release has been initiated.
 
 ## Verified starting points
@@ -70,7 +73,7 @@ Paths in the source map are under DinnerTogether/ unless an explicit other direc
 - submit=true uploads to App Store Connect/TestFlight; this runbook does not initiate an upload or public release.
 - A3's stated target was RC Tuesday October 20 / TestFlight Wednesday October 21. Joe moved BOARD delivery to today, October 16; that does not independently approve a changed release schedule.
 - This environment can read/publish GitHub content. Native Xcode, Swift CLI and gh were not installed locally at this check. Local code work is possible; native compilation, signing and simulator execution require the existing remote macOS workflows. Workflow dispatch and signing access must be rechecked when needed; they were not exercised by this preparation.
-- No automatic background monitoring is created by this handoff. If Joe requests a takeover, resume with the latest source and available access rather than claiming work continued unattended.
+- Joe subsequently authorized a recurring GitHub handoff watch. Its observations go in the current docs-only checkpoint; it does not initiate takeover, CI dispatch or release. If Joe requests a takeover, resume with the latest source and available access.
 
 ## Handoff hygiene for A3
 Please keep unfinished implementation in a pushed WIP commit/branch and leave #24 a short checkpoint: head SHA, in-progress files, running run IDs, next action, blockers and release status. This protects against a usage cutoff leaving unseen local work. A2 can continue from the checkpoint if needed; A3 remains lead until a handoff.
