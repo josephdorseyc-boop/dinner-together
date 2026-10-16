@@ -107,3 +107,29 @@ The hang fixture now emits the suite-start marker so it tests a mid-run
 hang rather than the no-start reboot path. Shell syntax and diff checks
 passed. No native Swift/Xcode execution is available in this Linux session;
 the new UI test still needs the native build and simulator runs.
+
+## Release-readiness correction after A1's preflight
+
+A1 identified an empty required-reason API declaration. Confirmed against
+production `@AppStorage(TonightGlass.key)` usage in PlanView and CookingView,
+not only the DEBUG-only direct UserDefaults call. These use app-local
+standard defaults; no shared-suite defaults usage was found. Add category
+NSPrivacyAccessedAPICategoryUserDefaults with CA92.1, matching Apple's
+approved app-local reason. The existing B114 entry already includes the
+manifest in the app resource build phase. No widget defaults access was found.
+
+The corrected candidate also incorporates the previously isolated retry
+finalization consistency patch: one 300-second setting for main and retry
+commands, retry completion markers, and the matching wrapper default. Four
+deadline checks and three targeted retry scenarios passed on that patch.
+
+Because a release must match its validated commit, supersede the 6b320f4
+validation runs (38979495541 and 38979504518) with runs of this correction.
+Do not credit the old candidate's results to this new candidate. Preserve
+the completed historical runs as evidence; no TestFlight upload has started.
+
+A1's SDK build-number parsing errors support a toolchain investigation,
+but their causal link to the finalization hang is not yet demonstrated.
+Keep the export/process gates intact. If 300 seconds still times out,
+inspect the new log and isolate the toolchain/result-writing problem
+before choosing another runner or Xcode version.
