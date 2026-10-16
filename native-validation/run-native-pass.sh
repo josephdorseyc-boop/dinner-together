@@ -397,11 +397,11 @@ run_ui_tests() { # label udid only_testing expected
   # (`verbose` is a plain word, not an array: an empty array expanded under
   # set -u is "unbound" in the Mac's bash 3.2, and run 38902136833 died
   # here silently, with the summary ending at this heading.)
-  local attempt=1 verbose="" wall=6600
+  local attempt=1 verbose="" wall=6600 finalize_seconds="${DT_UI_FINALIZE_SECONDS:-300}"
   # Run 38966260203 reached the suite summary on every UI destination,
   # then the two-minute finalization window interrupted result writing.
   # Give Xcode five minutes; a deadline or export error still fails.
-  note "  - Xcode post-suite finalization allowance: ${DT_UI_FINALIZE_SECONDS:-300} seconds without output; incomplete runs remain failures."
+  note "  - Xcode post-suite finalization allowance: $finalize_seconds seconds without output; incomplete runs remain failures."
   while :; do
     # Name of the exact selected destination, not the runner's orientation:
     # the known closed Duo cover's rotation tests are filtered above.
@@ -414,7 +414,7 @@ run_ui_tests() { # label udid only_testing expected
       --seconds "$wall" --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
       --start-pattern "Test Suite '" --start-seconds "${DT_UI_START_SECONDS:-300}" \
       --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
-      --done-idle-seconds "${DT_UI_FINALIZE_SECONDS:-300}" -- \
+      --done-idle-seconds "$finalize_seconds" -- \
       xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
       "${mainonly[@]}" -resultBundlePath "$bundle" $verbose \
       -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
@@ -473,7 +473,9 @@ run_ui_tests() { # label udid only_testing expected
       for t in $names; do onlyargs+=("-only-testing:DinnerTogetherUITests/$t"); done
       rm -rf "$retrybundle"
       python3 "$ROOT/native-validation/run-with-deadline.py" \
-        --seconds 900 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" -- \
+        --seconds 900 --idle-seconds "${DT_UI_IDLE_SECONDS:-600}" \
+        --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
+        --done-idle-seconds "$finalize_seconds" -- \
         xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
         -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \

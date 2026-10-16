@@ -43,7 +43,7 @@ def main():
     # appeared, a shorter silence ends the command, interrupting it gently
     # (SIGINT) so xcodebuild can still close its result bundle.
     parser.add_argument('--done-pattern', action='append', default=[])
-    parser.add_argument('--done-idle-seconds', type=float, default=120)
+    parser.add_argument('--done-idle-seconds', type=float, default=300)
     # The Duo's part-2 hang (A1, issue #15): xcodebuild printed "Running
     # tests..." and never launched the runner. If none of these texts has
     # appeared this long after the command started, stop it with its own

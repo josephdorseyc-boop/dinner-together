@@ -150,7 +150,7 @@ After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
 
 ## Build 22 finalization and nightstand coverage (October 16)
 
-UI runs allow five minutes without output after the selected suite finishes
+UI runs and their flaky-test retries allow five minutes without output after the selected suite finishes
 (`DT_UI_FINALIZE_SECONDS`, default 300 seconds), instead of two. This is
 time for Xcode to finalize its result bundle. A deadline still fails the
 run; unreadable results or failed attachment export are not waived by the
