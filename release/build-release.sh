@@ -120,6 +120,8 @@ if command -v plutil >/dev/null 2>&1 && [ -f "$PLIST" ]; then
   note "  - ITSAppUsesNonExemptEncryption = $enc"
   [ "$enc" = "false" ] || fail "archived ITSAppUsesNonExemptEncryption is '$enc', want 'false' — expect per-upload compliance clearing"
 fi
+# Metadata failures must stop before export can upload the rejected archive.
+[ "$FAILURES" -eq 0 ] || finish
 note ""
 
 # ------------------------------------------------------------- export (.ipa kept as an artifact)
