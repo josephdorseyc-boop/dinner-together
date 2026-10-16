@@ -435,11 +435,24 @@ class DinnerTogetherUITestCase: XCTestCase {
     func scrollTo(_ element: XCUIElement, maxDrags: Int = 12, requireHittable: Bool = true,
                   file: StaticString = #filePath, line: UInt = #line) {
         var drags = 0
+        var unmoved = 0
+        var lastFrame = CGRect.null
         let visible = { (e: XCUIElement) -> Bool in
             requireHittable ? self.isComfortablyVisible(e) : self.isFrameInComfortZone(e)
         }
-        while !visible(element) && drags < maxDrags {
+        // Scrolled as far as it goes: two drags that moved nothing. An
+        // element whose top is then inside the zone is as on screen as the
+        // page allows (run 38827686283, test42 at AX3: Tonight's 285 pt
+        // recipe title near the page's end, its foot under the pinned bar,
+        // twelve drags leaving it exactly where it was).
+        let atEnd = { (e: XCUIElement) -> Bool in
+            guard unmoved >= 2, e.exists, !requireHittable || e.isHittable else { return false }
+            let zone = self.comfortZone(excluding: e.frame)
+            return e.frame.minY >= zone.top && e.frame.minY <= zone.bottom - 44
+        }
+        while !visible(element) && !atEnd(element) && drags < maxDrags {
             let screen = screenFrame
+            let before = element.exists ? element.frame : .null
             // Aim the element at the middle of the screen; if it doesn't exist
             // yet, page downward. A short hold at the end stops the scroll view
             // from decelerating past the target.
@@ -469,8 +482,11 @@ class DinnerTogetherUITestCase: XCTestCase {
             from.press(forDuration: 0.1, thenDragTo: to, withVelocity: .default, thenHoldForDuration: 0.3)
             Thread.sleep(forTimeInterval: 0.4)   // let the scroll view settle before the next query or tap
             drags += 1
+            let after = element.exists ? element.frame : .null
+            unmoved = (element.exists && before == after && after == lastFrame) ? unmoved + 1 : (element.exists && before == after ? 1 : 0)
+            lastFrame = after
         }
-        if !visible(element) {
+        if !visible(element) && !atEnd(element) {
             let zone = element.exists ? comfortZone(excluding: element.frame) : (top: 0, bottom: 0)
             XCTFail("element not comfortably on screen after \(drags) scroll(s): \(element) — frame \(element.exists ? element.frame : .zero), "
                     + "hittable \(element.exists && element.isHittable), zone \(zone.top)…\(zone.bottom), screen \(screenFrame)", file: file, line: line)
