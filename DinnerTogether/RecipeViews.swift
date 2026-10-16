@@ -841,6 +841,9 @@ struct RecipeDetailView: View {
                 }
                 .sheet(item: $rewordingStep) { step in
                     StepWordingSheet(step: step) { text in
+                        // Rechecked at Save: the step may have started while
+                        // the editor was open (A2, #24).
+                        if stepLocked(step) { return "This step has started, so it stays as it is." }
                         guard library.editStep(recipeID: recipeID, stepID: step.id, text: text) else {
                             return library.saveError ?? "The step couldn’t be saved. Try again."
                         }
@@ -850,6 +853,7 @@ struct RecipeDetailView: View {
                 }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
+                        if stepLocked(step) { return "This step has started, so its time stays as it is." }
                         guard library.setStep(recipeID: recipeID, stepID: step.id, minutes: minutes) else {
                             return library.saveError ?? "The estimate couldn’t be saved. Try again."
                         }
@@ -1556,7 +1560,9 @@ struct RecipeDetailView: View {
                                                          set: { if !$0 { removingStep = nil } }),
                                     titleVisibility: .visible) {
                     Button("Remove step", role: .destructive) {
-                        if !library.removeStep(recipeID: recipeID, stepID: step.id) {
+                        if stepLocked(step) {
+                            UIAccessibility.post(notification: .announcement, argument: "This step has started, so it stays.")
+                        } else if !library.removeStep(recipeID: recipeID, stepID: step.id) {
                             UIAccessibility.post(notification: .announcement, argument: library.saveError)
                         }
                     }
