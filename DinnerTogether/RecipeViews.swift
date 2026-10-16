@@ -1495,9 +1495,13 @@ struct RecipeDetailView: View {
                     .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
             }
             if stepLocked(step) {
-                Label(store.record(step.id).state == .done ? "Completed — can’t edit this step" : "Cooking — can’t edit this step",
-                      systemImage: "lock")
+                let note = store.record(step.id).state == .done ? "Completed — can’t edit this step" : "Cooking — can’t edit this step"
+                Label(note, systemImage: "lock")
                     .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                    // One element that says the words (the lock's own label,
+                    // "Lock", was read first — run 38879707257).
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(note)
                     .accessibilityIdentifier(pageID("step-locked"))
             }
             ViewThatFits(in: .horizontal) {

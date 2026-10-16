@@ -1306,7 +1306,13 @@ extension DinnerTogetherUITestCase {
         scrollTo(card, requireHittable: false)  // A1: in place is enough; tapped by position below
         XCTAssertTrue(card.label.hasPrefix(RecipeFixtureText.frozenBerryTitle), "Tonight shows which recipe is being made: \(card.label)")
         photograph("r17-tonight-recipe" + capture.suffix)
-        tapEvenInPopover(card)  // a coordinate tap: hittability is unreliable at AX3 (A1)
+        // A coordinate tap (hittability is unreliable at AX3, A1) near the
+        // card's top: on the Duo's cover the 285 pt title's middle sits
+        // under the pinned bar, and a centre tap landed there (Duo run
+        // 38879570384, test18).
+        waitForExistence(card, timeout: 5, "Tonight's recipe card")
+        let cardTop = min(0.5, 30 / max(card.frame.height, 1))
+        card.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: cardTop)).tap()
         waitForExistence(app.staticTexts["recipe-title"], timeout: 10, "the card opened the recipe page")
         let back = app.buttons["cook-this-recipe"]
         XCTAssertTrue(back.label.contains("Back to Tonight"), "tonight’s recipe offers the way back: \(back.label)")
