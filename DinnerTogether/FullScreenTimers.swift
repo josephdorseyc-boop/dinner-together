@@ -127,10 +127,12 @@ final class FullScreenTimers {
     func open() { present(.byHand) }
 
     /// Done, or Go to Cooking. Closed while posed — opened by the pose or
-    /// by hand — it stays closed until the pose ends.
-    func close() {
+    /// by hand — it stays closed until the pose ends. `toRoot`: Go to
+    /// Cooking also closes whatever the page was opened over (the Timers
+    /// sheet, a recipe's), so Cooking is what's left (A2's review, #24).
+    func close(toRoot: Bool = false) {
         if currentPose() != nil { declinedPose = true }
-        dismiss()
+        dismiss(toRoot: toRoot)
     }
 
     /// Every second, from the root, with what's running.
@@ -219,13 +221,14 @@ final class FullScreenTimers {
         }
     }
 
-    private func dismiss() {
+    private func dismiss(toRoot: Bool = false) {
         guard mode != nil else { return }
         let presenter = host?.presentingViewController
         reset()
-        presenter?.dismiss(animated: true) {
+        let root = Self.keyWindow()?.rootViewController
+        (toRoot ? root : presenter)?.dismiss(animated: true) {
             presenter?.setNeedsUpdateOfSupportedInterfaceOrientations()
-            Self.keyWindow()?.rootViewController?.setNeedsUpdateOfSupportedInterfaceOrientations()
+            root?.setNeedsUpdateOfSupportedInterfaceOrientations()
         }
     }
 
@@ -478,7 +481,7 @@ struct FullScreenTimersView: View {
             .accessibilityIdentifier("fullscreen-stop")
         case .step:
             Button {
-                FullScreenTimers.shared.close()
+                FullScreenTimers.shared.close(toRoot: true)
                 openCooking()
             } label: {
                 Label("Go to Cooking", systemImage: "frying.pan")
