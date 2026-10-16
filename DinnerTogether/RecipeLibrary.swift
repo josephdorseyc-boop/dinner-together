@@ -242,14 +242,24 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
     func removeStep(recipeID: UUID, stepID: String) -> Bool {
         guard var r = recipe(id: recipeID),
               let step = r.steps.first(where: { $0.id == stepID }) else { return false }
+        guard let found = self.directionIndex(of: step, in: r) else {
+            saveError = "This step couldn’t be matched to a direction. Re-import the recipe before removing it."
+            return false
+        }
+        r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
+        r.directions.remove(at: found)
+        return update(r)
+    }
+
+    /// The direction a step came from, when it can be told apart: by its
+    /// text, and among identical texts by the step's source order.
+    private func directionIndex(of step: CookingStep, in r: Recipe) -> Int? {
         let matches = r.steps.filter { $0.detail == step.detail }
         let directions = r.directions.indices.filter {
             RecipeImporter.stripStepPrefix(r.directions[$0]) == step.detail
         }
-        var directionIndex: Int?
-        if matches.count == 1, directions.count == 1 {
-            directionIndex = directions[0]
-        } else if matches.count > 1, directions.count == matches.count {
+        if matches.count == 1, directions.count == 1 { return directions[0] }
+        if matches.count > 1, directions.count == matches.count {
             // Imported IDs retain source order even when meanwhile work
             // lives in another dish, or earlier directions were removed.
             let prefix = "r\(String(r.id.uuidString.prefix(8)).lowercased())-"
@@ -260,16 +270,37 @@ final class RecipeLibrary: ObservableObject, MenuProviding {
             }.sorted { $0.ordinal < $1.ordinal }
             if ranked.count == matches.count,
                Set(ranked.map { $0.ordinal }).count == matches.count,
-               let occurrence = ranked.firstIndex(where: { $0.step.id == stepID }) {
-                directionIndex = directions[occurrence]
+               let occurrence = ranked.firstIndex(where: { $0.step.id == step.id }) {
+                return directions[occurrence]
             }
         }
-        guard let directionIndex else {
-            saveError = "This step couldn’t be matched to a direction. Re-import the recipe before removing it."
-            return false
+        return nil
+    }
+
+    /// The cook's own wording for a step (Joe, build 22: "edit directions"
+    /// from the Timing tab). The step's text and title follow, and so does
+    /// its direction when it can be matched, so Directions, Timing and
+    /// Cooking say the same thing; a step numbering like "3. " stays.
+    /// Minutes and hands-off are untouched. Blank text is refused.
+    @discardableResult
+    func editStep(recipeID: UUID, stepID: String, text: String) -> Bool {
+        let newText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newText.isEmpty, var r = recipe(id: recipeID),
+              let step = r.steps.first(where: { $0.id == stepID }) else { return false }
+        if newText == step.detail { return true }
+        if let i = directionIndex(of: step, in: r) {
+            let original = r.directions[i]
+            let stripped = RecipeImporter.stripStepPrefix(original)
+            let numbering = original.hasSuffix(stripped) ? String(original.dropLast(stripped.count)) : ""
+            r.directions[i] = numbering + newText
         }
-        r.dishes = r.dishes.map { $0.filter { $0.id != stepID } }.filter { !$0.isEmpty }
-        r.directions.remove(at: directionIndex)
+        r.dishes = r.dishes.map { dish in
+            dish.map { s in
+                guard s.id == stepID else { return s }
+                return CookingStep(id: s.id, dish: s.dish, title: RecipeImporter.stepTitle(from: newText),
+                                   minutes: s.minutes, detail: newText, handsOn: s.handsOn, estimated: s.estimated)
+            }
+        }
         return update(r)
     }
 

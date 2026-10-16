@@ -702,6 +702,8 @@ struct RecipeDetailView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var tab: Tab = .ingredients
     @State private var editingStep: CookingStep?
+    /// The step whose wording the cook is changing (build 22).
+    @State private var rewordingStep: CookingStep?
     @State private var removingStep: CookingStep?
     @State private var confirmingReplace = false
     @State private var confirmingAdd = false
@@ -755,6 +757,13 @@ struct RecipeDetailView: View {
         if store.session.menuID == recipe.menuID { return true }
         if let ids = WholeMeal.recipeIDs(store.session.menuID) { return ids.contains(recipe.id) }
         return false
+    }
+    /// While this recipe is cooking, a step that has started (or is done)
+    /// keeps its timing; the others can still change, and Cooking re-plans
+    /// around them (Joe, October 15: "if users edit the timing tab it should
+    /// be reflected in the cooking section").
+    private func stepLocked(_ step: CookingStep) -> Bool {
+        timingLocked && store.record(step.id).state != .notStarted
     }
 
     var body: some View {
@@ -829,6 +838,15 @@ struct RecipeDetailView: View {
                 }
                 .sheet(isPresented: $editingCover) {
                     EditCoverSheet(recipe: recipe).uiTestTypeSize()
+                }
+                .sheet(item: $rewordingStep) { step in
+                    StepWordingSheet(step: step) { text in
+                        guard library.editStep(recipeID: recipeID, stepID: step.id, text: text) else {
+                            return library.saveError ?? "The step couldn’t be saved. Try again."
+                        }
+                        return nil
+                    }
+                    .uiTestTypeSize()
                 }
                 .sheet(item: $editingStep) { step in
                     DurationEditorView(step: step, initialMinutes: step.minutes, note: DurationEditorView.recipeNote) { minutes in
@@ -1429,7 +1447,7 @@ struct RecipeDetailView: View {
     private func timing(_ recipe: Recipe) -> some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(timingLocked
-                 ? "You’re cooking this now, so the timing is locked. Reset tonight’s dinner to change it."
+                 ? "You’re cooking this now. Steps you’ve started keep their timing; the rest you can still change, and Cooking plans around them."
                  : "These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.")
                 .font(.subheadline).foregroundStyle(Theme.muted)
             ForEach(recipe.dishes, id: \.self) { dish in
@@ -1472,11 +1490,16 @@ struct RecipeDetailView: View {
                 Label("Estimated time - tap to edit", systemImage: "clock.badge.questionmark")
                     .font(.caption.weight(.semibold)).foregroundStyle(Theme.warning)
             }
+            if stepLocked(step) {
+                Label("Started — its timing stays", systemImage: "lock")
+                    .font(.caption.weight(.semibold)).foregroundStyle(Theme.muted)
+                    .accessibilityIdentifier(pageID("step-locked"))
+            }
             ViewThatFits(in: .horizontal) {
                 timingControls(step, stacked: false)
                 timingControls(step, stacked: true)
             }
-            .disabled(timingLocked)
+            .disabled(stepLocked(step))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1509,6 +1532,14 @@ struct RecipeDetailView: View {
                 }
                 .buttonStyle(QuietButtonStyle())
                 .accessibilityHint("Switches between needs you and hands-off.")
+                // The cook's own wording (build 22): the step, its title and
+                // its direction change together.
+                Button { rewordingStep = step } label: {
+                    Label("Edit", systemImage: "pencil")
+                }
+                .buttonStyle(QuietButtonStyle())
+                .accessibilityIdentifier(pageID("edit-step-text"))
+                .accessibilityLabel("Edit the wording of \(step.title)")
                 // Text the import mistook for a step leaves the recipe here
                 // (A2 S2). The dialog hangs off its own button: on iOS 26 a
                 // dialog presented from a scrolling page shows as a bubble
@@ -2178,5 +2209,65 @@ private struct StepTimerButton: View {
             .accessibilityHint("Counts down and tells you when it’s up.")
             .accessibilityIdentifier(id("start-timer"))
         }
+    }
+}
+
+/// A step's wording, edited from the Timing tab (Joe, build 22: "edit
+/// directions"). Saves the step, its title and its direction together;
+/// the time and hands-off are their own controls.
+private struct StepWordingSheet: View {
+    let step: CookingStep
+    /// Returns a problem to show, or nil once saved.
+    let save: (String) -> String?
+    @State private var text: String
+    @State private var problem: String?
+    @Environment(\.dismiss) private var dismiss
+    @FocusState private var focused: Bool
+
+    init(step: CookingStep, save: @escaping (String) -> String?) {
+        self.step = step
+        self.save = save
+        _text = State(initialValue: step.detail)
+    }
+
+    private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextEditor(text: $text)
+                        .frame(minHeight: 160)
+                        .focused($focused)
+                        .accessibilityLabel("Step wording")
+                        .accessibilityIdentifier("step-text-editor")
+                } footer: {
+                    Text("Changes this step in Directions, Timing and Cooking. Its time and hands-off stay as they are.")
+                }
+                if let problem {
+                    Text(problem).foregroundStyle(Theme.warning)
+                        .accessibilityIdentifier("step-text-problem")
+                }
+            }
+            .scrollContentBackground(.hidden)
+            .background(Theme.cream)
+            .navigationTitle("Edit step")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.accessibilityIdentifier("step-text-cancel")
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        if let message = save(trimmed) { problem = message } else { dismiss() }
+                    }
+                    .disabled(trimmed.isEmpty || trimmed == step.detail)
+                    .accessibilityIdentifier("step-text-save")
+                }
+            }
+            .onAppear { focused = true }
+        }
+        .tint(Theme.tomato)
+        .presentationDetents([.medium, .large])
     }
 }

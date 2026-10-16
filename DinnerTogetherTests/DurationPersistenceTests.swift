@@ -139,6 +139,39 @@ final class DurationPersistenceTests: XCTestCase {
         XCTAssertFalse(library.removeStep(recipeID: recipe.id, stepID: "nope"), "unknown step")
     }
 
+    /// Build 22 (Joe): the cook rewords a step from the Timing tab. The
+    /// step, its title and its direction change together; the numbering,
+    /// minutes and hands-off stay; blank text is refused; a failed save
+    /// changes nothing.
+    func testEditingAStepsWordingKeepsDirectionsAndPlanTogether() async throws {
+        let dir = tempDir()
+        let library = RecipeLibrary(directory: dir)
+        let recipe = try RecipeImporter.build(
+            try RecipeImporter.parse(text: "Creamy pasta\n\nDirections\n1. Boil the pasta for 10 minutes.\n2. Meanwhile, steep the cream with garlic for 20 minutes.\n3. Toss and serve."),
+            method: .text, now: Date())
+        XCTAssertTrue(library.add(recipe))
+        let step = recipe.steps[1]
+
+        XCTAssertTrue(library.editStep(recipeID: recipe.id, stepID: step.id, text: "  Meanwhile, warm the cream with rosemary and garlic. Keep it at a simmer, not a boil.  "))
+        let saved = try XCTUnwrap(library.recipe(id: recipe.id))
+        let edited = try XCTUnwrap(saved.steps.first { $0.id == step.id })
+        XCTAssertEqual(edited.detail, "Meanwhile, warm the cream with rosemary and garlic. Keep it at a simmer, not a boil.")
+        XCTAssertEqual(edited.title, "Meanwhile, warm the cream with rosemary and garlic")
+        XCTAssertEqual(edited.minutes, step.minutes, "the time is untouched")
+        XCTAssertEqual(edited.handsOn, step.handsOn, "hands-off is untouched")
+        XCTAssertEqual(saved.directions.count, 3)
+        XCTAssertEqual(RecipeImporter.stripStepPrefix(saved.directions[1]), edited.detail, "the direction says the same")
+        XCTAssertEqual(saved.directions[1].prefix(3), recipe.directions[1].prefix(3), "the numbering stays: \(saved.directions[1])")
+        XCTAssertEqual(saved.directions[0], recipe.directions[0], "other directions untouched")
+        XCTAssertEqual(RecipeLibrary(directory: dir).recipe(id: recipe.id)?.steps.first { $0.id == step.id }?.detail, edited.detail, "persists after relaunch")
+
+        XCTAssertFalse(library.editStep(recipeID: recipe.id, stepID: step.id, text: "   "), "blank text is refused")
+        library.simulateSaveFailure = true
+        XCTAssertFalse(library.editStep(recipeID: recipe.id, stepID: step.id, text: "Something else."))
+        XCTAssertEqual(library.recipe(id: recipe.id)?.steps.first { $0.id == step.id }?.detail, edited.detail, "a failed save changes nothing in memory")
+        XCTAssertFalse(library.editStep(recipeID: recipe.id, stepID: "nope", text: "Anything."), "unknown step")
+    }
+
     func testRemovingLaterDuplicatePreservesSourceDirectionOrder() async throws {
         let library = RecipeLibrary(directory: tempDir())
         var imported = ImportedRecipe(title: "Double stir")
