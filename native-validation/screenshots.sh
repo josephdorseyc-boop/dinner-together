@@ -78,8 +78,15 @@ fi
 app_running() { # udid → 0 if the app process is alive in the simulator
   local list
   list=$(xcrun simctl spawn "$1" launchctl list 2>/dev/null) || return 0   # can't tell: don't judge
-  printf '%s' "$list" | grep -q 'UIKitApplication:' || return 0          # unknown format: don't judge
-  printf '%s' "$list" | grep -q "UIKitApplication:$BUNDLE"
+  # With pipefail, grep -q can exit after a match while printf is still
+  # writing a long launchctl list. The resulting SIGPIPE makes a live app
+  # look dead (run 38906946003, ipad/all-done-late-dark). Match the captured
+  # string without a pipe; keep the existing unknown-format behaviour.
+  case "$list" in
+    *"UIKitApplication:$BUNDLE"*) return 0;;
+    *UIKitApplication:*) return 1;;
+    *) return 0;; # unknown format: don't judge
+  esac
 }
 
 launch_args_for() { # scenario → launch arguments
