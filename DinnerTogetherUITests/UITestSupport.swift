@@ -1795,7 +1795,7 @@ extension DinnerTogetherUITestCase {
         let day1 = app.descendants(matching: .any)["week-day-1"].firstMatch
         XCTAssertTrue(day1.label.hasSuffix("Your pick"), "an unplanned day is the cook's pick: \(day1.label)")
         plan(day: 1, choose: "day-plan-recipe")
-        XCTAssertTrue(day1.label.hasSuffix(RecipeFixtureText.frozenBerryTitle), "the recipe is planned for tomorrow: \(day1.label)")
+        XCTAssertTrue(day1.waitForLabel { $0.hasSuffix(RecipeFixtureText.frozenBerryTitle) }, "the recipe is planned for tomorrow: \(day1.label)")
         openDay(2)
         photograph("r23b-day-plan-sheet" + capture.suffix)
         let holiday = app.descendants(matching: .any)["day-plan-thanksgiving"].firstMatch
@@ -1804,13 +1804,13 @@ extension DinnerTogetherUITestCase {
         tapEvenInPopover(holiday)
         waitForDisappearance(app.buttons["day-plan-done"], "choosing closes the sheet")
         let day2 = app.descendants(matching: .any)["week-day-2"].firstMatch
-        XCTAssertTrue(day2.label.hasSuffix("Thanksgiving, together"), "\(day2.label)")
+        XCTAssertTrue(day2.waitForLabel { $0.hasSuffix("Thanksgiving, together") }, "\(day2.label)")
         plan(day: 2, choose: "day-plan-open")
-        XCTAssertTrue(day2.label.hasSuffix("Your pick"), "back to the cook's pick: \(day2.label)")
+        XCTAssertTrue(day2.waitForLabel { $0.hasSuffix("Your pick") }, "back to the cook's pick: \(day2.label)")
 
         plan(day: 0, choose: "day-plan-thanksgiving")
         XCTAssertTrue(app.staticTexts["Selected: Thanksgiving, together"].waitForExistence(timeout: 5), "today’s chip chose tonight’s dinner")
-        XCTAssertTrue(today.label.hasPrefix("Today: Thanksgiving, together"), today.label)
+        XCTAssertTrue(today.waitForLabel { $0.hasPrefix("Today: Thanksgiving, together") }, today.label)
         photograph("r23c-week-planned" + capture.suffix)
     }
 
@@ -2406,7 +2406,7 @@ extension DinnerTogetherUITestCase {
         closeDaySheet()
         let day1 = app.descendants(matching: .any)["week-day-1"].firstMatch
         let meal = [RecipeFixtureText.chickenTitle, RecipeFixtureText.potatoesTitle, RecipeFixtureText.beansTitle].joined(separator: " + ")
-        XCTAssertTrue(day1.label.hasSuffix(meal), "the day names the whole meal: \(day1.label)")
+        XCTAssertTrue(day1.waitForLabel { $0.hasSuffix(meal) }, "the day names the whole meal: \(day1.label)")
         // Done kept them: open again, three checked.
         openWeekDay(1)
         XCTAssertTrue(dayRecipeRow(RecipeFixtureText.beansTitle).waitForSelection(), "still checked after Done")
@@ -2921,6 +2921,18 @@ extension DinnerTogetherUITestCase {
 }
 
 extension XCUIElement {
+    /// A label that changes after a save and re-render (a day chip after its
+    /// sheet closes): poll briefly instead of reading it at once (iPad run
+    /// 38821832878 read "Your pick" the instant the sheet dismissed).
+    func waitForLabel(timeout: TimeInterval = 4, _ test: (String) -> Bool) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if exists && test(label) { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+        }
+        return exists && test(label)
+    }
+
     /// Selection updates after the save and re-render; poll briefly.
     func waitForSelection(timeout: TimeInterval = 3) -> Bool {
         let deadline = Date().addingTimeInterval(timeout)
