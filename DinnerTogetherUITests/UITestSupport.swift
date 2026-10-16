@@ -169,7 +169,12 @@ class DinnerTogetherUITestCase: XCTestCase {
     /// Keep-always screenshot, named by flow and step. The harness exports
     /// these from the .xcresult into results/ui-screenshots/<device>/.
     func photograph(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
-        let shot = Self.duoOpen ? Self.innerScreenShot() : app.screenshot()
+        // An iPhone turned on its side: the app's own capture comes back
+        // as the upright framebuffer turned and cut to a square (r29a and
+        // r31b, runs 38906195142 and 38915092856) while the element frames
+        // are the turned layout. The screen's capture is tried instead.
+        let sideways = !Self.duoOpen && app.frame.width > app.frame.height
+        let shot = Self.duoOpen ? Self.innerScreenShot() : (sideways ? XCUIScreen.main.screenshot() : app.screenshot())
         let image = Self.duoOpen ? Self.turnedToReading(shot.image, for: screenFrame) : shot.image
         let attachment = Self.duoOpen ? XCTAttachment(image: image) : XCTAttachment(screenshot: shot)
         attachment.name = name
