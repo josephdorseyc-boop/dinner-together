@@ -187,7 +187,7 @@ enum SocialImport {
     /// "Follow for more": the creator talking to followers, never a step.
     /// Saving *food* ("Save this marinade for basting") is a step (A2).
     static func isCallToAction(_ sentence: String) -> Bool {
-        sentence.range(of: #"\b(?:comment\s+[“"'‘]?[\p{L}\p{N}]+[”"'’]?\s+(?:and|&|for|to|below)|link in (?:my |the )?bio|follow (?:me|for more|along|@)|save (?:this|it)(?:\s+(?:post|recipe|reel|video))?\s*(?:for (?:later|your next|next time|when)|so (?:you|u)|[!.]|$)|save (?:the|my) recipe\b|tag (?:a friend|someone|your)|share (?:this|it) with|send (?:you|u) the (?:link|recipe)|dm me|turn on (?:post )?notifications|double tap|like (?:and|&) (?:save|share)|subscribe\b)"#,
+        sentence.range(of: #"\b(?:comment\s+[“"'‘]?[\p{L}\p{N}]+[”"'’]?\s+(?:and|&|for|to|below)|link in (?:my |the )?bio|follow (?:me|for more|along|@)|save (?:this|it)(?:\s+(?:post|recipe|reel|video))?\s*(?:for (?:later|your next|next time|when)|so (?:you|u)|[!.]|$)|save (?:this|it)\s+(?:[\p{L}-]+\s+){0,6}(?:recipe|post|reel|video|side dish)\b|save (?:the|my) recipe\b|tag (?:a friend|someone|your)|share (?:this|it) with|send (?:you|u) the (?:link|recipe)|dm me|turn on (?:post )?notifications|double tap|like (?:and|&) (?:save|share)|subscribe\b)"#,
                        options: [.regularExpression, .caseInsensitive]) != nil
     }
 
@@ -195,7 +195,7 @@ enum SocialImport {
     /// a step followed by "Save this for later!" keeps the step. A question
     /// that only leads into one ("Want the link? Comment LINK…") goes too.
     static func removingCallsToAction(_ line: String) -> String {
-        guard let regex = try? NSRegularExpression(pattern: #"[^.!?]+(?:[.!?]+[”"’']?|$)"#) else { return line }
+        guard let regex = try? NSRegularExpression(pattern: #"(?s).+?(?:[!?]+[”"’']?|(?<!\d)\.+[”"’']?|\.(?!\d)[”"’']?|$)"#) else { return line }
         let ns = NSString(string: line)
         let parts = regex.matches(in: line, range: NSRange(location: 0, length: ns.length))
             .map { ns.substring(with: $0.range).trimmingCharacters(in: .whitespaces) }
@@ -238,6 +238,47 @@ enum SocialImport {
             || lower.range(of: captionStepVerbs, options: .regularExpression) != nil
     }
 
+    /// Explicit list separators only; never split ingredient commas, fractions,
+    /// decimals, time ranges, or ordinary method sentences.
+    static func captionLayoutLines(_ text: String) -> [String] {
+        text.components(separatedBy: "\n").flatMap { raw -> [String] in
+            let line = raw.trimmingCharacters(in: .whitespaces)
+            // Some captions put the whole list after the section heading.
+            if let r = line.range(of: #"^(?:ingredients?|directions?|instructions?|method|steps?)\s*[:：]\s*"#,
+                                  options: [.regularExpression, .caseInsensitive]), r.upperBound < line.endIndex {
+                let heading = String(line[..<r.upperBound]).trimmingCharacters(in: .whitespaces)
+                return [heading] + captionLayoutLines(String(line[r.upperBound...]))
+            }
+            let parts = line.components(separatedBy: CharacterSet(charactersIn: "•●▪◦"))
+                .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            // Inline bullets in prose are left alone; an ingredient quantity
+            // at the start establishes the explicit ingredient-list context.
+            if parts.count > 1, let first = parts.first,
+               RecipeImporter.looksLikeIngredient(first) || isAmountPhrase(first) {
+                return parts
+            }
+            return [line]
+        }
+    }
+
+    /// Split only a complete increasing 1., 2., … (or 1), 2), …) list.
+    /// A lone number, decimal, temperature or "use a 2. …" isn't a list.
+    static func splitNumberedCaptionSteps(_ line: String) -> [String] {
+        guard let regex = try? NSRegularExpression(pattern: #"(?:^|\s)(?:[Ss]tep\s+)?(\d{1,2})[.)]\s+(?=\p{L})"#) else { return [line] }
+        let ns = line as NSString
+        let matches = regex.matches(in: line, range: NSRange(location: 0, length: ns.length))
+        guard matches.count >= 2, matches[0].range.location == 0,
+              matches.enumerated().allSatisfy({ index, match in
+                  Int(ns.substring(with: match.range(at: 1))) == index + 1
+              }) else { return [line] }
+        return matches.enumerated().map { index, match in
+            let start = NSMaxRange(match.range)
+            let end = index + 1 < matches.count ? matches[index + 1].range.location : ns.length
+            return ns.substring(with: NSRange(location: start, length: end - start))
+                .trimmingCharacters(in: .whitespaces)
+        }
+    }
+
     /// The caption rewritten as "title / Ingredients / … / Directions / …"
     /// for the text importer, when it reads as a recipe: the creator's story
     /// before the ingredients, lead-ins ("My version of…:"), group headers
@@ -245,8 +286,12 @@ enum SocialImport {
     /// with the ingredients; "(optional, …)" joins the ingredient above it.
     /// Nil when the caption has no ingredients followed by a method.
     static func structureCaption(_ text: String) -> (title: String?, text: String)? {
-        let lines = text.components(separatedBy: "\n")
-            .map { removingCallsToAction($0.trimmingCharacters(in: .whitespaces)) }
+        let lines = captionLayoutLines(text)
+            .map { $0.trimmingCharacters(in: .whitespaces) }
+            .map { line in
+                // Preserve numbered markers until the method is split.
+                splitNumberedCaptionSteps(line).count > 1 ? line : removingCallsToAction(line)
+            }
             .filter { !$0.isEmpty }
         guard lines.count >= 3 else { return nil }
         func ingredientish(_ l: String) -> Bool {
@@ -277,7 +322,11 @@ enum SocialImport {
                 ingredients.append(l)
             }
         }
-        let steps = lines[method...].filter { !RecipeImporter.isDirectionsHeader($0) && !isGroupHeader($0) }
+        let steps = lines[method...]
+            .filter { !RecipeImporter.isDirectionsHeader($0) && !isGroupHeader($0) }
+            .flatMap(splitNumberedCaptionSteps)
+            .map(removingCallsToAction)
+            .filter { !$0.isEmpty }
         guard ingredients.contains(where: { !isGroupHeader($0) }), !steps.isEmpty else { return nil }
         let body = (title.map { [$0] } ?? []) + ["Ingredients"] + ingredients + ["Directions"] + steps
         return (title, body.joined(separator: "\n"))
