@@ -27,5 +27,10 @@ final class ScrollGeometryTests: XCTestCase {
         XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 375, height: 667))
         XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 820, height: 1180))
         XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 951, height: 669))
+        // The CI iPhone 17 Pro and a Pro Max: tall, not small windows (A3).
+        XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 402, height: 874))
+        XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 440, height: 956))
+        XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 874, height: 402), "an iPhone on its side")
+        XCTAssertFalse(ScrollGeometry.isSmallWindow(width: 0, height: 0), "no window yet")
     }
 }

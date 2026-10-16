@@ -57,6 +57,7 @@ let package = Package(
                 "PlayOverlay.swift",
                 "DebugSampleMenus.swift",
                 "EngineTestSupport.swift",
+                "ScrollGeometry.swift",
             ]
         ),
         .testTarget(

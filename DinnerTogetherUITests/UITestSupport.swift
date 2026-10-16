@@ -380,11 +380,19 @@ class DinnerTogetherUITestCase: XCTestCase {
         app.staticTexts.matching(NSPredicate(format: "label ==[c] 'step 1'")).firstMatch
     }
 
+    /// The Duo's cover and any window like it (ScrollGeometry, A1 #15):
+    /// "on screen" means the element's top is in the zone, by default.
+    var isSmallWindow: Bool {
+        let f = screenFrame
+        return ScrollGeometry.isSmallWindow(width: f.width, height: f.height)
+    }
+
     func isComfortablyVisible(_ element: XCUIElement) -> Bool {
         guard element.exists, element.isHittable else { return false }
         let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
+        if isSmallWindow { return ScrollGeometry.isTopInZone(frame: f, zoneTop: zoneTop, zoneBottom: zoneBottom) }
         // An element taller than the zone (an AX3 paragraph), or most of it
         // (Tonight's 285 pt recipe title at AX3 on the Duo's 678 pt cover
         // under its 272 pt pinned bar, run 38827688888: no drag could land
@@ -409,6 +417,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         let screen = screenFrame
         let f = element.frame
         let (zoneTop, zoneBottom) = comfortZone(excluding: f)
+        if isSmallWindow { return ScrollGeometry.isTopInZone(frame: f, zoneTop: zoneTop, zoneBottom: zoneBottom) }
         if f.height > (zoneBottom - zoneTop) * 0.7 {
             return f.minY >= zoneTop && f.minY <= zoneBottom - 44
         }
@@ -470,8 +479,9 @@ class DinnerTogetherUITestCase: XCTestCase {
                 // than the zone is aimed by its top.
                 let f = element.frame
                 let zone = comfortZone(excluding: f)
-                delta = f.height > zone.bottom - zone.top - 16 ? f.minY - (zone.top + 24)
-                                                             : f.midY - (zone.top + zone.bottom) / 2
+                // On a small window, aim by the top always (A1 #15, Q3).
+                delta = (isSmallWindow || f.height > zone.bottom - zone.top - 16) ? f.minY - (zone.top + 24)
+                                                                                  : f.midY - (zone.top + zone.bottom) / 2
                 delta = max(-screen.height * 0.45, min(screen.height * 0.45, delta))
                 if abs(delta) < 4 { delta = delta < 0 ? -12 : 12 } // never a zero-length drag
             }
