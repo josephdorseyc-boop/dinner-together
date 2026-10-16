@@ -44,6 +44,7 @@ case "$1" in
     # FAKE_UI_HANG: the runner goes silent mid-run (Duo run 38468245512's
     # 92-minute stall); the deadline wrapper must end it as a failure.
     if [ -n "${FAKE_UI_HANG:-}" ] && [[ "$only" == *DinnerTogetherUITests* ]]; then
+      echo "Test Suite 'Selected tests' started"
       echo "Test Case '-[DinnerTogetherUITests.DinnerTogetherUITests test1]' started"; sleep 30
     fi
     if [[ "$only" == *DinnerTogetherUITests* ]]; then

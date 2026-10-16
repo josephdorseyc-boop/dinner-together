@@ -136,8 +136,11 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test53_weekShowcaseSideways() throws { try flowWeekShowcase() }
     /// r30 — build 22: Timing while cooking (locked started step; rewording).
     func test54_timingWhileCooking() { flowTimingWhileCooking() }
-    /// r31 — build 22: the timers full screen, by hand and on the nightstand.
+    /// r31 — build 22: manual full-screen timers on every destination.
     func test55_fullScreenTimers() { flowFullScreenTimers() }
     /// r31d — the full-screen timers at night: dark and dim.
     func test56_fullScreenTimersNight() { flowFullScreenTimers(night: true) }
+    /// Automatic nightstand entry, landscape fit, dismissal and re-entry.
+    /// Required on ordinary iPhone; closed-Duo coverage is reported by CI.
+    func test57_automaticNightstandTimers() { flowFullScreenTimers(automatic: true) }
 }

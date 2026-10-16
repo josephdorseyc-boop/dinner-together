@@ -148,6 +148,26 @@ After the first execution (CI run 14: iPhone 8/9, iPad 0/2):
   assertion round-trips displayed times through the short-style
   `DateFormatter`); CI runners are en_US.
 
+## Build 22 finalization and nightstand coverage (October 16)
+
+UI runs allow five minutes without output after the selected suite finishes
+(`DT_UI_FINALIZE_SECONDS`, default 300 seconds), instead of two. This is
+time for Xcode to finalize its result bundle. A deadline still fails the
+run; unreadable results or failed attachment export are not waived by the
+presence of direct screenshots.
+
+`test55_fullScreenTimers` verifies manual full-screen entry, the running
+timer, Done, and preservation of the cooking step on every destination.
+`test56_fullScreenTimersNight` verifies the dark appearance. Automatic
+entry while charging, landscape fit, Done suppression, re-entry and
+upright dismissal are separately required by `test57_automaticNightstandTimers`.
+Ordinary iPhone retains all three tests. On the exact closed/default-hinge
+`iPhone Duo` simulator, the harness excludes only the rotation-only tests
+53 and 57 after sharding, recomputes the selected count and records the
+missing coverage in every part's summary. No skipped-test exception or
+unknown-orientation pass is introduced. Physical Duo rotation/tent and
+charging behavior remain UNVERIFIED until Joe has hardware in December.
+
 ## Flaky flows: one retry, always reported (October 13)
 
 `run-native-pass.sh` reruns up to three failing UI flows alone, once, after

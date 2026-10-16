@@ -72,3 +72,38 @@ Baseline capture provenance was read directly: screen pixels 1206x2622,
 imageOrientation=2; app comparison 2622x1206 with the same orientation flag;
 application/window bounds 874x402. This supports normalizing the screen route;
 new screenshots must still verify the visible result.
+
+## Evening continuation: finalization and explicit nightstand coverage
+
+Current release intent: Joe requested Build 22 in TestFlight today after
+required checks pass. A2 owns implementation, dispatch and upload until
+Saturday October 17 at 10 p.m. America/Denver. A3 resumes ownership then.
+The former October 23 physical-Duo assumption is superseded: Joe will have
+hardware in December; automatic tent/nightstand hardware checks remain open.
+
+Candidate baseline `772f8be14924154ac3084f28c67ed249d324288c` passed native
+validation 38953971764. Duo run 38966260203 failed all seven UI job gates:
+five job logs had zero test failures, iPad test04 hit a snapshot timeout,
+and closed-Duo test55 could not demonstrate automatic nightstand entry.
+All UI result exports failed; logs alone do not credit a completed run.
+
+Following A1's corrected recommendation in issue #24, increase the
+post-suite idle allowance from 120 to 300 seconds. This is a candidate
+remedy, not evidence that finalization is solved. Preserve the process,
+skip/count and attachment-export gates. Keep the iPad test unchanged.
+
+Split timer coverage: test55 manual, test56 dark, test57 automatic entry,
+landscape fit, suppression, re-entry and upright dismissal. The exact
+closed/default-hinge Duo simulator excludes rotation-only tests 53 and 57
+after sharding and reports the missing coverage as UNVERIFIED. Ordinary
+iPhone keeps both strict rotation tests; unknown orientation earns no pass.
+No app runtime code changes are part of this patch. New native and Duo
+validation must match the published commit before release.
+
+Local verification: all 25 fake-toolchain harness scenarios passed, including
+explicit exit-124 checks for both mid-run hangs. Also passed: 10 log-parser,
+seven screenshot-process, 10 selection and four real-process deadline checks.
+The hang fixture now emits the suite-start marker so it tests a mid-run
+hang rather than the no-start reboot path. Shell syntax and diff checks
+passed. No native Swift/Xcode execution is available in this Linux session;
+the new UI test still needs the native build and simulator runs.

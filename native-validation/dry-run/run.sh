@@ -16,12 +16,13 @@ bad=0
 python3 "$HERE/test_ui_log_counts.py" || exit 1
 python3 "$HERE/test_screenshot_process.py" || exit 1
 python3 "$HERE/test_ui_selection.py" || exit 1
+python3 "$HERE/test_finalization_deadline.py" || exit 1
 run_case() { # name expect_pass_rc expect_shots_rc expect_required_failures expect_pngs expect_upngs env...
   local name="$1" e_pass="$2" e_shots="$3" e_fail="$4" e_png="$5" e_upng="$6"; shift 6
   local R="$WORK/$name"; rm -rf "$R"; mkdir -p "$R"
   local pass_rc shots_rc
   ( export PATH="$HERE/faketools:$PATH" FAKE_CONTAINER="$R/container" SHOT_SETTLE_SECONDS=0 DT_UI_WARMUP_SECONDS=0
-    env "$@" bash "$ROOT/native-validation/run-native-pass.sh" "$R" >/dev/null 2>&1; echo $? > "$R/pass.rc"
+    env "$@" bash "$ROOT/native-validation/run-native-pass.sh" "$R" >"$R/harness.log" 2>&1; echo $? > "$R/pass.rc"
     env "$@" bash "$ROOT/native-validation/screenshots.sh" "$R" >/dev/null 2>&1; echo $? > "$R/shots.rc" )
   pass_rc=$(cat "$R/pass.rc"); shots_rc=$(cat "$R/shots.rc")
   local failures pngs upngs
@@ -30,7 +31,11 @@ run_case() { # name expect_pass_rc expect_shots_rc expect_required_failures expe
   upngs=$(find "$R/ui-screenshots" -name '*.png' 2>/dev/null | wc -l | tr -d ' ')
   local got="pass-rc=$pass_rc shots-rc=$shots_rc required-failures=${failures:-?} pngs=$pngs upngs=$upngs"
   local want="pass-rc=$e_pass shots-rc=$e_shots required-failures=$e_fail pngs=$e_png upngs=$e_upng"
-  if [ "$got" = "$want" ]; then printf 'OK   %-22s %s\n' "$name" "$got"; else printf 'FAIL %-22s got: %s\n%-27s want: %s\n' "$name" "$got" "" "$want"; bad=$((bad+1)); fi
+  if [ "$got" = "$want" ]; then printf 'OK   %-22s %s\n' "$name" "$got"; else
+    printf 'FAIL %-22s got: %s\n%-27s want: %s\n' "$name" "$got" "" "$want"
+    tail -12 "$R/harness.log"
+    bad=$((bad+1))
+  fi
 }
 #        name                  pass shots fail pngs upng env
 # UI attachments: the fake tool exports one per UI test method, so the
@@ -58,6 +63,9 @@ run_case ui-retry-partial-ids   1    0     4    32   $UPNG   FAKE_UI_FAIL_CASES=
 run_case ui-retry-process-error 1    0     4    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1 FAKE_UI_RETRY_PASS=1 FAKE_UI_RETRY_RC=65   # the retry prints a pass and exits 65: no credit
 run_case ui-retry-pass-then-fail 1   0     4    32   $((UPNG+2))   FAKE_UI_FAIL_CASES=1 FAKE_UI_RETRY_PASS_THEN_FAIL=1   # the retry prints a pass and then a failure for the same test: no credit
 run_case ui-runner-hang         1    0     2    32   $UPNG   FAKE_UI_HANG=1 DT_UI_IDLE_SECONDS=2   # A2-40: a silent runner is ended by the deadline (exit 124) and fails, never retried
+if [ "$(grep -c 'xcodebuild UI tests.*(exit 124)' "$WORK/ui-runner-hang/SUMMARY.md")" -ne 2 ]; then
+  echo 'FAIL ui-runner-hang: both hung test processes must fail with exit 124'; bad=$((bad+1))
+fi
 run_case ui-attachments-missing 1    0     2    32   0    FAKE_UI_ATTACHMENTS_RC=1  # A1-U: export failure → the flows were not photographed
 run_case ui-skipped             1    0     2    32   $UPNG   FAKE_UI_SKIPPED=1      # A1-U: a skipped UI test on each device fails the gate
 # An unreadable xcresult must retain XCTest's skip count (Duo 38906198562),

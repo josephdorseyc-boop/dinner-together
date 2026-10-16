@@ -2646,7 +2646,7 @@ extension DinnerTogetherUITestCase {
 
     /// r31 — build 22, Joe, October 16: the timers full screen. By hand
     /// from Cooking's bar while a step's timer runs; Done leaves the step
-    /// cooking as it was. Then the nightstand: the phone turned on its side
+    /// cooking as it was. With `automatic`, also test the nightstand: the phone turned on its side
     /// while charging (-dt-assume-charging) opens the page on its own and
     /// turns with it; Done keeps it away until the phone is upright again,
     /// and turning it once more brings it back. Tent mode is the same page
@@ -2655,7 +2655,7 @@ extension DinnerTogetherUITestCase {
     /// hand only (the poses are a phone's). `night`: the phone in Dark Mode
     /// (-dt-appearance dark) — the page goes dark and dim (Joe, October 16,
     /// 8:19 AM) — by hand only, one capture.
-    func flowFullScreenTimers(night: Bool = false) {
+    func flowFullScreenTimers(night: Bool = false, automatic: Bool = false) {
         // The capture's own appearance flag comes first and wins (run
         // 38915092856: a second -dt-appearance after .standard's "light"
         // was never read), so night is the dark capture.
@@ -2689,7 +2689,7 @@ extension DinnerTogetherUITestCase {
         waitForDisappearance(page, "Done closes it")
         XCTAssertTrue(mark.waitForExistence(timeout: 3) && mark.label == markLabel, "the step is still cooking, as it was: \(mark.label)")
 
-        guard UIDevice.current.userInterfaceIdiom == .phone, !night else { return }
+        guard automatic, UIDevice.current.userInterfaceIdiom == .phone, !night else { return }
         // Subscribe before the requested turn; starting notifications only
         // after a failed presentation can leave the runner's pose unknown.
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
@@ -2698,27 +2698,17 @@ extension DinnerTogetherUITestCase {
         XCUIDevice.shared.orientation = .landscapeLeft
         addTeardownBlock { XCUIDevice.shared.orientation = .portrait }
         if !page.waitForExistence(timeout: 12) {
-            // The Duo simulator's cover reports no turn at all (Duo run
-            // 38921685281: the runner itself still sees it upright), so the
-            // pose can't be made there; the real cover is Joe's hardware
-            // check. An iPhone that turned and didn't open the page fails.
+            // The harness excludes this automatic-only test on the exact
+            // closed Duo destination. Every selected destination must prove
+            // automatic entry; unknown orientation never earns credit.
             let seen = UIDevice.current.orientation
             let environment = ProcessInfo.processInfo.environment
             let simulator = environment["DT_SIMULATOR_NAME"] ?? ""
             let hinge = environment["DT_DUO_HINGE"] ?? ""
             let frame = screenFrame
-            let knownClosedDuo = simulator == "iPhone Duo" && ["", "closed", "0"].contains(hinge)
-            let observedPortrait = frame.width > 0 && frame.height > frame.width && seen == .portrait
             attachText("r31-nightstand-geometry", "no page; simulator=\(simulator); hinge=\(hinge); runner orientation=\(seen.rawValue); frame=\(frame)")
-            if knownClosedDuo && observedPortrait {
-                // The manual assertions above passed; automatic presentation,
-                // landscape fit, suppression and re-entry did not execute.
-                attachText("r31-nightstand-coverage", "manual=verified; automatic=UNVERIFIED; landscape=UNVERIFIED; dismissal-reentry=UNVERIFIED; reason=known closed Duo simulator stayed portrait; hardware check required")
-                photograph("r31b-nightstand-not-posed")
-                return
-            }
             attachHierarchy("r31-nightstand-missing-hierarchy")
-            return XCTFail("nightstand did not open after the requested turn; unsupported-pose accommodation applies only to a verified closed Duo destination with an observed portrait pose")
+            return XCTFail("nightstand did not open after the requested turn on a destination selected for automatic rotation coverage")
         }
         waitForExistence(page, timeout: 1, "the nightstand opens the timers on its own")
         XCTAssertTrue(lead.waitForExistence(timeout: 3), "…with the step's timer")

@@ -37,13 +37,15 @@ python3 -c 'import json,sys; print(json.dumps([sys.argv[1], int(sys.argv[2])]))'
     def test_ordinary_iphone_keeps_full_class(self):
         tests, count = self.selected()
         self.assertEqual(tests, "DinnerTogetherUITests/DinnerTogetherUITests")
-        self.assertEqual(count, 56)
+        self.assertEqual(count, 57)
 
-    def test_closed_duo_all_excludes_only_rotation_showcase(self):
+    def test_closed_duo_all_excludes_only_rotation_flows(self):
         tests, count = self.selected(device="iPhone Duo")
         self.assertEqual(count, 55)
         self.assertNotIn("test53_weekShowcaseSideways", tests)
+        self.assertNotIn("test57_automaticNightstandTimers", tests)
         self.assertIn("test55_fullScreenTimers", tests)
+        self.assertIn("test56_fullScreenTimersNight", tests)
 
     def test_duo_shards_preserve_other_assignments(self):
         combined = []
@@ -51,12 +53,29 @@ python3 -c 'import json,sys; print(json.dumps([sys.argv[1], int(sys.argv[2])]))'
             args = dict(part=f"ui-iphone-{part}-of-3")
             normal, _ = self.selected(**args)
             duo, count = self.selected(device="iPhone Duo", **args)
-            expected = [line for line in normal.splitlines() if not line.endswith('/test53_weekShowcaseSideways')]
+            expected = [line for line in normal.splitlines()
+                        if not line.endswith(('/test53_weekShowcaseSideways', '/test57_automaticNightstandTimers'))]
             self.assertEqual(duo.splitlines(), expected)
             self.assertEqual(count, len(expected))
             combined.extend(expected)
         self.assertEqual(len(combined), 55)
         self.assertEqual(len(set(combined)), 55)
+
+    def test_rotation_checks_remain_required_on_supported_destinations(self):
+        for device, hinge in (("iPhone 16", ""), ("iPhone Duo Test", ""), ("iPhone Duo", "flat"), ("iPhone Duo", "half")):
+            with self.subTest(device=device, hinge=hinge):
+                tests, count = self.selected(part="ui-iphone-3-of-3", device=device, hinge=hinge)
+                self.assertIn("test57_automaticNightstandTimers", tests)
+                self.assertEqual(count, 19)
+
+    def test_closed_aliases_exclude_automatic_but_keep_manual(self):
+        for hinge in ("", "closed", "0"):
+            with self.subTest(hinge=hinge):
+                tests, count = self.selected(device="iPhone Duo", hinge=hinge)
+                self.assertNotIn("test57_automaticNightstandTimers", tests)
+                self.assertIn("test55_fullScreenTimers", tests)
+                self.assertIn("test56_fullScreenTimersNight", tests)
+                self.assertEqual(count, 55)
 
     def test_open_duo_keeps_rotation_test(self):
         tests, count = self.selected(part="ui-iphone-2-of-3", device="iPhone Duo", hinge="flat")
