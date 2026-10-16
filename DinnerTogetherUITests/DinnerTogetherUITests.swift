@@ -134,4 +134,6 @@ final class DinnerTogetherUITests: DinnerTogetherUITestCase {
     func test51_fourDishCap() { flowFourDishCap() }
     /// r29 — This Week on a phone turned sideways (the folded Duo's cover, A2-63/A2-65).
     func test53_weekShowcaseSideways() throws { try flowWeekShowcase() }
+    /// r30 — build 22: Timing while cooking (locked started step; rewording).
+    func test54_timingWhileCooking() { flowTimingWhileCooking() }
 }

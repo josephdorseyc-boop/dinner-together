@@ -2552,6 +2552,50 @@ extension DinnerTogetherUITestCase {
         XCTAssertFalse(app.buttons["tonight-add-dish"].exists, "no Add a dish at four")
     }
 
+    /// r30 — build 22 Timing (Joe, October 15): while the dinner cooks, a
+    /// started step says it can't be edited; a step not yet started can be
+    /// reworded from Timing, and Directions follows.
+    func flowTimingWhileCooking() {
+        launchRecipes([RecipeFixtureText.chicken], .standard, extra: ["-dt-recipes-reviewed"])
+        chooseTonight([RecipeFixtureText.chickenTitle])
+        buildDinnerPlan()
+        let start = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Start '")).firstMatch
+        waitForExistence(start, timeout: 10, "a step to start")
+        scrollTo(start)
+        start.tap()
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Mark '")).firstMatch.waitForExistence(timeout: 8),
+                      "the step is cooking")
+
+        openRecipe(RecipeFixtureText.chickenTitle)
+        let timingTab = app.buttons["recipe-tab-timing"]
+        waitForExistence(timingTab, timeout: 5, "the Timing tab")
+        timingTab.tap()
+        let locked = app.descendants(matching: .any)["step-locked"].firstMatch
+        waitForExistence(locked, timeout: 5, "the started step says it's locked")
+        XCTAssertTrue(locked.label.hasPrefix("Cooking"), locked.label)
+        photograph("r30a-timing-while-cooking")
+
+        // A step not yet started: its wording can change.
+        let edit = app.buttons.matching(NSPredicate(format: "identifier == 'edit-step-text' AND isEnabled == true")).firstMatch
+        waitForExistence(edit, timeout: 5, "a step not yet started offers Edit directions")
+        scrollTo(edit)
+        edit.tap()
+        let editor = app.textViews["step-text-editor"]
+        waitForExistence(editor, timeout: 5, "the step's wording")
+        editor.tap()
+        editor.typeText(" Baste once halfway.")
+        photograph("r30b-edit-directions")
+        let save = app.buttons["step-text-save"]
+        XCTAssertTrue(save.isEnabled, "a change can be saved")
+        save.tap()
+        waitForDisappearance(editor, "Save closes the editor")
+
+        app.buttons["recipe-tab-directions"].tap()
+        let reworded = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Baste once halfway.'")).firstMatch
+        XCTAssertTrue(reworded.waitForExistence(timeout: 5), "Directions says the new wording")
+        photograph("r30c-directions-reworded")
+    }
+
     /// Tonight's Build → Cooking.
     private func buildDinnerPlan() {
         let build = app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Build'")).firstMatch
