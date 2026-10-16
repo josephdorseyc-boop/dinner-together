@@ -423,7 +423,7 @@ struct FullScreenTimersView: View {
         let over = lead.isOver(at: now)
         let size = max(140, ring)
         let words = VStack(alignment: centered ? .center : .leading, spacing: 8) {
-            SectionLabel(text: over ? "TIME’S UP" : (others.isEmpty ? "ONE TIMER" : "NEXT TO FINISH"))
+            SectionLabel(text: over ? "TIME’S UP" : (others.isEmpty ? "ONE TIMER" : (selectedID == lead.id ? "SELECTED TIMER" : "NEXT TO FINISH")))
             Text(lead.dish)
                 .font(.system(.title, design: .serif).weight(.medium))
                 .multilineTextAlignment(centered ? .center : .leading)
