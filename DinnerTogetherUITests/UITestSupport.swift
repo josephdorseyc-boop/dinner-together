@@ -2651,7 +2651,17 @@ extension DinnerTogetherUITestCase {
         // turn at all (run 38817138530), so that capture stays upright.
         let turned = NSPredicate { _, _ in self.screenFrame.width > self.screenFrame.height }
         let sideways = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: turned, object: app)], timeout: 6) == .completed
-        attachText("r31-nightstand-geometry", "turned=\(sideways) frame=\(screenFrame)")
+        // The frame flips as the turn begins; the page is still being laid
+        // out for a moment after (run 38906195142: r31b caught the upright
+        // page mid-turn, rotated, with black beside it). Let it settle.
+        Thread.sleep(forTimeInterval: 1.5)
+        _ = waitForStableFrame(lead)
+        let done = app.buttons["fullscreen-timers-done"]
+        if sideways {
+            XCTAssertLessThan(done.frame.midX, screenFrame.midX, "Done at the leading edge of the turned page: \(done.frame) in \(screenFrame)")
+            XCTAssertGreaterThan(lead.frame.width, 500, "the lead block uses the turned width: \(lead.frame)")
+        }
+        attachText("r31-nightstand-geometry", "turned=\(sideways) frame=\(screenFrame) done=\(done.frame) lead=\(lead.frame)")
         photograph(sideways ? "r31b-nightstand-landscape" : "r31b-nightstand-upright-display")
         // Done while still on its side: not again until it's picked up.
         app.buttons["fullscreen-timers-done"].tap()
