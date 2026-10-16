@@ -1,6 +1,6 @@
 # Build 22 — current A2 handoff checkpoint
 
-Observed **2026-10-16 19:00:22 UTC** (Denver is UTC−06:00). Supersedes historical ownership, hardware dates and branch observations in the [backup runbook](A2-build22-contingency-2026-10-16.md). Prior detailed baseline evidence is preserved at [41c56db](https://github.com/josephdorseyc-boop/dinner-together/blob/41c56db731f94b6a9a5c2b52939da2f1aae4ff27/docs/handoffs/A2-build22-current-checkpoint.md). Refresh GitHub before acting.
+Observed **2026-10-16 19:09:13 UTC** (Denver is UTC−06:00). Supersedes historical ownership, hardware dates and branch observations in the [backup runbook](A2-build22-contingency-2026-10-16.md). Prior detailed baseline evidence is preserved at [41c56db](https://github.com/josephdorseyc-boop/dinner-together/blob/41c56db731f94b6a9a5c2b52939da2f1aae4ff27/docs/handoffs/A2-build22-current-checkpoint.md). Refresh GitHub before acting.
 
 ## Ownership and scope
 
@@ -35,12 +35,12 @@ Staged filtering applies only to exact selected `iPhone Duo` with closed/default
 | --- | --- |
 | Linux **117131822501** | Completed success. |
 | JS / fake-toolchain checks **117131822445** | Completed success; supplemental, not native UI/hardware proof. |
-| Core **117131822015** | Build + XCTest step succeeded; seeded screenshot step still in progress; final required gate pending. |
+| Core **117131822015** | **Completed success, including required gate.** Direct log: 239/239 XCTest, 228 engine/store tests, 32 seeded screenshots, no required/screenshot failures. |
 | iPhone part 1 **117131822536** | Build + XCTest wrapper in progress; final gate pending. |
 | iPhone part 2 **117131822597** | Build + XCTest wrapper in progress; final gate pending. |
 | iPad **117131822458** | Build + XCTest wrapper in progress; final gate pending. |
 
-No new complete native pass or visually reviewed ff86f2a landscape artifact yet. Do not transfer baseline pass counts or screenshot certification to this commit. No exact-ff86f2a Duo run observed.
+[Core job log](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38947972243/job/117131822015) checks out exact ff86f2a; seeded screenshots finished at 18:59:31 UTC and its required gate passed at 18:59:38 UTC. Core review evidence artifact **12068402925** and bundled core artifact **12068482852** preserve this partial result. This corrects the prior checkpoint's stale in-progress core observation. **The whole native run and all three UI gates remain pending.** No visually reviewed ff86f2a landscape artifact yet; core's seeded screenshots do not certify UI-test r31b. Do not transfer baseline UI counts to this commit. No exact-ff86f2a Duo run observed.
 
 ### Staged harness 3f81959 — local/source checks and Linux only
 
@@ -75,7 +75,8 @@ Baseline [r31b provenance](https://github.com/josephdorseyc-boop/dinner-together
 
 - Boards **02/03 approved** in [#24/6215903573](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6215903573), exact source **3db56d9810d0e1fc9ff032e81f648f5d39f1d279**, reviewed against current issue. Snapshot “awaiting approval” wording is superseded.
 - **Full-screen tent AND nightstand timers remain mandatory.** Dedicated foreground page is separate from system-owned Live Activity/locked StandBy. Preserve dark/dim direction, one-dish no-photo cream page, fixed glass-card position, navigation and accessibility. No Add a step or global Timing Save scope.
-- **December replaces October 23 for Joe's physical Duo availability**, explicitly corrected in [#24/6222487023](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222487023). All old October 23 hardware-check references are stale. **October 20 RC / October 21 TestFlight remain targets**, not proof of readiness or an authorization to waive confirmed cooking/timer/data defects.
+- **December replaces October 23 for Joe's physical Duo availability**, explicitly corrected in [#24/6222487023](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222487023). All old October 23 hardware-check references are stale. That comment retains October 20 RC / October 21 TestFlight, but **Joe's subsequent October 16 live-chat direction supersedes the Build 22 timing: target TestFlight today, October 16, conditional on exact-candidate validation and successful signing/upload; installation also depends on Apple processing.** This newer target is supplied in the current conversation, not yet recorded in the fetched #24/#15 comments. It does not waive confirmed cooking/timer/data defects.
 - Latest 100 Actions runs show latest release **38845842034**, source **cb0e3973fca5a03fd5faa5e0487bfd45cd11f3f3**, successful Build 21/reported upload. GitHub releases collection is empty. **No Build 22 upload/release, current widget archive/export signing, Apple processing or tester availability established.**
-- A3's handoff explicitly requires Joe's word before release. Preserve `require_green=true` and exact-candidate gates. The handoff's suggested toolchain=26 must still be reconciled with shipping SDK/Duo requirements; native Debug/simulator Release and fake signing are not archive/export proof.
-- At this watch, no newly discovered blocker, fresh completed native/release milestone or user decision beyond changes already communicated in Joe's active conversation. Do not repeat a handoff or pending-run notification. Continue observing; do not infer A3's future unavailability or start implementation from this watch.
+- A3's handoff explicitly requires Joe's word before release; Joe has since requested today's Build 22 delivery conditional on checks/upload. This watch initiates no release. Preserve `require_green=true` and exact-candidate gates. The handoff's suggested toolchain=26 must still be reconciled with shipping SDK/Duo requirements; native Debug/simulator Release and fake signing are not archive/export proof.
+- Build 23 is not formally scoped in the supplied active conversation. Joe plans to cook two meals with Build 22; the agreed direction is a focused feedback/regression follow-up, not added Build 22 feature scope.
+- At this watch, branch heads and all 60/56 issue comments are unchanged. Only the core-gate observation and Joe's already-discussed delivery target required checkpoint correction. No newly discovered blocker, full native/release milestone or new user decision; do not repeat a handoff or pending-run notification. Continue observing; do not infer A3's future unavailability or start implementation from this watch.
