@@ -1192,15 +1192,10 @@ extension CookingView {
                        recipe.yield?.trimmingCharacters(in: .whitespacesAndNewlines)]
             .compactMap { $0 }.filter { !$0.isEmpty }
         return VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                if let label {
-                    Text(label).font(.caption.weight(.semibold)).tracking(1.8).foregroundStyle(Theme.tomato)
-                }
-                Spacer(minLength: 8)
-                Image(systemName: "leaf").font(.title3).rotationEffect(.degrees(-35))
-                    .foregroundStyle(Theme.tomato.opacity(0.85))
-                    .accessibilityHidden(true)
+            if let label {
+                Text(label).font(.caption.weight(.semibold)).tracking(1.8).foregroundStyle(Theme.tomato)
             }
+            // The sprig on the name's line (board 02; Joe, 6:35 PM).
             HStack(alignment: .top, spacing: 16) {
                 // Two dishes: each page shows its dish's photo small beside
                 // the name (Joe, 5:40 PM: "it would liven it up"; board 02),
@@ -1222,6 +1217,11 @@ extension CookingView {
                             .font(.system(.subheadline, design: .serif)).foregroundStyle(Theme.muted)
                     }
                 }
+                Spacer(minLength: 8)
+                Image(systemName: "leaf").font(.title3).rotationEffect(.degrees(-35))
+                    .foregroundStyle(Theme.tomato.opacity(0.85))
+                    .padding(.top, 8)
+                    .accessibilityHidden(true)
             }
         }
         .accessibilityElement(children: .combine)
