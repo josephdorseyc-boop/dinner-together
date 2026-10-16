@@ -35,8 +35,10 @@ final class SystemAlarms {
     /// to succeed to count).
     private var checkedSystemList = false
 
-    /// This reminder rings as a system alarm: nothing else needs to.
-    func covers(_ key: String) -> Bool { scheduled[key] != nil }
+    /// Cached scheduling only covers a reminder while alarms are allowed.
+    /// Settings can revoke permission without clearing this launch's cache;
+    /// that must not suppress TimerAlarm's foreground fallback chime.
+    func covers(_ key: String) -> Bool { enabled && scheduled[key] != nil }
 
     /// The alarm's ID for a reminder: the same key always gives the same
     /// ID, so a relaunch or a moved deadline finds and replaces its alarm.
