@@ -14,7 +14,7 @@ on:
         default: xcode-27
         type: string
       finalization_smoke:
-        description: "Diagnostic only: compare Xcode 27.0/27.1 and attachment retention; gives no release credit"
+        description: "Diagnostic only: Xcode 27.1 finalization with diagnostics disabled; gives no release credit"
         type: boolean
         default: false
 
@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   probe:
+    if: ${{ !inputs.finalization_smoke }}
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 15
     steps:
@@ -45,7 +46,7 @@ jobs:
 
   finalization-smoke:
     if: ${{ inputs.finalization_smoke }}
-    name: "Finalization diagnostic Xcode ${{ matrix.xcode }} delete-success=${{ matrix.discard }}"
+    name: "Finalization diagnostic Xcode ${{ matrix.xcode }} diagnostics=never"
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 40
     strategy:
@@ -53,12 +54,8 @@ jobs:
       max-parallel: 2
       matrix:
         include:
-          - xcode: "27.0"
-            discard: "0"
           - xcode: "27.1"
             discard: "0"
-          - xcode: "27.1"
-            discard: "1"
     env:
       PROBE_XCODE: ${{ matrix.xcode }}
       PROBE_DISCARD_SUCCESS: ${{ matrix.discard }}

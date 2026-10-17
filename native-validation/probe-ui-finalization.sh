@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 RESULTS="$ROOT/native-validation/probe-results"
 mkdir -p "$RESULTS/direct"
-printf 'DIAGNOSTIC_ONLY=true\nRELEASE_CREDIT=false\nsource=%s\nxcode=%s\ndiscard_success=%s\n' \
+printf 'DIAGNOSTIC_ONLY=true\nRELEASE_CREDIT=false\ncollect_test_diagnostics=never\nsource=%s\nxcode=%s\ndiscard_success=%s\n' \
   "$(git rev-parse HEAD)" "$PROBE_XCODE" "$PROBE_DISCARD_SUCCESS" > "$RESULTS/PROVENANCE.txt"
 export DEVELOPER_DIR="/Applications/Xcode_${PROBE_XCODE}.app/Contents/Developer"
 [ -d "$DEVELOPER_DIR" ] || { echo "::error::Requested Xcode is unavailable: $DEVELOPER_DIR"; exit 1; }
@@ -50,6 +50,7 @@ python3 native-validation/run-with-deadline.py --seconds 1200 --idle-seconds 600
   --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
   --done-idle-seconds 60 --diagnostics-dir "$RESULTS/test-timeout" -- \
   xcodebuild test-without-building "${COMMON[@]}" -destination "id=$DEVICE" \
+  -collect-test-diagnostics never \
   -only-testing:DinnerTogetherUITests/DinnerTogetherUITests/test10_recipeLibraryEmpty \
   -only-testing:DinnerTogetherUITests/DinnerTogetherUITests/test22_coverCropHappyPath \
   -resultBundlePath "$RESULTS/probe.xcresult" \
