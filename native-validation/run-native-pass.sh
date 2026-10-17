@@ -402,6 +402,10 @@ run_ui_tests() { # label udid only_testing expected
   # then the two-minute finalization window interrupted result writing.
   # Give Xcode five minutes; a deadline or export error still fails.
   note "  - Xcode post-suite finalization allowance: $finalize_seconds seconds without output; incomplete runs remain failures."
+  # Candidate workaround for the hosted Xcode 27.1 post-suite hang: omit
+  # optional system diagnostic collection, not XCTest results/attachments.
+  # Apple documents this command-line override of the test-plan setting.
+  note "  - UI system diagnostic collection: never; process, test counts, result readability and attachment export remain required."
   while :; do
     # Name of the exact selected destination, not the runner's orientation:
     # the known closed Duo cover's rotation tests are filtered above.
@@ -416,6 +420,7 @@ run_ui_tests() { # label udid only_testing expected
       --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
       --done-idle-seconds "$finalize_seconds" -- \
       xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+      -collect-test-diagnostics never \
       "${mainonly[@]}" -resultBundlePath "$bundle" $verbose \
       -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
       > "$log" 2>&1; rc=$?
@@ -477,6 +482,7 @@ run_ui_tests() { # label udid only_testing expected
         --done-pattern "Test Suite 'Selected tests' passed" --done-pattern "Test Suite 'Selected tests' failed" \
         --done-idle-seconds "$finalize_seconds" -- \
         xcodebuild test-without-building "${COMMON[@]}" -destination "id=$udid" \
+        -collect-test-diagnostics never \
         "${onlyargs[@]}" -resultBundlePath "$retrybundle" \
         -test-timeouts-enabled YES -default-test-execution-time-allowance "${DT_UI_TEST_ALLOWANCE:-360}" -maximum-test-execution-time-allowance 480 \
         > "$retrylog" 2>&1; local retryrc=$?
