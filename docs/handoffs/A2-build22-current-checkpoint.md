@@ -2,6 +2,10 @@
 
 Observed **2026-10-17 10:43 UTC / October 17, 04:43 Denver**. Release evidence below was checked at the prior 04:01 UTC observation. Refresh GitHub before acting. Supersedes the historical [backup runbook](A2-build22-contingency-2026-10-16.md); [previous checkpoint](https://github.com/josephdorseyc-boop/dinner-together/blob/2d042bdd1c7f54ea50c3f73395e17c09f0b121d4/docs/handoffs/A2-build22-current-checkpoint.md) retains detailed source, earlier failures and rejected proposals.
 
+## Palette constraint — October 17, 09:20 Denver
+
+Joe explicitly instructed: “Please don’t change the color scheme from A3.” Preserve A3’s approved palette. The cream timer correction must match that existing palette; this instruction does not authorize a broader theme redesign or new colors. At the 09:49 Denver watch, continuation head remains 2668151e48820ded84454797acadfc40e082d9a8; latest Actions and #24/#15 show no new release, source change, handoff or recovered gate since the final results already recorded below. No CI/release action performed.
+
 ## Current Build23 blockers — final exact-SHA results
 
 Candidate **2668151e48820ded84454797acadfc40e082d9a8** is unchanged. No Build23 release/archive/upload is recorded. Both validation workflows completed **FAILURE**; no jobs remain active.
