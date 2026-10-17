@@ -1,0 +1,5 @@
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+Xcode 27.1
+Build version 27A9275

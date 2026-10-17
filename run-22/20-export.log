@@ -1,0 +1,4 @@
+2026-10-17 03:21:42.724 xcodebuild[7422:24592] [MT] IDEDistribution: -[IDEDistributionLogging _createLoggingBundleAtPath:]: Created bundle at path "/var/folders/5n/5t77mfb93jd7q8v9s6f0dn0m0000gn/T/DinnerTogether_2026-10-17_03-21-42.723.xcdistributionlogs".
+Exported DinnerTogether to: /Users/runner/work/dinner-together/dinner-together/release/out/export
+** EXPORT SUCCEEDED **
+
