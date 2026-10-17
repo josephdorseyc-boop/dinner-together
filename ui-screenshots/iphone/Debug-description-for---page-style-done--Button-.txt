@@ -1,0 +1,12 @@
+Attributes: Button, 0x1134a1e00, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Element subtree:
+ →Button, 0x1134a1e00, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Path to element:
+ →Button, 0x1134a1e00, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  ↪︎Find: Descendants matching type Button
+    ↪︎Find: Elements matching predicate '"page-style-done" IN identifiers'
+      Output: {
+        Button, 0x1134a2300, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+      }

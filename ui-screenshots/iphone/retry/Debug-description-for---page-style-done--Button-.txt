@@ -1,0 +1,52 @@
+Attributes: Button, 0x113b1ae40, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Element subtree:
+ →Button, 0x113b1ae40, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Path to element:
+ →Button, 0x113b1ae40, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  ↪︎Find: Descendants matching type Button
+    Output: {
+      Button, 0x113adb340, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+      Button, 0x113adb0c0, {{28.0, 290.0}, {161.0, 159.7}}, identifier: 'page-style-match-photo', label: 'Match photo'
+      Button, 0x113ad9e00, {{201.0, 310.0}, {161.0, 119.7}}, identifier: 'page-style-cider', label: 'Cider'
+      Button, 0x113ad8b40, {{28.0, 463.7}, {161.0, 119.7}}, identifier: 'page-style-tomato', label: 'Tomato'
+      Button, 0x113ada080, {{201.0, 463.7}, {161.0, 119.7}}, identifier: 'page-style-olive', label: 'Olive'
+      Button, 0x113adaa80, {{28.0, 597.3}, {161.0, 119.7}}, identifier: 'page-style-saffron', label: 'Saffron'
+      Button, 0x113ada940, {{201.0, 597.3}, {161.0, 119.7}}, identifier: 'page-style-plum', label: 'Plum', Selected
+      Button, 0x113ada580, {{28.0, 731.0}, {161.0, 119.7}}, identifier: 'page-style-lagoon', label: 'Lagoon'
+      Button, 0x113adb200, {{201.0, 731.0}, {161.0, 119.7}}, identifier: 'page-style-charcoal', label: 'Charcoal'
+      Button, 0x113adaf80, {{28.0, 864.7}, {161.0, 159.7}}, identifier: 'page-style-classic', label: 'Classic cream'
+      Button, 0x113b22080, {{24.0, 512.0}, {334.0, 120.0}}, identifier: 'timing-looks-right', label: 'Timing looks right'
+      Button, 0x11354a800, {{399.0, 179.0}, {38.0, 38.0}}, identifier: 'BackButton'
+      Button, 0x113afb840, {{24.0, -395.8}, {238.7, 97.0}}, identifier: 'recipe-time', label: 'Recipe time, 3 hr 7 min'
+      Button, 0x113af8c80, {{38.0, -15.0}, {183.7, 43.0}}, identifier: 'recipe-tab-ingredients', label: 'Ingredients'
+      Button, 0x113afa300, {{38.0, 35.0}, {165.3, 43.0}}, identifier: 'recipe-tab-directions', label: 'Directions'
+      Button, 0x113afb5c0, {{28.0, 84.5}, {130.3, 44.0}}, identifier: 'recipe-tab-timing', label: 'Timing', Selected
+      Button, 0x113b23980, {{24.0, 2420.5}, {241.3, 89.4}}, identifier: 'delete-recipe', label: 'Delete this recipe'
+      Button, 0x11354be80, {{399.3, 240.0}, {37.3, 36.0}}, identifier: 'recipe-favorite', label: 'Star this recipe'
+      Button, 0x11354ae40, {{401.0, 292.0}, {34.0, 36.0}}, identifier: 'recipe-more', label: 'More'
+      Button, 0x113af9180, {{38.0, 755.5}, {306.0, 86.0}}, label: 'Mix the juice and lime and fill an ice tray for 5 minutes, 5 minutes. Edit.'
+      Button, 0x113b50140, {{41.0, 852.5}, {148.0, 129.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected
+      Button, 0x113b50000, {{193.0, 874.2}, {148.0, 86.0}}, identifier: 'step-hands-off', label: 'Hands-off'
+      Button, 0x113b50280, {{38.0, 992.5}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Mix the juice and lime and fill an ice tray for 5 minutes'
+      Button, 0x113b98000, {{38.0, 1044.5}, {306.0, 46.3}}, identifier: 'remove-step-r9cd796f4-1', label: 'Remove Mix the juice and lime and fill an ice tray for 5 minutes'
+      Button, 0x113b235c0, {{38.0, 1406.8}, {306.0, 86.0}}, label: 'Freeze the mixture for 3 hours, 180 minutes. Edit.'
+      Button, 0x113b21f40, {{193.0, 1503.8}, {148.0, 129.0}}, identifier: 'step-hands-off', label: 'Hands-off', Selected
+      Button, 0x113b22300, {{41.0, 1525.5}, {148.0, 86.0}}, identifier: 'step-needs-you', label: 'Needs you'
+      Button, 0x113b20f00, {{38.0, 1643.8}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Freeze the mixture for 3 hours'
+      Button, 0x113b22940, {{38.0, 1695.8}, {306.0, 46.4}}, identifier: 'remove-step-r9cd796f4-2', label: 'Remove Freeze the mixture for 3 hours'
+      Button, 0x113b21540, {{38.0, 1919.2}, {306.0, 86.0}}, label: 'Blend and pour the frozen drink for 2 minutes, 2 minutes. Edit.'
+      Button, 0x113b21680, {{41.0, 2016.2}, {148.0, 129.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected
+      Button, 0x113b23d40, {{193.0, 2037.8}, {148.0, 86.0}}, identifier: 'step-hands-off', label: 'Hands-off'
+      Button, 0x113b23c00, {{38.0, 2156.2}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Blend and pour the frozen drink for 2 minutes'
+      Button, 0x113b22bc0, {{38.0, 2208.2}, {306.0, 46.4}}, identifier: 'remove-step-r9cd796f4-3', label: 'Remove Blend and pour the frozen drink for 2 minutes'
+      Button, 0x113549900, {{401.0, 292.0}, {34.0, 36.0}}
+      Button, 0x11354bac0, {{396.0, 494.0}, {44.0, 58.0}}, identifier: 'fork.knife', label: 'Tonight'
+      Button, 0x113549b80, {{396.0, 544.0}, {44.0, 58.0}}, identifier: 'timer', label: 'Cooking'
+      Button, 0x113548f00, {{396.0, 594.0}, {44.0, 58.0}}, identifier: 'book.closed', label: 'Recipes', Selected
+    }
+    ↪︎Find: Elements matching predicate '"page-style-done" IN identifiers'
+      Output: {
+        Button, 0x113b18a00, {{303.3, 30.0}, {74.7, 36.0}}, identifier: 'page-style-done', label: 'Done'
+      }

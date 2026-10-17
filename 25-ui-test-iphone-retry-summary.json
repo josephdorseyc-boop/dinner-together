@@ -1,0 +1,55 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "11A23A5C-F098-477E-951D-0F8BBF16FD28",
+        "deviceName" : "iPhone Duo",
+        "modelName" : "iPhone",
+        "osBuildNumber" : "24A94425",
+        "osVersion" : "27.1",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 1,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "DinnerTogether · Built with macOS 27.0.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1792231427.73,
+  "passedTests" : 1,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    }
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1792231199.944,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - the Page color sheet closed",
+      "targetName" : "DinnerTogetherUITests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "DinnerTogetherUITests/test35_palePhotoPageAX3()",
+      "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests/test35_palePhotoPageAX3",
+      "testName" : "test35_palePhotoPageAX3()"
+    }
+  ],
+  "title" : "Test - DinnerTogether",
+  "topInsights" : [
+
+  ],
+  "totalTestCount" : 2
+}

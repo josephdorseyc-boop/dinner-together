@@ -1,0 +1,199 @@
+Application, 0x1148ae580, pid: 68674, label: 'Dinner, Together' <App element pid: 68674>
+  Window (Main), 0x1148ae6c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4335992832.4>
+    Other, 0x1148ae800, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4417321472.5>
+    Other, 0x1148ae940, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4417423872.6>
+      Other, 0x1148ae300, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418301824.7>
+        Other, 0x1148af700, {{-466.0, -678.0}, {1398.0, 2034.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup' <AX element pid: 68674, elementOrHash.elementID: 4656129408.397>
+        Other, 0x1148af840, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4336011776.8>
+          Other, 0x1148af980, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4548328768.9>
+            Other, 0x1148afac0, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 68674, elementOrHash.elementID: 4416905216.10>
+            Other, 0x1148afc00, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 68674, elementOrHash.elementID: 4548316448.11>
+            Other, 0x1148afd40, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 68674, elementOrHash.elementID: 4548316288.12>
+            Other, 0x1148afe80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4417310208.13>
+              Other, 0x1148aea80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4422353536.14>
+                Other, 0x1148ae1c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418335232.137>
+                  Other, 0x1148af5c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4336019456.138>
+                    Other, 0x114861900, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4548328448.139>
+                      Other, 0x1148b7c00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4548322528.140>
+                        Other, 0x1148b7d40, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418499072.142>
+                          Other, 0x1148b7e80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4567139648.145>
+                            Other, 0x114885680, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418393600.150>
+                              Other, 0x114885cc0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4566673408.211>
+                                Other, 0x114884a00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4642189824.215>
+                                  Other, 0x114884b40, {{-186.3, 0.0}, {873.7, 792.7}} <AX element pid: 68674, elementOrHash.elementID: 4642181664.219>
+                                  ScrollView, 0x114884c80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4566237184.220>
+                                    Other, 0x114884dc0, {{0.0, -889.2}, {382.0, 3423.0}} <AX element pid: 68674, elementOrHash.elementID: 4567358976.225>
+                                      Image, 0x114884f00, {{0.0, -1000.2}, {382.0, 382.0}}, identifier: 'recipe-hero', label: 'Photo of Frozen berry drink with lime and a three-hour freezer stage' <AX element pid: 68674, elementOrHash.elementID: 4642185344.231>
+                                        Image, 0x114885040, {{0.0, -1000.2}, {382.0, 382.0}} <AX element pid: 68674, elementOrHash.elementID: 4642180544.250>
+                                      StaticText, 0x1148857c0, {{24.0, -709.2}, {290.0, 285.3}}, identifier: 'recipe-title', label: 'Frozen berry drink with lime and a three-hour freezer stage' <AX element pid: 68674, elementOrHash.elementID: 4642185504.232>
+                                      Button, 0x114885900, {{24.0, -395.8}, {238.7, 97.0}}, identifier: 'recipe-time', label: 'Recipe time, 3 hr 7 min' <AX element pid: 68674, elementOrHash.elementID: 4642186144.233>
+                                        StaticText, 0x114885a40, {{24.0, -395.8}, {204.7, 38.3}}, label: 'RECIPE TIME' <AX element pid: 68674, elementOrHash.elementID: 4642185664.251>
+                                        StaticText, 0x114885b80, {{24.0, -351.5}, {193.7, 52.7}}, label: '3 hr 7 min' <AX element pid: 68674, elementOrHash.elementID: 4642185824.252>
+                                        Image, 0x1148848c0, {{226.7, -343.2}, {36.0, 36.0}}, identifier: 'pencil.circle', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4642185984.253>
+                                      StaticText, 0x114885180, {{24.0, -284.8}, {104.3, 38.3}}, label: 'STEPS' <AX element pid: 68674, elementOrHash.elementID: 4642186304.234>
+                                      StaticText, 0x1148852c0, {{24.0, -240.5}, {27.7, 52.7}}, label: '3' <AX element pid: 68674, elementOrHash.elementID: 4642186464.235>
+                                      StaticText, 0x114885400, {{24.0, -171.8}, {95.3, 38.3}}, label: 'YIELD' <AX element pid: 68674, elementOrHash.elementID: 4642186624.236>
+                                      StaticText, 0x114885540, {{24.0, -127.5}, {327.7, 86.0}}, label: '2 tall glasses, or 4 small tasting portions' <AX element pid: 68674, elementOrHash.elementID: 4642186784.237>
+                                      Button, 0x1148d4000, {{38.0, -15.0}, {183.7, 43.0}}, identifier: 'recipe-tab-ingredients', label: 'Ingredients' <AX element pid: 68674, elementOrHash.elementID: 4642187744.239>
+                                      Button, 0x1148d4140, {{38.0, 35.0}, {165.3, 43.0}}, identifier: 'recipe-tab-directions', label: 'Directions' <AX element pid: 68674, elementOrHash.elementID: 4642187904.240>
+                                      Button, 0x1148d4280, {{28.0, 84.5}, {130.3, 44.0}}, identifier: 'recipe-tab-timing', label: 'Timing', Selected <AX element pid: 68674, elementOrHash.elementID: 4642188064.241>
+                                      StaticText, 0x1148d43c0, {{24.0, 154.5}, {304.3, 430.0}}, label: 'These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.' <AX element pid: 68674, elementOrHash.elementID: 4640538624.295>
+                                      Other, 0x1148d4500, {{24.0, 602.5}, {334.0, 502.3}} <AX element pid: 68674, elementOrHash.elementID: 4640548704.296>
+                                        StaticText, 0x1148d4640, {{38.0, 616.5}, {292.7, 129.0}}, label: 'Mix the juice and lime and fill an ice tray for 5 minutes' <AX element pid: 68674, elementOrHash.elementID: 4640553824.301>
+                                        Button, 0x1148d4780, {{38.0, 755.5}, {306.0, 86.0}}, label: 'Mix the juice and lime and fill an ice tray for 5 minutes, 5 minutes. Edit.' <AX element pid: 68674, elementOrHash.elementID: 4640553344.302>
+                                          StaticText, 0x1148d48c0, {{100.7, 755.5}, {142.3, 86.0}}, label: '5 min · Edit time' <AX element pid: 68674, elementOrHash.elementID: 4640553664.320>
+                                          Image, 0x1148d4a00, {{53.0, 780.2}, {36.7, 36.7}}, identifier: 'timer', label: 'Timer' <AX element pid: 68674, elementOrHash.elementID: 4640553984.321>
+                                          Image, 0x1148d4b40, {{297.7, 783.2}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4640553504.322>
+                                        Button, 0x1148d4c80, {{41.0, 852.5}, {148.0, 129.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected <AX element pid: 68674, elementOrHash.elementID: 4640546784.303>
+                                          StaticText, 0x1148d4dc0, {{105.8, 852.5}, {65.7, 129.0}}, label: 'Needs you' <AX element pid: 68674, elementOrHash.elementID: 4640548864.323>
+                                          Image, 0x1148d4f00, {{63.0, 901.5}, {32.7, 31.3}}, identifier: 'checkmark', label: 'Selected', Selected <AX element pid: 68674, elementOrHash.elementID: 4640553184.324>
+                                        Button, 0x1148d5040, {{193.0, 874.2}, {148.0, 86.0}}, identifier: 'step-hands-off', label: 'Hands-off' <AX element pid: 68674, elementOrHash.elementID: 4640546944.304>
+                                        Button, 0x1148d5180, {{38.0, 992.5}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Mix the juice and lime and fill an ice tray for 5 minutes' <AX element pid: 68674, elementOrHash.elementID: 4640547104.305>
+                                          StaticText, 0x1148d52c0, {{56.0, 993.0}, {274.2, 43.0}}, label: 'Edit directions' <AX element pid: 68674, elementOrHash.elementID: 4640546464.325>
+                                          Image, 0x1148d5400, {{56.0, 999.2}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4640538944.326>
+                                        Button, 0x1148d5540, {{38.0, 1044.5}, {306.0, 46.3}}, identifier: 'remove-step-rf9f2c98d-1', label: 'Remove Mix the juice and lime and fill an ice tray for 5 minutes' <AX element pid: 68674, elementOrHash.elementID: 4640548224.306>
+                                          Image, 0x1148d5680, {{64.3, 1047.5}, {35.3, 40.3}}, identifier: 'trash', label: 'Trash' <AX element pid: 68674, elementOrHash.elementID: 4640547744.327>
+                                          StaticText, 0x1148d57c0, {{64.3, 1047.5}, {256.0, 43.3}}, label: 'Remove step' <AX element pid: 68674, elementOrHash.elementID: 4640548384.328>
+                                      Other, 0x1148d5900, {{24.0, 1114.8}, {334.0, 641.3}} <AX element pid: 68674, elementOrHash.elementID: 4616248832.297>
+                                        StaticText, 0x1148d5a40, {{38.0, 1128.8}, {306.0, 86.0}}, label: 'Freeze the mixture for 3 hours' <AX element pid: 68674, elementOrHash.elementID: 4640549024.307>
+                                        StaticText, 0x1148d5b80, {{38.0, 1224.8}, {306.0, 172.0}}, label: 'Freeze the mixture for 3 hours; check that it is solid before continuing.' <AX element pid: 68674, elementOrHash.elementID: 4640549984.308>
+                                        Button, 0x1148d5cc0, {{38.0, 1406.8}, {306.0, 86.0}}, label: 'Freeze the mixture for 3 hours, 180 minutes. Edit.' <AX element pid: 68674, elementOrHash.elementID: 4640550784.309>
+                                          StaticText, 0x1148d5e00, {{100.7, 1406.8}, {142.3, 86.0}}, label: '3 hr · Edit time' <AX element pid: 68674, elementOrHash.elementID: 4640550304.329>
+                                          Image, 0x1148d5f40, {{53.0, 1431.5}, {36.7, 36.7}}, identifier: 'timer', label: 'Timer' <AX element pid: 68674, elementOrHash.elementID: 4640549504.330>
+                                          Image, 0x1148d6080, {{297.7, 1434.5}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4640550464.331>
+                                        Button, 0x1148d61c0, {{193.0, 1503.8}, {148.0, 129.0}}, identifier: 'step-hands-off', label: 'Hands-off', Selected <AX element pid: 68674, elementOrHash.elementID: 4640551904.310>
+                                          StaticText, 0x1148d6300, {{257.7, 1503.8}, {66.0, 129.0}}, label: 'Hands-off' <AX element pid: 68674, elementOrHash.elementID: 4640551744.332>
+                                          Image, 0x1148d6440, {{214.7, 1552.8}, {32.7, 31.3}}, identifier: 'checkmark', label: 'Selected', Selected <AX element pid: 68674, elementOrHash.elementID: 4640551584.333>
+                                        Button, 0x1148d6580, {{41.0, 1525.5}, {148.0, 86.0}}, identifier: 'step-needs-you', label: 'Needs you' <AX element pid: 68674, elementOrHash.elementID: 4640551424.311>
+                                        Button, 0x1148d66c0, {{38.0, 1643.8}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Freeze the mixture for 3 hours' <AX element pid: 68674, elementOrHash.elementID: 4640552864.312>
+                                          StaticText, 0x1148d6800, {{56.0, 1644.3}, {274.2, 43.0}}, label: 'Edit directions' <AX element pid: 68674, elementOrHash.elementID: 4640552704.334>
+                                          Image, 0x1148d6940, {{56.0, 1650.5}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4640552544.335>
+                                        Button, 0x1148d6a80, {{38.0, 1695.8}, {306.0, 46.4}}, identifier: 'remove-step-rf9f2c98d-2', label: 'Remove Freeze the mixture for 3 hours' <AX element pid: 68674, elementOrHash.elementID: 4616242432.313>
+                                          Image, 0x1148d6bc0, {{64.3, 1698.8}, {35.3, 40.3}}, identifier: 'trash', label: 'Trash' <AX element pid: 68674, elementOrHash.elementID: 4640553024.336>
+                                          StaticText, 0x1148d6d00, {{64.3, 1698.8}, {256.0, 43.4}}, label: 'Remove step' <AX element pid: 68674, elementOrHash.elementID: 4640554784.337>
+                                      Other, 0x1148d6e40, {{24.0, 1766.2}, {334.0, 502.3}} <AX element pid: 68674, elementOrHash.elementID: 4420630592.298>
+                                        StaticText, 0x1148d6f80, {{38.0, 1780.2}, {306.0, 129.0}}, label: 'Blend and pour the frozen drink for 2 minutes' <AX element pid: 68674, elementOrHash.elementID: 4616241632.314>
+                                        Button, 0x1148d70c0, {{38.0, 1919.2}, {306.0, 86.0}}, label: 'Blend and pour the frozen drink for 2 minutes, 2 minutes. Edit.' <AX element pid: 68674, elementOrHash.elementID: 4606036960.315>
+                                          StaticText, 0x1148d7200, {{100.7, 1919.2}, {142.3, 86.0}}, label: '2 min · Edit time' <AX element pid: 68674, elementOrHash.elementID: 4616249952.338>
+                                          Image, 0x1148d7340, {{53.0, 1943.8}, {36.7, 36.7}}, identifier: 'timer', label: 'Timer' <AX element pid: 68674, elementOrHash.elementID: 4616248352.339>
+                                          Image, 0x1148d7480, {{297.7, 1946.8}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4606039840.340>
+                                        Button, 0x1148d75c0, {{41.0, 2016.2}, {148.0, 129.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected <AX element pid: 68674, elementOrHash.elementID: 4606039360.316>
+                                          StaticText, 0x1148d7700, {{105.8, 2016.2}, {65.7, 129.0}}, label: 'Needs you' <AX element pid: 68674, elementOrHash.elementID: 4606039040.341>
+                                          Image, 0x1148d7840, {{63.0, 2065.2}, {32.7, 31.3}}, identifier: 'checkmark', label: 'Selected', Selected <AX element pid: 68674, elementOrHash.elementID: 4606039200.342>
+                                        Button, 0x1148d7980, {{193.0, 2037.8}, {148.0, 86.0}}, identifier: 'step-hands-off', label: 'Hands-off' <AX element pid: 68674, elementOrHash.elementID: 4606039520.317>
+                                        Button, 0x1148d7ac0, {{38.0, 2156.2}, {306.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Blend and pour the frozen drink for 2 minutes' <AX element pid: 68674, elementOrHash.elementID: 4614451072.318>
+                                          StaticText, 0x1148d7c00, {{56.0, 2156.7}, {274.2, 43.0}}, label: 'Edit directions' <AX element pid: 68674, elementOrHash.elementID: 4614447872.343>
+                                          Image, 0x1148d7d40, {{56.0, 2163.2}, {30.7, 30.7}}, identifier: 'pencil', label: 'Edit' <AX element pid: 68674, elementOrHash.elementID: 4606039680.344>
+                                        Button, 0x1148d7e80, {{38.0, 2208.2}, {306.0, 46.4}}, identifier: 'remove-step-rf9f2c98d-3', label: 'Remove Blend and pour the frozen drink for 2 minutes' <AX element pid: 68674, elementOrHash.elementID: 4420630752.319>
+                                          Image, 0x113490000, {{64.3, 2211.2}, {35.3, 40.3}}, identifier: 'trash', label: 'Trash' <AX element pid: 68674, elementOrHash.elementID: 4420631072.345>
+                                          StaticText, 0x113490140, {{64.3, 2211.2}, {256.0, 43.4}}, label: 'Remove step' <AX element pid: 68674, elementOrHash.elementID: 4420630912.346>
+                                      StaticText, 0x113490280, {{24.0, 2314.5}, {208.0, 48.0}}, label: 'Timing plan' <AX element pid: 68674, elementOrHash.elementID: 4654678016.299>
+                                      StaticText, 0x1134903c0, {{257.7, 2290.5}, {100.3, 96.0}}, label: '3 hr 7 min' <AX element pid: 68674, elementOrHash.elementID: 4654678176.300>
+                                      Button, 0x113490500, {{24.0, 2420.5}, {241.3, 89.4}}, identifier: 'delete-recipe', label: 'Delete this recipe' <AX element pid: 68674, elementOrHash.elementID: 4642189024.245>
+                                        Image, 0x113490640, {{38.7, 2423.5}, {35.3, 40.3}}, identifier: 'trash', label: 'Trash' <AX element pid: 68674, elementOrHash.elementID: 4642188704.259>
+                                        StaticText, 0x113490780, {{38.7, 2423.5}, {214.7, 86.4}}, label: 'Delete this recipe' <AX element pid: 68674, elementOrHash.elementID: 4642188864.258>
+                                    Other, 0x1134908c0, {{433.0, 59.0}, {30.0, 441.0}}, label: 'Vertical scroll bar, 8 pages', value: 31% <AX element pid: 68674, elementOrHash.elementID: 4418141696.449>
+                                      Other, 0x113490a00, {{460.0, 171.5}, {3.0, 81.3}} <AX element pid: 68674, elementOrHash.elementID: 4656989504.450>
+                                    Other, 0x113490b40, {{433.0, 59.0}, {30.0, 441.0}}, label: 'Vertical scroll bar, 8 pages', value: 31% <AX element pid: 68674, elementOrHash.elementID: 4418141696.449>
+                                      Other, 0x113490c80, {{460.0, 171.5}, {3.0, 81.3}} <AX element pid: 68674, elementOrHash.elementID: 4656989504.450>
+                                  Button, 0x113490dc0, {{24.0, 512.0}, {334.0, 120.0}}, identifier: 'timing-looks-right', label: 'Timing looks right' <AX element pid: 68674, elementOrHash.elementID: 4654678656.292>
+                                    Image, 0x113490f00, {{75.3, 531.0}, {35.3, 34.3}}, identifier: 'checkmark', label: 'Selected', Selected <AX element pid: 68674, elementOrHash.elementID: 4654678336.293>
+                                    StaticText, 0x113491040, {{75.3, 524.0}, {236.3, 96.0}}, label: 'Timing looks right' <AX element pid: 68674, elementOrHash.elementID: 4654678496.294>
+                          Toolbar, 0x113491180, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 68674, elementOrHash.elementID: 4567304704.146>
+                            Other, 0x1134912c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4567305984.151>
+              Other, 0x113491400, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4335993856.15>
+                Toolbar, 0x113491540, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 68674, elementOrHash.elementID: 4418547584.17>
+                  Other, 0x113491680, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4422352896.19>
+                    Other, 0x1134917c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4417238144.21>
+                      Other, 0x113491900, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4656990848.434>
+                        Other, 0x113491a40, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 68674, elementOrHash.elementID: 4656989952.436>
+                          Other, 0x113491b80, {{394.0, 174.0}, {48.0, 48.0}} <AX element pid: 68674, elementOrHash.elementID: 4418130944.438>
+                            Other, 0x113491cc0, {{394.0, 174.0}, {48.0, 48.0}} <AX element pid: 68674, elementOrHash.elementID: 4656990400.442>
+                              Other, 0x113491e00, {{399.0, 179.0}, {38.0, 38.0}} <AX element pid: 68674, elementOrHash.elementID: 4613967616.212>
+                                Other, 0x113491f40, {{399.0, 179.0}, {38.0, 38.0}} <AX element pid: 68674, elementOrHash.elementID: 4418238464.216>
+                                  Button, 0x113492080, {{399.0, 179.0}, {38.0, 38.0}}, identifier: 'BackButton' <AX element pid: 68674, elementOrHash.elementID: 4567366656.222>
+                          Other, 0x1134921c0, {{394.0, 234.0}, {48.0, 100.0}} <AX element pid: 68674, elementOrHash.elementID: 4418137088.439>
+                            Other, 0x113492300, {{394.0, 234.0}, {48.0, 48.0}} <AX element pid: 68674, elementOrHash.elementID: 4656991296.443>
+                              Other, 0x113492440, {{399.0, 240.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4613969920.213>
+                                Other, 0x113492580, {{399.0, 240.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4418164736.217>
+                                  Other, 0x1134926c0, {{399.0, 240.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4613740800.223>
+                                    Other, 0x113492800, {{399.0, 240.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4642190144.229>
+                                      Button, 0x113492940, {{399.3, 240.0}, {37.3, 36.0}}, identifier: 'recipe-favorite', label: 'Star this recipe' <AX element pid: 68674, elementOrHash.elementID: 4642189984.247>
+                            Other, 0x113492a80, {{394.0, 286.0}, {48.0, 48.0}} <AX element pid: 68674, elementOrHash.elementID: 4656991744.444>
+                              Other, 0x113492bc0, {{399.0, 292.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4613970688.214>
+                                Other, 0x113492d00, {{399.0, 292.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4418165248.218>
+                                  Other, 0x113492e40, {{399.0, 292.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4613743360.224>
+                                    Other, 0x113492f80, {{399.0, 292.0}, {38.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4642190784.230>
+                                      Button, 0x1134930c0, {{401.0, 292.0}, {34.0, 36.0}}, identifier: 'recipe-more', label: 'More' <AX element pid: 68674, elementOrHash.elementID: 4642190624.248>
+                                        Button, 0x113493200, {{401.0, 292.0}, {34.0, 36.0}} <AX element pid: 68674, elementOrHash.elementID: 4419100544.260>
+                                          Image, 0x113493340, {{404.3, 296.3}, {27.3, 27.3}}, identifier: 'ellipsis.circle.fill', label: 'More' <AX element pid: 68674, elementOrHash.elementID: 4642190304.264>
+                      Other, 0x113493480, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4656992192.435>
+                        Other, 0x1134935c0, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 68674, elementOrHash.elementID: 4656992640.437>
+                          Other, 0x113493700, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418128896.440>
+                            Other, 0x113493840, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4656993088.445>
+                              Other, 0x113493980, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418287104.35>
+                                Other, 0x113493ac0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418522624.37>
+                                  Other, 0x113493c00, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4422354176.41>
+                                    Other, 0x113493d40, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4417311232.48>
+                                      Other, 0x113493e80, {{394.0, 492.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4418525696.60>
+                                      Other, 0x113494000, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4417225600.61>
+                                        Button, 0x113494140, {{396.0, 494.0}, {44.0, 58.0}}, identifier: 'fork.knife', label: 'Tonight' <AX element pid: 68674, elementOrHash.elementID: 4335996928.85>
+                                          Image, 0x113494280, {{407.3, 506.7}, {21.7, 30.7}}, identifier: 'fork.knife', label: 'Food' <AX element pid: 68674, elementOrHash.elementID: 4422354816.100>
+                                        Button, 0x1134943c0, {{396.0, 544.0}, {44.0, 58.0}}, identifier: 'timer', label: 'Cooking' <AX element pid: 68674, elementOrHash.elementID: 4335998976.86>
+                                          Image, 0x113494500, {{404.3, 559.3}, {27.3, 27.3}}, identifier: 'timer', label: 'Timer' <AX element pid: 68674, elementOrHash.elementID: 4422356096.101>
+                                        Button, 0x113494640, {{396.0, 594.0}, {44.0, 58.0}}, identifier: 'book.closed', label: 'Recipes', Selected <AX element pid: 68674, elementOrHash.elementID: 4336001024.87>
+                                          Image, 0x113494780, {{405.3, 608.7}, {25.3, 28.7}}, identifier: 'book.closed.fill', label: 'Closed book, filled' <AX element pid: 68674, elementOrHash.elementID: 4422357376.102>
+                                      Other, 0x1134948c0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4417226048.62>
+                                      Other, 0x113494a00, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418168832.249>
+                                        Other, 0x113494b40, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4614150144.261>
+                                          Other, 0x113494c80, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418169344.265>
+                                            Other, 0x113494dc0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4418169856.267>
+                                              Other, 0x113494f00, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4567325568.269>
+                                                Other, 0x113495040, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 68674, elementOrHash.elementID: 4567146816.271>
+                                      Other, 0x113495180, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4418303104.64>
+                                        Other, 0x1134952c0, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417226944.89>
+                                          Other, 0x113495400, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417312768.104>
+                                          Other, 0x113495540, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417314816.105>
+                                            Other, 0x113495680, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417227840.131>
+                                              Other, 0x1134957c0, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417228736.134>
+                                                Other, 0x113495900, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417229184.136>
+                                              Other, 0x113495a40, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417317888.135>
+                                            Other, 0x113495b80, {{396.0, 594.0}, {44.0, 58.0}} <AX element pid: 68674, elementOrHash.elementID: 4417227392.132>
+    Other, 0x113495cc0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4656121088.394>
+      Other, 0x113495e00, {{-466.0, -678.0}, {1398.0, 2034.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup' <AX element pid: 68674, elementOrHash.elementID: 4656120448.395>
+      Other, 0x113495f40, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4656130688.396>
+        Other, 0x113496080, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4418060800.398>
+          Other, 0x1134961c0, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4655925248.399>
+            Other, 0x113496300, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4656203808.400>
+              Other, 0x113496440, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4418067968.401>
+                NavigationBar, 0x113496580, {{8.0, 24.0}, {450.0, 58.0}}, identifier: 'Page color' <AX element pid: 68674, elementOrHash.elementID: 4613976064.402>
+                Other, 0x1134966c0, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4655551744.403>
+                  Other, 0x113496800, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4418069504.407>
+                    Other, 0x113496940, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4655926272.410>
+                      Other, 0x113496a80, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4656203328.412>
+                        ScrollView, 0x113496bc0, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4566246400.413>
+                          Other, 0x113496d00, {{8.0, -319.0}, {374.0, 963.0}} <AX element pid: 68674, elementOrHash.elementID: 4567314944.416>
+                            StaticText, 0x113496e40, {{28.0, -299.0}, {332.7, 172.0}}, identifier: 'page-style-help', label: 'Match the photo, or choose a color. Changes save as you select.' <AX element pid: 68674, elementOrHash.elementID: 4656204928.419>
+                            Other, 0x113496f80, {{28.0, -111.0}, {334.0, 734.3}} <AX element pid: 68674, elementOrHash.elementID: 4656204288.420>
+                              Button, 0x1134970c0, {{28.0, -111.0}, {161.0, 159.7}}, identifier: 'page-style-match-photo', label: 'Match photo' <AX element pid: 68674, elementOrHash.elementID: 4656205728.422>
+                                Image, 0x113497200, {{83.7, -94.7}, {50.0, 39.7}}, identifier: 'photo', label: 'Photo' <AX element pid: 68674, elementOrHash.elementID: 4656211008.431>
+                                StaticText, 0x113497340, {{60.2, -31.0}, {96.7, 79.7}}, label: 'Match photo' <AX element pid: 68674, elementOrHash.elementID: 4656210688.433>
+                              Button, 0x113497480, {{201.0, -91.0}, {161.0, 119.7}}, identifier: 'page-style-cider', label: 'Cider' <AX element pid: 68674, elementOrHash.elementID: 4656204608.423>
+                              Button, 0x1134975c0, {{28.0, 62.7}, {161.0, 119.7}}, identifier: 'page-style-tomato', label: 'Tomato' <AX element pid: 68674, elementOrHash.elementID: 4656202048.424>
+                              Button, 0x113497700, {{201.0, 62.7}, {161.0, 119.7}}, identifier: 'page-style-olive', label: 'Olive' <AX element pid: 68674, elementOrHash.elementID: 4656207808.425>
+                              Button, 0x113497840, {{28.0, 196.3}, {161.0, 119.7}}, identifier: 'page-style-saffron', label: 'Saffron' <AX element pid: 68674, elementOrHash.elementID: 4656204128.426>
+                              Button, 0x113497980, {{201.0, 196.3}, {161.0, 119.7}}, identifier: 'page-style-plum', label: 'Plum', Selected <AX element pid: 68674, elementOrHash.elementID: 4656207008.447>
+                                StaticText, 0x113497ac0, {{201.0, 196.3}, {161.0, 119.7}}, label: 'Plum' <AX element pid: 68674, elementOrHash.elementID: 4656209568.427>
+                                Image, 0x113497c00, {{308.0, 214.3}, {44.0, 44.0}}, identifier: 'checkmark.circle.fill', label: 'Selected', Selected <AX element pid: 68674, elementOrHash.elementID: 4656211168.448>
+                              Button, 0x113497d40, {{28.0, 330.0}, {161.0, 119.7}}, identifier: 'page-style-lagoon', label: 'Lagoon' <AX element pid: 68674, elementOrHash.elementID: 4656201728.428>
+                              Button, 0x113497e80, {{201.0, 330.0}, {161.0, 119.7}}, identifier: 'page-style-charcoal', label: 'Charcoal' <AX element pid: 68674, elementOrHash.elementID: 4656202848.429>
+                              Button, 0x1134a0000, {{28.0, 463.7}, {161.0, 159.7}}, identifier: 'page-style-classic', label: 'Classic cream' <AX element pid: 68674, elementOrHash.elementID: 4656208448.430>
+                          Other, 0x1134a0140, {{425.0, 82.0}, {30.0, 570.0}}, label: 'Vertical scroll bar, 2 pages', value: 100% <AX element pid: 68674, elementOrHash.elementID: 4418163200.441>
+                            Other, 0x1134a0280, {{452.0, 276.0}, {3.0, 373.0}} <AX element pid: 68674, elementOrHash.elementID: 4656993536.446>
+                          Other, 0x1134a03c0, {{425.0, 82.0}, {30.0, 570.0}}, label: 'Vertical scroll bar, 2 pages', value: 100% <AX element pid: 68674, elementOrHash.elementID: 4418163200.441>
+                            Other, 0x1134a0500, {{452.0, 276.0}, {3.0, 373.0}} <AX element pid: 68674, elementOrHash.elementID: 4656993536.446>
+                Toolbar, 0x1134a0640, {{8.0, 8.0}, {450.0, 670.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 68674, elementOrHash.elementID: 4655504896.404>
+                  Other, 0x1134a0780, {{8.0, 8.0}, {450.0, 670.0}} <AX element pid: 68674, elementOrHash.elementID: 4655510656.408>
+  Window, 0x1134a08c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4614153216.348>
+    Other, 0x1134a0a00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418171904.351>
+      Other, 0x1134a0b40, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 68674, elementOrHash.elementID: 4418159104.353>

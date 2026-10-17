@@ -1,0 +1,250 @@
+Application, 0x109c5abc0, pid: 30659, label: 'Dinner, Together' <App element pid: 30659>
+  Window (Main), 0x109c5a940, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339466240.4>
+    Other, 0x109c5ad00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350307840.205>
+    Other, 0x109c5af80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4341020672.5>
+    Other, 0x109c5b0c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350456320.6>
+      Other, 0x109c5ae40, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350457600.7>
+        Other, 0x109c5b200, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339485184.8>
+          Other, 0x109c5b480, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4544181056.9>
+            Other, 0x109c5b5c0, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 30659, elementOrHash.elementID: 4340440064.10>
+            Other, 0x109c5b340, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 30659, elementOrHash.elementID: 4544179616.11>
+            Other, 0x109c5b700, {{0.0, 0.0}, {382.0, 644.0}} <AX element pid: 30659, elementOrHash.elementID: 4544179456.12>
+            Other, 0x109c5b980, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4341009408.13>
+              Other, 0x109c5bac0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4417422592.14>
+                Other, 0x109c5b840, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350774272.16>
+                  Other, 0x109c5bc00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339490304.18>
+                    Other, 0x109c5bd40, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4544175776.20>
+                      Other, 0x109c5be80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4544180736.22>
+                        Other, 0x109c58000, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350720000.25>
+                          NavigationBar, 0x109c583c0, {{0.0, 24.0}, {466.0, 58.0}}, identifier: 'Steak night' <AX element pid: 30659, elementOrHash.elementID: 4350409728.28>
+                            StaticText, 0x109c58b40, {{20.0, 37.7}, {90.3, 20.7}}, label: 'Steak night' <AX element pid: 30659, elementOrHash.elementID: 4350467072.33>
+                          Other, 0x109c58dc0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4419243968.29>
+                            Other, 0x109c58c80, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350621184.34>
+                              Other, 0x109c59040, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339477504.38>
+                                Other, 0x109c58f00, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4590074240.41>
+                                  ScrollView, 0x109c59180, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339420160.44>
+                                    Other, 0x109c592c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4419243072.47>
+                                      Other, 0x109c59680, {{0.0, 0.0}, {466.0, 122.0}} <AX element pid: 30659, elementOrHash.elementID: 4419251136.52>
+                                    Other, 0x109c59400, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4419242624.48>
+                                    Other, 0x109c59540, {{0.0, 82.0}, {382.0, 3230.3}} <AX element pid: 30659, elementOrHash.elementID: 4546576384.49>
+                                      StaticText, 0x109c597c0, {{24.0, 120.8}, {77.7, 14.3}}, label: 'DINNER AT' <AX element pid: 30659, elementOrHash.elementID: 4544181216.53>
+                                      Button, 0x109c59e00, {{252.7, 106.0}, {105.3, 44.0}}, label: 'Adjust time' <AX element pid: 30659, elementOrHash.elementID: 4544181376.54>
+                                      StaticText, 0x109c5a080, {{24.0, 160.0}, {154.0, 40.7}}, identifier: 'serving-time', label: 'Chosen dinner time 10:14 AM' <AX element pid: 30659, elementOrHash.elementID: 4544181536.55>
+                                      StaticText, 0x109c59cc0, {{24.0, 210.7}, {62.0, 14.3}}, label: 'Sat, Oct 17' <AX element pid: 30659, elementOrHash.elementID: 4544181696.56>
+                                      StaticText, 0x109c5a1c0, {{24.0, 253.0}, {84.0, 14.3}}, label: 'RIGHT NOW' <AX element pid: 30659, elementOrHash.elementID: 4544181856.57>
+                                      Image, 0x109c5a580, {{48.0, 311.3}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer' <AX element pid: 30659, elementOrHash.elementID: 4544182016.58>
+                                      StaticText, 0x109c5a6c0, {{46.0, 345.3}, {219.0, 24.0}}, label: 'Your timers are running.' <AX element pid: 30659, elementOrHash.elementID: 4544182176.59>
+                                      StaticText, 0x109c5a440, {{46.0, 379.3}, {174.3, 18.0}}, label: 'Next: Peel & cut potatoes' <AX element pid: 30659, elementOrHash.elementID: 4544182336.60>
+                                      StaticText, 0x109c5a800, {{46.0, 407.3}, {143.0, 18.0}}, label: 'Planned for 9:39 AM.' <AX element pid: 30659, elementOrHash.elementID: 4544182496.61>
+                                      StaticText, 0x109c5aa80, {{24.0, 467.3}, {125.7, 14.3}}, label: 'RUNNING TIMERS' <AX element pid: 30659, elementOrHash.elementID: 4544182656.62>
+                                      StaticText, 0x1129ffac0, {{47.0, 523.7}, {55.0, 14.3}}, label: 'Steak' <AX element pid: 30659, elementOrHash.elementID: 4544182976.63>
+                                      StaticText, 0x1129ffc00, {{288.3, 523.7}, {47.7, 14.3}}, label: 'Running' <AX element pid: 30659, elementOrHash.elementID: 4544183136.64>
+                                      StaticText, 0x1129ffd40, {{46.0, 554.1}, {276.0, 20.3}}, label: 'Prep the steak & sauce ingredients' <AX element pid: 30659, elementOrHash.elementID: 4544183296.65>
+                                      StaticText, 0x1129ffe80, {{46.0, 590.4}, {95.3, 40.7}}, label: 'Timer 05:12' <AX element pid: 30659, elementOrHash.elementID: 4544183456.66>
+                                      StaticText, 0x112b54000, {{46.0, 647.1}, {78.3, 14.3}}, label: 'Timer deadline 9:44 AM' <AX element pid: 30659, elementOrHash.elementID: 4544183616.67>
+                                      Button, 0x112b54140, {{46.0, 677.3}, {290.0, 22.3}}, label: 'Timing details' <AX element pid: 30659, elementOrHash.elementID: 4544184096.68>
+                                        StaticText, 0x112b54280, {{46.0, 677.3}, {290.0, 22.3}}, label: 'Timing details' <AX element pid: 30659, elementOrHash.elementID: 4544183776.97>
+                                        Image, 0x112b543c0, {{328.3, 682.7}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4544183936.98>
+                                      Button, 0x112b54500, {{46.0, 715.7}, {125.0, 44.0}}, label: 'Mark Prep the steak & sauce ingredients done' <AX element pid: 30659, elementOrHash.elementID: 4338726496.69>
+                                        StaticText, 0x112b54640, {{60.0, 728.7}, {99.0, 18.0}}, label: 'Mark done' <AX element pid: 30659, elementOrHash.elementID: 4338719456.99>
+                                        Image, 0x112b54780, {{60.0, 731.3}, {13.3, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected <AX element pid: 30659, elementOrHash.elementID: 4338722176.100>
+                                      StaticText, 0x112b548c0, {{24.0, 801.7}, {63.0, 14.3}}, label: 'UP NEXT' <AX element pid: 30659, elementOrHash.elementID: 4353213536.70>
+                                      StaticText, 0x112b54a00, {{24.0, 836.1}, {134.3, 36.3}}, label: '9:39 AM, Peel & cut potatoes' <AX element pid: 30659, elementOrHash.elementID: 4353219616.71>
+                                        StaticText, 0x112b54b40, {{24.0, 836.1}, {48.7, 14.3}}, label: '9:39 AM' <AX element pid: 30659, elementOrHash.elementID: 4353218656.101>
+                                        StaticText, 0x112b54c80, {{24.0, 854.4}, {134.3, 18.0}}, label: 'Peel & cut potatoes' <AX element pid: 30659, elementOrHash.elementID: 4353219136.102>
+                                      StaticText, 0x112b54dc0, {{24.0, 888.4}, {103.0, 36.3}}, label: '9:44 AM, Cook the steak' <AX element pid: 30659, elementOrHash.elementID: 4353221056.72>
+                                        StaticText, 0x112b54f00, {{24.0, 888.4}, {48.7, 14.3}}, label: '9:44 AM' <AX element pid: 30659, elementOrHash.elementID: 4353220096.103>
+                                        StaticText, 0x112b55040, {{24.0, 906.7}, {103.0, 18.0}}, label: 'Cook the steak' <AX element pid: 30659, elementOrHash.elementID: 4353220576.104>
+                                      StaticText, 0x112b55180, {{24.0, 940.7}, {182.3, 36.3}}, label: '9:49 AM, Cook potatoes until tender' <AX element pid: 30659, elementOrHash.elementID: 4353226656.73>
+                                        StaticText, 0x112b552c0, {{24.0, 940.7}, {48.7, 14.3}}, label: '9:49 AM' <AX element pid: 30659, elementOrHash.elementID: 4353226336.105>
+                                        StaticText, 0x112b55400, {{24.0, 959.1}, {182.3, 18.0}}, label: 'Cook potatoes until tender' <AX element pid: 30659, elementOrHash.elementID: 4353226496.106>
+                                      Button, 0x112b55540, {{24.0, 997.0}, {334.0, 26.0}}, label: '4 attention overlaps' <AX element pid: 30659, elementOrHash.elementID: 4590059520.74>
+                                        StaticText, 0x112b55680, {{24.0, 997.0}, {334.0, 26.0}}, label: '4 attention overlaps' <AX element pid: 30659, elementOrHash.elementID: 4353226976.107>
+                                        Image, 0x112b557c0, {{25.3, 1002.7}, {15.7, 14.3}}, identifier: 'exclamationmark.triangle', label: 'Warning' <AX element pid: 30659, elementOrHash.elementID: 4353226816.108>
+                                        Image, 0x112b55900, {{346.8, 1007.5}, {12.0, 7.0}}, identifier: 'expanded' <AX element pid: 30659, elementOrHash.elementID: 4353227136.109>
+                                      StaticText, 0x112b55a40, {{24.0, 1033.1}, {325.3, 78.0}}, label: '“Prep the steak & sauce ingredients” and “Peel & cut potatoes” both need your hands around 9:39 AM–9:44 AM. One cook, two tasks — plan which goes first.' <AX element pid: 30659, elementOrHash.elementID: 4590059680.75>
+                                      StaticText, 0x112b55b80, {{24.0, 1123.1}, {334.0, 58.0}}, label: '“Peel & cut potatoes” and “Cook the steak” both need your hands around 9:44 AM–9:49 AM. One cook, two tasks — plan which goes first.' <AX element pid: 30659, elementOrHash.elementID: 4590059840.76>
+                                      StaticText, 0x112b55cc0, {{24.0, 1193.1}, {333.3, 78.0}}, label: '“Cook the steak” and “Trim beans & prep garlic” both need your hands around 9:59 AM–10:04 AM. One cook, two tasks — plan which goes first.' <AX element pid: 30659, elementOrHash.elementID: 4590060000.77>
+                                      StaticText, 0x112b55e00, {{24.0, 1283.1}, {332.0, 78.0}}, label: '“Cook & season beans” and “Rest steak & finish sauce” both need your hands around 10:04 AM–10:14 AM. One cook, two tasks — plan which goes first.' <AX element pid: 30659, elementOrHash.elementID: 4590060160.78>
+                                      StaticText, 0x112b55f40, {{24.0, 1381.1}, {68.0, 14.3}}, label: 'TIMELINE' <AX element pid: 30659, elementOrHash.elementID: 4590060320.79>
+                                      ProgressIndicator, 0x112b56080, {{24.0, 1415.3}, {334.0, 4.0}}, label: '0 of 8 steps complete', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4590060640.80>
+                                        ProgressIndicator, 0x112b561c0, {{24.0, 1405.3}, {334.0, 24.0}}, value: 0% <AX element pid: 30659, elementOrHash.elementID: 4417434752.110>
+                                      StaticText, 0x112b56300, {{24.0, 1427.4}, {124.0, 14.3}}, label: '0 of 8 steps complete' <AX element pid: 30659, elementOrHash.elementID: 4590060800.81>
+                                      Other, 0x112b56440, {{24.0, 1479.7}, {334.0, 209.3}}, identifier: 'timeline-step-s1' <AX element pid: 30659, elementOrHash.elementID: 4590062560.82>
+                                        Image, 0x112b56580, {{27.0, 1484.7}, {12.0, 12.0}}, identifier: 'circle.inset.filled', label: 'Circle With A Filled Inset' <AX element pid: 30659, elementOrHash.elementID: 4590060960.111>
+                                        StaticText, 0x112b566c0, {{56.0, 1479.7}, {137.0, 14.3}}, label: 'Timer deadline 9:44 AM' <AX element pid: 30659, elementOrHash.elementID: 4590061120.112>
+                                        StaticText, 0x112b56800, {{56.0, 1504.1}, {276.0, 20.3}}, label: 'Prep the steak & sauce ingredients' <AX element pid: 30659, elementOrHash.elementID: 4590061280.113>
+                                        StaticText, 0x112b56940, {{56.0, 1534.3}, {70.0, 22.3}}, label: 'Status: Cooking' <AX element pid: 30659, elementOrHash.elementID: 4590061440.114>
+                                        StaticText, 0x112b56a80, {{134.0, 1538.4}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590061600.115>
+                                        StaticText, 0x112b56bc0, {{56.0, 1566.7}, {91.3, 18.0}}, label: 'Timer: 05:12' <AX element pid: 30659, elementOrHash.elementID: 4590061760.116>
+                                        Button, 0x112b56d00, {{56.0, 1594.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590062240.117>
+                                          StaticText, 0x112b56e40, {{56.0, 1594.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590061920.174>
+                                          Image, 0x112b56f80, {{350.3, 1600.0}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590062080.175>
+                                        Button, 0x112b570c0, {{56.0, 1627.0}, {99.7, 44.0}}, label: 'Mark done' <AX element pid: 30659, elementOrHash.elementID: 4590062400.118>
+                                      Other, 0x112b57200, {{24.0, 1727.1}, {334.0, 181.3}}, identifier: 'timeline-step-p1' <AX element pid: 30659, elementOrHash.elementID: 4590064160.83>
+                                        Image, 0x112b57340, {{27.0, 1732.0}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590062720.119>
+                                        StaticText, 0x112b57480, {{56.0, 1727.1}, {159.0, 14.3}}, label: 'Planned 9:39 AM – 9:49 AM' <AX element pid: 30659, elementOrHash.elementID: 4590062880.120>
+                                        StaticText, 0x112b575c0, {{56.0, 1751.4}, {154.7, 20.3}}, label: 'Peel & cut potatoes' <AX element pid: 30659, elementOrHash.elementID: 4590063040.121>
+                                        StaticText, 0x112b57700, {{56.0, 1781.7}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590063200.122>
+                                        StaticText, 0x112b57840, {{153.0, 1785.7}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590063360.123>
+                                        Button, 0x112b57980, {{56.0, 1814.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590063840.124>
+                                          StaticText, 0x112b57ac0, {{56.0, 1814.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590063520.176>
+                                          Image, 0x112b57c00, {{350.3, 1819.3}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590063680.177>
+                                        Button, 0x112b57d40, {{56.0, 1846.3}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590064000.125>
+                                      Other, 0x112b57e80, {{24.0, 1946.4}, {334.0, 181.3}}, identifier: 'timeline-step-s2' <AX element pid: 30659, elementOrHash.elementID: 4590065760.84>
+                                        Image, 0x112b5c000, {{27.0, 1951.3}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590064320.126>
+                                        StaticText, 0x112b5c140, {{56.0, 1946.4}, {167.0, 14.3}}, label: 'Planned 9:44 AM – 10:04 AM' <AX element pid: 30659, elementOrHash.elementID: 4590064480.127>
+                                        StaticText, 0x112b5c280, {{56.0, 1970.7}, {119.0, 20.3}}, label: 'Cook the steak' <AX element pid: 30659, elementOrHash.elementID: 4590064640.128>
+                                        StaticText, 0x112b5c3c0, {{56.0, 2001.0}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590064800.129>
+                                        StaticText, 0x112b5c500, {{153.0, 2005.1}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590064960.130>
+                                        Button, 0x112b5c640, {{56.0, 2033.3}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590065440.131>
+                                          StaticText, 0x112b5c780, {{56.0, 2033.3}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590065120.178>
+                                          Image, 0x112b5c8c0, {{350.3, 2038.7}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590065280.179>
+                                        Button, 0x112b5ca00, {{56.0, 2065.7}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590065600.132>
+                                      Other, 0x112b5cb40, {{24.0, 2165.7}, {334.0, 181.3}}, identifier: 'timeline-step-p2' <AX element pid: 30659, elementOrHash.elementID: 4590067360.85>
+                                        Image, 0x112b5cc80, {{27.0, 2170.7}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590065920.133>
+                                        StaticText, 0x112b5cdc0, {{56.0, 2165.7}, {167.0, 14.3}}, label: 'Planned 9:49 AM – 10:09 AM' <AX element pid: 30659, elementOrHash.elementID: 4590066080.134>
+                                        StaticText, 0x112b5cf00, {{56.0, 2190.1}, {211.3, 20.3}}, label: 'Cook potatoes until tender' <AX element pid: 30659, elementOrHash.elementID: 4590066240.135>
+                                        StaticText, 0x112b5d040, {{56.0, 2220.3}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590066400.136>
+                                        StaticText, 0x112b5d180, {{153.0, 2224.4}, {57.7, 14.3}}, label: 'Hands-off' <AX element pid: 30659, elementOrHash.elementID: 4590066560.137>
+                                        Button, 0x112b5d2c0, {{56.0, 2252.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590067040.138>
+                                          StaticText, 0x112b5d400, {{56.0, 2252.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590066720.180>
+                                          Image, 0x112b5d540, {{350.3, 2258.0}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590066880.181>
+                                        Button, 0x112b5d680, {{56.0, 2285.0}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590067200.139>
+                                      Other, 0x112b5d7c0, {{24.0, 2385.1}, {334.0, 181.3}}, identifier: 'timeline-step-b1' <AX element pid: 30659, elementOrHash.elementID: 4590068960.86>
+                                        Image, 0x112b5d900, {{27.0, 2390.0}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590067520.140>
+                                        StaticText, 0x112b5da40, {{56.0, 2385.1}, {167.0, 14.3}}, label: 'Planned 9:59 AM – 10:04 AM' <AX element pid: 30659, elementOrHash.elementID: 4590067680.141>
+                                        StaticText, 0x112b5db80, {{56.0, 2409.4}, {193.0, 20.3}}, label: 'Trim beans & prep garlic' <AX element pid: 30659, elementOrHash.elementID: 4590067840.142>
+                                        StaticText, 0x112b5dcc0, {{56.0, 2439.7}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590068000.143>
+                                        StaticText, 0x112b5de00, {{153.0, 2443.7}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590068160.144>
+                                        Button, 0x112b5df40, {{56.0, 2472.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590068640.145>
+                                          StaticText, 0x112b5e080, {{56.0, 2472.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590068320.182>
+                                          Image, 0x112b5e1c0, {{350.3, 2477.3}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590068480.183>
+                                        Button, 0x112b5e300, {{56.0, 2504.3}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590068800.146>
+                                      Other, 0x112b5e440, {{24.0, 2604.4}, {334.0, 181.3}}, identifier: 'timeline-step-b2' <AX element pid: 30659, elementOrHash.elementID: 4590070560.87>
+                                        Image, 0x112b5e580, {{27.0, 2609.3}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590069120.147>
+                                        StaticText, 0x112b5e6c0, {{56.0, 2604.4}, {174.7, 14.3}}, label: 'Planned 10:04 AM – 10:14 AM' <AX element pid: 30659, elementOrHash.elementID: 4590069280.148>
+                                        StaticText, 0x112b5e800, {{56.0, 2628.7}, {170.7, 20.3}}, label: 'Cook & season beans' <AX element pid: 30659, elementOrHash.elementID: 4590069440.149>
+                                        StaticText, 0x112b5e940, {{56.0, 2659.0}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590069600.150>
+                                        StaticText, 0x112b5ea80, {{153.0, 2663.1}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590069760.151>
+                                        Button, 0x112b5ebc0, {{56.0, 2691.3}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590070240.152>
+                                          StaticText, 0x112b5ed00, {{56.0, 2691.3}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590069920.184>
+                                          Image, 0x112b5ee40, {{350.3, 2696.7}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590070080.185>
+                                        Button, 0x112b5ef80, {{56.0, 2723.7}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590070400.153>
+                                      Other, 0x112b5f0c0, {{24.0, 2823.7}, {334.0, 181.3}}, identifier: 'timeline-step-s3' <AX element pid: 30659, elementOrHash.elementID: 4590072160.88>
+                                        Image, 0x112b5f200, {{27.0, 2828.7}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590070720.154>
+                                        StaticText, 0x112b5f340, {{56.0, 2823.7}, {174.7, 14.3}}, label: 'Planned 10:04 AM – 10:14 AM' <AX element pid: 30659, elementOrHash.elementID: 4590070880.155>
+                                        StaticText, 0x112b5f480, {{56.0, 2848.1}, {198.3, 20.3}}, label: 'Rest steak & finish sauce' <AX element pid: 30659, elementOrHash.elementID: 4590071040.156>
+                                        StaticText, 0x112b5f5c0, {{56.0, 2878.3}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590071200.157>
+                                        StaticText, 0x112b5f700, {{153.0, 2882.4}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590071360.158>
+                                        Button, 0x112b5f840, {{56.0, 2910.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590071840.159>
+                                          StaticText, 0x112b5f980, {{56.0, 2910.7}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590071520.186>
+                                          Image, 0x112b5fac0, {{350.3, 2916.0}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590071680.187>
+                                        Button, 0x112b5fc00, {{56.0, 2943.0}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590072000.160>
+                                      Other, 0x112b5fd40, {{24.0, 3043.1}, {334.0, 181.3}}, identifier: 'timeline-step-p3' <AX element pid: 30659, elementOrHash.elementID: 4590073760.89>
+                                        Image, 0x112b5fe80, {{27.0, 3048.0}, {12.0, 12.0}}, identifier: 'circle', label: 'Circle' <AX element pid: 30659, elementOrHash.elementID: 4590072320.161>
+                                        StaticText, 0x112b7c000, {{56.0, 3043.1}, {174.7, 14.3}}, label: 'Planned 10:09 AM – 10:14 AM' <AX element pid: 30659, elementOrHash.elementID: 4590072480.162>
+                                        StaticText, 0x112b7c140, {{56.0, 3067.4}, {172.0, 20.3}}, label: 'Drain, mash & season' <AX element pid: 30659, elementOrHash.elementID: 4590072640.163>
+                                        StaticText, 0x112b7c280, {{56.0, 3097.7}, {89.0, 22.3}}, label: 'Status: Not started' <AX element pid: 30659, elementOrHash.elementID: 4590072800.164>
+                                        StaticText, 0x112b7c3c0, {{153.0, 3101.7}, {56.0, 14.3}}, label: 'Hands-on' <AX element pid: 30659, elementOrHash.elementID: 4590072960.165>
+                                        Button, 0x112b7c500, {{56.0, 3130.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590073440.166>
+                                          StaticText, 0x112b7c640, {{56.0, 3130.0}, {302.0, 22.3}}, label: 'Notes & details' <AX element pid: 30659, elementOrHash.elementID: 4590073120.188>
+                                          Image, 0x112b7c780, {{350.3, 3135.3}, {7.0, 12.0}}, identifier: 'collapsed' <AX element pid: 30659, elementOrHash.elementID: 4590073280.189>
+                                        Button, 0x112b7c8c0, {{56.0, 3162.3}, {95.0, 44.0}}, label: 'Start step' <AX element pid: 30659, elementOrHash.elementID: 4590073600.167>
+                                      Button, 0x112b7ca00, {{110.3, 3257.3}, {161.7, 18.0}}, label: 'Reset cooking progress' <AX element pid: 30659, elementOrHash.elementID: 4590073920.90>
+                                    Other, 0x112b7cb40, {{433.0, 82.0}, {30.0, 537.0}}, label: 'Vertical scroll bar, 6 pages', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350466048.50>
+                                      Other, 0x112b7cc80, {{460.0, 85.0}, {3.0, 107.7}} <AX element pid: 30659, elementOrHash.elementID: 4419249344.91>
+                                    Other, 0x112b7cdc0, {{433.0, 82.0}, {30.0, 537.0}}, label: 'Vertical scroll bar, 6 pages', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350466048.50>
+                                      Other, 0x112b7cf00, {{460.0, 85.0}, {3.0, 107.7}} <AX element pid: 30659, elementOrHash.elementID: 4419249344.91>
+                          Toolbar, 0x112b7d040, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 30659, elementOrHash.elementID: 4546578944.30>
+                            Other, 0x112b7d180, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4546579584.35>
+              Other, 0x112b7d2c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4339469312.15>
+                Toolbar, 0x112b7d400, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar' <AX element pid: 30659, elementOrHash.elementID: 4417421312.17>
+                  Other, 0x112b7d540, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4417421952.19>
+                    Other, 0x112b7d680, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4340921472.21>
+                      Other, 0x112b7d7c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4419252032.23>
+                        Other, 0x112b7d900, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 30659, elementOrHash.elementID: 4419252480.26>
+                          Other, 0x112b7da40, {{394.0, 174.0}, {48.0, 48.0}} <AX element pid: 30659, elementOrHash.elementID: 4350469120.31>
+                            Other, 0x112b7db80, {{394.0, 174.0}, {48.0, 48.0}} <AX element pid: 30659, elementOrHash.elementID: 4419252928.36>
+                              Other, 0x112b7dcc0, {{399.0, 179.0}, {38.0, 38.0}} <AX element pid: 30659, elementOrHash.elementID: 4420115968.39>
+                                Other, 0x112b7de00, {{399.0, 179.0}, {38.0, 38.0}} <AX element pid: 30659, elementOrHash.elementID: 4350467584.42>
+                                  Button, 0x112b7df40, {{399.0, 179.0}, {38.0, 38.0}}, identifier: 'timers-fullscreen', label: 'Timers full screen' <AX element pid: 30659, elementOrHash.elementID: 4546583424.45>
+                      Other, 0x112b7e080, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4340921920.24>
+                        Other, 0x112b7e1c0, {{0.0, 0.0}, {0.0, 0.0}} <AX element pid: 30659, elementOrHash.elementID: 4340922368.27>
+                          Other, 0x112b7e300, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350777344.32>
+                            Other, 0x112b7e440, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4340922816.37>
+                              Other, 0x112b7e580, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350408192.40>
+                                Other, 0x112b7e6c0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350774784.43>
+                                  Other, 0x112b7e800, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4417423232.46>
+                                    Other, 0x112b7e940, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4341010432.51>
+                                      Other, 0x112b7ea80, {{394.0, 492.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4350777856.92>
+                                      Other, 0x112b7ebc0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4340909824.93>
+                                        Button, 0x112b7ed00, {{396.0, 494.0}, {44.0, 58.0}}, identifier: 'fork.knife', label: 'Tonight' <AX element pid: 30659, elementOrHash.elementID: 4339470336.168>
+                                          Image, 0x112b7ee40, {{407.3, 506.7}, {21.7, 30.7}}, identifier: 'fork.knife', label: 'Food' <AX element pid: 30659, elementOrHash.elementID: 4417423872.190>
+                                        Button, 0x112b7ef80, {{396.0, 544.0}, {44.0, 58.0}}, identifier: 'timer', label: 'Cooking', Selected <AX element pid: 30659, elementOrHash.elementID: 4339472384.169>
+                                          Image, 0x112b7f0c0, {{404.3, 559.3}, {27.3, 27.3}}, identifier: 'timer', label: 'Timer' <AX element pid: 30659, elementOrHash.elementID: 4417425152.191>
+                                        Button, 0x112b7f200, {{396.0, 594.0}, {44.0, 58.0}}, identifier: 'book.closed', label: 'Recipes' <AX element pid: 30659, elementOrHash.elementID: 4339474432.170>
+                                          Image, 0x112b7f340, {{405.3, 608.7}, {25.3, 28.7}}, identifier: 'book.closed.fill', label: 'Closed book, filled' <AX element pid: 30659, elementOrHash.elementID: 4417426432.192>
+                                      Other, 0x112b7f480, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4340910272.94>
+                                      Other, 0x112b7f5c0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350778368.95>
+                                        Other, 0x112b7f700, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4338797568.171>
+                                          Other, 0x112b7f840, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350778880.193>
+                                            Other, 0x112b7f980, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4350779392.196>
+                                              Other, 0x112b7fac0, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4417427712.200>
+                                            Other, 0x112b7fc00, {{394.0, 492.0}, {48.0, 162.0}} <AX element pid: 30659, elementOrHash.elementID: 4417428352.197>
+                                      Other, 0x112b7fd40, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4350595456.96>
+                                        Other, 0x112b7fe80, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4340911168.172>
+                                          Other, 0x112b8c000, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4341011968.194>
+                                          Other, 0x112b8c140, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4341014016.195>
+                                            Other, 0x112b8c280, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4340912512.198>
+                                              Other, 0x112b8c3c0, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4340912960.201>
+                                                Other, 0x112b8c500, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4340913408.203>
+                                              Other, 0x112b8c640, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4341017088.202>
+                                            Other, 0x112b8c780, {{396.0, 544.0}, {44.0, 58.0}} <AX element pid: 30659, elementOrHash.elementID: 4340911616.199>
+    Other, 0x112b8c8c0, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4589210752.206>
+      Other, 0x112b8ca00, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup' <AX element pid: 30659, elementOrHash.elementID: 4589206528.208>
+      Popover, 0x112b8cb40, {{71.0, 25.0}, {240.0, 317.3}} <AX element pid: 30659, elementOrHash.elementID: 4589215872.209>
+        Other, 0x112b8cc80, {{71.0, 25.0}, {240.0, 317.3}} <AX element pid: 30659, elementOrHash.elementID: 4589217152.211>
+          Other, 0x112b8cdc0, {{71.0, 25.0}, {240.0, 317.3}} <AX element pid: 30659, elementOrHash.elementID: 4589218432.212>
+            Other, 0x112b8cf00, {{71.0, 25.0}, {240.0, 317.3}} <AX element pid: 30659, elementOrHash.elementID: 4589219712.213>
+              Other, 0x112b8d040, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4605863104.214>
+                Other, 0x112b8d180, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4605863552.215>
+                  Other, 0x112b8d2c0, {{71.0, 25.0}, {0.0, 0.0}} <AX element pid: 30659, elementOrHash.elementID: 4605864000.216>
+                    Other, 0x112b8d400, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4350304768.217>
+                      Other, 0x112b8d540, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4605864448.218>
+                        Other, 0x112b8d680, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4420120576.219>
+                          Other, 0x112b8d7c0, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4605862656.220>
+                            Sheet, 0x112b8d900, {{71.0, 25.0}, {240.0, 304.3}}, label: 'How much extra time?' <AX element pid: 30659, elementOrHash.elementID: 4556950016.221>
+                              Other, 0x112b8da40, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4419255168.222>
+                                Other, 0x112b8db80, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4420112896.223>
+                                  Other, 0x112b8dcc0, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4605868032.224>
+                                  Other, 0x112b8de00, {{71.0, 25.0}, {240.0, 304.3}} <AX element pid: 30659, elementOrHash.elementID: 4340908480.225>
+                                    ScrollView, 0x112b8df40, {{71.0, 25.0}, {240.0, 112.3}} <AX element pid: 30659, elementOrHash.elementID: 4339736064.226>
+                                      Other, 0x112b8e080, {{71.0, 25.0}, {240.0, 112.3}} <AX element pid: 30659, elementOrHash.elementID: 4350297600.228>
+                                        StaticText, 0x112b8e1c0, {{101.0, 47.0}, {180.0, 20.3}}, label: 'How much extra time?' <AX element pid: 30659, elementOrHash.elementID: 4350303232.234>
+                                        StaticText, 0x112b8e300, {{101.0, 75.0}, {180.0, 58.0}}, label: 'We'll show exactly what moves before anything changes.' <AX element pid: 30659, elementOrHash.elementID: 4350299648.235>
+                                      Other, 0x112b8e440, {{278.0, 59.0}, {30.0, 78.3}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350459904.229>
+                                        Other, 0x112b8e580, {{305.0, -14.0}, {3.0, 36.0}} <AX element pid: 30659, elementOrHash.elementID: 4605866240.236>
+                                      Other, 0x112b8e6c0, {{71.0, 104.3}, {240.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350474752.230>
+                                        Other, 0x112b8e800, {{32.0, 131.3}, {36.0, 3.0}} <AX element pid: 30659, elementOrHash.elementID: 4605865792.237>
+                                      Other, 0x112b8e940, {{278.0, 59.0}, {30.0, 78.3}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350459904.229>
+                                        Other, 0x112b8ea80, {{305.0, -14.0}, {3.0, 36.0}} <AX element pid: 30659, elementOrHash.elementID: 4605866240.236>
+                                      Other, 0x112b8ebc0, {{71.0, 104.3}, {240.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350474752.230>
+                                        Other, 0x112b8ed00, {{32.0, 131.3}, {36.0, 3.0}} <AX element pid: 30659, elementOrHash.elementID: 4605865792.237>
+                                    ScrollView, 0x112b8ee40, {{71.0, 137.3}, {240.0, 192.0}} <AX element pid: 30659, elementOrHash.elementID: 4339730944.227>
+                                      Other, 0x112b8ef80, {{71.0, 137.3}, {240.0, 192.0}} <AX element pid: 30659, elementOrHash.elementID: 4588796288.231>
+                                        Other, 0x112b8f0c0, {{87.0, 153.3}, {208.0, 160.0}} <AX element pid: 30659, elementOrHash.elementID: 4350298112.238>
+                                          Button, 0x112b8f200, {{87.0, 153.3}, {208.0, 48.0}}, label: 'Add 5 minutes' <AX element pid: 30659, elementOrHash.elementID: 4589241600.241>
+                                          Button, 0x112b8f340, {{87.0, 209.3}, {208.0, 48.0}}, label: 'Add 10 minutes' <AX element pid: 30659, elementOrHash.elementID: 4589242240.242>
+                                          Button, 0x112b8f480, {{87.0, 265.3}, {208.0, 48.0}}, label: 'Add 15 minutes' <AX element pid: 30659, elementOrHash.elementID: 4589242880.243>
+                                      Other, 0x112b8f5c0, {{278.0, 137.3}, {30.0, 158.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350471680.232>
+                                        Other, 0x112b8f700, {{305.0, 227.3}, {3.0, 7.0}} <AX element pid: 30659, elementOrHash.elementID: 4605867584.239>
+                                      Other, 0x112b8f840, {{105.0, 296.3}, {172.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350470656.233>
+                                        Other, 0x112b8f980, {{161.0, 323.3}, {7.0, 3.0}} <AX element pid: 30659, elementOrHash.elementID: 4605867136.240>
+                                      Other, 0x112b8fac0, {{278.0, 137.3}, {30.0, 158.0}}, label: 'Vertical scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350471680.232>
+                                        Other, 0x112b8fc00, {{305.0, 227.3}, {3.0, 7.0}} <AX element pid: 30659, elementOrHash.elementID: 4605867584.239>
+                                      Other, 0x112b8fd40, {{105.0, 296.3}, {172.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0% <AX element pid: 30659, elementOrHash.elementID: 4350470656.233>
+                                        Other, 0x112b8fe80, {{161.0, 323.3}, {7.0, 3.0}} <AX element pid: 30659, elementOrHash.elementID: 4605867136.240>
+  Window, 0x112b94000, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4338803712.204>
+    Other, 0x112b94140, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350307328.207>
+      Other, 0x112b94280, {{0.0, 0.0}, {466.0, 678.0}} <AX element pid: 30659, elementOrHash.elementID: 4350306304.210>

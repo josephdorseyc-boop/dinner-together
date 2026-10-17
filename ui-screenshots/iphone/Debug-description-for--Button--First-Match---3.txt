@@ -1,0 +1,5 @@
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  ↪︎Find: Descendants matching type Button
+    ↪︎Find: Elements matching predicate 'identifier BEGINSWITH "remove-step-"'
+      ↪︎Find: First Match

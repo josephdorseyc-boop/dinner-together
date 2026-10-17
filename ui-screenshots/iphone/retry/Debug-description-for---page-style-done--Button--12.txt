@@ -1,0 +1,4 @@
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  ↪︎Find: Descendants matching type Button
+    ↪︎Find: Elements matching predicate '"page-style-done" IN identifiers'

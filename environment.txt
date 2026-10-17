@@ -1,0 +1,47 @@
+== sw_vers
+ProductName:		macOS
+ProductVersion:		27.0.1
+BuildVersion:		26A434
+== xcode-select
+/Applications/Xcode_27.1.app/Contents/Developer
+== xcodebuild
+Xcode 27.1
+Build version 27A9275
+== swift
+swift-driver version: 1.168.6 Apple Swift version 6.4 (swiftlang-6.4.0.34.1 clang-2100.3.34.1)
+Target: arm64-apple-macosx27.0.0
+== simulators
+== Devices ==
+-- iOS 27.0 --
+    iPhone 18 Pro (873E667A-0545-43A3-8E8C-4E0AF64A7F5F) (Shutdown) 
+    iPhone 18 Pro Max (15E1A449-9F6E-4170-AA62-EB9899DD4B7C) (Shutdown) 
+    iPhone 17e (8C2EEE2A-84DD-4000-ACA0-118F1A501C71) (Shutdown) 
+    iPhone Air (9F203F01-29B6-4580-B43D-60702169B1A4) (Shutdown) 
+    iPhone 17 (B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7) (Shutdown) 
+    iPad Pro 13-inch (M5) (3969CF44-EDAD-4F51-B54C-ACF974B39430) (Shutdown) 
+    iPad Pro 11-inch (M5) (B5D91A4E-A9ED-43B2-B7E1-931450BCFA98) (Shutdown) 
+    iPad mini (A17 Pro) (829350AC-177C-4B4B-AC93-3673F6DD8302) (Shutdown) 
+    iPad Air 13-inch (M4) (8BD215F9-2620-4D16-9EA7-6E8163CBD635) (Shutdown) 
+    iPad Air 11-inch (M4) (B2DBD5CD-4ECD-4B75-852A-BD742D14E385) (Shutdown) 
+    iPad (A16) (B4561F2D-D37F-4175-8F1E-CE1F9C239D75) (Shutdown) 
+-- iOS 27.1 --
+    iPhone Duo (11A23A5C-F098-477E-951D-0F8BBF16FD28) (Shutdown) 
+    iPhone Duo (EB644E1A-5569-4823-B6CA-F1CE5D2D771E) (Shutdown) 
+-- tvOS 27.0 --
+    Apple TV 4K (3rd generation) (A7C58B08-B80D-46B9-952E-7FDB258F39D0) (Shutdown) 
+    Apple TV 4K (3rd generation) (at 1080p) (30DF195E-6F2C-462E-84DD-266F379EA741) (Shutdown) 
+-- watchOS 27.0 --
+    Apple Watch Series 12 (46mm) (9589D276-B714-45C9-9A31-0BB1EFD034C8) (Shutdown) 
+    Apple Watch Series 12 (42mm) (5F3861C5-0708-424F-891D-DCB697233B75) (Shutdown) 
+    Apple Watch Ultra 4 (49mm) (E68FC011-182D-4865-BF3B-CDCCEFF56DB6) (Shutdown) 
+    Apple Watch SE 3 (44mm) (18346F70-A40B-4232-88FC-9EFF3BA0963E) (Shutdown) 
+    Apple Watch SE 3 (40mm) (0F6F7B9B-17C7-4398-AF22-3C9222E7C558) (Shutdown) 
+-- visionOS 27.0 --
+    Apple Vision Pro (2A2E4C49-AEEB-4345-9DF8-E0C40258F6C0) (Shutdown) 
+== runtimes
+== Runtimes ==
+iOS 27.0 (27.0 - 24A434) - com.apple.CoreSimulator.SimRuntime.iOS-27-0
+iOS 27.1 (27.1 - 24A94425) - com.apple.CoreSimulator.SimRuntime.iOS-27-1
+tvOS 27.0 (27.0 - 24J360) - com.apple.CoreSimulator.SimRuntime.tvOS-27-0
+watchOS 27.0 (27.0 - 24R362) - com.apple.CoreSimulator.SimRuntime.watchOS-27-0
+visionOS 27.0 (27.0 - 24M362) - com.apple.CoreSimulator.SimRuntime.xrOS-27-0
