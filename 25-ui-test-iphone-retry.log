@@ -1,0 +1,460 @@
+Command line invocation:
+    /Applications/Xcode_27.1_Release_Candidate.app/Contents/Developer/usr/bin/xcodebuild test-without-building -project DinnerTogether.xcodeproj -scheme DinnerTogether -configuration Debug -derivedDataPath /Users/runner/work/dinner-together/dinner-together/native-validation/results/build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= -destination id=294F0BD7-DD62-43FF-B136-9026D3663DD5 -collect-test-diagnostics never "-only-testing:DinnerTogetherUITests/DinnerTogetherUITests/test09_tonightFirstLaunch" -resultBundlePath /Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone-ui-retry.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 360 -maximum-test-execution-time-allowance 480
+
+Build settings from command line:
+    CODE_SIGN_IDENTITY = 
+    CODE_SIGNING_ALLOWED = NO
+    CODE_SIGNING_REQUIRED = NO
+
+Writing result bundle at path:
+	/Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone-ui-retry.xcresult
+
+2026-10-17 09:53:07.537 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:07.537 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:10.969526+0000 DinnerTogetherUITests-Runner[28659:299971] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-10-17 09:53:14.918.
+Test Suite 'DinnerTogetherUITests.xctest' started at 2026-10-17 09:53:14.919.
+Test Suite 'DinnerTogetherUITests' started at 2026-10-17 09:53:14.920.
+Test Case '-[DinnerTogetherUITests.DinnerTogetherUITests test09_tonightFirstLaunch]' started.
+    t =     0.01s Start Test at 2026-10-17 09:53:14.930
+    t =     0.05s Set Up
+    t =     0.07s Open com.example.dinnertogether
+    t =     0.07s     Launch com.example.dinnertogether
+2026-10-17 09:53:16.016 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-17 09:53:16.016 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-10-17 09:53:16.288 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:16.289 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+objc[28659]: Class UIAccessibilityLoaderWebShared is implemented in both /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.94425.0.39gtTw/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.1.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebCore.axbundle/WebCore (0x105268310) and /private/var/run/com.apple.security.cryptexd/mnt/com.apple.iPhoneOS.SimulatorRuntime-v24.1.94425.0.39gtTw/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 27.1.simruntime/Contents/Resources/RuntimeRoot/System/Library/AccessibilityBundles/WebKit.axbundle/WebKit (0x10891c398). This may cause spurious casting failures and mysterious crashes. One of the duplicates must be removed or renamed.
+    t =     3.65s         Setting up automation session
+    t =     7.35s         Wait for com.example.dinnertogether to idle
+    t =    10.03s Waiting 10.0s for "tonight-primary" Button to exist
+    t =    11.05s     Checking `Expect predicate `existsNoRetry == 1` for object "tonight-primary" Button`
+    t =    11.05s         Checking existence of `"tonight-primary" Button`
+    t =    11.59s Find the "tonight-primary" Button
+    t =    14.16s Find the "tonight-primary" Button
+    t =    14.73s Waiting 5.0s for "Nothing chosen for tonight yet" StaticText to exist
+    t =    15.78s     Checking `Expect predicate `existsNoRetry == 1` for object "Nothing chosen for tonight yet" StaticText`
+    t =    15.78s         Checking existence of `"Nothing chosen for tonight yet" StaticText`
+    t =    15.99s Checking existence of `"table-time-no-dinner" Any`
+    t =    16.15s Checking existence of `"empty-cookbook" Any`
+    t =    16.30s Checking existence of `"tonight-cover" Any`
+    t =    16.49s Checking existence of `"open-recipes" Button`
+    t =    16.65s Checking existence of `"ON THE MENU" StaticText`
+    t =    16.79s Find the Target Application 'com.example.dinnertogether'
+    t =    16.86s Find the Target Application 'com.example.dinnertogether'
+    t =    16.92s Find the Target Application 'com.example.dinnertogether'
+    t =    17.21s Added attachment named '09-tonight-first-launch'
+    t =    17.21s Tap "tonight-primary" Button
+    t =    17.21s     Wait for com.example.dinnertogether to idle
+    t =    17.22s     Find the "tonight-primary" Button
+    t =    17.30s     Check for interrupting elements affecting "tonight-primary" Button
+    t =    17.37s         Wait for com.apple.springboard to idle
+    t =    17.43s     Synthesize event
+    t =    17.77s     Wait for com.example.dinnertogether to idle
+    t =    18.92s Waiting 10.0s for "import-recipe" Button to exist
+    t =    19.92s     Checking `Expect predicate `existsNoRetry == 1` for object "import-recipe" Button`
+    t =    19.92s         Checking existence of `"import-recipe" Button`
+    t =    20.15s Find the Target Application 'com.example.dinnertogether'
+    t =    20.24s Find the Target Application 'com.example.dinnertogether'
+    t =    20.28s Find the Target Application 'com.example.dinnertogether'
+    t =    20.45s Added attachment named '09-add-recipe-from-tonight'
+    t =    20.45s Waiting 3.0s for "Cancel" Button to exist
+    t =    21.46s     Checking `Expect predicate `existsNoRetry == 1` for object "Cancel" Button`
+    t =    21.46s         Checking existence of `"Cancel" Button`
+    t =    21.53s Waiting 10.0s for "Cancel" Button to exist
+    t =    22.53s     Checking `Expect predicate `existsNoRetry == 1` for object "Cancel" Button`
+    t =    22.53s         Checking existence of `"Cancel" Button`
+    t =    22.60s Find the "Cancel" Button
+    t =    22.67s Find the Window (First Match)
+    t =    22.69s Checking existence of `"Cancel" Button`
+    t =    23.01s Tap "Cancel" Button[0.50, 0.50]
+    t =    23.01s     Wait for com.example.dinnertogether to idle
+    t =    23.01s     Find the "Cancel" Button
+    t =    23.08s     Check for interrupting elements affecting "Cancel" Button
+    t =    23.14s         Wait for com.apple.springboard to idle
+    t =    23.20s     Synthesize event
+    t =    23.21s         Find the "Cancel" Button
+    t =    23.27s         Find the "Cancel" Button
+    t =    23.36s         Find the "Cancel" Button
+    t =    23.79s     Wait for com.example.dinnertogether to idle
+    t =    25.31s Checking `Expect predicate `exists == 0` for object "import-recipe" Button`
+    t =    25.32s     Checking existence of `"import-recipe" Button`
+    t =    25.55s Waiting 5.0s for "add-recipe" Button to exist
+    t =    26.60s     Checking `Expect predicate `existsNoRetry == 1` for object "add-recipe" Button`
+    t =    26.60s         Checking existence of `"add-recipe" Button`
+    t =    26.76s Get number of matches for: Elements matching predicate '"add-recipe" IN identifiers'
+    t =    26.82s Find the "add-recipe" Button
+    t =    26.97s Open com.example.dinnertogether
+    t =    26.97s     Launch com.example.dinnertogether
+    t =    26.98s         Terminate com.example.dinnertogether:28684
+2026-10-17 09:53:41.952 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:41.952 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:41.952 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:41.953 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:42.010 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:42.010 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:42.911 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-17 09:53:42.911 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-10-17 09:53:42.952 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:42.952 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+    t =    28.33s         Setting up automation session
+    t =    31.86s         Wait for com.example.dinnertogether to idle
+    t =    33.80s Waiting 10.0s for "cooking-empty" Any to exist
+    t =    34.82s     Checking `Expect predicate `existsNoRetry == 1` for object "cooking-empty" Any`
+    t =    34.82s         Checking existence of `"cooking-empty" Any`
+    t =    34.99s Find the Target Application 'com.example.dinnertogether'
+    t =    35.03s Find the Target Application 'com.example.dinnertogether'
+    t =    35.07s Find the Target Application 'com.example.dinnertogether'
+    t =    35.24s Added attachment named '09-cooking-empty'
+    t =    35.24s Open com.example.dinnertogether
+    t =    35.24s     Launch com.example.dinnertogether
+    t =    35.24s         Terminate com.example.dinnertogether:29791
+2026-10-17 09:53:50.234 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:50.234 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:50.235 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:50.235 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:50.242 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:50.242 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:53:51.255 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: debugger version lookup failed for path '<nil>': noURL
+2026-10-17 09:53:51.255 xcodebuild[28260:298879] [MT] IDELaunchParametersSnapshot: no debugger version
+2026-10-17 09:53:51.266 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:53:51.266 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+    t =    36.67s         Setting up automation session
+    t =    40.14s         Wait for com.example.dinnertogether to idle
+    t =    42.52s Waiting 10.0s for "tonight-primary" Button to exist
+    t =    43.58s     Checking `Expect predicate `existsNoRetry == 1` for object "tonight-primary" Button`
+    t =    43.58s         Checking existence of `"tonight-primary" Button`
+    t =    43.69s Waiting 10.0s for Button (First Match) to exist
+    t =    44.71s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    44.71s         Checking existence of `Button (First Match)`
+    t =    44.81s Checking existence of `Button (First Match)`
+    t =    44.89s Find the Button (First Match)
+    t =    45.01s Find the Target Application 'com.example.dinnertogether'
+    t =    45.12s Checking existence of `"thanksgiving-section" Button`
+    t =    45.22s Find the "thanksgiving-section" Button
+    t =    45.33s Checking existence of `"thanksgiving-section" Button`
+    t =    45.42s Find the "thanksgiving-section" Button
+    t =    45.50s Find the Target Application 'com.example.dinnertogether'
+    t =    45.55s Checking existence of `TabBar (First Match)`
+    t =    45.77s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    45.86s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    45.92s Find the Target Application 'com.example.dinnertogether'
+    t =    45.97s Find the Target Application 'com.example.dinnertogether'
+    t =    46.02s Get all elements bound by index for: Descendants matching type Button
+    t =    46.08s Find the Button (Element at index 0)
+    t =    46.14s Find the Button (Element at index 1)
+    t =    46.22s Find the Button (Element at index 2)
+    t =    46.28s Find the Button (Element at index 3)
+    t =    46.35s Find the Button (Element at index 4)
+    t =    46.40s Find the Button (Element at index 5)
+    t =    46.46s Find the Button (Element at index 6)
+    t =    46.53s Find the Button (Element at index 7)
+    t =    46.59s Find the Button (Element at index 8)
+    t =    46.68s Find the Button (Element at index 9)
+    t =    46.76s Find the Button (Element at index 10)
+    t =    46.83s Find the Button (Element at index 11)
+    t =    46.92s Find the Button (Element at index 12)
+    t =    47.00s Find the Button (Element at index 13)
+    t =    47.06s Find the Button (Element at index 14)
+    t =    47.12s Find the Button (Element at index 15)
+    t =    47.19s Find the Button (Element at index 16)
+    t =    47.26s Find the Button (Element at index 17)
+    t =    47.32s Press Target Application 'com.example.dinnertogether'[0.50, 0.55] for 0.1 seconds, then drag to Target Application 'com.example.dinnertogether'[0.50, 0.12] with velocity of 500.00 pixels per second, and then hold for 0.3 seconds 
+    t =    47.32s     Wait for com.example.dinnertogether to idle
+    t =    47.33s     Find the Target Application 'com.example.dinnertogether'
+    t =    47.38s     Check for interrupting elements affecting "Dinner, Together" Application
+    t =    47.44s         Wait for com.apple.springboard to idle
+    t =    47.49s     Synthesize event
+    t =    47.50s         Find the Target Application 'com.example.dinnertogether'
+    t =    47.55s         Find the Target Application 'com.example.dinnertogether'
+    t =    47.60s         Find the Target Application 'com.example.dinnertogether'
+    t =    47.64s         Find the Target Application 'com.example.dinnertogether'
+    t =    47.70s         Find the Target Application 'com.example.dinnertogether'
+    t =    48.97s     Wait for com.example.dinnertogether to idle
+    t =    50.97s Checking existence of `"thanksgiving-section" Button`
+    t =    51.04s Find the "thanksgiving-section" Button
+    t =    51.14s Checking existence of `"thanksgiving-section" Button`
+    t =    51.23s Checking existence of `"thanksgiving-section" Button`
+    t =    51.31s Checking existence of `"thanksgiving-section" Button`
+    t =    51.39s Find the "thanksgiving-section" Button
+    t =    51.49s Find the Target Application 'com.example.dinnertogether'
+    t =    51.54s Find the "thanksgiving-section" Button
+    t =    51.63s Find the Target Application 'com.example.dinnertogether'
+    t =    51.67s Checking existence of `TabBar (First Match)`
+    t =    51.89s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    51.95s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    52.01s Find the Target Application 'com.example.dinnertogether'
+    t =    52.05s Find the Target Application 'com.example.dinnertogether'
+    t =    52.10s Checking existence of `"thanksgiving-section" Button`
+    t =    52.17s Find the "thanksgiving-section" Button
+    t =    52.28s Checking existence of `"thanksgiving-section" Button`
+    t =    52.37s Find the "thanksgiving-section" Button
+    t =    52.47s Find the Target Application 'com.example.dinnertogether'
+    t =    52.53s Checking existence of `TabBar (First Match)`
+    t =    52.83s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    52.90s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    52.97s Find the Target Application 'com.example.dinnertogether'
+    t =    53.01s Find the Target Application 'com.example.dinnertogether'
+    t =    53.06s Get all elements bound by index for: Descendants matching type Button
+    t =    53.12s Find the Button (Element at index 0)
+    t =    53.18s Find the Button (Element at index 1)
+    t =    53.25s Find the Button (Element at index 2)
+    t =    53.31s Find the Button (Element at index 3)
+    t =    53.38s Find the Button (Element at index 4)
+    t =    53.43s Find the Button (Element at index 5)
+    t =    53.49s Find the Button (Element at index 6)
+    t =    53.55s Find the Button (Element at index 7)
+    t =    53.62s Find the Button (Element at index 8)
+    t =    53.68s Find the Button (Element at index 9)
+    t =    53.75s Find the Button (Element at index 10)
+    t =    53.81s Find the Button (Element at index 11)
+    t =    53.88s Find the Button (Element at index 12)
+    t =    53.94s Find the Button (Element at index 13)
+    t =    54.01s Find the Button (Element at index 14)
+    t =    54.06s Find the Button (Element at index 15)
+    t =    54.12s Find the Button (Element at index 16)
+    t =    54.21s Find the Button (Element at index 17)
+    t =    54.27s Press Target Application 'com.example.dinnertogether'[0.50, 0.55] for 0.1 seconds, then drag to Target Application 'com.example.dinnertogether'[0.50, 0.12] with velocity of 500.00 pixels per second, and then hold for 0.3 seconds 
+    t =    54.27s     Wait for com.example.dinnertogether to idle
+    t =    54.27s     Find the Target Application 'com.example.dinnertogether'
+    t =    54.32s     Check for interrupting elements affecting "Dinner, Together" Application
+    t =    54.37s         Wait for com.apple.springboard to idle
+    t =    54.41s     Synthesize event
+    t =    54.42s         Find the Target Application 'com.example.dinnertogether'
+    t =    54.46s         Find the Target Application 'com.example.dinnertogether'
+    t =    54.50s         Find the Target Application 'com.example.dinnertogether'
+    t =    54.53s         Find the Target Application 'com.example.dinnertogether'
+    t =    54.58s         Find the Target Application 'com.example.dinnertogether'
+    t =    55.85s     Wait for com.example.dinnertogether to idle
+    t =    56.79s Checking existence of `"thanksgiving-section" Button`
+    t =    56.84s Find the "thanksgiving-section" Button
+    t =    56.92s Checking existence of `"thanksgiving-section" Button`
+    t =    56.97s Checking existence of `"thanksgiving-section" Button`
+    t =    57.01s Checking existence of `"thanksgiving-section" Button`
+    t =    57.08s Find the "thanksgiving-section" Button
+    t =    57.15s Find the Target Application 'com.example.dinnertogether'
+    t =    57.23s Find the "thanksgiving-section" Button
+    t =    57.29s Find the Target Application 'com.example.dinnertogether'
+    t =    57.34s Checking existence of `TabBar (First Match)`
+    t =    57.50s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    57.57s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    57.63s Find the Target Application 'com.example.dinnertogether'
+    t =    57.69s Checking existence of `"thanksgiving-section" Button`
+    t =    57.74s Find the "thanksgiving-section" Button
+    t =    57.81s Find the Target Application 'com.example.dinnertogether'
+    t =    57.86s Find the "thanksgiving-section" Button
+    t =    57.92s Find the Target Application 'com.example.dinnertogether'
+    t =    57.96s Checking existence of `TabBar (First Match)`
+    t =    58.13s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    58.18s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    58.25s Find the Target Application 'com.example.dinnertogether'
+    t =    58.29s Find the "thanksgiving-section" Button
+    t =    58.64s Find the "thanksgiving-section" Button
+    t =    58.70s Checking existence of `"thanksgiving-section" Button`
+    t =    58.75s Find the "thanksgiving-section" Button
+    t =    58.81s Find the Target Application 'com.example.dinnertogether'
+    t =    58.85s Checking existence of `TabBar (First Match)`
+    t =    58.99s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    59.04s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    59.11s Find the "thanksgiving-section" Button
+    t =    59.17s Find the "thanksgiving-section" Button
+    t =    59.25s Tap "thanksgiving-section" Button
+    t =    59.25s     Wait for com.example.dinnertogether to idle
+    t =    59.25s     Find the "thanksgiving-section" Button
+    t =    59.31s     Check for interrupting elements affecting "thanksgiving-section" Button
+    t =    59.36s         Wait for com.apple.springboard to idle
+    t =    59.41s     Synthesize event
+    t =    59.73s     Wait for com.example.dinnertogether to idle
+    t =    60.03s Waiting 4.0s for "Selected: Thanksgiving, together" StaticText to exist
+    t =    61.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Selected: Thanksgiving, together" StaticText`
+    t =    61.05s         Checking existence of `"Selected: Thanksgiving, together" StaticText`
+    t =    61.11s Waiting 5.0s for "Selected: Thanksgiving, together" StaticText to exist
+    t =    62.13s     Checking `Expect predicate `existsNoRetry == 1` for object "Selected: Thanksgiving, together" StaticText`
+    t =    62.13s         Checking existence of `"Selected: Thanksgiving, together" StaticText`
+    t =    62.20s Find the "tonight-primary" Button
+    t =    62.27s Find the "tonight-primary" Button
+    t =    62.31s Find the Target Application 'com.example.dinnertogether'
+    t =    62.35s Find the Target Application 'com.example.dinnertogether'
+    t =    62.39s Find the Target Application 'com.example.dinnertogether'
+    t =    62.53s Added attachment named '09-tonight-thanksgiving'
+    t =    62.53s Waiting 10.0s for "thanksgiving-section" Button to exist
+    t =    63.59s     Checking `Expect predicate `existsNoRetry == 1` for object "thanksgiving-section" Button`
+    t =    63.59s         Checking existence of `"thanksgiving-section" Button`
+    t =    63.65s Checking existence of `"thanksgiving-section" Button`
+    t =    63.69s Find the "thanksgiving-section" Button
+    t =    63.75s Find the Target Application 'com.example.dinnertogether'
+    t =    63.81s Find the "thanksgiving-section" Button
+    t =    63.86s Find the Target Application 'com.example.dinnertogether'
+    t =    63.90s Checking existence of `TabBar (First Match)`
+    t =    64.06s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    64.13s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    64.18s Checking existence of `Button (Element at index 0)`
+    t =    64.26s Find the Button (Element at index 0)
+    t =    64.32s Find the "tonight-primary" Button
+    t =    64.37s Find the Target Application 'com.example.dinnertogether'
+    t =    64.41s Find the "tonight-primary" Button
+    t =    64.47s Find the Target Application 'com.example.dinnertogether'
+    t =    64.51s Find the "tonight-primary" Button
+    t =    64.56s Checking existence of `StaticText (Element at index 0)`
+    t =    64.61s Find the StaticText (Element at index 0)
+    t =    64.67s Find the "Selected: Thanksgiving, together" StaticText
+    t =    64.72s Find the Target Application 'com.example.dinnertogether'
+    t =    64.76s Find the "Selected: Thanksgiving, together" StaticText
+    t =    64.81s Find the Target Application 'com.example.dinnertogether'
+    t =    64.85s Find the "Selected: Thanksgiving, together" StaticText
+    t =    64.92s Find the "tonight-primary" Button
+    t =    64.98s Find the "Selected: Thanksgiving, together" StaticText
+    t =    65.03s Find the Target Application 'com.example.dinnertogether'
+    t =    65.08s Checking existence of `"thanksgiving-section" Button`
+    t =    65.13s Find the "thanksgiving-section" Button
+    t =    65.21s Find the Target Application 'com.example.dinnertogether'
+    t =    65.26s Find the "thanksgiving-section" Button
+    t =    65.31s Find the Target Application 'com.example.dinnertogether'
+    t =    65.35s Checking existence of `TabBar (First Match)`
+    t =    65.49s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    65.55s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    65.60s Checking existence of `Button (Element at index 0)`
+    t =    65.65s Find the Button (Element at index 0)
+    t =    65.72s Find the "tonight-primary" Button
+    t =    65.77s Find the Target Application 'com.example.dinnertogether'
+    t =    65.80s Find the "tonight-primary" Button
+    t =    65.87s Find the Target Application 'com.example.dinnertogether'
+    t =    65.90s Find the "tonight-primary" Button
+    t =    65.96s Checking existence of `StaticText (Element at index 0)`
+    t =    66.01s Find the StaticText (Element at index 0)
+    t =    66.07s Find the "Selected: Thanksgiving, together" StaticText
+    t =    66.13s Find the Target Application 'com.example.dinnertogether'
+    t =    66.17s Find the "Selected: Thanksgiving, together" StaticText
+    t =    66.23s Find the Target Application 'com.example.dinnertogether'
+    t =    66.27s Find the "Selected: Thanksgiving, together" StaticText
+    t =    66.34s Find the "tonight-primary" Button
+    t =    66.40s Find the "Selected: Thanksgiving, together" StaticText
+    t =    66.45s Find the Target Application 'com.example.dinnertogether'
+    t =    66.50s Find the "thanksgiving-section" Button
+    t =    66.81s Find the "thanksgiving-section" Button
+    t =    66.87s Checking existence of `"thanksgiving-section" Button`
+    t =    66.92s Find the "thanksgiving-section" Button
+    t =    66.97s Find the Target Application 'com.example.dinnertogether'
+    t =    67.02s Checking existence of `TabBar (First Match)`
+    t =    67.16s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    67.22s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    67.29s Checking existence of `Button (Element at index 0)`
+    t =    67.34s Find the Button (Element at index 0)
+    t =    67.40s Find the "tonight-primary" Button
+    t =    67.45s Find the Target Application 'com.example.dinnertogether'
+    t =    67.50s Find the "tonight-primary" Button
+    t =    67.54s Find the Target Application 'com.example.dinnertogether'
+    t =    67.58s Find the "tonight-primary" Button
+    t =    67.64s Checking existence of `StaticText (Element at index 0)`
+    t =    67.69s Find the StaticText (Element at index 0)
+    t =    67.74s Find the "Selected: Thanksgiving, together" StaticText
+    t =    67.80s Find the Target Application 'com.example.dinnertogether'
+    t =    67.83s Find the "Selected: Thanksgiving, together" StaticText
+    t =    67.89s Find the Target Application 'com.example.dinnertogether'
+    t =    67.93s Find the "Selected: Thanksgiving, together" StaticText
+    t =    67.99s Find the "tonight-primary" Button
+    t =    68.05s Find the "Selected: Thanksgiving, together" StaticText
+    t =    68.12s Find the "thanksgiving-section" Button
+    t =    68.22s Find the "thanksgiving-section" Button
+    t =    68.34s Tap "thanksgiving-section" Button
+    t =    68.34s     Wait for com.example.dinnertogether to idle
+    t =    68.35s     Find the "thanksgiving-section" Button
+    t =    68.44s     Check for interrupting elements affecting "thanksgiving-section" Button
+    t =    68.51s         Wait for com.apple.springboard to idle
+    t =    68.57s     Synthesize event
+    t =    68.90s     Wait for com.example.dinnertogether to idle
+    t =    68.91s Waiting 5.0s for "Nothing chosen for tonight yet" StaticText to exist
+    t =    69.95s     Checking `Expect predicate `existsNoRetry == 1` for object "Nothing chosen for tonight yet" StaticText`
+    t =    69.95s         Checking existence of `"Nothing chosen for tonight yet" StaticText`
+    t =    70.00s Find the "thanksgiving-section" Button
+    t =    70.05s Find the Target Application 'com.example.dinnertogether'
+    t =    70.09s Find the Target Application 'com.example.dinnertogether'
+    t =    70.13s Find the Target Application 'com.example.dinnertogether'
+    t =    70.28s Added attachment named '09-tonight-thanksgiving-unchecked'
+    t =    70.29s Waiting 10.0s for "thanksgiving-section" Button to exist
+    t =    71.32s     Checking `Expect predicate `existsNoRetry == 1` for object "thanksgiving-section" Button`
+    t =    71.32s         Checking existence of `"thanksgiving-section" Button`
+    t =    71.39s Checking existence of `"thanksgiving-section" Button`
+    t =    71.44s Find the "thanksgiving-section" Button
+    t =    71.53s Find the Target Application 'com.example.dinnertogether'
+    t =    71.58s Find the "thanksgiving-section" Button
+    t =    71.63s Find the Target Application 'com.example.dinnertogether'
+    t =    71.67s Checking existence of `TabBar (First Match)`
+    t =    71.82s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    71.88s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    71.94s Find the Target Application 'com.example.dinnertogether'
+    t =    71.98s Checking existence of `"thanksgiving-section" Button`
+    t =    72.03s Find the "thanksgiving-section" Button
+    t =    72.09s Find the Target Application 'com.example.dinnertogether'
+    t =    72.14s Find the "thanksgiving-section" Button
+    t =    72.19s Find the Target Application 'com.example.dinnertogether'
+    t =    72.24s Checking existence of `TabBar (First Match)`
+    t =    72.38s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    72.43s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    72.49s Find the Target Application 'com.example.dinnertogether'
+    t =    72.53s Find the "thanksgiving-section" Button
+    t =    72.85s Find the "thanksgiving-section" Button
+    t =    72.93s Checking existence of `"thanksgiving-section" Button`
+    t =    72.97s Find the "thanksgiving-section" Button
+    t =    73.02s Find the Target Application 'com.example.dinnertogether'
+    t =    73.07s Checking existence of `TabBar (First Match)`
+    t =    73.23s Get all elements bound by index for: Elements matching predicate 'identifier IN {"cook-this-recipe", "timing-looks-right", "use-cover-crop", "recipe-time-save"} OR label BEGINSWITH "Build " OR label == "Back to cooking" OR label BEGINSWITH "Save "'
+    t =    73.30s Get all elements bound by index for: Elements matching predicate 'label BEGINSWITH "Selected: " OR label BEGINSWITH "This is tonight"'
+    t =    73.36s Find the "thanksgiving-section" Button
+    t =    73.43s Find the "thanksgiving-section" Button
+    t =    73.50s Tap "thanksgiving-section" Button
+    t =    73.50s     Wait for com.example.dinnertogether to idle
+    t =    73.51s     Find the "thanksgiving-section" Button
+    t =    73.57s     Check for interrupting elements affecting "thanksgiving-section" Button
+    t =    73.62s         Wait for com.apple.springboard to idle
+    t =    73.67s     Synthesize event
+    t =    73.99s     Wait for com.example.dinnertogether to idle
+    t =    73.99s Waiting 5.0s for "Selected: Thanksgiving, together" StaticText to exist
+    t =    75.05s     Checking `Expect predicate `existsNoRetry == 1` for object "Selected: Thanksgiving, together" StaticText`
+    t =    75.05s         Checking existence of `"Selected: Thanksgiving, together" StaticText`
+    t =    75.10s Find the "tonight-primary" Button
+    t =    75.15s Tap "tonight-primary" Button
+    t =    75.15s     Wait for com.example.dinnertogether to idle
+    t =    75.16s     Find the "tonight-primary" Button
+    t =    75.20s     Check for interrupting elements affecting "tonight-primary" Button
+    t =    75.27s         Wait for com.apple.springboard to idle
+    t =    75.32s     Synthesize event
+    t =    75.64s     Wait for com.example.dinnertogether to idle
+    t =    76.82s Waiting 10.0s for "serving-time" StaticText to exist
+    t =    77.85s     Checking `Expect predicate `existsNoRetry == 1` for object "serving-time" StaticText`
+    t =    77.85s         Checking existence of `"serving-time" StaticText`
+    t =    78.01s Find the Target Application 'com.example.dinnertogether'
+    t =    78.10s Find the Target Application 'com.example.dinnertogether'
+    t =    78.17s Find the Target Application 'com.example.dinnertogether'
+    t =    78.43s Added attachment named '09-tonight-into-cooking'
+    t =    78.44s Tear Down
+Test Case '-[DinnerTogetherUITests.DinnerTogetherUITests test09_tonightFirstLaunch]' passed (78.659 seconds).
+Test Suite 'DinnerTogetherUITests' passed at 2026-10-17 09:54:33.589.
+	 Executed 1 test, with 0 failures (0 unexpected) in 78.659 (78.669) seconds
+Test Suite 'DinnerTogetherUITests.xctest' passed at 2026-10-17 09:54:33.590.
+	 Executed 1 test, with 0 failures (0 unexpected) in 78.659 (78.670) seconds
+Test Suite 'Selected tests' passed at 2026-10-17 09:54:33.590.
+	 Executed 1 test, with 0 failures (0 unexpected) in 78.659 (78.672) seconds
+2026-10-17 09:54:33.657 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.658 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:33.658 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.658 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:33.658 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.659 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:33.729 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.759 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:33.760 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.760 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:33.762 xcodebuild[28260:298879] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:54:33.808 xcodebuild[28260:298879] [MT] IDESchemeActionDeviceRecord: versionAndBuild = 27.1 (24A94425), error = invalidDigitCount(94425).
+2026-10-17 09:54:34.065 xcodebuild[28260:298879] [MT] IDETestOperationsObserverDebug: 86.694 elapsed -- Testing started completed.
+2026-10-17 09:54:34.065 xcodebuild[28260:298879] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-17 09:54:34.065 xcodebuild[28260:298879] [MT] IDETestOperationsObserverDebug: 86.694 sec, +86.694 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone-ui-retry.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

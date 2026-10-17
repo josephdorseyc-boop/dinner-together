@@ -1,0 +1,160 @@
+Optional(Attributes: Application, 0x116069b80, pid: 54458, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x116069b80, pid: 54458, label: 'Dinner, Together'
+    Window (Main), 0x116069cc0, {{0.0, 0.0}, {466.0, 678.0}}
+      Other, 0x116069e00, {{0.0, 0.0}, {466.0, 678.0}}
+      Other, 0x116069f40, {{0.0, 0.0}, {466.0, 678.0}}
+        Other, 0x11606a080, {{0.0, 0.0}, {466.0, 678.0}}
+          Other, 0x11606a1c0, {{-466.0, -678.0}, {1398.0, 2034.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup'
+          Other, 0x11606a300, {{0.0, 0.0}, {466.0, 678.0}}
+            Other, 0x11606a440, {{0.0, 0.0}, {466.0, 678.0}}
+              Other, 0x11606a580, {{0.0, 0.0}, {382.0, 644.0}}
+              Other, 0x11606a6c0, {{0.0, 0.0}, {382.0, 644.0}}
+              Other, 0x11606a800, {{0.0, 0.0}, {382.0, 644.0}}
+              Other, 0x11606a940, {{0.0, 0.0}, {466.0, 678.0}}
+                Other, 0x11606aa80, {{0.0, 0.0}, {466.0, 678.0}}
+                  Other, 0x11606abc0, {{0.0, 0.0}, {466.0, 678.0}}
+                    Other, 0x11606ad00, {{0.0, 0.0}, {466.0, 678.0}}
+                      Other, 0x11606ae40, {{0.0, 0.0}, {466.0, 678.0}}
+                        Other, 0x11606af80, {{0.0, 0.0}, {466.0, 678.0}}
+                          Other, 0x11606b0c0, {{0.0, 0.0}, {466.0, 678.0}}
+                            NavigationBar, 0x11606b200, {{0.0, 24.0}, {466.0, 58.0}}, identifier: 'Recipes'
+                              StaticText, 0x11606b340, {{20.0, 37.7}, {63.0, 20.7}}, label: 'Recipes'
+                            Other, 0x11606b480, {{0.0, 0.0}, {466.0, 678.0}}
+                              Other, 0x11606b5c0, {{0.0, 0.0}, {466.0, 678.0}}
+                                Other, 0x11606b700, {{0.0, 0.0}, {466.0, 678.0}}
+                                  Other, 0x11606b840, {{0.0, 0.0}, {466.0, 678.0}}
+                                    CollectionView, 0x11606b980, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'recipe-library'
+                                      Other, 0x11606bac0, {{0.0, -1274.0}, {466.0, 3178.3}}
+                                      Other, 0x11606bc00, {{0.0, 0.0}, {466.0, 678.0}}
+                                        Other, 0x11606bd40, {{0.0, 0.0}, {466.0, 122.0}}
+                                      Other, 0x11606be80, {{0.0, 0.0}, {466.0, 678.0}}
+                                      Cell, 0x116037e80, {{0.0, 82.0}, {466.0, 146.0}}
+                                        Other, 0x11607c000, {{0.0, 82.0}, {466.0, 146.0}}
+                                          Other, 0x11607c140, {{0.0, 82.0}, {466.0, 146.0}}
+                                            Other, 0x11607c280, {{0.0, 82.0}, {466.0, 146.0}}
+                                              Other, 0x11607c3c0, {{0.0, 82.0}, {466.0, 146.0}}
+                                        Other, 0x11607c500, {{0.0, 82.0}, {382.0, 146.0}}
+                                          Other, 0x11607c640, {{0.0, 82.0}, {382.0, 146.0}}
+                                            Other, 0x11607c780, {{0.0, 82.0}, {382.0, 146.0}}
+                                              StaticText, 0x11607c8c0, {{24.0, 106.0}, {213.7, 81.7}}, label: 'Your kitchen, collected.'
+                                              StaticText, 0x11607ca00, {{24.0, 195.7}, {237.3, 20.3}}, label: 'Your favorites, ready for dinner.'
+                                      Cell, 0x11607cb40, {{0.0, 228.0}, {466.0, 52.0}}
+                                        Other, 0x11607cc80, {{0.0, 228.0}, {466.0, 52.0}}
+                                          Other, 0x11607cdc0, {{0.0, 228.0}, {466.0, 52.0}}
+                                            Other, 0x11607cf00, {{0.0, 228.0}, {466.0, 52.0}}
+                                              Other, 0x11607d040, {{0.0, 228.0}, {466.0, 52.0}}
+                                        Other, 0x11607d180, {{0.0, 228.0}, {382.0, 52.0}}
+                                          Other, 0x11607d2c0, {{0.0, 228.0}, {382.0, 52.0}}
+                                            Other, 0x11607d400, {{0.0, 228.0}, {382.0, 52.0}}
+                                              StaticText, 0x11607d540, {{0.0, 228.0}, {466.0, 52.0}}, label: 'YOUR RECIPES'
+                                      Cell, 0x11607d680, {{0.0, 280.0}, {466.0, 216.3}}
+                                        Other, 0x11607d7c0, {{0.0, 280.0}, {466.0, 216.3}}
+                                          Other, 0x11607d900, {{0.0, 280.0}, {466.0, 216.3}}
+                                            Other, 0x11607da40, {{0.0, 280.0}, {466.0, 216.3}}
+                                              Other, 0x11607db80, {{0.0, 280.0}, {466.0, 216.3}}
+                                        Other, 0x11607dcc0, {{0.0, 280.0}, {382.0, 216.3}}
+                                          Other, 0x11607de00, {{0.0, 280.0}, {382.0, 216.3}}
+                                            Other, 0x11607df40, {{0.0, 280.0}, {382.0, 216.3}}
+                                              StaticText, 0x11607e080, {{46.0, 309.0}, {254.3, 20.3}}, label: 'Cook your own recipes, on time.'
+                                              StaticText, 0x11607e1c0, {{46.0, 341.3}, {266.0, 58.0}}, label: 'Add a recipe link, screenshots, or text. Check the imported steps and timing before cooking.'
+                                              Button, 0x11607e300, {{46.0, 411.3}, {290.0, 56.0}}, identifier: 'add-recipe', label: 'Add your first recipe'
+                                                Image, 0x11607e440, {{93.3, 430.3}, {18.0, 18.0}}, identifier: 'plus', label: 'Add'
+                                                StaticText, 0x11607e580, {{93.3, 429.2}, {198.3, 20.3}}, label: 'Add your first recipe'
+                                      Cell, 0x11607e6c0, {{0.0, 496.3}, {466.0, 52.0}}
+                                        Other, 0x11607e800, {{0.0, 496.3}, {466.0, 52.0}}
+                                          Other, 0x11607e940, {{0.0, 496.3}, {466.0, 52.0}}
+                                            Other, 0x11607ea80, {{0.0, 496.3}, {466.0, 52.0}}
+                                              Other, 0x11607ebc0, {{0.0, 496.3}, {466.0, 52.0}}
+                                        Other, 0x11607ed00, {{0.0, 496.3}, {382.0, 52.0}}
+                                          Other, 0x11607ee40, {{0.0, 496.3}, {382.0, 52.0}}
+                                            Other, 0x11607ef80, {{0.0, 496.3}, {382.0, 52.0}}
+                                              Other, 0x11607f0c0, {{0.0, 496.3}, {466.0, 52.0}}
+                                      Other, 0x11607f200, {{349.0, 82.0}, {30.0, 537.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                        Other, 0x11607f340, {{376.0, 609.0}, {3.0, 7.0}}
+                                      Other, 0x11607f480, {{349.0, 82.0}, {30.0, 537.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                        Other, 0x11607f5c0, {{376.0, 609.0}, {3.0, 7.0}}
+                            Toolbar, 0x11607f700, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                              Other, 0x11607f840, {{0.0, 0.0}, {466.0, 678.0}}
+                Other, 0x11607f980, {{0.0, 0.0}, {466.0, 678.0}}
+                  Toolbar, 0x11607fac0, {{0.0, 0.0}, {466.0, 678.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x11607fc00, {{0.0, 0.0}, {466.0, 678.0}}
+                      Other, 0x11607fd40, {{0.0, 0.0}, {466.0, 678.0}}
+                        Other, 0x11607fe80, {{0.0, 0.0}, {466.0, 678.0}}
+                          Other, 0x1160a4000, {{0.0, 0.0}, {0.0, 0.0}}
+                            Other, 0x1160a4140, {{394.0, 492.0}, {48.0, 162.0}}
+                              Other, 0x1160a4280, {{394.0, 492.0}, {48.0, 162.0}}
+                                Other, 0x1160a43c0, {{394.0, 492.0}, {48.0, 162.0}}
+                                  Other, 0x1160a4500, {{394.0, 492.0}, {48.0, 162.0}}
+                                    Other, 0x1160a4640, {{394.0, 492.0}, {48.0, 162.0}}
+                                      Other, 0x1160a4780, {{394.0, 492.0}, {48.0, 162.0}}
+                                        Other, 0x1160a48c0, {{394.0, 492.0}, {44.0, 58.0}}
+                                        Other, 0x1160a4a00, {{394.0, 492.0}, {48.0, 162.0}}
+                                          Button, 0x1160a4b40, {{396.0, 494.0}, {44.0, 58.0}}, identifier: 'fork.knife', label: 'Tonight'
+                                            Image, 0x1160a4c80, {{407.3, 506.7}, {21.7, 30.7}}, identifier: 'fork.knife', label: 'Food'
+                                          Button, 0x1160a4dc0, {{396.0, 544.0}, {44.0, 58.0}}, identifier: 'timer', label: 'Cooking'
+                                            Image, 0x1160a4f00, {{404.3, 559.3}, {27.3, 27.3}}, identifier: 'timer', label: 'Timer'
+                                          Button, 0x1160a5040, {{396.0, 594.0}, {44.0, 58.0}}, identifier: 'book.closed', label: 'Recipes', Selected
+                                            Image, 0x1160a5180, {{405.3, 608.7}, {25.3, 28.7}}, identifier: 'book.closed.fill', label: 'Closed book, filled'
+                                        Other, 0x1160a52c0, {{394.0, 492.0}, {48.0, 162.0}}
+                                        Other, 0x1160a5400, {{394.0, 492.0}, {48.0, 162.0}}
+                                          Other, 0x1160a5540, {{394.0, 492.0}, {48.0, 162.0}}
+                                            Other, 0x1160a5680, {{394.0, 492.0}, {48.0, 162.0}}
+                                              Other, 0x1160a57c0, {{394.0, 492.0}, {48.0, 162.0}}
+                                                Other, 0x1160a5900, {{394.0, 492.0}, {48.0, 162.0}}
+                                        Other, 0x1160a5a40, {{396.0, 594.0}, {44.0, 58.0}}
+                                          Other, 0x1160a5b80, {{396.0, 594.0}, {44.0, 58.0}}
+                                            Other, 0x1160a5cc0, {{396.0, 594.0}, {44.0, 58.0}}
+                                            Other, 0x1160a5e00, {{396.0, 594.0}, {44.0, 58.0}}
+                                              Other, 0x1160a5f40, {{396.0, 594.0}, {44.0, 58.0}}
+                                                Other, 0x1160a6080, {{396.0, 594.0}, {44.0, 58.0}}
+                                                  Other, 0x1160a61c0, {{396.0, 594.0}, {44.0, 58.0}}
+                                                Other, 0x1160a6300, {{396.0, 594.0}, {44.0, 58.0}}
+                                              Other, 0x1160a6440, {{396.0, 594.0}, {44.0, 58.0}}
+      Other, 0x1160a6580, {{0.0, 0.0}, {466.0, 678.0}}
+        Other, 0x1160a66c0, {{-466.0, -678.0}, {1398.0, 2034.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup'
+        Other, 0x1160a6800, {{8.0, 8.0}, {450.0, 670.0}}
+          Other, 0x1160a6940, {{8.0, 8.0}, {450.0, 670.0}}
+            Other, 0x1160a6a80, {{8.0, 8.0}, {450.0, 670.0}}
+              Other, 0x1160a6bc0, {{8.0, 8.0}, {450.0, 670.0}}
+                Other, 0x1160a6d00, {{8.0, 8.0}, {450.0, 670.0}}
+                  NavigationBar, 0x1160a6e40, {{8.0, 24.0}, {450.0, 58.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                    Other, 0x1160a6f80, {{28.0, 30.0}, {76.7, 36.0}}
+                      Other, 0x1160a70c0, {{28.0, 30.0}, {76.7, 36.0}}
+                        Button, 0x1160a7200, {{28.0, 30.0}, {76.7, 36.0}}, label: 'Cancel'
+                  Other, 0x1160a7340, {{8.0, 8.0}, {450.0, 670.0}}
+                    Other, 0x1160a7480, {{8.0, 8.0}, {450.0, 670.0}}
+                      Other, 0x1160a75c0, {{8.0, 8.0}, {450.0, 670.0}}
+                        Other, 0x1160a7700, {{8.0, 8.0}, {450.0, 670.0}}
+                          ScrollView, 0x1160a7840, {{8.0, 8.0}, {450.0, 670.0}}
+                            Other, 0x1160a7980, {{8.0, 8.0}, {450.0, 670.0}}
+                              Other, 0x1160a7ac0, {{8.0, 8.0}, {450.0, 114.0}}
+                            Other, 0x1160a7c00, {{8.0, 8.0}, {450.0, 670.0}}
+                            Other, 0x1160a7d40, {{8.0, 82.0}, {374.0, 505.0}}
+                              StaticText, 0x1160a7e80, {{32.0, 106.0}, {192.7, 40.7}}, label: 'Add a recipe'
+                              StaticText, 0x1160cc000, {{32.0, 154.7}, {326.0, 64.3}}, label: 'Paste a recipe link, choose screenshots, or paste the text. Your saved recipe stays on this device.'
+                              SegmentedControl, 0x1160cc140, {{32.0, 241.0}, {326.0, 31.0}}
+                                Button, 0x1160cc280, {{32.0, 241.0}, {108.0, 32.0}}, label: 'Link', Selected
+                                Button, 0x1160cc3c0, {{140.0, 241.0}, {109.0, 32.0}}, label: 'Screenshots'
+                                Button, 0x1160cc500, {{249.0, 241.0}, {109.0, 32.0}}, label: 'Text'
+                              TextField, 0x1160cc640, {{32.0, 294.0}, {326.0, 50.0}}, identifier: 'recipe-link', placeholderValue: 'https://'
+                              Button, 0x1160cc780, {{32.0, 356.0}, {87.3, 34.3}}, label: 'Paste'
+                              StaticText, 0x1160cc8c0, {{32.0, 402.3}, {280.7, 30.3}}, label: 'In Safari or Apple News: Share → Copy Link, then Paste here.'
+                              Button, 0x1160cca00, {{32.0, 454.7}, {326.0, 56.0}}, identifier: 'import-recipe', label: 'Add recipe', Disabled
+                                StaticText, 0x1160ccb40, {{141.0, 472.5}, {110.2, 20.3}}, label: 'Add recipe', Disabled
+                                Image, 0x1160ccc80, {{141.0, 473.7}, {14.7, 18.3}}, identifier: 'arrow.down.doc', label: 'Next Page', Disabled
+                              StaticText, 0x1160ccdc0, {{32.0, 532.7}, {318.0, 30.3}}, label: 'Link import needs internet access. Review the imported recipe and any estimated times before cooking.'
+                            Other, 0x1160ccf00, {{425.0, 82.0}, {30.0, 570.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x1160cd040, {{452.0, 176.3}, {3.0, 447.7}}
+                            Other, 0x1160cd180, {{425.0, 82.0}, {30.0, 570.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                              Other, 0x1160cd2c0, {{452.0, 176.3}, {3.0, 447.7}}
+                  Toolbar, 0x1160cd400, {{8.0, 8.0}, {450.0, 670.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                    Other, 0x1160cd540, {{8.0, 8.0}, {450.0, 670.0}}
+Path to element:
+ →Application, 0x116069b80, pid: 54458, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x1160cd680, pid: 54458, label: 'Dinner, Together'
+  }
+)
