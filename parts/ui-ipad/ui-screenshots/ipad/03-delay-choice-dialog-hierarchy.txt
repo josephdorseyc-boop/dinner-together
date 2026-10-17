@@ -1,0 +1,271 @@
+Optional(Attributes: Application, 0x1036679f0, pid: 41349, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x1036679f0, pid: 41349, label: 'Dinner, Together'
+    Window (Main), 0x10366cf40, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x103665970, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x10366d600, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x10366d2a0, {{0.0, 0.0}, {820.0, 1180.0}}
+          Other, 0x103665cc0, {{0.0, 0.0}, {820.0, 1180.0}}
+            Other, 0x1036652c0, {{0.0, 0.0}, {820.0, 1180.0}}
+              Other, 0x103666c40, {{0.0, 0.0}, {820.0, 1180.0}}
+                Other, 0x10366d970, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x1036bbd90, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x1036bcf60, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x1036bd2e0, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x1036bdce0, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Other, 0x1036be060, {{10.0, 32.0}, {320.0, 1138.0}}
+                      Other, 0x1036bd980, {{10.0, 32.0}, {320.0, 1138.0}}
+                        Other, 0x1036bc470, {{10.0, 32.0}, {320.0, 1138.0}}
+                          NavigationBar, 0x10366cbd0, {{10.0, 32.0}, {320.0, 54.0}}, identifier: 'Dinner, Together'
+                            StaticText, 0x10365d4a0, {{110.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                            Button, 0x103668e60, {{271.5, 36.0}, {54.5, 36.0}}, label: 'Hide Sidebar'
+                          Other, 0x1036687b0, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x103794000, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x103794500, {{10.0, 32.0}, {320.0, 1138.0}}
+                                Other, 0x103793a30, {{10.0, 32.0}, {320.0, 1138.0}}
+                                  CollectionView, 0x103798950, {{10.0, 32.0}, {320.0, 1138.0}}, label: 'Sidebar'
+                                    Other, 0x103798a70, {{-6.0, -2190.0}, {352.0, 4718.0}}
+                                    Other, 0x103798b90, {{10.0, 32.0}, {320.0, 1138.0}}
+                                      Other, 0x103798cb0, {{10.0, 32.0}, {320.0, 108.8}}
+                                    Other, 0x103798dd0, {{10.0, 32.0}, {320.0, 1138.0}}
+                                    Cell, 0x103798ef0, {{26.0, 86.0}, {288.0, 52.0}}
+                                      Other, 0x103799010, {{26.0, 86.0}, {288.0, 52.0}}
+                                      Other, 0x103799130, {{26.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x103799250, {{26.0, 86.0}, {288.0, 52.0}}
+                                          Other, 0x103799370, {{26.0, 86.0}, {288.0, 52.0}}
+                                            Image, 0x103799490, {{47.0, 99.5}, {14.5, 25.0}}, identifier: 'fork.knife', label: 'Food'
+                                            StaticText, 0x1037995b0, {{26.0, 86.0}, {288.0, 52.0}}, label: 'Tonight'
+                                    Cell, 0x1037996d0, {{26.0, 138.0}, {288.0, 52.0}}, Selected
+                                      Other, 0x1037997f0, {{26.0, 138.0}, {288.0, 52.0}}
+                                        Other, 0x103799910, {{26.0, 138.0}, {288.0, 52.0}}
+                                          Other, 0x103799a30, {{26.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x103799b50, {{26.0, 138.0}, {288.0, 52.0}}
+                                        Other, 0x103799c70, {{26.0, 138.0}, {288.0, 52.0}}
+                                          Other, 0x103799d90, {{26.0, 138.0}, {288.0, 52.0}}
+                                            Image, 0x103799eb0, {{43.0, 153.0}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer', Selected
+                                            StaticText, 0x103799fd0, {{26.0, 138.0}, {288.0, 52.0}}, label: 'Cooking', Selected
+                                    Cell, 0x10379a0f0, {{26.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x10379a210, {{26.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x10379a330, {{26.0, 190.0}, {288.0, 52.0}}
+                                        Other, 0x10379a450, {{26.0, 190.0}, {288.0, 52.0}}
+                                          Other, 0x10379a570, {{26.0, 190.0}, {288.0, 52.0}}
+                                            Image, 0x10379a690, {{45.0, 204.5}, {18.0, 23.0}}, identifier: 'book.closed', label: 'book.closed'
+                                            StaticText, 0x10379a7b0, {{26.0, 190.0}, {288.0, 52.0}}, label: 'Recipes'
+                                    Other, 0x10379a8d0, {{297.0, 86.0}, {30.0, 1062.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x10379a9f0, {{324.0, 1150.0}, {3.0, 7.0}}
+                                    Other, 0x10379ab10, {{297.0, 86.0}, {30.0, 1062.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x10379ac30, {{324.0, 1150.0}, {3.0, 7.0}}
+                          Other, 0x10379ad50, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x10379ae70, {{10.0, 32.0}, {320.0, 1138.0}}
+                      Other, 0x103474e60, {{10.0, 32.0}, {320.0, 1138.0}}
+                        Other, 0x103474f80, {{10.0, 32.0}, {320.0, 1138.0}}
+                          Other, 0x1034750a0, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x1034751c0, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x1034752e0, {{10.0, 32.0}, {320.0, 1138.0}}
+                                Other, 0x103475400, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x103475520, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x103475640, {{10.0, 32.0}, {320.0, 1138.0}}
+                    Other, 0x103475760, {{0.0, 0.0}, {820.0, 1180.0}}
+                      Other, 0x103475880, {{0.0, 0.0}, {820.0, 1180.0}}
+                        NavigationBar, 0x1034759a0, {{0.0, 32.0}, {820.0, 54.0}}, identifier: 'Steak night'
+                          StaticText, 0x103475ac0, {{534.5, 43.5}, {90.5, 21.0}}, label: 'Steak night'
+                          Button, 0x103475be0, {{770.0, 36.0}, {36.0, 36.0}}, identifier: 'timers-fullscreen', label: 'Timers full screen'
+                        Other, 0x103475d00, {{0.0, 0.0}, {820.0, 1180.0}}
+                          Other, 0x103475e20, {{0.0, 0.0}, {820.0, 1180.0}}
+                            Other, 0x103475f40, {{0.0, 0.0}, {820.0, 1180.0}}
+                              Other, 0x103476060, {{0.0, 0.0}, {820.0, 1180.0}}
+                                ScrollView, 0x103476180, {{0.0, 0.0}, {820.0, 1180.0}}
+                                  Other, 0x1034762a0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                    Other, 0x1034763c0, {{0.0, 0.0}, {820.0, 140.8}}
+                                  Other, 0x1034764e0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                  Other, 0x103476600, {{0.0, 86.0}, {820.0, 3321.5}}
+                                    StaticText, 0x103476720, {{354.0, 124.8}, {77.5, 14.5}}, label: 'DINNER AT'
+                                    Button, 0x103476840, {{690.5, 110.0}, {105.5, 44.0}}, label: 'Adjust time'
+                                    StaticText, 0x103667320, {{354.0, 164.0}, {132.5, 41.0}}, identifier: 'serving-time', label: 'Chosen dinner time 9:27 AM'
+                                    StaticText, 0x1036534b0, {{354.0, 215.0}, {62.0, 14.5}}, label: 'Sat, Oct 17'
+                                    StaticText, 0x103668b00, {{354.0, 265.5}, {84.0, 14.5}}, label: 'RIGHT NOW'
+                                    Image, 0x103664be0, {{378.0, 331.5}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer'
+                                    StaticText, 0x103666390, {{376.0, 365.0}, {219.0, 24.0}}, label: 'Your timers are running.'
+                                    StaticText, 0x103664f70, {{376.0, 399.0}, {174.5, 18.0}}, label: 'Next: Peel & cut potatoes'
+                                    StaticText, 0x103666030, {{376.0, 427.0}, {143.0, 18.0}}, label: 'Planned for 8:52 AM.'
+                                    StaticText, 0x10365c320, {{354.0, 495.0}, {126.0, 14.5}}, label: 'RUNNING TIMERS'
+                                    StaticText, 0x10365ab50, {{377.0, 559.5}, {55.5, 14.5}}, label: 'Steak'
+                                    StaticText, 0x1036be3d0, {{726.5, 559.5}, {47.5, 14.5}}, label: 'Running'
+                                    StaticText, 0x1036c0580, {{376.0, 590.0}, {276.0, 20.5}}, label: 'Prep the steak & sauce ingredients'
+                                    StaticText, 0x1036c08d0, {{376.0, 626.5}, {95.5, 41.0}}, label: 'Timer 07:41'
+                                    StaticText, 0x1036c1360, {{376.0, 683.5}, {77.5, 14.5}}, label: 'Timer deadline 8:57 AM'
+                                    Button, 0x1036c16e0, {{376.0, 714.0}, {398.0, 22.5}}, label: 'Timing details'
+                                      StaticText, 0x1036c1a60, {{376.0, 714.0}, {398.0, 22.5}}, label: 'Timing details'
+                                      Image, 0x1036c25a0, {{766.0, 719.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                    Button, 0x10379af90, {{376.0, 752.5}, {125.5, 44.0}}, label: 'Mark Prep the steak & sauce ingredients done'
+                                      Image, 0x10379b0b0, {{390.0, 768.5}, {13.5, 13.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                                      StaticText, 0x10379b1d0, {{390.0, 765.5}, {99.5, 18.0}}, label: 'Mark done'
+                                    StaticText, 0x10379b2f0, {{354.0, 846.5}, {63.0, 14.5}}, label: 'UP NEXT'
+                                    StaticText, 0x10379b410, {{354.0, 889.0}, {134.5, 36.5}}, label: '8:52 AM, Peel & cut potatoes'
+                                      StaticText, 0x10379b530, {{354.0, 889.0}, {48.5, 14.5}}, label: '8:52 AM'
+                                      StaticText, 0x10379b650, {{354.0, 907.5}, {134.5, 18.0}}, label: 'Peel & cut potatoes'
+                                    StaticText, 0x10379b770, {{354.0, 941.5}, {103.0, 36.5}}, label: '8:57 AM, Cook the steak'
+                                      StaticText, 0x10379b890, {{354.0, 941.5}, {48.5, 14.5}}, label: '8:57 AM'
+                                      StaticText, 0x10379b9b0, {{354.0, 960.0}, {103.0, 18.0}}, label: 'Cook the steak'
+                                    StaticText, 0x10379bad0, {{354.0, 994.0}, {182.5, 36.5}}, label: '9:02 AM, Cook potatoes until tender'
+                                      StaticText, 0x10379bbf0, {{354.0, 994.0}, {48.5, 14.5}}, label: '9:02 AM'
+                                      StaticText, 0x10379bd10, {{354.0, 1012.5}, {182.5, 18.0}}, label: 'Cook potatoes until tender'
+                                    Button, 0x10379be30, {{354.0, 1058.5}, {442.0, 26.0}}, label: '4 attention overlaps'
+                                      Image, 0x10379bf50, {{355.5, 1064.0}, {15.5, 14.5}}, identifier: 'exclamationmark.triangle', label: 'Warning'
+                                      StaticText, 0x10379c070, {{354.0, 1058.5}, {442.0, 26.0}}, label: '4 attention overlaps'
+                                      Image, 0x10379c190, {{784.8, 1068.8}, {12.0, 7.0}}, identifier: 'expanded'
+                                    StaticText, 0x10379c2b0, {{354.5, 1094.6}, {437.0, 58.0}}, label: '“Prep the steak & sauce ingredients” and “Peel & cut potatoes” both need your hands around 8:52 AM–8:57 AM. One cook, two tasks — plan which goes first.'
+                                    StaticText, 0x10379c520, {{354.5, 1164.6}, {419.0, 58.0}}, label: '“Peel & cut potatoes” and “Cook the steak” both need your hands around 8:57 AM–9:02 AM. One cook, two tasks — plan which goes first.'
+                                    StaticText, 0x10379c760, {{354.5, 1234.6}, {441.0, 58.0}}, label: '“Cook the steak” and “Trim beans & prep garlic” both need your hands around 9:12 AM–9:17 AM. One cook, two tasks — plan which goes first.'
+                                    StaticText, 0x10379c9b0, {{354.5, 1304.6}, {438.5, 58.0}}, label: '“Cook & season beans” and “Rest steak & finish sauce” both need your hands around 9:17 AM–9:27 AM. One cook, two tasks — plan which goes first.'
+                                    StaticText, 0x103476960, {{354.0, 1390.6}, {68.0, 14.5}}, label: 'TIMELINE'
+                                    ProgressIndicator, 0x103476bd0, {{354.0, 1433.0}, {442.0, 4.0}}, label: '0 of 8 steps complete', value: 0%
+                                      ProgressIndicator, 0x103476cf0, {{354.0, 1423.0}, {442.0, 24.0}}, value: 0%
+                                    StaticText, 0x103476e10, {{354.0, 1445.1}, {124.0, 14.5}}, label: '0 of 8 steps complete'
+                                    Other, 0x103476f30, {{354.0, 1505.6}, {442.0, 209.9}}, identifier: 'timeline-step-s1'
+                                      Image, 0x103477050, {{357.0, 1510.5}, {12.0, 12.0}}, identifier: 'circle.inset.filled', label: 'circle.inset.filled'
+                                      StaticText, 0x103477170, {{386.0, 1505.6}, {137.0, 14.5}}, label: 'Timer deadline 8:57 AM'
+                                      StaticText, 0x103477290, {{386.0, 1530.1}, {276.0, 20.5}}, label: 'Prep the steak & sauce ingredients'
+                                      StaticText, 0x1034773b0, {{386.0, 1560.5}, {70.0, 22.5}}, label: 'Status: Cooking'
+                                      StaticText, 0x1034774d0, {{464.0, 1564.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      StaticText, 0x1034775f0, {{386.0, 1593.1}, {91.5, 18.0}}, label: 'Timer: 07:41'
+                                      Button, 0x103477710, {{386.0, 1621.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x103477830, {{386.0, 1621.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x103477950, {{788.0, 1626.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x103477a70, {{386.0, 1653.5}, {100.0, 44.0}}, label: 'Mark done'
+                                    Other, 0x103477b90, {{354.0, 1761.6}, {442.0, 181.9}}, identifier: 'timeline-step-p1'
+                                      Image, 0x103477cb0, {{357.0, 1766.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x103477dd0, {{386.0, 1761.6}, {159.0, 14.5}}, label: 'Planned 8:52 AM – 9:02 AM'
+                                      StaticText, 0x103477ef0, {{386.0, 1786.1}, {155.0, 20.5}}, label: 'Peel & cut potatoes'
+                                      StaticText, 0x103478010, {{386.0, 1816.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x103478130, {{483.0, 1820.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x103478250, {{386.0, 1849.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x103478370, {{386.0, 1849.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x1034786c0, {{788.0, 1854.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x1034787e0, {{386.0, 1881.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x103478900, {{354.0, 1989.6}, {442.0, 181.9}}, identifier: 'timeline-step-s2'
+                                      Image, 0x103478a20, {{357.0, 1994.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x103478b40, {{386.0, 1989.6}, {159.0, 14.5}}, label: 'Planned 8:57 AM – 9:17 AM'
+                                      StaticText, 0x103478c60, {{386.0, 2014.1}, {119.0, 20.5}}, label: 'Cook the steak'
+                                      StaticText, 0x103478d80, {{386.0, 2044.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x103478ea0, {{483.0, 2048.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x103478fc0, {{386.0, 2077.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x1034790e0, {{386.0, 2077.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x103479200, {{788.0, 2082.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x103479320, {{386.0, 2109.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x10379cc10, {{354.0, 2217.6}, {442.0, 181.9}}, identifier: 'timeline-step-p2'
+                                      Image, 0x10379cd30, {{357.0, 2222.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x103479440, {{386.0, 2217.6}, {159.0, 14.5}}, label: 'Planned 9:02 AM – 9:22 AM'
+                                      StaticText, 0x103479560, {{386.0, 2242.1}, {211.5, 20.5}}, label: 'Cook potatoes until tender'
+                                      StaticText, 0x103479680, {{386.0, 2272.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x1034797a0, {{483.0, 2276.6}, {58.0, 14.5}}, label: 'Hands-off'
+                                      Button, 0x1034798c0, {{386.0, 2305.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x1034799e0, {{386.0, 2305.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x103479b00, {{788.0, 2310.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x103479c20, {{386.0, 2337.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x103479d40, {{354.0, 2445.6}, {442.0, 181.9}}, identifier: 'timeline-step-b1'
+                                      Image, 0x103479e60, {{357.0, 2450.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x103479f80, {{386.0, 2445.6}, {159.0, 14.5}}, label: 'Planned 9:12 AM – 9:17 AM'
+                                      StaticText, 0x10347a0a0, {{386.0, 2470.1}, {193.0, 20.5}}, label: 'Trim beans & prep garlic'
+                                      StaticText, 0x10347a1c0, {{386.0, 2500.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x10347a2e0, {{483.0, 2504.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x10347a400, {{386.0, 2533.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x10347a520, {{386.0, 2533.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x10347a640, {{788.0, 2538.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x10347a760, {{386.0, 2565.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x10347a880, {{354.0, 2673.6}, {442.0, 181.9}}, identifier: 'timeline-step-b2'
+                                      Image, 0x10347a9a0, {{357.0, 2678.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x10347aac0, {{386.0, 2673.6}, {159.0, 14.5}}, label: 'Planned 9:17 AM – 9:27 AM'
+                                      StaticText, 0x10347abe0, {{386.0, 2698.1}, {171.0, 20.5}}, label: 'Cook & season beans'
+                                      StaticText, 0x10347ad00, {{386.0, 2728.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x10347ae20, {{483.0, 2732.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x10347af40, {{386.0, 2761.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x10347b060, {{386.0, 2761.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x10347b180, {{788.0, 2766.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x10347b2a0, {{386.0, 2793.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x10347b3c0, {{354.0, 2901.6}, {442.0, 181.9}}, identifier: 'timeline-step-s3'
+                                      Image, 0x10347b4e0, {{357.0, 2906.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x10347b600, {{386.0, 2901.6}, {159.0, 14.5}}, label: 'Planned 9:17 AM – 9:27 AM'
+                                      StaticText, 0x10347b720, {{386.0, 2926.1}, {198.5, 20.5}}, label: 'Rest steak & finish sauce'
+                                      StaticText, 0x1036c3130, {{386.0, 2956.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x1036c34c0, {{483.0, 2960.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x1036c3f40, {{386.0, 2989.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x1036c3bd0, {{386.0, 2989.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x1036c3840, {{788.0, 2994.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x1036c0c60, {{386.0, 3021.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Other, 0x1036c0fe0, {{354.0, 3129.6}, {442.0, 181.9}}, identifier: 'timeline-step-p3'
+                                      Image, 0x1036be730, {{357.0, 3134.5}, {12.0, 12.0}}, identifier: 'circle', label: 'circle'
+                                      StaticText, 0x1036beac0, {{386.0, 3129.6}, {159.0, 14.5}}, label: 'Planned 9:22 AM – 9:27 AM'
+                                      StaticText, 0x1036bee30, {{386.0, 3154.1}, {172.0, 20.5}}, label: 'Drain, mash & season'
+                                      StaticText, 0x1036bf190, {{386.0, 3184.5}, {89.0, 22.5}}, label: 'Status: Not started'
+                                      StaticText, 0x1036bf4e0, {{483.0, 3188.6}, {56.0, 14.5}}, label: 'Hands-on'
+                                      Button, 0x1036ad3a0, {{386.0, 3217.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        StaticText, 0x1036ada50, {{386.0, 3217.0}, {410.0, 22.5}}, label: 'Notes & details'
+                                        Image, 0x1036b5c90, {{788.0, 3222.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                      Button, 0x1036b6000, {{386.0, 3249.5}, {95.0, 44.0}}, label: 'Start step'
+                                    Button, 0x1036b66e0, {{494.5, 3352.5}, {161.5, 18.0}}, label: 'Reset cooking progress'
+                                  Other, 0x1036b6a50, {{787.0, 86.0}, {30.0, 1069.0}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                                    Other, 0x1036b7a90, {{814.0, 89.0}, {3.0, 366.0}}
+                                  Other, 0x1036b7e00, {{787.0, 86.0}, {30.0, 1069.0}}, label: 'Vertical scroll bar, 4 pages', value: 0%
+                                    Other, 0x1036b8170, {{814.0, 89.0}, {3.0, 366.0}}
+                        Other, 0x1036b84f0, {{0.0, 0.0}, {820.0, 1180.0}}
+                          Other, 0x1036b9710, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x1036b9aa0, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Other, 0x1036b9e20, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x1036ba1b0, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x1036ba550, {{0.0, 0.0}, {820.0, 1180.0}}, identifier: 'PopoverDismissRegion', label: 'dismiss popup'
+        Popover, 0x1036ba8d0, {{29.0, 481.0}, {301.0, 284.0}}
+          Image, 0x1036bac40, {{-121.0, 331.0}, {588.0, 584.0}}
+          Other, 0x1036bb9f0, {{29.0, 481.0}, {301.0, 284.0}}
+            Other, 0x1036bafb0, {{29.0, 481.0}, {301.0, 284.0}}
+              Other, 0x1036b6360, {{29.0, 481.0}, {301.0, 284.0}}
+                Other, 0x1036adde0, {{29.0, 481.0}, {301.0, 284.0}}
+                  Other, 0x1036ae160, {{29.0, 481.0}, {301.0, 284.0}}
+                    Other, 0x1036aeb50, {{29.0, 481.0}, {0.0, 0.0}}
+                      Other, 0x1036aeec0, {{29.0, 481.0}, {301.0, 284.0}}
+                        Other, 0x1036ae800, {{29.0, 481.0}, {301.0, 284.0}}
+                          Other, 0x1036ae4b0, {{29.0, 481.0}, {301.0, 284.0}}
+                            Other, 0x1036af210, {{29.0, 481.0}, {301.0, 284.0}}
+          Other, 0x1036b0660, {{29.0, 481.0}, {288.0, 284.0}}
+            Sheet, 0x1036b1170, {{29.0, 481.0}, {288.0, 284.0}}, label: 'How much extra time?'
+              Other, 0x1036b1bc0, {{29.0, 481.0}, {288.0, 284.0}}
+                Other, 0x1036b1f30, {{29.0, 481.0}, {288.0, 284.0}}
+                  Other, 0x1036b22a0, {{29.0, 481.0}, {288.0, 284.0}}
+                  Other, 0x1036b2620, {{29.0, 481.0}, {288.0, 284.0}}
+                    ScrollView, 0x1036b29a0, {{29.0, 481.0}, {288.0, 92.0}}
+                      Other, 0x1036b2cf0, {{29.0, 481.0}, {288.0, 92.0}}
+                        StaticText, 0x1036b5910, {{59.0, 503.5}, {228.0, 20.5}}, label: 'How much extra time?'
+                        StaticText, 0x1036b55c0, {{59.0, 530.5}, {228.0, 38.0}}, label: 'We'll show exactly what moves before anything changes.'
+                      Other, 0x1036b4eb0, {{284.0, 502.0}, {30.0, 71.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x1036b5250, {{311.0, 442.0}, {3.0, 36.0}}
+                      Other, 0x1036b44b0, {{29.0, 540.0}, {288.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10347b840, {{-10.0, 567.0}, {36.0, 3.0}}
+                      Other, 0x10347b960, {{284.0, 502.0}, {30.0, 71.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x10347ba80, {{311.0, 442.0}, {3.0, 36.0}}
+                      Other, 0x10347bba0, {{29.0, 540.0}, {288.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x10347bcc0, {{-10.0, 567.0}, {36.0, 3.0}}
+                    ScrollView, 0x10347bde0, {{29.0, 573.0}, {288.0, 192.0}}
+                      Other, 0x10379ce50, {{29.0, 573.0}, {288.0, 192.0}}
+                        Other, 0x10379cf70, {{45.0, 589.0}, {256.0, 160.0}}
+                          Button, 0x10379d090, {{45.0, 589.0}, {256.0, 48.0}}, label: 'Add 5 minutes'
+                          Button, 0x10379d1b0, {{45.0, 645.0}, {256.0, 48.0}}, label: 'Add 10 minutes'
+                          Button, 0x10379d2d0, {{45.0, 701.0}, {256.0, 48.0}}, label: 'Add 15 minutes'
+                      Other, 0x10379d3f0, {{284.0, 573.0}, {30.0, 171.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x1036b4b60, {{311.0, 663.0}, {3.0, 7.0}}
+                      Other, 0x1036b4820, {{63.0, 732.0}, {233.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x1036b4150, {{119.0, 759.0}, {7.0, 3.0}}
+                      Other, 0x1036b3df0, {{284.0, 573.0}, {30.0, 171.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                        Other, 0x1036b3aa0, {{311.0, 663.0}, {3.0, 7.0}}
+                      Other, 0x1036b3750, {{63.0, 732.0}, {233.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                        Other, 0x1036b33b0, {{119.0, 759.0}, {7.0, 3.0}}
+    Window, 0x1036b3060, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x1036b14f0, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x1036b1860, {{0.0, 0.0}, {820.0, 1180.0}}
+Path to element:
+ →Application, 0x1036679f0, pid: 41349, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x1037a50e0, pid: 41349, label: 'Dinner, Together'
+  }
+)

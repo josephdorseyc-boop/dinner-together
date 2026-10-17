@@ -1,0 +1,47 @@
+{
+  "menuID": "steak",
+  "serveAt": 813920646.0,
+  "durationOverrides": {},
+  "records": {
+    "s1": {
+      "state": "done",
+      "actualEnd": 813918846.0,
+      "actualStart": 813918246.0
+    },
+    "s2": {
+      "runID": "2749B696-5553-41B1-A797-6376F5AED1EA",
+      "state": "cooking",
+      "actualStart": 813918846.0,
+      "confirmedMinutes": 20,
+      "timerDeadline": 813920046.0
+    },
+    "p1": {
+      "state": "done",
+      "actualEnd": 813918546.0,
+      "actualStart": 813917946.0
+    },
+    "p2": {
+      "state": "done",
+      "actualEnd": 813919746.0,
+      "actualStart": 813918546.0
+    },
+    "p3": {
+      "state": "done",
+      "actualEnd": 813920046.0,
+      "actualStart": 813919746.0
+    },
+    "b1": {
+      "state": "done",
+      "actualEnd": 813919446.0,
+      "actualStart": 813919146.0
+    },
+    "b2": {
+      "state": "done",
+      "actualEnd": 813920046.0,
+      "actualStart": 813919446.0
+    }
+  },
+  "history": [],
+  "createdAt": 813916746.0,
+  "lastOpenedAt": 813920346.0
+}

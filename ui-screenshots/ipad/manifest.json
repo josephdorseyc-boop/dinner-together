@@ -1,0 +1,986 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "4B909176-BDFF-4DB9-8EA3-1CC2CCF8D710.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-after-undo_0_9FE8579C-14D1-40DB-8FFE-691AE42446F1.png",
+        "timestamp" : 1792226967.507
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "C26D91D3-E9E9-4C90-A38C-04975FECE430.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-after-move_0_38B97A5D-DD6B-4477-92E4-97F80164C356.png",
+        "timestamp" : 1792226882.282
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "63FD8527-4093-47F2-BAE9-3CDDC23A9A52.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01-review-sheet_0_7F910787-A367-49CF-A6C6-CD92D55F4EBC.png",
+        "timestamp" : 1792226846.778
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test01_reviewDinnerTimeLatePrep_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test01_reviewDinnerTimeLatePrep_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "11847BF2-CB40-4B9A-B519-9F050A5DD367.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-after-undo_0_164C1DA7-38E5-4961-9D33-52254B697186.png",
+        "timestamp" : 1792227072.436
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "8F769F00-E698-4FDD-8A50-EFE7F2D219D6.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-after-confirm_0_601985C1-159A-4C0C-8EAD-20A54284ACF0.png",
+        "timestamp" : 1792227015.559
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "3851300B-9E21-465F-9277-D04195BAF63D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-sheet_0_E75D0AAF-C7DC-4DF0-8996-63C0BE318A2C.png",
+        "timestamp" : 1792226997.458
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "96ACDAF9-E30A-4C2C-9E8F-0395ADB58C6E.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-choice-dialog-hierarchy_0_0529BA04-6A22-45C1-9B2A-AEAA2C333F1D.txt",
+        "timestamp" : 1792226989.079
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "365164CA-16B5-46CC-AA1A-03396F714E73.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03-delay-choice-dialog_0_0025627B-709B-4638-B11F-76E23B6473B9.png",
+        "timestamp" : 1792226988.223
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test02_adjustTimeOnSchedule_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test02_adjustTimeOnSchedule_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5E29C3EC-C7FE-450F-8C42-C2D11D8CDE3C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-into-cooking_0_A1D4A4D6-8D3F-42F6-9912-29C8C7CC6166.png",
+        "timestamp" : 1792227165.248
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "88B8119D-8500-425B-966D-3A6A893FDD0E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-thanksgiving-unchecked_0_9D850F5A-7253-47C3-9E03-AA11F5A6638E.png",
+        "timestamp" : 1792227155.73
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "1993D273-9F56-4B1E-B1F1-349D7D931420.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-thanksgiving_0_69B11C47-3091-4A34-92C2-CB096E712DBF.png",
+        "timestamp" : 1792227139.194
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "53A91AF6-4CE1-41BD-8D9A-03CC16912863.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-cooking-empty_0_C077FCEC-F93C-4C3E-A61E-30B90419D2BE.png",
+        "timestamp" : 1792227107.285
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "F47ACB5B-A97C-4845-955B-4FBC147B78AD.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-add-recipe-from-tonight_0_C15782F3-D3E1-49D6-9040-6827D12A6B9E.png",
+        "timestamp" : 1792227089.808
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "E23EA070-F81D-4136-9DB8-9D901AEE4219.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "09-tonight-first-launch_0_E12130DD-E0D9-4D96-B6F9-9B9E640DD080.png",
+        "timestamp" : 1792227086.36
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test03_tonightFirstLaunch_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test03_tonightFirstLaunch_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "089E4D3B-844B-4CD4-8D97-3C580FF9A558.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r17-tonight-recipe_0_2FBF9074-5A93-4FC2-B7BF-D74C97F14395.png",
+        "timestamp" : 1792227232.196
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "CC8A2BC9-6DE9-46C4-A679-C81B0000F5ED.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r05-timing-confirmed_0_11E17FD1-AC2F-41F5-B15C-5571E2361279.png",
+        "timestamp" : 1792227222.754
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0699156D-6737-4A5B-9246-38D19E1C75C0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r04b-duration-181_0_8236C5A2-23DF-4338-BD84-CCE977693EEB.png",
+        "timestamp" : 1792227215.567
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "01C48C6A-0AE5-4FCD-97D8-1FF4B243CD1A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r04-duration-180_0_12F44CB3-37B6-4B09-988A-19971CC14BC0.png",
+        "timestamp" : 1792227213.929
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "55A48E1C-C5B1-414D-857A-462BBC68CCD3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r02-recipe-unreviewed_0_00E72EF6-D189-4CAE-982A-663FA0815EFB.png",
+        "timestamp" : 1792227197.57
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test04_recipeReviewGate_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test04_recipeReviewGate_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "F5947693-C367-454E-AB0C-D027BC1A0DCC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r03-timing-estimate_0_D2B16CDD-8CB9-4EB1-8365-94C908695650.png",
+        "timestamp" : 1792227297.076
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "3FF08711-A2B0-43DC-8F8E-81EB7A25332E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r18-recipe-time-entry_0_FF7823FE-8B99-4E55-B014-720D58465F6B.png",
+        "timestamp" : 1792227287.693
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test05_recipeEstimate_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test05_recipeEstimate_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "111BF592-E8E2-4B97-9B15-C49FADECBEC2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r06-apple-news-link_0_A7FC7FC0-80D4-4399-B2A3-C48DC565FFDA.png",
+        "timestamp" : 1792227349.139
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test06_appleNewsLink_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test06_appleNewsLink_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "E0AFBE08-E9A9-45F9-AD94-972E787C4069.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r07-save-error_0_898E84AF-CD56-4F46-B009-6ABEB8FB1DC2.png",
+        "timestamp" : 1792227417.543
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test07_timingSaveFailure_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test07_timingSaveFailure_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "57A18700-4B9F-4A9F-AE52-A7A1B9267809.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r08-thanksgiving_0_947D2391-80BA-4578-B6F9-ED0AE30A7893.png",
+        "timestamp" : 1792227448.235
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test08_thanksgivingCard_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test08_thanksgivingCard_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "90C32107-0602-4ACD-BB47-87FC7161DA85.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r09-delete-failed_0_10F2AD70-A7BC-4F81-9FEF-C3012D2A5740.png",
+        "timestamp" : 1792227542.717
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "109AF390-4790-4E90-BBC1-4E7FCAAE28F9.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r09b-delete-dialog_0_3A04EAEE-BF50-452C-BE28-56CFD7550DE6.png",
+        "timestamp" : 1792227486.5
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "7010EA5D-8F7B-4D54-9E6F-C90B1E7C4288.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r09a-delete-button_0_CBF48EA3-6374-4A7B-9625-66AB781F72D2.png",
+        "timestamp" : 1792227483.664
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test09_deleteFailure_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test09_deleteFailure_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "46F02516-7A94-4C95-87F7-A6F011AB769A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r10-hero-landscape_0_565B348A-D42B-4F61-9CD4-3E0B1CABA649.png",
+        "timestamp" : 1792227572.578
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test10_heroPhoto_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test10_heroPhoto_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "C8AA6519-E439-418B-BD7C-8ED891BE9E9B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r03-timing-estimate-dark_0_02193016-5339-45F1-B3FC-8DB79027036E.png",
+        "timestamp" : 1792227660.385
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "EAA2A688-2B57-4C50-AD14-15CCB703C93F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r18-recipe-time-entry-dark_0_49722369-F021-4FFC-9392-22DB44E55605.png",
+        "timestamp" : 1792227651.295
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0F7B7FCA-49DB-4630-B614-EBB908333834.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r02-recipe-unreviewed-dark_0_B8AC2C35-C1BA-421E-AF5B-10DC1BFD6218.png",
+        "timestamp" : 1792227601.259
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test11_recipeDark_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test11_recipeDark_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "43222F9A-C63A-4FF0-98F8-DF877AAF74E5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14d-photo-classic_0_01B3CFA4-A303-403E-A1B4-A03926B7A664.png",
+        "timestamp" : 1792227759.711
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "36068FCE-B26F-4434-82A5-FD73ECD813F8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14c-page-color-sheet_0_7FD77AF5-D27A-42A2-927F-90413B662540.png",
+        "timestamp" : 1792227718.519
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "4EEE0FC2-F710-466B-8FC3-E2884AF78BB8.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14b-photo-colors-directions_0_B76B8B37-A07D-4A4B-9370-5927D8636585.png",
+        "timestamp" : 1792227702.05
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0C97D425-DE19-4F7A-8B94-1033A1FF71BB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14a-photo-colors_0_8D305CF1-6B82-4137-AD2D-E134273E0F78.png",
+        "timestamp" : 1792227688.116
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test12_photoPageColors_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test12_photoPageColors_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "A2E7F830-8DC4-4079-8917-A447C7833C1A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15d-typed-plum-directions_0_D16AB0FA-503F-4ACA-BF8C-952A7E503093.png",
+        "timestamp" : 1792227842.202
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "51ECC4CE-1ADE-41E6-ABEB-0A5C5D62CB94.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15c-typed-plum_0_E1374DA8-E1A5-445A-90A6-81F85352AF21.png",
+        "timestamp" : 1792227839.678
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5FE3F41E-ED68-4624-BC1C-D298DEAE2461.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15b-plum-sheet_0_B668C1D5-FDA3-40FF-B865-0D71982EE343.png",
+        "timestamp" : 1792227825.574
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "1DC0AAAE-84B2-4B85-9AB3-847CDB02899F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15a-typed-cream_0_95E710DC-02B3-4EAB-94C2-9A45EBDFC7E3.png",
+        "timestamp" : 1792227795.042
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test13_typedPageColor_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test13_typedPageColor_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "58B6BE0C-282E-4398-ABCA-4354565C755F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14d-photo-classic-ax3_0_011E593D-6BE2-40BA-BA1D-766414C124D5.png",
+        "timestamp" : 1792227942.367
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "05C53324-B877-4C73-95A4-F2D5A2DB340D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14c-page-color-sheet-ax3_0_B687E2E4-2F4B-4DAD-8FF5-D4E1A9B6D6DA.png",
+        "timestamp" : 1792227904.977
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "E8DD6E9B-5202-4E7D-AD3E-FAAA6B7C7A2D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14b-photo-colors-directions-ax3_0_AB5F8E48-CF4A-4D24-BDB8-05E61B63BD6A.png",
+        "timestamp" : 1792227887.423
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "74FCE387-05A0-4EF5-BCEB-2780B0BA234A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14a-photo-colors-ax3_0_677AC06F-6464-40FE-A0FD-0DFB0E913F53.png",
+        "timestamp" : 1792227879.015
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test14_photoPageColorsAX3_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test14_photoPageColorsAX3_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "B14F5422-EA46-46C0-BC3A-43A1CCD73177.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15d-typed-plum-directions-ax3_0_CA5E9BF6-74D6-4952-8238-852CAE35A93E.png",
+        "timestamp" : 1792228057.927
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0C3D10B9-E015-49E1-AB71-22CB11251C63.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15c-typed-plum-ax3_0_FF3A206D-5ADA-4782-88F9-F4617A6BFDF2.png",
+        "timestamp" : 1792228055.59
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "BE6CD55C-82B1-4601-85EF-0D6DDF8D5976.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15b-plum-sheet-ax3_0_AC0C325D-D182-46DE-9D46-06B5FB36EF9A.png",
+        "timestamp" : 1792228034.657
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "BDD25D2D-28D8-4FD5-BE05-4337E952502D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15a-typed-cream-ax3_0_681A2E2A-8F01-476C-AE84-C07912AE07A1.png",
+        "timestamp" : 1792227996.735
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test15_typedPageColorAX3_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test15_typedPageColorAX3_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "21A95CDC-625A-4D7B-A1E8-69F71B49C585.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14d-photo-classic-dark_0_78F00008-EC86-4568-B882-4572CADD211C.png",
+        "timestamp" : 1792228171.242
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "E922782F-62B0-4C0E-BD0C-CA14380AF0A7.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14c-page-color-sheet-dark_0_4BB8E250-43D9-4498-84BE-0A14FCDD48CC.png",
+        "timestamp" : 1792228123.016
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "38BCB4E8-44FE-43EB-AE10-B455496376C0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14b-photo-colors-directions-dark_0_51B2B7CF-7400-46A1-B22D-A1BBDD9EF5A1.png",
+        "timestamp" : 1792228105.973
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5EE59A5F-0904-4E25-BCB6-AD1AF6A93E29.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r14a-photo-colors-dark_0_02D699FF-2335-4EE9-995A-5165C2EAF48C.png",
+        "timestamp" : 1792228090.165
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test16_photoPageColorsDark_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test16_photoPageColorsDark_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "B4E11008-0957-4D9C-9080-5F1F9536B4ED.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15d-typed-plum-directions-dark_0_A2A65297-A36A-46B2-96B2-47D9A409BEC3.png",
+        "timestamp" : 1792228259.952
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "FD066919-D104-4BF2-93C4-CF85491632A3.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15c-typed-plum-dark_0_1491A826-EF5B-447F-B5AF-4084B50704F6.png",
+        "timestamp" : 1792228257.399
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "BF95DB0C-3D3F-4129-8B35-FBF14A1274DF.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15b-plum-sheet-dark_0_D96D5710-5425-4D60-9A76-8B4CB82385D8.png",
+        "timestamp" : 1792228242.277
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "63D81920-C534-4591-9FEC-23F5A961943B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r15a-typed-cream-dark_0_AB0321B5-C71F-45F6-935B-42FD1EA16329.png",
+        "timestamp" : 1792228209.875
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test17_typedPageColorDark_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test17_typedPageColorDark_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "3B900B66-4A31-4159-9B3F-3CEB66322AB0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r19d-pale-to-plum_0_3271D779-F1AC-48B7-BBAB-710C8A7D085D.png",
+        "timestamp" : 1792228384.77
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "B29B9AC0-0FA8-4661-9D0B-D6C9D1B4DF8D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r19c-pale-timing_0_4A1F6F51-2D30-492C-956C-64AED546B78B.png",
+        "timestamp" : 1792228324.329
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "1C0DEB5E-2F05-4EFE-B9E2-57A83B3D1905.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r19b-pale-directions_0_70A50A09-EE82-4D46-B7C7-FF13155133F7.png",
+        "timestamp" : 1792228320.467
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "FCF2B025-80FF-4512-99EF-D0E3FBE65D09.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r19a-pale-page_0_1AE685F6-8D1E-4BD5-B09E-CB46B62760EB.png",
+        "timestamp" : 1792228297.818
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test18_palePhotoPage_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test18_palePhotoPage_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "CE824F08-E42A-4A7C-BD00-E1BCA711BE29.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r20d-after-delete_0_FAFEC1E6-EDAA-467C-8804-5521F081CF61.png",
+        "timestamp" : 1792228486.563
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5606A416-91A8-4AC4-A7CD-9CDC3A4A79B5.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r20c-delete-alert_0_484A5F38-5C95-475F-85AF-574FC5BBC29D.png",
+        "timestamp" : 1792228473.124
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0F115BD5-3BEA-4269-9C54-46049C00726D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r20b2-recipe-notes_0_434A75B7-635A-4A4D-85BE-876C19A9C296.png",
+        "timestamp" : 1792228462.057
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "14667F39-15AD-4AB6-B4FC-395DC52CC67F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r20b-edit-recipe_0_6BF04D30-90A3-42CC-AD38-B5B04D0191D3.png",
+        "timestamp" : 1792228443.168
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "DDF29BE7-DF5F-4CC8-AD6F-07DA65D76A50.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r20a-swipe-actions_0_576A972A-FB7F-42FB-9ED5-B276F79D0F08.png",
+        "timestamp" : 1792228421.036
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test19_swipeEditAndDelete_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test19_swipeEditAndDelete_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "1F58A82A-0E66-442E-9F56-8ACD70AD5971.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r21b-warning-after-check_0_70C9C7C8-49A4-4BE3-9FFB-1FEE85067BD6.png",
+        "timestamp" : 1792228541.312
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "6B77908D-C3F5-4575-A2A0-258251A8CB9A.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r21a-warning-on-timing_0_B03590A0-FF50-4260-AA8F-A3038EEE54DF.png",
+        "timestamp" : 1792228535.188
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test20_importWarningPersists_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test20_importWarningPersists_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "9E6EE0E5-9FE2-413F-9C68-8A35F98FFA3D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r22c-start-action-revealed-pastel_0_57C6B1DC-A76A-4E6C-9C03-D5F8E83F3968.png",
+        "timestamp" : 1792228600.254
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "8539ED94-661E-4AD3-9F26-8C562E504717.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r22b-cooking-initial-pastel_0_344B66A4-7258-46E4-93B4-C178A7A0715A.png",
+        "timestamp" : 1792228595.655
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "33EB6065-2538-4B1F-BC5B-23D2A00CAA80.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r22a-tonight-cover-pastel_0_3ECA3F56-6716-4FCB-BE5D-3B529D56212F.png",
+        "timestamp" : 1792228590.762
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test21_recipeCovers_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test21_recipeCovers_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "D8F79BEE-3852-4C5B-A182-DE8B4276B9B0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23c-week-planned_0_4690FC5E-0DD8-4569-960C-5EB687C7AF81.png",
+        "timestamp" : 1792228809.923
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "4F641351-1D9D-4E9D-AB67-5F6F58BF7143.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23-day-chip-before-tap-0_0_BBAEAA1F-79C7-4FC5-861C-4BE644FA0B33.png",
+        "timestamp" : 1792228783.335
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5CDCCBF4-48E0-43E9-90E1-4534419743BE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23-day-chip-before-tap-2_0_ED9BD712-5581-4FFC-AD3A-2E2F3251D427.png",
+        "timestamp" : 1792228727.824
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "3D01D4B9-803B-46C5-9E61-E1F29B63BCDE.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23b-day-plan-sheet_0_5A08CE53-904E-4E3A-9865-8FEB820F53F8.png",
+        "timestamp" : 1792228684.842
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "46A4EA32-AC62-4A8A-B894-1F956AA0770C.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23-day-chip-before-tap-2_0_48D2926E-8114-4136-9CFC-F957FBFA556E.png",
+        "timestamp" : 1792228676.836
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "D94E7B7E-B311-4923-8C89-D81264CCA152.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23-day-chip-before-tap-1_0_E4809F17-3418-4665-BF31-5DDD25C181BA.png",
+        "timestamp" : 1792228630.286
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "EC082139-F82E-4AF5-8AB1-048E02D66F95.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r23a-week-strip_0_A36B110B-260E-4C97-A1BD-4EF58E5771AE.png",
+        "timestamp" : 1792228621.688
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test22_weekPlan_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test22_weekPlan_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "4A4D1A5C-BCDE-4BF1-9520-1C5DAA45F361.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r24d-tonight-first-launch-solid_0_435F494D-C5D6-49F9-BE13-ADE2D3B758DF.png",
+        "timestamp" : 1792228963.174
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "140FE86B-1415-404F-8E77-E110B5DBC25F.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r24d-tonight-first-launch-dark_0_542A3F40-FB70-403B-B6EE-201A664FC7A1.png",
+        "timestamp" : 1792228949.365
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "42A1B6F3-76CF-4642-ADEA-5CE61B551532.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r24c-b-without-photo_0_C40F68A8-7F10-4E57-931C-C5FEE13FE139.png",
+        "timestamp" : 1792228901.575
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "D6D372E5-0FEE-405F-AA19-A7CEFD0EFF7B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r24b-a-with-photo_0_6538658F-2F10-4EC0-9B51-9DF912C56E5F.png",
+        "timestamp" : 1792228863.514
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "063DBAAF-F3F9-42A9-8E46-460B50767DE2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r24a-imported-not-chosen_0_EF32936F-E4F9-4376-AC81-B5742DC83158.png",
+        "timestamp" : 1792228829.469
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test23_coverSwitching_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test23_coverSwitching_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "A57FC202-F190-4B83-810B-0C06D0DB39E0.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r25d-card-solid_0_0561C3FC-2D25-40C2-B181-AAB1A867A330.png",
+        "timestamp" : 1792229047.249
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "A257BAE7-89A0-44A3-9E00-BE2E25DA157B.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r25c-card-see-through_0_34F3BD43-9F07-42A9-A118-A50BA6629957.png",
+        "timestamp" : 1792229044.409
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "C0F2F771-1D83-499E-9829-E326E0C05FF2.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r25b-tonight-via-tab-system_0_64C0020A-6CC6-44D5-80D4-4E7B8345CE3A.png",
+        "timestamp" : 1792229031.568
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "B35C79F8-3D2B-4E29-8CC9-C48E02BADA82.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r25a-tonight-after-pale-page-system_0_2020A45D-AC22-46D3-8E1D-3B81E760952A.png",
+        "timestamp" : 1792229009.213
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test24_tonightAfterPalePageAndGlass_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test24_tonightAfterPalePageAndGlass_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "39C37FBE-3C2B-4E43-AE37-21DF627D3E90.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r26a-single-page_0_D472A650-4871-4BAC-B240-CA5359464EFB.png",
+        "timestamp" : 1792229083.292
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0D9361EC-9C76-4881-B036-0B5DF3C339DA.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r26-0-recipe-page-hierarchy_0_E0C54EE7-073F-48B2-AC92-58124A52138E.txt",
+        "timestamp" : 1792229082.239
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "F00C86B6-D522-4722-A62A-59E50A13DA30.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r26-0-recipe-page_0_77E5E92D-B25B-4C3B-ACE2-EE5DEEB0435E.png",
+        "timestamp" : 1792229081.623
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "A8B8B0CC-739B-4E62-B90F-3B568C00B02F.txt",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r26-0-first-screen-hierarchy_0_66901A25-FEFE-44AC-9F5D-01E664F6DAF0.txt",
+        "timestamp" : 1792229062.172
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "687622AB-9F1E-4A6D-BFD8-0EC53C876422.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r26-0-first-screen_0_F1DFF056-D990-47AD-AF85-882654670493.png",
+        "timestamp" : 1792229061.715
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test25_cookbookSpread_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test25_cookbookSpread_iPad"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "5EF50717-CA83-4C7D-A6F5-6B2E77719811.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r27d-search-ingredient_0_E02E9E1B-7A02-4EE1-BFC5-72C32F71F3CF.png",
+        "timestamp" : 1792229158.883
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "E1D34F4A-69A6-4E07-8C9F-D5E775E2A416",
+        "deviceName" : "iPad (A16)",
+        "exportedFileName" : "0993B9F5-411D-410F-B75F-A933A0D2138D.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "r27a-favorite-first_0_1F83ACC4-C544-4310-845B-957B1B0EE5EF.png",
+        "timestamp" : 1792229113.691
+      }
+    ],
+    "testIdentifier" : "DinnerTogetherUITests_iPad/test26_favoritesAndWeekAdd_iPad()",
+    "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests_iPad/test26_favoritesAndWeekAdd_iPad"
+  }
+]

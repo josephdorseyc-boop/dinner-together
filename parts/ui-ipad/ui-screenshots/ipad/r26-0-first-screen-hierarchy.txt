@@ -1,0 +1,160 @@
+Optional(Attributes: Application, 0x10345ff50, pid: 34929, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x10345ff50, pid: 34929, label: 'Dinner, Together'
+    Window (Main), 0x10347c1b0, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x1034769b0, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x10347aab0, {{0.0, 0.0}, {820.0, 1180.0}}
+          Other, 0x103476dd0, {{0.0, 0.0}, {820.0, 1180.0}}
+            Other, 0x1034771f0, {{0.0, 0.0}, {820.0, 1180.0}}
+              Other, 0x10347b730, {{0.0, 0.0}, {820.0, 1180.0}}
+                Other, 0x10347b310, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x103477830, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x103477950, {{0.0, 32.0}, {820.0, 1128.0}}
+                Other, 0x103477a70, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x103477b90, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Other, 0x103477cb0, {{10.0, 32.0}, {320.0, 1138.0}}
+                      Other, 0x103477dd0, {{10.0, 32.0}, {320.0, 1138.0}}
+                        Other, 0x103477ef0, {{10.0, 32.0}, {320.0, 1138.0}}
+                          NavigationBar, 0x103478010, {{10.0, 32.0}, {320.0, 54.0}}, identifier: 'Dinner, Together'
+                            StaticText, 0x103478130, {{110.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                            Button, 0x103465f30, {{271.5, 36.0}, {54.5, 36.0}}, label: 'Hide Sidebar'
+                          Other, 0x103466050, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x103466170, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x103466290, {{10.0, 32.0}, {320.0, 1138.0}}
+                                Other, 0x1034663b0, {{10.0, 32.0}, {320.0, 1138.0}}
+                                  CollectionView, 0x1034664d0, {{10.0, 32.0}, {320.0, 1138.0}}, label: 'Sidebar'
+                                    Other, 0x1034665f0, {{-6.0, -2190.0}, {352.0, 4718.0}}
+                                    Other, 0x1034667e0, {{10.0, 32.0}, {320.0, 1138.0}}
+                                      Other, 0x103466900, {{10.0, 32.0}, {320.0, 108.8}}
+                                    Other, 0x103466a20, {{10.0, 32.0}, {320.0, 1138.0}}
+                                    Cell, 0x103466b40, {{26.0, 86.0}, {288.0, 52.0}}, Focused, Selected
+                                      Other, 0x103466c60, {{26.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x103466d80, {{26.0, 86.0}, {288.0, 52.0}}
+                                          Other, 0x103466ea0, {{26.0, 86.0}, {288.0, 52.0}}
+                                      Other, 0x103466fc0, {{26.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x1034670e0, {{26.0, 86.0}, {288.0, 52.0}}
+                                          Other, 0x103467200, {{26.0, 86.0}, {288.0, 52.0}}
+                                            Image, 0x103467320, {{46.5, 99.5}, {15.0, 25.5}}, identifier: 'fork.knife', label: 'Food', Selected
+                                            StaticText, 0x103467440, {{26.0, 86.0}, {288.0, 52.0}}, label: 'Tonight', Selected
+                                    Cell, 0x103467560, {{26.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x103467680, {{26.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x1034677a0, {{26.0, 138.0}, {288.0, 52.0}}
+                                        Other, 0x103475090, {{26.0, 138.0}, {288.0, 52.0}}
+                                          Other, 0x1034751b0, {{26.0, 138.0}, {288.0, 52.0}}
+                                            Image, 0x1034752d0, {{43.0, 153.0}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer'
+                                            StaticText, 0x1034753f0, {{26.0, 138.0}, {288.0, 52.0}}, label: 'Cooking'
+                                    Cell, 0x103475510, {{26.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x103475630, {{26.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x103783480, {{26.0, 190.0}, {288.0, 52.0}}
+                                        Other, 0x103475750, {{26.0, 190.0}, {288.0, 52.0}}
+                                          Other, 0x103475870, {{26.0, 190.0}, {288.0, 52.0}}
+                                            Image, 0x103475990, {{45.0, 204.5}, {18.0, 23.0}}, identifier: 'book.closed', label: 'book.closed'
+                                            StaticText, 0x103475ab0, {{26.0, 190.0}, {288.0, 52.0}}, label: 'Recipes'
+                                    Other, 0x103475bd0, {{297.0, 86.0}, {30.0, 1062.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x103475cf0, {{324.0, 1150.0}, {3.0, 7.0}}
+                                    Other, 0x103475e10, {{297.0, 86.0}, {30.0, 1062.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                      Other, 0x103475f30, {{324.0, 1150.0}, {3.0, 7.0}}
+                          Other, 0x103476050, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x10346db60, {{10.0, 32.0}, {320.0, 1138.0}}
+                      Other, 0x10346dc80, {{10.0, 32.0}, {320.0, 1138.0}}
+                        Other, 0x10346dda0, {{10.0, 32.0}, {320.0, 1138.0}}
+                          Other, 0x103472c30, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x103472d50, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x103472e70, {{10.0, 32.0}, {320.0, 1138.0}}
+                                Other, 0x103472f90, {{10.0, 32.0}, {320.0, 1138.0}}
+                            Other, 0x1034730b0, {{10.0, 32.0}, {320.0, 1138.0}}
+                              Other, 0x1034731d0, {{10.0, 32.0}, {320.0, 1138.0}}
+                    Other, 0x1034732f0, {{0.0, 0.0}, {820.0, 1180.0}}
+                      Other, 0x103473410, {{0.0, 0.0}, {820.0, 1180.0}}
+                        NavigationBar, 0x103473530, {{0.0, 32.0}, {820.0, 54.0}}, identifier: 'Dinner, Together'
+                          StaticText, 0x103473650, {{514.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                        Other, 0x103677510, {{0.0, 0.0}, {820.0, 1180.0}}
+                          Other, 0x10367d240, {{0.0, 0.0}, {820.0, 1180.0}}
+                            Other, 0x1036728d0, {{0.0, 0.0}, {820.0, 1180.0}}
+                              Other, 0x10366d970, {{0.0, 0.0}, {820.0, 1180.0}}
+                                ScrollView, 0x1036828c0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                  Other, 0x103691cf0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                    Other, 0x1036b0310, {{0.0, 0.0}, {820.0, 140.8}}
+                                  Other, 0x10369bea0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                  Other, 0x1036bee30, {{0.0, 86.0}, {820.0, 1097.5}}
+                                    Other, 0x1036ba8d0, {{330.0, -31.5}, {490.0, 735.0}}, identifier: 'tonight-cover', value: notebook
+                                      Image, 0x103668b00, {{330.0, -31.5}, {490.0, 735.0}}
+                                      StaticText, 0x10367c120, {{354.0, 90.0}, {155.5, 53.0}}, label: 'Tonight'
+                                      StaticText, 0x1036af210, {{362.0, 309.2}, {163.5, 14.5}}, label: 'DINNER ON THE TABLE'
+                                      Button, 0x103673660, {{749.0, 294.5}, {44.0, 44.0}}, identifier: 'table-card-more', label: 'Card opacity'
+                                      StaticText, 0x103686b30, {{362.0, 347.5}, {258.0, 92.0}}, identifier: 'tonight-dinner-time', label: 'Dinner on the table at 10:14 AM'
+                                        StaticText, 0x1036c1360, {{362.0, 347.5}, {258.0, 72.0}}, identifier: 'table-time', label: '10:14 AM'
+                                        StaticText, 0x103678370, {{362.0, 421.5}, {112.0, 18.0}}, label: 'Saturday, Oct 17'
+                                      Image, 0x103688640, {{363.5, 455.0}, {15.5, 15.5}}, identifier: 'table-time-start-by', label: 'Clock'
+                                      StaticText, 0x1036bc110, {{363.5, 453.5}, {385.0, 18.0}}, identifier: 'table-time-start-by', label: 'Start cooking by 9:34 AM · about 40 min of cooking'
+                                      StaticText, 0x1036786c0, {{362.0, 493.8}, {149.0, 20.5}}, label: 'Change dinner time'
+                                      DatePicker, 0x10369b460, {{566.0, 486.0}, {222.0, 36.0}}
+                                        Button, 0x103685d70, {{566.0, 486.0}, {222.0, 36.0}}, label: 'Date and Time Picker', value: 10:14 AM, Oct 17, ...
+                                          Button, 0x10369f940, {{566.0, 486.0}, {120.5, 36.0}}, label: 'Oct 17, 2026'
+                                          Button, 0x1036bdce0, {{690.5, 486.0}, {97.5, 36.0}}, label: '10:14 AM'
+                                    Button, 0x1036b2cf0, {{354.0, 610.0}, {442.0, 48.0}}, identifier: 'open-recipes', label: 'Choose from Recipes'
+                                      Image, 0x10366b3d0, {{488.5, 626.0}, {13.0, 16.0}}, identifier: 'book.closed', label: 'book.closed'
+                                      StaticText, 0x103692aa0, {{488.5, 625.0}, {175.0, 18.0}}, label: 'Choose from Recipes'
+                                    StaticText, 0x10367fbf0, {{354.0, 686.0}, {79.5, 14.5}}, label: 'THIS WEEK'
+                                    ScrollView, 0x103681040, {{354.0, 712.5}, {442.0, 120.0}}
+                                      Other, 0x1036bafb0, {{354.0, 712.5}, {732.0, 120.0}}
+                                        Button, 0x10368f0a0, {{354.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-0', label: 'Today: Steak night'
+                                          StaticText, 0x103689720, {{384.2, 724.5}, {35.5, 14.5}}, label: 'Today'
+                                          Image, 0x103683660, {{373.5, 744.5}, {57.0, 57.0}}, identifier: 'book.closed', label: 'book.closed'
+                                          StaticText, 0x1036a8f30, {{372.2, 807.0}, {59.5, 13.5}}, label: 'Steak night'
+                                        Button, 0x1036691e0, {{460.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-1', label: 'Sunday: Your pick'
+                                          StaticText, 0x103687f80, {{496.5, 724.5}, {23.0, 14.5}}, label: 'Sun'
+                                          Image, 0x103678a30, {{480.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x103668430, {{483.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                        Button, 0x10366d600, {{566.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-2', label: 'Monday: Your pick'
+                                          StaticText, 0x1036919a0, {{601.2, 724.5}, {25.5, 14.5}}, label: 'Mon'
+                                          Image, 0x10368c760, {{586.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x10369c200, {{589.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                        Button, 0x103672c20, {{672.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-3', label: 'Tuesday: Your pick'
+                                          StaticText, 0x1036a6620, {{709.0, 724.5}, {22.0, 14.5}}, label: 'Tue'
+                                          Image, 0x10369bb30, {{692.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x1036b4b60, {{695.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                        Button, 0x1036b3df0, {{778.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-4', label: 'Wednesday: Your pick'
+                                          StaticText, 0x1036b1bc0, {{812.8, 724.5}, {26.5, 14.5}}, label: 'Wed'
+                                          Image, 0x1036860c0, {{798.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x1036b3060, {{801.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                        Button, 0x10365cda0, {{884.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-5', label: 'Thursday: Your pick'
+                                          StaticText, 0x103675920, {{920.5, 724.5}, {23.0, 14.5}}, label: 'Thu'
+                                          Image, 0x10368e9c0, {{904.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x1036790c0, {{907.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                        Button, 0x1036a8850, {{990.0, 714.5}, {96.0, 116.0}}, identifier: 'week-day-6', label: 'Friday: Your pick'
+                                          StaticText, 0x1036a73f0, {{1030.2, 724.5}, {15.5, 14.5}}, label: 'Fri'
+                                          Image, 0x1036771b0, {{1010.0, 745.0}, {56.0, 56.0}}, identifier: 'sparkles', label: 'Sparkle'
+                                          StaticText, 0x1036be060, {{1013.5, 807.0}, {49.0, 13.5}}, label: 'Your pick'
+                                    StaticText, 0x1036bc470, {{354.0, 860.5}, {198.0, 14.5}}, identifier: 'thanksgiving-section', label: 'PLAN YOUR THANKSGIVING'
+                                    StaticText, 0x10369b7d0, {{354.0, 887.0}, {434.5, 58.0}}, identifier: 'thanksgiving-section', label: 'A whole-day plan for the turkey and the sides, timed back from when you sit down. Choose it for the day, then match each estimate to your recipes.'
+                                    Button, 0x103682570, {{354.0, 957.0}, {442.0, 89.5}}, identifier: 'thanksgiving-section', label: 'Thanksgiving, together, Turkey · stuffing · mash · gravy · beans · rolls'
+                                      Image, 0x1036995c0, {{386.0, 990.0}, {18.0, 23.5}}, identifier: 'flame', label: 'Flame'
+                                      StaticText, 0x1036b6360, {{436.0, 973.0}, {184.5, 20.5}}, label: 'Thanksgiving, together'
+                                      StaticText, 0x103693b80, {{436.0, 997.5}, {253.0, 14.5}}, label: 'Turkey · stuffing · mash · gravy · beans · rolls'
+                                      StaticText, 0x10366ede0, {{436.0, 1016.0}, {118.5, 14.5}}, label: 'About 4 hr · 6 dishes'
+                                      Image, 0x1036a8bc0, {{758.5, 992.0}, {20.0, 20.0}}, identifier: 'circle', label: 'circle'
+                                    StaticText, 0x103690f50, {{370.0, 1046.5}, {408.5, 62.5}}, identifier: 'thanksgiving-section', label: 'Holiday guide: about 4 hours with the preset estimates. Match the roast time to your recipe. Check shared oven space and temperatures, and plan help for the final sides; the app flags overlaps but does not resolve them.'
+                                    Button, 0x10368fe50, {{370.0, 1121.5}, {410.0, 26.0}}, identifier: 'thanksgiving-section', label: 'Dishes & timing'
+                                      StaticText, 0x1036a0dc0, {{370.0, 1121.5}, {410.0, 26.0}}, label: 'Dishes & timing'
+                                      Image, 0x1036bb9f0, {{772.0, 1128.5}, {7.0, 12.0}}, identifier: 'collapsed'
+                                  Other, 0x10368f430, {{787.0, 86.0}, {30.0, 973.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                    Other, 0x103684bc0, {{814.0, 89.0}, {3.0, 875.5}}
+                                  Other, 0x1036be3d0, {{787.0, 86.0}, {30.0, 973.5}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                    Other, 0x103698b90, {{814.0, 89.0}, {3.0, 875.5}}
+                                StaticText, 0x103785a70, {{514.5, 1071.5}, {121.0, 14.5}}, label: 'Selected: Steak night'
+                                Button, 0x103785b90, {{354.0, 1092.0}, {442.0, 56.0}}, identifier: 'tonight-primary', label: 'Build my cooking plan'
+                                  Image, 0x103798490, {{476.0, 1113.0}, {16.0, 13.5}}, identifier: 'arrow.right', label: 'Right'
+                                  StaticText, 0x1037985b0, {{476.0, 1109.8}, {200.0, 20.5}}, label: 'Build my cooking plan'
+                        Other, 0x10378ae90, {{0.0, 0.0}, {820.0, 1180.0}}
+                          Other, 0x10378afb0, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x10891f5c0, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Other, 0x10891f6e0, {{0.0, 0.0}, {820.0, 1180.0}}
+Path to element:
+ →Application, 0x10345ff50, pid: 34929, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x103464590, pid: 34929, label: 'Dinner, Together'
+  }
+)

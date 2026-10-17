@@ -1,0 +1,117 @@
+Optional(Attributes: Application, 0x1144a9f40, pid: 19442, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x1144a9f40, pid: 19442, label: 'Dinner, Together'
+    Window (Main), 0x1144ad720, {{0.0, 0.0}, {402.0, 874.0}}
+      Other, 0x1144b2600, {{0.0, 0.0}, {402.0, 874.0}}
+        Other, 0x1144b21e0, {{0.0, 0.0}, {402.0, 874.0}}
+          Other, 0x1144aa6d0, {{0.0, 0.0}, {402.0, 874.0}}
+            Other, 0x1144ab0e0, {{0.0, 0.0}, {402.0, 874.0}}
+              Other, 0x1144b1dc0, {{0.0, 62.0}, {402.0, 778.0}}
+              Other, 0x1144b19a0, {{0.0, 62.0}, {402.0, 778.0}}
+              Other, 0x1144b1580, {{0.0, 62.0}, {402.0, 778.0}}
+              Other, 0x1144b1160, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1144b0d40, {{0.0, 0.0}, {402.0, 874.0}}
+                  Other, 0x1144b0920, {{0.0, 0.0}, {402.0, 874.0}}
+                    Other, 0x1144b0500, {{0.0, 0.0}, {402.0, 874.0}}
+                      Other, 0x1144b00e0, {{0.0, 0.0}, {402.0, 874.0}}
+                        Other, 0x1144a89b0, {{0.0, 0.0}, {402.0, 874.0}}
+                          Other, 0x1144ad0e0, {{0.0, 0.0}, {402.0, 874.0}}
+                            NavigationBar, 0x1144b2c40, {{0.0, 62.0}, {402.0, 54.0}}, identifier: '_TtGC7SwiftUI32NavigationStackHosting'
+                              Button, 0x1144b2d60, {{16.0, 62.0}, {44.0, 44.0}}, identifier: 'BackButton', label: 'Recipes'
+                              Other, 0x1144b2e80, {{283.7, 66.0}, {42.3, 36.0}}, identifier: 'recipe-favorite', label: 'Star this recipe'
+                                Other, 0x1144b2fa0, {{283.7, 66.0}, {42.3, 36.0}}
+                                  Button, 0x1144b30c0, {{283.7, 66.0}, {42.3, 36.0}}, identifier: 'recipe-favorite', label: 'Star this recipe'
+                              Other, 0x1144b31e0, {{342.0, 66.0}, {40.0, 36.0}}, identifier: 'recipe-more', label: 'More'
+                                Other, 0x1144b3300, {{342.0, 66.0}, {40.0, 36.0}}
+                                  Button, 0x1144b3420, {{342.0, 66.0}, {40.0, 36.0}}, identifier: 'recipe-more', label: 'More'
+                                    Button, 0x1144b3540, {{342.0, 66.0}, {40.0, 36.0}}
+                                      Image, 0x1144b3660, {{349.0, 71.0}, {26.0, 26.0}}, identifier: 'ellipsis.circle.fill', label: 'More'
+                            Other, 0x1144b3780, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x1144b38a0, {{0.0, 0.0}, {402.0, 874.0}}
+                                Other, 0x1144b39c0, {{0.0, 0.0}, {402.0, 874.0}}
+                                  Other, 0x1144b3ae0, {{0.0, 0.0}, {402.0, 874.0}}
+                                    Other, 0x1144b3c00, {{-160.7, 0.0}, {753.7, 932.5}}
+                                    ScrollView, 0x1144b3d20, {{0.0, 0.0}, {402.0, 874.0}}
+                                      Other, 0x1144b3e40, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x1144b3f60, {{0.0, 0.0}, {402.0, 170.8}}
+                                        Other, 0x1144b4080, {{0.0, 726.2}, {402.0, 147.8}}
+                                      Other, 0x1144b41a0, {{0.0, 0.0}, {402.0, 874.0}}
+                                        Other, 0x1144b42c0, {{0.0, 726.2}, {402.0, 147.8}}
+                                          Image, 0x1144b43e0, {{-120.0, 731.0}, {642.0, 286.0}}, identifier: 'AdditionalDimmingOverlay'
+                                          Other, 0x1144b4500, {{0.0, 726.2}, {402.0, 147.8}}
+                                            Other, 0x1144b4620, {{0.0, 726.2}, {402.0, 147.8}}
+                                          Other, 0x1144b4740, {{0.0, 726.2}, {402.0, 147.8}}
+                                            Other, 0x1144b4860, {{0.0, 726.2}, {402.0, 147.8}}
+                                            Other, 0x1144b4980, {{0.0, 726.2}, {402.0, 147.8}}
+                                      Other, 0x1144b4aa0, {{0.0, 116.0}, {402.0, 1013.7}}
+                                        Image, 0x1144b4bc0, {{0.0, 35.0}, {402.0, 402.0}}, identifier: 'recipe-hero', label: 'Photo of Frozen berry drink with lime and a three-hour freezer stage'
+                                          Image, 0x1144b4ce0, {{0.0, 35.0}, {402.0, 402.0}}
+                                        StaticText, 0x1144b4e00, {{24.0, 376.0}, {319.3, 101.7}}, identifier: 'recipe-title', label: 'Frozen berry drink with lime and a three-hour freezer stage'
+                                        Button, 0x1144b4f20, {{24.0, 505.7}, {121.0, 46.7}}, identifier: 'recipe-time', label: 'Recipe time, 3 hr 7 min'
+                                          StaticText, 0x1144b5040, {{24.0, 505.7}, {91.3, 14.3}}, label: 'RECIPE TIME'
+                                          StaticText, 0x1144b5160, {{24.0, 526.0}, {98.7, 26.3}}, label: '3 hr 7 min'
+                                          Image, 0x1144b5280, {{130.0, 531.7}, {15.0, 15.0}}, identifier: 'pencil.circle', label: 'Edit'
+                                        StaticText, 0x1144b53a0, {{178.3, 505.7}, {46.0, 14.3}}, label: 'STEPS'
+                                        StaticText, 0x1144b54c0, {{178.3, 526.0}, {14.0, 26.3}}, label: '3'
+                                        StaticText, 0x1144b55e0, {{24.0, 568.3}, {42.3, 14.3}}, label: 'YIELD'
+                                        StaticText, 0x1144b5700, {{24.0, 588.7}, {275.7, 18.0}}, label: '2 tall glasses, or 4 small tasting portions'
+                                        Button, 0x1144b5820, {{24.0, 628.7}, {354.0, 168.3}}, identifier: 'timing-review-banner', label: 'Check the timing before you cook, We found a time for each step. Check the amounts, step order and attention labels against your recipe.'
+                                          Image, 0x1144b5940, {{47.7, 652.0}, {25.0, 21.7}}, identifier: 'clock.badge.questionmark', label: 'clock.badge.questionmark'
+                                          StaticText, 0x1144b5a60, {{81.3, 650.7}, {194.7, 42.3}}, label: 'Check the timing before you cook'
+                                          StaticText, 0x1144b5b80, {{81.3, 697.0}, {226.7, 78.0}}, label: 'We found a time for each step. Check the amounts, step order and attention labels against your recipe.'
+                                          Image, 0x1144b5ca0, {{348.7, 651.7}, {6.7, 11.7}}, identifier: 'chevron.right', label: 'Forward'
+                                        Button, 0x1144b5dc0, {{28.0, 823.0}, {101.3, 44.0}}, identifier: 'recipe-tab-ingredients', label: 'Ingredients', Selected
+                                        Button, 0x1144b5ee0, {{145.3, 836.0}, {73.3, 18.0}}, identifier: 'recipe-tab-directions', label: 'Directions'
+                                        Button, 0x1144b6000, {{244.7, 836.0}, {49.0, 18.0}}, identifier: 'recipe-tab-timing', label: 'Timing'
+                                        StaticText, 0x1144b6120, {{24.0, 893.0}, {317.7, 18.0}}, label: 'Yield: 2 tall glasses, or 4 small tasting portions'
+                                        StaticText, 0x1144b6240, {{42.0, 935.0}, {135.7, 20.3}}, label: '2 cups berry juice'
+                                        StaticText, 0x1144b6360, {{42.0, 993.3}, {43.3, 20.3}}, label: '1 lime'
+                                        Button, 0x1144b6480, {{24.0, 1061.7}, {173.7, 44.0}}, identifier: 'delete-recipe', label: 'Delete this recipe'
+                                          Image, 0x1144b65a0, {{37.0, 1075.3}, {14.7, 17.0}}, identifier: 'trash', label: 'Trash'
+                                          StaticText, 0x1144b66c0, {{37.0, 1075.3}, {148.7, 18.1}}, label: 'Delete this recipe'
+                                      Other, 0x1144b67e0, {{369.0, 116.0}, {30.0, 595.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                        Other, 0x1144b6900, {{396.0, 119.0}, {3.0, 398.3}}
+                                      Other, 0x1144b6a20, {{369.0, 116.0}, {30.0, 595.0}}, label: 'Vertical scroll bar, 2 pages', value: 0%
+                                        Other, 0x1144b6b40, {{396.0, 119.0}, {3.0, 398.3}}
+                                    Button, 0x1144b6c60, {{24.0, 723.0}, {354.0, 56.0}}, identifier: 'cook-this-recipe', label: 'Check timing to continue'
+                                      Image, 0x1144b6d80, {{89.0, 742.0}, {21.7, 18.7}}, identifier: 'clock.badge.questionmark', label: 'clock.badge.questionmark'
+                                      StaticText, 0x1144b6ea0, {{89.0, 740.2}, {225.3, 20.5}}, label: 'Check timing to continue'
+                            Other, 0x1144b6fc0, {{0.0, 0.0}, {402.0, 874.0}}
+                              Other, 0x1144b70e0, {{0.0, 0.0}, {402.0, 874.0}}
+                Other, 0x1144b7200, {{0.0, 791.0}, {402.0, 83.0}}
+                  Other, 0x1144b7320, {{0.0, 0.0}, {402.0, 874.0}}
+                    TabBar, 0x1144b7440, {{0.0, 791.0}, {402.0, 83.0}}, label: 'Tab Bar'
+                      Other, 0x1144b7560, {{64.0, 791.0}, {274.0, 62.0}}
+                        Other, 0x1144b7680, {{64.0, 791.0}, {94.0, 54.0}}
+                        Other, 0x1144b77a0, {{64.0, 791.0}, {274.0, 62.0}}
+                          Button, 0x1144b78c0, {{68.0, 795.0}, {94.0, 54.0}}, identifier: 'fork.knife', label: 'Tonight'
+                            Image, 0x1144b79e0, {{104.0, 798.7}, {21.7, 30.7}}, identifier: 'fork.knife', label: 'Food'
+                          Button, 0x1144b7b00, {{154.0, 795.0}, {94.0, 54.0}}, identifier: 'timer', label: 'Cooking'
+                            Image, 0x1144b7c20, {{187.0, 801.3}, {27.3, 27.3}}, identifier: 'timer', label: 'Timer'
+                          Button, 0x1144b7d40, {{240.0, 795.0}, {94.0, 54.0}}, identifier: 'book.closed', label: 'Recipes', Selected
+                            Image, 0x1144b7e60, {{274.0, 800.7}, {25.3, 28.7}}, identifier: 'book.closed.fill', label: 'book.closed.fill'
+                        Other, 0x1144b7f80, {{240.0, 795.0}, {94.0, 54.0}}
+                          Other, 0x1144b80a0, {{240.0, 795.0}, {94.0, 54.0}}
+                            Other, 0x1144b81c0, {{240.0, 795.0}, {94.0, 54.0}}
+                            Other, 0x1144b82e0, {{240.0, 795.0}, {94.0, 54.0}}
+                              Other, 0x1144b8400, {{240.0, 795.0}, {94.0, 54.0}}
+                                Other, 0x1144b8520, {{240.0, 795.0}, {94.0, 54.0}}
+                                  Other, 0x1144b8640, {{240.0, 795.0}, {94.0, 54.0}}
+                                Other, 0x1144b8760, {{240.0, 795.0}, {94.0, 54.0}}
+                              Other, 0x1144b8880, {{240.0, 795.0}, {94.0, 54.0}}
+                  Other, 0x1144b89a0, {{0.0, 791.0}, {402.0, 83.0}}
+                    Other, 0x1144b8ac0, {{0.0, 791.0}, {402.0, 83.0}}
+                      Other, 0x1144b8be0, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x1144b8d00, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x1144b8e20, {{0.0, 791.0}, {402.0, 83.0}}
+                            Other, 0x1144b8f40, {{0.0, 791.0}, {402.0, 83.0}}
+                        Other, 0x1144b9060, {{0.0, 791.0}, {402.0, 83.0}}
+                          Other, 0x1144b9180, {{0.0, 791.0}, {402.0, 83.0}}
+Path to element:
+ →Application, 0x1144a9f40, pid: 19442, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x1144b96e0, pid: 19442, label: 'Dinner, Together'
+  }
+)

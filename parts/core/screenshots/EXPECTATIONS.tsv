@@ -1,0 +1,7 @@
+late-prep	Running about 7 min behind; dinner +23, estimate +30; reason: prep finished 7 min late
+late-to-start	Running about 8 min behind; reason: prep 8 min late to start
+expired-timer	At least 5 min behind (lower bound); featured expired timer; reason: check the food
+way-behind	Running about 15 min behind in amber; reason: prep 15 min late to start
+all-done-late	No notice; 'Time to enjoy dinner.'
+on-schedule	No notice; running timer 08:00 left; nothing late
+tonight-steak	Tonight (plan) screen: Steak night selected, feasible time 50 min out, no progress; footer action visible

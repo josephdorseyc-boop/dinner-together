@@ -1,0 +1,17 @@
+{
+  "menuID": "steak",
+  "serveAt": 813922626.0,
+  "durationOverrides": {},
+  "records": {
+    "s1": {
+      "runID": "26C2C627-3D0E-4034-BBA5-C4491888DBAF",
+      "state": "cooking",
+      "actualStart": 813920226.0,
+      "confirmedMinutes": 10,
+      "timerDeadline": 813920826.0
+    }
+  },
+  "history": [],
+  "createdAt": 813916746.0,
+  "lastOpenedAt": 813920346.0
+}

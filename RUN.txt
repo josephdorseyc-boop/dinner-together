@@ -1,0 +1,4 @@
+run_id=39017692737
+sha=2668151e48820ded84454797acadfc40e082d9a8
+parts=core,ui-iphone-1-of-2,ui-iphone-2-of-2,ui-ipad
+verdict=see each native-ios part

@@ -1,0 +1,46 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "22970779-4A47-463E-8B6D-CC012359B320",
+        "deviceName" : "iPhone 17",
+        "modelName" : "iPhone 17",
+        "osBuildNumber" : "23C54",
+        "osVersion" : "26.2",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 0,
+      "passedTests" : 247,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "DinnerTogether · Built with macOS 15.7.9",
+  "expectedFailures" : 0,
+  "failedTests" : 0,
+  "finishTime" : 1792226444.006,
+  "passedTests" : 247,
+  "result" : "Passed",
+  "skippedTests" : 0,
+  "startTime" : 1792226177.937,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+
+  ],
+  "title" : "Test - DinnerTogether",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "61% of duration",
+      "text" : "2 longest test runs with outlier durations exceeding 3.24s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 247
+}
