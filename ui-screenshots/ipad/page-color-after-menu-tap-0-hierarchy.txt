@@ -1,0 +1,203 @@
+Optional(Attributes: Application, 0x112ce4000, pid: 20935, label: 'Dinner, Together'
+Element subtree:
+ →Application, 0x112ce4000, pid: 20935, label: 'Dinner, Together'
+    Window (Main), 0x112ce4140, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x112ce4280, {{0.0, 0.0}, {820.0, 1180.0}}
+      Other, 0x112ce4780, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x112ce48c0, {{0.0, 0.0}, {820.0, 1180.0}}
+          Other, 0x112ce43c0, {{0.0, 0.0}, {820.0, 1180.0}}
+            Other, 0x112ce4500, {{0.0, 0.0}, {820.0, 1180.0}}
+              Other, 0x112ce4640, {{0.0, 0.0}, {820.0, 1180.0}}
+                Other, 0x112ce4b40, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x112ce4c80, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Other, 0x112ce4dc0, {{0.0, 0.0}, {320.0, 1180.0}}
+                      Other, 0x112ce4f00, {{0.0, 0.0}, {320.0, 1180.0}}
+                        Other, 0x112ce5040, {{0.0, 0.0}, {320.0, 1180.0}}
+                          Other, 0x112ce5180, {{0.0, 0.0}, {320.0, 1180.0}}
+                            Other, 0x112ce52c0, {{0.0, 0.0}, {320.0, 1180.0}}
+                              Other, 0x112ce5400, {{0.0, 0.0}, {320.0, 1180.0}}
+                                CollectionView, 0x112ce5540, {{0.0, 0.0}, {320.0, 1180.0}}, label: 'Sidebar'
+                                  Other, 0x112ce5680, {{-16.0, -2274.0}, {352.0, 4886.0}}
+                                  Other, 0x112ce57c0, {{0.0, 0.0}, {320.0, 1180.0}}
+                                    Other, 0x112ce5900, {{0.0, 0.0}, {320.0, 126.0}}
+                                  Other, 0x112ce5a40, {{0.0, 0.0}, {320.0, 1180.0}}
+                                  Cell, 0x112ce5b80, {{16.0, 86.0}, {288.0, 52.0}}
+                                    Other, 0x112ce5cc0, {{16.0, 86.0}, {288.0, 52.0}}
+                                    Other, 0x112ce5e00, {{16.0, 86.0}, {288.0, 52.0}}
+                                      Other, 0x112ce5f40, {{16.0, 86.0}, {288.0, 52.0}}
+                                        Other, 0x112ce6080, {{16.0, 86.0}, {288.0, 52.0}}
+                                          StaticText, 0x112ce61c0, {{16.0, 86.0}, {288.0, 52.0}}, label: 'Tonight'
+                                          Image, 0x112ce6300, {{37.0, 99.5}, {14.5, 25.0}}, identifier: 'fork.knife', label: 'Food'
+                                  Cell, 0x112ce6440, {{16.0, 138.0}, {288.0, 52.0}}
+                                    Other, 0x112ce6580, {{16.0, 138.0}, {288.0, 52.0}}
+                                    Other, 0x112ce66c0, {{16.0, 138.0}, {288.0, 52.0}}
+                                      Other, 0x112ce6800, {{16.0, 138.0}, {288.0, 52.0}}
+                                        Other, 0x112ce6940, {{16.0, 138.0}, {288.0, 52.0}}
+                                          StaticText, 0x112ce6a80, {{16.0, 138.0}, {288.0, 52.0}}, label: 'Cooking'
+                                          Image, 0x112ce6bc0, {{33.0, 153.0}, {22.0, 22.0}}, identifier: 'timer', label: 'Timer'
+                                  Cell, 0x112ce6d00, {{16.0, 190.0}, {288.0, 52.0}}, Selected
+                                    Other, 0x112ce6e40, {{16.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x112ce6f80, {{16.0, 190.0}, {288.0, 52.0}}
+                                        Other, 0x112ce70c0, {{16.0, 190.0}, {288.0, 52.0}}
+                                    Other, 0x112ce7200, {{16.0, 190.0}, {288.0, 52.0}}
+                                      Other, 0x112ce7340, {{16.0, 190.0}, {288.0, 52.0}}
+                                        Other, 0x112ce7480, {{16.0, 190.0}, {288.0, 52.0}}
+                                          StaticText, 0x112ce75c0, {{16.0, 190.0}, {288.0, 52.0}}, label: 'Recipes', Selected
+                                          Image, 0x112ce7700, {{35.0, 204.5}, {18.5, 23.5}}, identifier: 'book.closed', label: 'Closed Book', Selected
+                                  Other, 0x112ce7840, {{287.0, 86.0}, {30.0, 1094.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                    Other, 0x112ce7980, {{314.0, 1150.0}, {3.0, 7.0}}
+                                  Other, 0x112ce7ac0, {{287.0, 86.0}, {30.0, 1094.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                                    Other, 0x112ce7c00, {{314.0, 1150.0}, {3.0, 7.0}}
+                        NavigationBar, 0x112ce7d40, {{0.0, 32.0}, {320.0, 54.0}}, identifier: 'Dinner, Together'
+                          StaticText, 0x112ce7e80, {{94.0, 43.5}, {132.0, 21.0}}, label: 'Dinner, Together'
+                          Button, 0x112cc3200, {{270.0, 36.0}, {36.0, 36.0}}, label: 'Hide Sidebar'
+                        Toolbar, 0x110d70640, {{0.0, 0.0}, {320.0, 1180.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                          Other, 0x110d730c0, {{0.0, 0.0}, {320.0, 1180.0}}
+                      Other, 0x110d72a80, {{0.0, 0.0}, {320.0, 1180.0}}
+                        Other, 0x110d71f40, {{0.0, 0.0}, {320.0, 1180.0}}
+                          Other, 0x110d70f00, {{0.0, 0.0}, {320.0, 1180.0}}
+                            Other, 0x110d70140, {{0.0, 0.0}, {320.0, 1180.0}}
+                              Other, 0x110d72080, {{0.0, 0.0}, {320.0, 1180.0}}
+                                Other, 0x110d70780, {{0.0, 0.0}, {320.0, 1180.0}}
+                            Other, 0x110d703c0, {{0.0, 0.0}, {320.0, 1180.0}}
+                              Other, 0x110d71400, {{0.0, 0.0}, {320.0, 1180.0}}
+                    Other, 0x110d72940, {{0.0, 0.0}, {820.0, 1180.0}}
+                      Other, 0x110d2b340, {{0.0, 0.0}, {820.0, 1180.0}}
+                        NavigationBar, 0x110d2b200, {{0.0, 32.0}, {820.0, 54.0}}, identifier: '_UIContextMenuActionsOnlyView'
+                          Button, 0x110d2a800, {{330.0, 32.0}, {44.0, 44.0}}, identifier: 'BackButton', label: 'Recipes'
+                        Other, 0x110d2a940, {{0.0, 0.0}, {820.0, 1180.0}}
+                          Other, 0x110d2aa80, {{0.0, 0.0}, {820.0, 1180.0}}
+                            Other, 0x110d2abc0, {{0.0, 0.0}, {820.0, 1180.0}}
+                              Other, 0x110d2ad00, {{0.0, 0.0}, {820.0, 1180.0}}
+                                Other, 0x110d288c0, {{-328.0, 0.0}, {1537.5, 1384.0}}
+                                ScrollView, 0x110d2ae40, {{0.0, 0.0}, {820.0, 1180.0}}
+                                  Other, 0x110d2af80, {{0.0, -234.0}, {820.0, 1471.5}}
+                                    StaticText, 0x110d2b480, {{344.0, 26.0}, {442.0, 67.5}}, identifier: 'recipe-title', label: 'Frozen berry drink with lime and a three-hour freezer stage'
+                                    Image, 0x110d2b5c0, {{320.0, -364.0}, {500.0, 500.0}}, identifier: 'recipe-hero', label: 'Photo of Frozen berry drink with lime and a three-hour freezer stage'
+                                      Image, 0x110d2b700, {{320.0, -364.0}, {500.0, 500.0}}
+                                    Button, 0x110d2b840, {{344.0, 121.5}, {121.0, 47.0}}, identifier: 'recipe-time', label: 'Recipe time, 3 hr 7 min'
+                                      StaticText, 0x110d2b980, {{344.0, 121.5}, {91.5, 14.5}}, label: 'RECIPE TIME'
+                                      StaticText, 0x110d2bac0, {{344.0, 142.0}, {98.5, 26.5}}, label: '3 hr 7 min'
+                                      Image, 0x110d2bd40, {{450.0, 148.0}, {15.0, 15.0}}, identifier: 'pencil.circle', label: 'Edit'
+                                    StaticText, 0x110d2be80, {{498.5, 121.5}, {46.0, 14.5}}, label: 'STEPS'
+                                    StaticText, 0x110d2bc00, {{498.5, 142.0}, {14.0, 26.5}}, label: '3'
+                                    StaticText, 0x110d2a6c0, {{344.0, 184.5}, {42.5, 14.5}}, label: 'YIELD'
+                                    StaticText, 0x110d28000, {{344.0, 205.0}, {276.0, 18.0}}, label: '2 tall glasses, or 4 small tasting portions'
+                                    Button, 0x1124e4000, {{358.0, 262.0}, {81.5, 18.0}}, identifier: 'recipe-tab-ingredients', label: 'Ingredients'
+                                    Button, 0x1124e4140, {{465.5, 262.0}, {73.5, 18.0}}, identifier: 'recipe-tab-directions', label: 'Directions'
+                                    Button, 0x1124e4280, {{555.0, 249.0}, {69.0, 44.0}}, identifier: 'recipe-tab-timing', label: 'Timing', Selected
+                                    StaticText, 0x1124e43c0, {{344.0, 319.0}, {452.0, 58.0}}, label: 'These times build your dinner plan. Check every step against your recipe. Needs you means active work; hands-off means mostly waiting, with any checks your recipe requires.'
+                                    Other, 0x1124e4500, {{344.0, 395.0}, {452.0, 210.0}}
+                                      StaticText, 0x1124e4640, {{358.0, 409.0}, {381.5, 18.0}}, label: 'Mix the juice and lime and fill an ice tray for 5 minutes'
+                                      Button, 0x1124e4780, {{358.0, 437.0}, {424.0, 44.0}}, label: 'Mix the juice and lime and fill an ice tray for 5 minutes, 5 minutes. Edit.'
+                                        Image, 0x1124e48c0, {{371.5, 451.5}, {15.5, 15.5}}, identifier: 'timer', label: 'Timer'
+                                        StaticText, 0x1124e4a00, {{396.5, 450.0}, {115.0, 18.0}}, label: '5 min · Edit time'
+                                        Image, 0x1124e4b40, {{755.5, 452.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e4c80, {{361.0, 492.0}, {207.0, 44.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected
+                                        Image, 0x1124e4dc0, {{417.0, 507.5}, {14.0, 13.5}}, identifier: 'checkmark', label: 'Selected', Selected
+                                        StaticText, 0x1124e4f00, {{438.8, 505.0}, {75.5, 18.0}}, label: 'Needs you'
+                                      Button, 0x1124e5040, {{572.0, 492.0}, {207.0, 44.0}}, identifier: 'step-hands-off', label: 'Hands-off'
+                                      Button, 0x1124e5180, {{358.0, 547.0}, {208.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Mix the juice and lime and fill an ice tray for 5 minutes'
+                                        StaticText, 0x1124e52c0, {{400.0, 560.0}, {125.8, 18.0}}, label: 'Edit directions'
+                                        Image, 0x1124e5400, {{400.0, 562.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e5540, {{574.0, 547.0}, {208.0, 44.0}}, identifier: 'remove-step-r55c74cfb-1', label: 'Remove Mix the juice and lime and fill an ice tray for 5 minutes'
+                                        Image, 0x1124e5680, {{620.5, 560.5}, {15.0, 17.0}}, identifier: 'trash', label: 'Trash'
+                                        StaticText, 0x1124e57c0, {{620.5, 560.5}, {116.2, 18.0}}, label: 'Remove step'
+                                    Other, 0x1124e5900, {{344.0, 615.0}, {452.0, 258.0}}
+                                      StaticText, 0x1124e5a40, {{358.0, 629.0}, {215.5, 18.0}}, label: 'Freeze the mixture for 3 hours'
+                                      StaticText, 0x1124e5b80, {{358.0, 657.0}, {403.5, 38.0}}, label: 'Freeze the mixture for 3 hours; check that it is solid before continuing.'
+                                      Button, 0x1124e5cc0, {{358.0, 705.0}, {424.0, 44.0}}, label: 'Freeze the mixture for 3 hours, 180 minutes. Edit.'
+                                        Image, 0x1124e5e00, {{371.5, 719.5}, {15.5, 15.5}}, identifier: 'timer', label: 'Timer'
+                                        StaticText, 0x1124e5f40, {{396.5, 718.0}, {104.0, 18.0}}, label: '3 hr · Edit time'
+                                        Image, 0x1124e6080, {{755.5, 720.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e61c0, {{361.0, 760.0}, {207.0, 44.0}}, identifier: 'step-needs-you', label: 'Needs you'
+                                      Button, 0x1124e6300, {{572.0, 760.0}, {207.0, 44.0}}, identifier: 'step-hands-off', label: 'Hands-off', Selected
+                                        Image, 0x1124e6440, {{629.0, 775.5}, {14.0, 13.5}}, identifier: 'checkmark', label: 'Selected', Selected
+                                        StaticText, 0x1124e6580, {{650.8, 773.0}, {73.5, 18.0}}, label: 'Hands-off'
+                                      Button, 0x1124e66c0, {{358.0, 815.0}, {208.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Freeze the mixture for 3 hours'
+                                        StaticText, 0x1124e6800, {{400.0, 828.0}, {125.8, 18.0}}, label: 'Edit directions'
+                                        Image, 0x1124e6940, {{400.0, 830.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e6a80, {{574.0, 815.0}, {208.0, 44.0}}, identifier: 'remove-step-r55c74cfb-2', label: 'Remove Freeze the mixture for 3 hours'
+                                        Image, 0x1124e6bc0, {{620.5, 828.5}, {15.0, 17.0}}, identifier: 'trash', label: 'Trash'
+                                        StaticText, 0x1124e6d00, {{620.5, 828.5}, {116.2, 18.0}}, label: 'Remove step'
+                                    Other, 0x1124e6e40, {{344.0, 883.0}, {452.0, 210.0}}
+                                      StaticText, 0x1124e6f80, {{358.0, 897.0}, {323.0, 18.0}}, label: 'Blend and pour the frozen drink for 2 minutes'
+                                      Button, 0x1124e70c0, {{358.0, 925.0}, {424.0, 44.0}}, label: 'Blend and pour the frozen drink for 2 minutes, 2 minutes. Edit.'
+                                        Image, 0x1124e7200, {{371.5, 939.5}, {15.5, 15.5}}, identifier: 'timer', label: 'Timer'
+                                        StaticText, 0x1124e7340, {{396.5, 938.0}, {115.0, 18.0}}, label: '2 min · Edit time'
+                                        Image, 0x1124e7480, {{755.5, 940.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e75c0, {{361.0, 980.0}, {207.0, 44.0}}, identifier: 'step-needs-you', label: 'Needs you', Selected
+                                        Image, 0x1124e7700, {{417.0, 995.5}, {14.0, 13.5}}, identifier: 'checkmark', label: 'Selected', Selected
+                                        StaticText, 0x1124e7840, {{438.8, 993.0}, {75.5, 18.0}}, label: 'Needs you'
+                                      Button, 0x1124e7980, {{572.0, 980.0}, {207.0, 44.0}}, identifier: 'step-hands-off', label: 'Hands-off'
+                                      Button, 0x1124e7ac0, {{358.0, 1035.0}, {208.0, 44.0}}, identifier: 'edit-step-text', label: 'Edit the wording of Blend and pour the frozen drink for 2 minutes'
+                                        StaticText, 0x1124e7c00, {{400.0, 1048.0}, {125.8, 18.0}}, label: 'Edit directions'
+                                        Image, 0x1124e7d40, {{400.0, 1050.5}, {13.0, 13.0}}, identifier: 'pencil', label: 'Edit'
+                                      Button, 0x1124e7e80, {{574.0, 1035.0}, {208.0, 44.0}}, identifier: 'remove-step-r55c74cfb-3', label: 'Remove Blend and pour the frozen drink for 2 minutes'
+                                        Image, 0x110d94000, {{620.5, 1048.5}, {15.0, 17.0}}, identifier: 'trash', label: 'Trash'
+                                        StaticText, 0x110d94140, {{620.5, 1048.5}, {116.2, 18.0}}, label: 'Remove step'
+                                    StaticText, 0x110d94280, {{344.0, 1115.0}, {92.5, 20.5}}, label: 'Timing plan'
+                                    StaticText, 0x110d943c0, {{716.0, 1115.0}, {80.0, 20.5}}, label: '3 hr 7 min'
+                                    Button, 0x110d94500, {{344.0, 1169.5}, {174.0, 44.0}}, identifier: 'delete-recipe', label: 'Delete this recipe'
+                                      Image, 0x110d94640, {{357.0, 1183.0}, {15.0, 17.0}}, identifier: 'trash', label: 'Trash'
+                                      StaticText, 0x110d94780, {{357.0, 1183.0}, {149.0, 18.0}}, label: 'Delete this recipe'
+                                  Other, 0x110d948c0, {{0.0, 0.0}, {820.0, 1180.0}}
+                                    Other, 0x110d94a00, {{0.0, 0.0}, {820.0, 126.0}}
+                                  Other, 0x110d94b40, {{0.0, 0.0}, {820.0, 1180.0}}
+                                    Other, 0x110d94c80, {{0.0, 0.0}, {820.0, 126.0}}
+                                  Other, 0x110d94dc0, {{787.0, 86.0}, {30.0, 994.0}}, label: 'Vertical scroll bar, 2 pages', value: 67%
+                                    Other, 0x110d94f00, {{814.0, 300.0}, {3.0, 777.0}}
+                                  Other, 0x110d95040, {{787.0, 86.0}, {30.0, 994.0}}, label: 'Vertical scroll bar, 2 pages', value: 67%
+                                    Other, 0x110d95180, {{814.0, 300.0}, {3.0, 777.0}}
+                                Button, 0x110d952c0, {{344.0, 1092.0}, {452.0, 56.0}}, identifier: 'timing-looks-right', label: 'Timing looks right'
+                                  StaticText, 0x110d95400, {{487.5, 1109.8}, {167.0, 20.5}}, label: 'Timing looks right'
+                                  Image, 0x110d95540, {{487.5, 1112.5}, {15.0, 15.0}}, identifier: 'checkmark', label: 'Selected', Selected
+                        Toolbar, 0x110d95680, {{0.0, 0.0}, {820.0, 1180.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                          Other, 0x110d957c0, {{0.0, 0.0}, {820.0, 1180.0}}
+                    Toolbar, 0x110d95900, {{0.0, 0.0}, {820.0, 1180.0}}, identifier: 'Toolbar', label: 'Toolbar'
+                      Other, 0x110d95a40, {{0.0, 0.0}, {820.0, 1180.0}}
+                Other, 0x110d95b80, {{0.0, 0.0}, {820.0, 1180.0}}
+                  Other, 0x110d95cc0, {{0.0, 0.0}, {820.0, 1180.0}}
+              Other, 0x110d95e00, {{0.0, 32.0}, {820.0, 1128.0}}
+              Other, 0x110d95f40, {{0.0, 32.0}, {820.0, 1128.0}}
+              Other, 0x110d96080, {{0.0, 32.0}, {820.0, 1128.0}}
+      Other, 0x110d961c0, {{0.0, 0.0}, {820.0, 1180.0}}
+        Other, 0x110d96300, {{0.0, 0.0}, {820.0, 1180.0}}
+          Other, 0x110d96440, {{587.0, 32.0}, {224.0, 148.0}}
+            Other, 0x110d96580, {{587.0, 32.0}, {224.0, 148.0}}
+              Other, 0x110d966c0, {{587.0, 32.0}, {224.0, 148.0}}
+                Other, 0x110d96800, {{587.0, 32.0}, {224.0, 148.0}}
+                CollectionView, 0x110d96940, {{587.0, 32.0}, {224.0, 1180.0}}
+                  Cell, 0x110d96a80, {{587.0, 40.0}, {224.0, 38.0}}
+                    Button, 0x110d96bc0, {{587.0, 40.0}, {224.0, 38.0}}, identifier: 'paintpalette', label: 'Page color'
+                      Image, 0x110d96d00, {{609.5, 50.0}, {21.0, 18.0}}, identifier: 'paintpalette', label: 'Paint palette'
+                  Cell, 0x110d96e40, {{587.0, 78.0}, {224.0, 56.0}}
+                    Button, 0x110d96f80, {{587.0, 78.0}, {224.0, 56.0}}, identifier: 'pencil', label: 'Edit title, yield and notes'
+                      Image, 0x110d970c0, {{612.5, 98.5}, {15.0, 15.0}}, identifier: 'pencil', label: 'edit'
+                  Cell, 0x110d97200, {{587.0, 134.0}, {224.0, 38.0}}
+                    Button, 0x110d97340, {{587.0, 134.0}, {224.0, 38.0}}, identifier: 'photo', label: 'Edit cover photo'
+                      Image, 0x110d97480, {{609.5, 145.0}, {21.5, 16.5}}, identifier: 'photo', label: 'photo'
+                  Other, 0x110d975c0, {{778.0, 56.0}, {30.0, 100.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x110d97700, {{805.0, 59.0}, {3.0, 94.0}}
+                  Other, 0x110d97840, {{587.0, 123.0}, {208.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x110d97980, {{590.0, 150.0}, {203.0, 3.0}}
+                  Other, 0x110d97ac0, {{778.0, 56.0}, {30.0, 100.0}}, label: 'Vertical scroll bar, 1 page', value: 0%
+                    Other, 0x110d97c00, {{805.0, 59.0}, {3.0, 94.0}}
+                  Other, 0x110d97d40, {{587.0, 123.0}, {208.0, 30.0}}, label: 'Horizontal scroll bar, 1 page', value: 0%
+                    Other, 0x110d97e80, {{590.0, 150.0}, {203.0, 3.0}}
+              Other, 0x112ce0000, {{587.0, 32.0}, {224.0, 148.0}}
+                Other, 0x112ce0140, {{587.0, 32.0}, {224.0, 148.0}}
+                  Other, 0x112ce0280, {{587.0, 32.0}, {224.0, 148.0}}
+                    Other, 0x112ce03c0, {{587.0, 32.0}, {224.0, 148.0}}
+                      Other, 0x112ce0500, {{587.0, 32.0}, {224.0, 148.0}}
+                        Other, 0x112ce0640, {{587.0, 32.0}, {224.0, 44.0}}
+                    Other, 0x112ce0780, {{587.0, 32.0}, {224.0, 148.0}}
+                      Other, 0x112ce08c0, {{587.0, 32.0}, {224.0, 44.0}}
+Path to element:
+ →Application, 0x112ce4000, pid: 20935, label: 'Dinner, Together'
+Query chain:
+ →Find: Target Application 'com.example.dinnertogether'
+  Output: {
+    Application, 0x112ce0a00, pid: 20935, label: 'Dinner, Together'
+  }
+)
