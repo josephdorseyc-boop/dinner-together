@@ -166,6 +166,13 @@ class DinnerTogetherUITestCase: XCTestCase {
         return app
     }
 
+    // Diagnostic branch only: compare successful-attachment retention while
+    // continuing to write original PNGs directly. No release verdict uses it.
+    private static var probeAttachmentLifetime: XCTAttachment.Lifetime {
+        ProcessInfo.processInfo.environment["DT_PROBE_DELETE_SUCCESS_ATTACHMENTS"] == "1"
+            ? .deleteOnSuccess : .keepAlways
+    }
+
     /// Keep-always screenshot, named by flow and step. The harness exports
     /// these from the .xcresult into results/ui-screenshots/<device>/.
     func photograph(_ name: String, file: StaticString = #filePath, line: UInt = #line) {
@@ -179,7 +186,7 @@ class DinnerTogetherUITestCase: XCTestCase {
         let image = needsOrientationBake ? Self.turnedToReading(shot.image, for: screenFrame) : shot.image
         let attachment = needsOrientationBake ? XCTAttachment(image: image) : XCTAttachment(screenshot: shot)
         attachment.name = name
-        attachment.lifetime = .keepAlways
+        attachment.lifetime = Self.probeAttachmentLifetime
         add(attachment)
         // Also straight to the results folder when the harness names one
         // (DT_SHOT_DIR): the Duo run's result bundle could not be read, and
@@ -195,12 +202,12 @@ class DinnerTogetherUITestCase: XCTestCase {
             // the presentation can be checked against unmodified evidence.
             let rawScreen = XCTAttachment(screenshot: shot)
             rawScreen.name = name + "-raw-screen-comparison"
-            rawScreen.lifetime = .keepAlways
+            rawScreen.lifetime = Self.probeAttachmentLifetime
             add(rawScreen)
             let appShot = app.screenshot()
             let comparison = XCTAttachment(screenshot: appShot)
             comparison.name = name + "-raw-app-comparison"
-            comparison.lifetime = .keepAlways
+            comparison.lifetime = Self.probeAttachmentLifetime
             add(comparison)
             if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
                 let safe = name.replacingOccurrences(of: "/", with: "-")
@@ -298,7 +305,7 @@ class DinnerTogetherUITestCase: XCTestCase {
     func attachText(_ name: String, _ text: String) {
         let attachment = XCTAttachment(string: text)
         attachment.name = name
-        attachment.lifetime = .keepAlways
+        attachment.lifetime = Self.probeAttachmentLifetime
         add(attachment)
         if let dir = ProcessInfo.processInfo.environment["DT_SHOT_DIR"], !dir.isEmpty {
             try? text.write(to: URL(fileURLWithPath: dir).appendingPathComponent("\(name).txt"), atomically: true, encoding: .utf8)
@@ -2082,7 +2089,7 @@ extension DinnerTogetherUITestCase {
             if attempt == 3 || (light >= 40 && light > dark * 2) {
                 let attachment = XCTAttachment(image: UIImage(cgImage: crop))
                 attachment.name = "\(step)-clock-light\(light)-dark\(dark)"
-                attachment.lifetime = .keepAlways
+                attachment.lifetime = Self.probeAttachmentLifetime
                 add(attachment)
             }
             if light >= 40 && light > dark * 2 { return }

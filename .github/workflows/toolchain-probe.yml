@@ -13,6 +13,10 @@ on:
         required: true
         default: xcode-27
         type: string
+      finalization_smoke:
+        description: "Diagnostic only: compare Xcode 27.0/27.1 and attachment retention; gives no release credit"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -31,10 +35,46 @@ jobs:
           apps=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tr '\n' ' ')
           echo "::notice title=Xcode apps::$apps"
           newest=$(ls -d /Applications/Xcode_*.app 2>/dev/null | grep -vE "_beta|\.[0-9]+\.[0-9]+\.app$" | sort -V | tail -1)
-          for x in "$newest" /Applications/Xcode_27.1.app /Applications/Xcode_26.2.app; do
+          for x in "$newest" /Applications/Xcode_27.0.app /Applications/Xcode_27.1.app /Applications/Xcode_26.2.app; do
             [ -d "$x" ] || continue
             rt=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list runtimes 2>/dev/null | grep -i "^iOS" | sed 's/ - com.apple.*//' | tr '\n' ';')
             duo=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "duo|fold" | tr '\n' ';')
             phones=$(DEVELOPER_DIR="$x/Contents/Developer" xcrun simctl list devicetypes 2>/dev/null | grep -iE "^iPhone 1[7-9]|^iPhone 2" | sed 's/ (com.apple.*//' | tr '\n' ';')
             echo "::notice title=$(basename "$x")::runtimes ${rt:-none} | Duo ${duo:-none} | phones ${phones:-none}"
           done
+
+  finalization-smoke:
+    if: ${{ inputs.finalization_smoke }}
+    name: "Finalization diagnostic Xcode ${{ matrix.xcode }} delete-success=${{ matrix.discard }}"
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - xcode: "27.0"
+            discard: "0"
+          - xcode: "27.1"
+            discard: "0"
+          - xcode: "27.1"
+            discard: "1"
+    env:
+      PROBE_XCODE: ${{ matrix.xcode }}
+      PROBE_DISCARD_SUCCESS: ${{ matrix.discard }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Two-flow diagnostic (not release validation)
+        run: bash native-validation/probe-ui-finalization.sh
+      - name: Remove compiled diagnostic products
+        if: always()
+        run: rm -rf native-validation/probe-results/build
+      - name: Preserve diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finalization-probe-${{ matrix.xcode }}-discard${{ matrix.discard }}-${{ github.run_id }}
+          path: native-validation/probe-results/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 1

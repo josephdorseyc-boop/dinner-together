@@ -1,12 +1,43 @@
 #!/usr/bin/env python3
 """Bound a CI command, including a silent Xcode/test-runner hang (macOS/Linux)."""
 import argparse
+import json
 import os
+from pathlib import Path
 import selectors
 import signal
 import subprocess
 import sys
 import time
+
+
+def collect_timeout_diagnostics(process, directory, reason, done, begun, elapsed):
+    """Best-effort evidence before signals; never turn a deadline into success."""
+    if not directory:
+        return
+    try:
+        destination = Path(directory)
+        destination.mkdir(parents=True, exist_ok=True)
+        metadata = {
+            'pid': process.pid, 'reason': reason, 'suite_marker_seen': done,
+            'start_marker_seen': begun, 'elapsed_seconds': elapsed,
+            'process_returncode_before_signals': process.poll(),
+            'platform': sys.platform, 'release_credit': False,
+        }
+        (destination / 'deadline.json').write_text(json.dumps(metadata, indent=2) + '\n')
+        if sys.platform == 'darwin' and process.poll() is None:
+            with (destination / 'sample-command.log').open('w') as output:
+                try:
+                    result = subprocess.run(
+                        ['/usr/bin/sample', str(process.pid), '3', '-file',
+                         str(destination / 'process.sample.txt')],
+                        stdout=output, stderr=subprocess.STDOUT, timeout=8,
+                        check=False)
+                    output.write(f'\nsample exit: {result.returncode}\n')
+                except (OSError, subprocess.TimeoutExpired) as error:
+                    output.write(f'\nsample unavailable: {error}\n')
+    except OSError as error:
+        print(f'::warning::Timeout diagnostics unavailable: {error}', flush=True)
 
 
 def signal_group(process, sig):
@@ -38,6 +69,7 @@ def main():
     parser.add_argument('--seconds', type=float, required=True)
     parser.add_argument('--idle-seconds', type=float, required=True)
     parser.add_argument('--grace-seconds', type=float, default=10)
+    parser.add_argument('--diagnostics-dir', help='Optional bounded process sample before timeout signals (macOS).')
     # Xcode 27.1 on the Duo simulator printed the suite's last line, then sat
     # silent until the idle deadline (Duo run 38723119849): once this text has
     # appeared, a shorter silence ends the command, interrupting it gently
@@ -96,6 +128,8 @@ def main():
                 else:
                     selector.unregister(key.fileobj)
         if reason:
+            collect_timeout_diagnostics(process, args.diagnostics_dir, reason,
+                                        done, begun, time.monotonic() - started)
             if not begun:
                 print(f'::warning::Native command exceeded the {reason}; terminating its process group '
                       '(exit 125: nothing ran, so the harness may reboot the simulator and run it again).', flush=True)
