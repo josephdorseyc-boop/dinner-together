@@ -1,0 +1,123 @@
+{
+  "devicesAndConfigurations" : [
+    {
+      "device" : {
+        "architecture" : "arm64",
+        "deviceId" : "B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7",
+        "deviceName" : "iPhone 17",
+        "modelName" : "iPhone 17",
+        "osBuildNumber" : "24A434",
+        "osVersion" : "27.0",
+        "platform" : "iOS Simulator"
+      },
+      "expectedFailures" : 0,
+      "failedTests" : 1,
+      "passedTests" : 28,
+      "skippedTests" : 0,
+      "testPlanConfiguration" : {
+        "configurationId" : "1",
+        "configurationName" : "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription" : "DinnerTogether · Built with macOS 27.0.1",
+  "expectedFailures" : 0,
+  "failedTests" : 1,
+  "finishTime" : 1792232458.712,
+  "passedTests" : 28,
+  "result" : "Failed",
+  "runtimeWarnings" : [
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    },
+    {
+      "issueType" : "Runtime Warning",
+      "message" : "Accessing Environment<Bool>'s value outside of being installed on a View. This will always read the default value and will not update."
+    }
+  ],
+  "skippedTests" : 0,
+  "startTime" : 1792229230.923,
+  "statistics" : [
+
+  ],
+  "testFailures" : [
+    {
+      "failureText" : "Test exceeded execution time allowance of 6 minutes",
+      "targetName" : "DinnerTogetherUITests",
+      "testIdentifier" : 2,
+      "testIdentifierString" : "DinnerTogetherUITests/test03_adjustTimeOnSchedule()",
+      "testIdentifierURL" : "test://com.apple.xcode/DinnerTogether/DinnerTogetherUITests/DinnerTogetherUITests/test03_adjustTimeOnSchedule",
+      "testName" : "test03_adjustTimeOnSchedule()"
+    }
+  ],
+  "title" : "Test - DinnerTogether",
+  "topInsights" : [
+    {
+      "category" : "Longest Test Runs",
+      "impact" : "11% of duration",
+      "text" : "1 longest test run with outlier durations exceeding 314.56s (three standard deviations)"
+    }
+  ],
+  "totalTestCount" : 29
+}

@@ -1,0 +1,281 @@
+Exported 3 attachments for: DinnerTogetherUITests/test01_reviewDinnerTimeLatePrep():
+File: 27B7152B-643A-4CF9-AE30-1C7B790D17C5.png, suggested name: "01-after-undo_0_7C19D524-27A8-4E8E-BBB8-612487B8B0D0.png"
+File: B523A645-21FA-4029-AE97-5BE192EDB2F4.png, suggested name: "01-after-move_0_80D239E4-03A9-4E28-84A6-E77774B0094E.png"
+File: D14B9A23-0258-4AF6-9949-550369674E99.png, suggested name: "01-review-sheet_0_2D56F7AE-8ADF-49AC-89B4-54D109AA139C.png"
+
+Exported 20 attachments for: DinnerTogetherUITests/test03_adjustTimeOnSchedule():
+File: 2B454916-DEF7-4C18-B214-7D3EF45F3527, suggested name: "UI Snapshot 2026-10-17 at 09.30.26 AM"
+File: C9D854C6-EE49-4F91-9CBB-0E3ACD6C383C, suggested name: "Synthesized Event 2026-10-17 at 09.30.34 AM"
+File: D9F18579-9422-4ED5-97B7-B3376C761F86, suggested name: "UI Snapshot 2026-10-17 at 09.30.17 AM"
+File: BF185D79-9195-4381-B7BB-BE8D327A7C94, suggested name: "Synthesized Event 2026-10-17 at 09.30.19 AM"
+File: 2B7B6FCD-CFF3-47E5-826B-1F7FADF7137B.png, suggested name: "03-after-confirm_0_980277E8-F222-495D-8F5D-96FB2B68FA3D.png"
+File: 00852F5B-7429-40B9-9EAB-60E4FD523826, suggested name: "UI Snapshot 2026-10-17 at 09.30.07 AM"
+File: 9B180F17-B092-4137-AAA8-EA6BD6EEB59E, suggested name: "UI Snapshot 2026-10-17 at 09.30.03 AM"
+File: 20E3869A-333B-4865-8F37-A3A13E154F15, suggested name: "Synthesized Event 2026-10-17 at 09.30.03 AM"
+File: 72B79222-FFB4-4AD4-A1A3-B783316E1523, suggested name: "UI Snapshot 2026-10-17 at 09.29.56 AM"
+File: 568526AA-7CCF-43A4-A7ED-DE77E0B397EF, suggested name: "Synthesized Event 2026-10-17 at 09.29.58 AM"
+File: F26914ED-6D9A-47E9-A12A-B9FABEAB7081, suggested name: "UI Snapshot 2026-10-17 at 09.29.46 AM"
+File: 78B83F2A-D4B7-43A4-B8F6-2C468E0A0E45, suggested name: "Synthesized Event 2026-10-17 at 09.29.48 AM"
+File: 70B4EA80-FB48-46FD-B60F-2A911F84BB1D.png, suggested name: "03-delay-sheet_0_B631E8DD-A75B-4095-AA0A-CBA195B3A907.png"
+File: F32DCEB5-4388-4F67-9CAC-3E14BF42D7F2, suggested name: "UI Snapshot 2026-10-17 at 09.29.35 AM"
+File: 022ED9D1-94B8-49C4-9668-92A4373E1E44, suggested name: "Synthesized Event 2026-10-17 at 09.29.36 AM"
+File: CEE9A50A-A370-427B-B88D-066F8A39698A.png, suggested name: "03-delay-choice-dialog_0_9FE28500-5ED9-4DD0-AA39-E596525118B6.png"
+File: 57320780-C973-4F91-BDD8-EF7E1EBC2DC9, suggested name: "UI Snapshot 2026-10-17 at 09.29.27 AM"
+File: 6D4C53BD-382D-4A56-BE6D-4FB0D31DF424, suggested name: "Synthesized Event 2026-10-17 at 09.29.27 AM"
+File: 4238A933-A906-45F2-9478-F410A84ACF93, suggested name: "Screen Recording 2026-10-17 at 09.29.13 AM"
+File: 6E550F15-7F75-4D0F-A517-5234FC767B47.txt, suggested name: "2026-10-17 093514 +0000-Spindump_0_2C295390-54D6-4ACD-8C97-28D67E57A2AF.txt"
+
+Exported 4 attachments for: DinnerTogetherUITests/test05_blockedStartAnyway():
+File: 965D520D-DE0E-44C7-887E-E5B621E397FD.png, suggested name: "05-after-start-anyway_0_1BEC7688-02E4-46B5-8A09-34B55975613C.png"
+File: C5C3178E-45E1-4E0E-963F-37E04E9DFB03.png, suggested name: "05-blocked-alert_0_C974F6B9-E416-4416-AEAF-F7640FB67726.png"
+File: BCE206CC-747A-4912-B111-B52CE5707F01.png, suggested name: "05-after-review-start-tap_0_EFE182F8-9EF5-4281-9BE8-7793DF2FFF67.png"
+File: B30AD924-B5DF-4573-99E4-74CB5C3B7811.png, suggested name: "05-timeline-blocked_0_396961EC-B080-426B-A22A-B59AF133BFCE.png"
+
+Exported 2 attachments for: DinnerTogetherUITests/test07a_stalePlanWithProgress():
+File: 160FA65A-8C62-4512-9272-1F808D2F31DC.png, suggested name: "07a-after-resume_0_4629A967-FB5D-4FB0-AC8F-8CAA18256DBA.png"
+File: 5914F79A-1715-4D37-9C8F-061797FBE0B2.png, suggested name: "07a-stale-sheet_0_2E088169-BDA1-44DF-BCB9-F890B6811C93.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test08_reviewDinnerTimeAXTextSize():
+File: A7CC2A58-C22E-40BD-ACFD-25E9AB8D436E.png, suggested name: "08-ax-review-sheet_0_7980AB71-C127-42D6-ABD2-21C607B3FA8C.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test10_recipeLibraryEmpty():
+File: 8B31307E-AB7C-4344-9C1B-36E642CBDE4E.png, suggested name: "r01-library-empty_0_C6C3F633-C11F-4865-9B95-778A5D65AFC0.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test12_appleNewsLink():
+File: B59AF31D-8F37-4973-847D-8FF5195DCA53.png, suggested name: "r06-apple-news-link_0_7D8375E5-D290-4BBB-BBDE-05F64437A555.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test14_thanksgivingCard():
+File: 7E5F8B6C-4E8D-4A4F-AB68-7AC7654371A9.png, suggested name: "r08-thanksgiving_0_6CC141A1-797A-47BD-A9C5-9A2CA6FB0900.png"
+
+Exported 3 attachments for: DinnerTogetherUITests/test16_deleteFailure():
+File: E3ABEE39-50C5-4299-9DD0-2D08E6A82061.png, suggested name: "r09-delete-failed_0_2BE04C94-3FA1-4E55-9CA4-BE59EA6C183A.png"
+File: 2D6CEA0D-97CE-4980-B5D4-7601D4363BDD.png, suggested name: "r09b-delete-dialog_0_6EFAE61B-A5F6-4666-843B-56B5DAEE01DB.png"
+File: 36ABF5D0-74F7-488A-8020-12A30574BF1F.png, suggested name: "r09a-delete-button_0_52F7235C-5A95-4B5E-8FB5-9D93BEF6037E.png"
+
+Exported 5 attachments for: DinnerTogetherUITests/test18_recipeReviewGateAX3():
+File: 432EE6BA-7866-4A6E-AF75-F46012229527.png, suggested name: "r17-tonight-recipe-ax3_0_6E9D5262-4237-459A-9560-D131374E6631.png"
+File: 5B8639C7-43FF-4CC0-9398-89B64FE77E0F.png, suggested name: "r05-timing-confirmed-ax3_0_5AD4E748-4583-4CD8-A2B3-0D3132509086.png"
+File: A68FA69F-5E2B-4DFC-A19D-EA0F09890BC7.png, suggested name: "r04b-duration-181-ax3_0_099E4636-F4FC-4017-BB1D-6E903F5C0E09.png"
+File: 03435A79-DCA0-4761-9534-D531AFF486F3.png, suggested name: "r04-duration-180-ax3_0_05A3E0E5-9A10-49CD-B4FB-CE1A674F4D8A.png"
+File: 17FC4484-9CE8-4D8C-857F-38E27D97E55B.png, suggested name: "r02-recipe-unreviewed-ax3_0_14626170-376F-44F0-8F1F-C0C164FBE629.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test20_appleNewsLinkAX3():
+File: 8E79AAEA-F6AC-493B-B794-FD2CF790BEA7.png, suggested name: "r06-apple-news-link-ax3_0_E4522C38-F475-4197-97FF-3E4B181FFECC.png"
+
+Exported 3 attachments for: DinnerTogetherUITests/test22_coverCropHappyPath():
+File: 135AB6F9-543E-452F-8DF0-A434ABC6A091.png, suggested name: "r12-cover-hero_0_66F3F559-D7E9-4065-906F-1841A327D2C2.png"
+File: CAC76073-2918-4B7B-803E-33CAC7BCD01A.png, suggested name: "r11-cover-crop_0_51356882-9FA8-4C19-9865-F0981A95A9BF.png"
+File: E2380042-5B38-4DE4-AC41-C2E20BCE529F.png, suggested name: "r11a-cover-before-zoom_0_81D62B30-E7A8-40AB-94A1-C4FF857E057A.png"
+
+Exported 4 attachments for: DinnerTogetherUITests/test24_photoPageColors():
+File: 60FAFB66-60EB-4A13-8775-2E2639060A59.png, suggested name: "r14d-photo-classic_0_DEF24B59-C3E0-4D12-9A77-FADBE4CBA9F7.png"
+File: FBA4D434-35BF-4372-B535-63FD348BE8F7.png, suggested name: "r14c-page-color-sheet_0_2FA9C332-62C1-4290-B7A6-DA7DC6A7888B.png"
+File: F30F396B-36D3-472A-A5BF-66E24006C69A.png, suggested name: "r14b-photo-colors-directions_0_D8B45064-3A96-432E-8485-660179F01B59.png"
+File: E0CD381A-3A2E-4198-AEFE-41446922F19F.png, suggested name: "r14a-photo-colors_0_E1BA431F-C079-4B0B-8572-59440134F78D.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test26_pageColorSaveFailure():
+File: B3F9BE0A-6E29-4DD6-AD18-35119C0D6744.png, suggested name: "r16-page-color-save-failed_0_B968863E-F6FE-4B72-8627-9D936E1B4680.png"
+
+Exported 4 attachments for: DinnerTogetherUITests/test28_typedPageColorAX3():
+File: 49E68C41-A913-4490-AAA1-F73EF945F0D5.png, suggested name: "r15d-typed-plum-directions-ax3_0_9410E01B-6EF4-4D37-8884-C7782A50F170.png"
+File: C023FFAE-8E5D-4F1B-8658-AEFE606E70F6.png, suggested name: "r15c-typed-plum-ax3_0_DED37F97-8C19-4FD4-BDC7-02DF1D51BAA2.png"
+File: 0B3EBD9E-FFA5-4D2A-A8C5-9CC142492BCB.png, suggested name: "r15b-plum-sheet-ax3_0_C9D7E77C-C6D7-41E6-A4DC-06EB053B5492.png"
+File: 51EF7D68-FCA4-4427-B748-50391F0535A8.png, suggested name: "r15a-typed-cream-ax3_0_E76CC803-A44B-4AFF-8B1D-CB3E92A529A4.png"
+
+Exported 4 attachments for: DinnerTogetherUITests/test30_typedPageColorDark():
+File: 42796CDA-9BA9-4561-A67E-E81CC5CE18A4.png, suggested name: "r15d-typed-plum-directions-dark_0_16331A14-F336-4527-82CA-95D7C3C4FF46.png"
+File: F4741826-CF8F-4991-A4B5-B55C4E4D73C0.png, suggested name: "r15c-typed-plum-dark_0_61D212A1-8587-4951-8057-8D0A5631089E.png"
+File: 9A4DEE3C-E045-4A61-AE80-9D0E7BE2FE75.png, suggested name: "r15b-plum-sheet-dark_0_F6DF9823-9EB9-485B-92B9-49C4E5F3100B.png"
+File: 401DA581-6852-47C7-B23B-0DB4F46DE5CC.png, suggested name: "r15a-typed-cream-dark_0_6E472733-256F-43D7-A978-5173E422A77B.png"
+
+Exported 4 attachments for: DinnerTogetherUITests/test32_typedTomatoDirections():
+File: DD559B95-98F6-4DE6-9A1E-2B3D26FFBDFD.png, suggested name: "r15d-typed-tomato-directions_0_2D39B614-4E2D-4749-958B-C6F99CFC7F76.png"
+File: 7A1C7B1B-5199-4055-A902-94C98209B4A1.png, suggested name: "r15c-typed-tomato_0_EB05EB43-DFD1-447D-BB5E-809A56BA2F3F.png"
+File: C389E21E-EC4D-4530-A7A8-22FE0AF59E0C.png, suggested name: "r15b-tomato-sheet_0_15C38648-F0AD-48EF-A1CB-6F1FCF8AA83E.png"
+File: B1845720-03FC-4911-A7BB-E6C98397EF1D.png, suggested name: "r15a-typed-cream_0_0C726BB5-332C-4555-BF28-BA0FC14DCC04.png"
+
+Exported 4 attachments for: DinnerTogetherUITests/test34_palePhotoPage():
+File: 2B8DB413-5679-4ABF-8F74-2A1961EB254F.png, suggested name: "r19d-pale-to-plum_0_ED8D10BE-8024-4C78-B4AF-30B58C770C20.png"
+File: 3DC73587-41EA-459D-83E5-B0A7FB4FD2FE.png, suggested name: "r19c-pale-timing_0_87FD136E-9E42-40F4-A272-3B7965926E90.png"
+File: 26E68B5C-EBCA-47DB-8704-88E351F79D12.png, suggested name: "r19b-pale-directions_0_C0494BDD-4018-4BFE-B178-E5C044292616.png"
+File: 5B8336D8-9A10-4A62-898B-56B25FE65205.png, suggested name: "r19a-pale-page_0_E9188FC8-2E4B-4AE1-85A2-C3651B7B7279.png"
+
+Exported 5 attachments for: DinnerTogetherUITests/test36_swipeEditAndDelete():
+File: 13931E42-2737-4B54-A7B2-26AE957863AB.png, suggested name: "r20d-after-delete_0_B66B2456-960D-49D5-BB60-3E9A83A36B5F.png"
+File: A7225300-3AFE-46A6-A7DA-AA5A3A11CC86.png, suggested name: "r20c-delete-alert_0_999F45E7-FB49-4665-93F6-4E51DD12A592.png"
+File: 25E0007F-C330-44EF-BF8E-1AF7D87C1BBF.png, suggested name: "r20b2-recipe-notes_0_AE44F1C3-E680-4FF5-A6FC-34C90DCF5C5E.png"
+File: FE6D62D6-0CB9-406B-80AE-0FE718CF7E2B.png, suggested name: "r20b-edit-recipe_0_3F4E4BDF-E555-4043-9DA2-54E905748EFC.png"
+File: A2D42D1B-60D3-4389-A7CB-DDEF9F91427B.png, suggested name: "r20a-swipe-actions_0_FEA24589-D1A1-4027-9E2F-59176C710AFD.png"
+
+Exported 2 attachments for: DinnerTogetherUITests/test38_importWarningPersists():
+File: 8247063B-7CB0-4EEA-BB9A-785D042B0952.png, suggested name: "r21b-warning-after-check_0_16061606-010A-4E3C-8E4C-0AED239EC9CD.png"
+File: BD06BDE4-DC09-4415-BDD5-169629D275D0.png, suggested name: "r21a-warning-on-timing_0_205522E0-DF2C-469F-839E-A334FC63F99A.png"
+
+Exported 3 attachments for: DinnerTogetherUITests/test40_recipeCoversPale():
+File: FFACBE33-6497-4854-99AE-E17AE9390FC0.png, suggested name: "r22c-start-action-revealed-pastel_0_A75967EA-34E9-4F81-8E38-E49A97F7D589.png"
+File: B617C07F-DB94-47DF-AD52-38D451625B78.png, suggested name: "r22b-cooking-initial-pastel_0_0B8857D8-BB59-48E3-9817-3E175E7343F3.png"
+File: 4424CF32-A8EF-472B-8AFD-843DC2D61A2F.png, suggested name: "r22a-tonight-cover-pastel_0_D5CBC422-FBB2-45A4-ABC3-F9D0C3469A60.png"
+
+Exported 3 attachments for: DinnerTogetherUITests/test42_recipeCoversAX3():
+File: BD85741E-E99A-4CF8-8EB0-DB5777AADC98.png, suggested name: "r22c-start-action-revealed-landscape-ax3_0_6372CBEB-6110-40A7-B094-0FD7E126333D.png"
+File: BF808442-03BB-4C91-B260-B1DF510D4584.png, suggested name: "r22b-cooking-initial-landscape-ax3_0_AF02BB13-4361-4F88-8AF2-21527CD0D8BB.png"
+File: CFEC34A4-EE4E-4C4C-80B3-7128C217AFC2.png, suggested name: "r22a-tonight-cover-landscape-ax3_0_95ED0B81-D125-47A7-ABCA-A3BE7C552CD2.png"
+
+Exported 5 attachments for: DinnerTogetherUITests/test44_coverSwitching():
+File: 3C648C83-F5D2-41E0-8839-29F4A8FD98B8.png, suggested name: "r24d-tonight-first-launch-solid_0_A15415AA-04D5-476E-BB89-4025DF1E199D.png"
+File: DA36565C-42AA-4A56-B1A2-C69E6A8A540C.png, suggested name: "r24d-tonight-first-launch-dark_0_837E34A9-0B9E-4A87-B06D-92F987760857.png"
+File: 4D5B9B3E-3AD0-432C-A3DF-E54C25319DA4.png, suggested name: "r24c-b-without-photo_0_5C6C57AF-6B70-47BF-A58B-1CB25C1B556D.png"
+File: 385D0DEA-0EE1-4EE6-B395-55777FFDDA9F.png, suggested name: "r24b-a-with-photo_0_6A120465-4DD8-498E-8E8F-CC93AACE136F.png"
+File: 131C5E71-2750-4F39-91BA-EFF15DDE509C.png, suggested name: "r24a-imported-not-chosen_0_3CB79C91-298C-4B41-BBBA-D94AF813E7AD.png"
+
+Exported 5 attachments for: DinnerTogetherUITests/test46_cookbookSpread():
+File: 5F1892B8-1CD7-4B5F-B21F-909EE6A74322.png, suggested name: "r26a-single-page_0_7C8E5BC1-0D25-403E-AE62-130F0BA36CB3.png"
+File: 68F50441-902A-432A-95AA-9CE0D68639D4.txt, suggested name: "r26-0-recipe-page-hierarchy_0_DD2A0DD7-527F-4ED5-8846-4C78E7017FAD.txt"
+File: CFFA723E-6E4B-4033-8A7C-E36A9615B785.png, suggested name: "r26-0-recipe-page_0_81C02D48-C7E7-48F4-85CB-ADF57BF72C1A.png"
+File: 2FB6DB85-AAE9-4A97-A93A-0A1CA1EF9D5B.txt, suggested name: "r26-0-first-screen-hierarchy_0_24520255-089E-48FB-A87A-74DE1F5ED638.txt"
+File: F340A660-AF4B-450A-ACF3-11A3F5A73304.png, suggested name: "r26-0-first-screen_0_E5772B02-09BD-41F0-81B3-6C8652D445BC.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test48_dayPlanMultiCheck():
+File: D5431BA1-CE71-47E1-BE29-CC755DDB4E5D.png, suggested name: "r28a-day-sheet-three-checked_0_E6E6982F-71F3-45D5-8F63-66AF8CCEA3BA.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test50_addToDinnerFromRecipe():
+File: D06150F3-0F4B-4354-9B58-CFE83B7125C0.png, suggested name: "r28c-added-from-recipe_0_6DB3A6C0-C071-4986-8DF8-756E2C8997CC.png"
+
+Exported 12 attachments for: DinnerTogetherUITests/test53_weekShowcaseSideways():
+File: 119EBCB0-75DA-46A6-A798-7A8F85CCC40E.txt, suggested name: "r29c-tonight-sideways-after-done-capture-provenance_0_C11A31B7-C2FE-4FE3-A574-F7134EE4B7C5.txt"
+File: B4B91160-7CED-430C-8E53-033A54F1654B.png, suggested name: "r29c-tonight-sideways-after-done-raw-app-comparison_0_F5BE4D1B-D723-4DD4-95F5-16BAAE70ABF6.png"
+File: 7F5905DE-206B-4F0C-9DCB-6B3FED6F3037.png, suggested name: "r29c-tonight-sideways-after-done-raw-screen-comparison_0_EA10EF34-D243-4FFE-96B4-02F86C8112EB.png"
+File: 00643A54-A41B-4E41-AB7A-68C7B41051B1.png, suggested name: "r29c-tonight-sideways-after-done_0_B046C7C7-3D43-4636-8021-C28A19768A82.png"
+File: 44650360-7693-442D-9153-631B643DBA56.txt, suggested name: "r29b-week-showcase-open-day-capture-provenance_0_8C92626D-ABF4-48E5-818A-8D99A2DF9569.txt"
+File: 8AE5B6EE-04DE-42A8-AD78-3C564C5A218D.png, suggested name: "r29b-week-showcase-open-day-raw-app-comparison_0_895C6EC3-C499-42A2-8771-C5FC4DC11E14.png"
+File: 14AD53E7-7841-432C-950B-8B8C9325B073.png, suggested name: "r29b-week-showcase-open-day-raw-screen-comparison_0_DA4F5C1B-3D64-4945-B345-D77F0F6DD4F5.png"
+File: 4F8E1D8A-B662-4C48-B39B-8B6FAC696C19.png, suggested name: "r29b-week-showcase-open-day_0_FF9BE73F-DB7D-4FB3-968A-F351DCFD4777.png"
+File: 89A7A12E-F673-4E39-99BC-9741198F6F36.txt, suggested name: "r29a-week-showcase-tonight-capture-provenance_0_61C1607B-4DF1-4B41-AA21-C01ED4C52C22.txt"
+File: 05394FDD-8EF0-46A7-9AF1-8DD266ECF0BB.png, suggested name: "r29a-week-showcase-tonight-raw-app-comparison_0_EC92B396-C3DF-42BC-A7E0-15071CA803FB.png"
+File: 740310E9-C6F9-4293-A8C1-ED05EC67DA7B.png, suggested name: "r29a-week-showcase-tonight-raw-screen-comparison_0_97850E99-E6EE-43B1-8575-E534DD295360.png"
+File: 8904C680-F802-4B15-BD85-747A851854F3.png, suggested name: "r29a-week-showcase-tonight_0_FA29AE8A-021E-41A1-B4DE-931D98F2BB20.png"
+
+Exported 1 attachment for: DinnerTogetherUITests/test55_fullScreenTimers():
+File: E42B8358-CEE2-42D4-9610-5CBBCD383D3D.png, suggested name: "r31a-fullscreen-by-hand_0_0D6A42B8-9D12-43AA-ABF8-C4B4B3B85762.png"
+
+Exported 7 attachments for: DinnerTogetherUITests/test57_automaticNightstandTimers():
+File: 352C73BD-667C-40AA-9BE0-F50BDF1F2BF9.png, suggested name: "r31c-cooking-after-done_0_3F5041A9-9053-47BE-9561-78BB4C496235.png"
+File: 8300470F-C3DC-4874-95DE-D6C3B48F2B03.txt, suggested name: "r31b-nightstand-landscape-capture-provenance_0_2FB23C72-67B4-4BF6-9185-FD813DF93C0B.txt"
+File: 9D2B81B1-375D-4D59-8A5C-6FA3E7C9BBBD.png, suggested name: "r31b-nightstand-landscape-raw-app-comparison_0_7F19D2AC-D7BE-40B0-A891-2C159F3019D8.png"
+File: DC6D2D0F-DBF4-471A-8DE2-7060536E8CB5.png, suggested name: "r31b-nightstand-landscape-raw-screen-comparison_0_6BECD765-660A-4C50-8FDA-B9F7BAA36D2A.png"
+File: 846BBCE1-1200-4757-9951-A645F8B31C03.png, suggested name: "r31b-nightstand-landscape_0_2EFDA7CC-C6C5-4D2D-ABF7-2FB1566D0C39.png"
+File: 4B4C902C-86E6-43D8-BB48-C495C41406A8.txt, suggested name: "r31-nightstand-geometry_0_B3DF80BC-AE7F-4A59-B22D-916A88860B95.txt"
+File: 3C453F1A-4DD9-49DF-9AF4-A91DC5FB7735.png, suggested name: "r31a-fullscreen-by-hand_0_CA6C2D27-3DAE-4235-AD94-EAFE47BA54E7.png"
+
+Generated manifest file with attachment details: /Users/runner/work/dinner-together/dinner-together/native-validation/results/ui-screenshots/iphone/manifest.json
+rename: 27B7152B-643A-4CF9-AE30-1C7B790D17C5.png -> 01-after-undo.png
+rename: B523A645-21FA-4029-AE97-5BE192EDB2F4.png -> 01-after-move.png
+rename: D14B9A23-0258-4AF6-9949-550369674E99.png -> 01-review-sheet.png
+rename: 2B454916-DEF7-4C18-B214-7D3EF45F3527 -> UI-Snapshot-2026-10-17-at-09-30-26-AM.plist
+rename: C9D854C6-EE49-4F91-9CBB-0E3ACD6C383C -> Synthesized-Event-2026-10-17-at-09-30-34-AM.plist
+rename: D9F18579-9422-4ED5-97B7-B3376C761F86 -> UI-Snapshot-2026-10-17-at-09-30-17-AM.plist
+rename: BF185D79-9195-4381-B7BB-BE8D327A7C94 -> Synthesized-Event-2026-10-17-at-09-30-19-AM.plist
+rename: 2B7B6FCD-CFF3-47E5-826B-1F7FADF7137B.png -> 03-after-confirm.png
+rename: 00852F5B-7429-40B9-9EAB-60E4FD523826 -> UI-Snapshot-2026-10-17-at-09-30-07-AM.plist
+rename: 9B180F17-B092-4137-AAA8-EA6BD6EEB59E -> UI-Snapshot-2026-10-17-at-09-30-03-AM.plist
+rename: 20E3869A-333B-4865-8F37-A3A13E154F15 -> Synthesized-Event-2026-10-17-at-09-30-03-AM.plist
+rename: 72B79222-FFB4-4AD4-A1A3-B783316E1523 -> UI-Snapshot-2026-10-17-at-09-29-56-AM.plist
+rename: 568526AA-7CCF-43A4-A7ED-DE77E0B397EF -> Synthesized-Event-2026-10-17-at-09-29-58-AM.plist
+rename: F26914ED-6D9A-47E9-A12A-B9FABEAB7081 -> UI-Snapshot-2026-10-17-at-09-29-46-AM.plist
+rename: 78B83F2A-D4B7-43A4-B8F6-2C468E0A0E45 -> Synthesized-Event-2026-10-17-at-09-29-48-AM.plist
+rename: 70B4EA80-FB48-46FD-B60F-2A911F84BB1D.png -> 03-delay-sheet.png
+rename: F32DCEB5-4388-4F67-9CAC-3E14BF42D7F2 -> UI-Snapshot-2026-10-17-at-09-29-35-AM.plist
+rename: 022ED9D1-94B8-49C4-9668-92A4373E1E44 -> Synthesized-Event-2026-10-17-at-09-29-36-AM.plist
+rename: CEE9A50A-A370-427B-B88D-066F8A39698A.png -> 03-delay-choice-dialog.png
+rename: 57320780-C973-4F91-BDD8-EF7E1EBC2DC9 -> UI-Snapshot-2026-10-17-at-09-29-27-AM.plist
+rename: 6D4C53BD-382D-4A56-BE6D-4FB0D31DF424 -> Synthesized-Event-2026-10-17-at-09-29-27-AM.plist
+rename: 4238A933-A906-45F2-9478-F410A84ACF93 -> Screen-Recording-2026-10-17-at-09-29-13-AM.plist
+rename: 6E550F15-7F75-4D0F-A517-5234FC767B47.txt -> 2026-10-17-093514--0000-Spindump.txt
+rename: 965D520D-DE0E-44C7-887E-E5B621E397FD.png -> 05-after-start-anyway.png
+rename: C5C3178E-45E1-4E0E-963F-37E04E9DFB03.png -> 05-blocked-alert.png
+rename: BCE206CC-747A-4912-B111-B52CE5707F01.png -> 05-after-review-start-tap.png
+rename: B30AD924-B5DF-4573-99E4-74CB5C3B7811.png -> 05-timeline-blocked.png
+rename: 160FA65A-8C62-4512-9272-1F808D2F31DC.png -> 07a-after-resume.png
+rename: 5914F79A-1715-4D37-9C8F-061797FBE0B2.png -> 07a-stale-sheet.png
+rename: A7CC2A58-C22E-40BD-ACFD-25E9AB8D436E.png -> 08-ax-review-sheet.png
+rename: 8B31307E-AB7C-4344-9C1B-36E642CBDE4E.png -> r01-library-empty.png
+rename: B59AF31D-8F37-4973-847D-8FF5195DCA53.png -> r06-apple-news-link.png
+rename: 7E5F8B6C-4E8D-4A4F-AB68-7AC7654371A9.png -> r08-thanksgiving.png
+rename: E3ABEE39-50C5-4299-9DD0-2D08E6A82061.png -> r09-delete-failed.png
+rename: 2D6CEA0D-97CE-4980-B5D4-7601D4363BDD.png -> r09b-delete-dialog.png
+rename: 36ABF5D0-74F7-488A-8020-12A30574BF1F.png -> r09a-delete-button.png
+rename: 432EE6BA-7866-4A6E-AF75-F46012229527.png -> r17-tonight-recipe-ax3.png
+rename: 5B8639C7-43FF-4CC0-9398-89B64FE77E0F.png -> r05-timing-confirmed-ax3.png
+rename: A68FA69F-5E2B-4DFC-A19D-EA0F09890BC7.png -> r04b-duration-181-ax3.png
+rename: 03435A79-DCA0-4761-9534-D531AFF486F3.png -> r04-duration-180-ax3.png
+rename: 17FC4484-9CE8-4D8C-857F-38E27D97E55B.png -> r02-recipe-unreviewed-ax3.png
+rename: 8E79AAEA-F6AC-493B-B794-FD2CF790BEA7.png -> r06-apple-news-link-ax3.png
+rename: 135AB6F9-543E-452F-8DF0-A434ABC6A091.png -> r12-cover-hero.png
+rename: CAC76073-2918-4B7B-803E-33CAC7BCD01A.png -> r11-cover-crop.png
+rename: E2380042-5B38-4DE4-AC41-C2E20BCE529F.png -> r11a-cover-before-zoom.png
+rename: 60FAFB66-60EB-4A13-8775-2E2639060A59.png -> r14d-photo-classic.png
+rename: FBA4D434-35BF-4372-B535-63FD348BE8F7.png -> r14c-page-color-sheet.png
+rename: F30F396B-36D3-472A-A5BF-66E24006C69A.png -> r14b-photo-colors-directions.png
+rename: E0CD381A-3A2E-4198-AEFE-41446922F19F.png -> r14a-photo-colors.png
+rename: B3F9BE0A-6E29-4DD6-AD18-35119C0D6744.png -> r16-page-color-save-failed.png
+rename: 49E68C41-A913-4490-AAA1-F73EF945F0D5.png -> r15d-typed-plum-directions-ax3.png
+rename: C023FFAE-8E5D-4F1B-8658-AEFE606E70F6.png -> r15c-typed-plum-ax3.png
+rename: 0B3EBD9E-FFA5-4D2A-A8C5-9CC142492BCB.png -> r15b-plum-sheet-ax3.png
+rename: 51EF7D68-FCA4-4427-B748-50391F0535A8.png -> r15a-typed-cream-ax3.png
+rename: 42796CDA-9BA9-4561-A67E-E81CC5CE18A4.png -> r15d-typed-plum-directions-dark.png
+rename: F4741826-CF8F-4991-A4B5-B55C4E4D73C0.png -> r15c-typed-plum-dark.png
+rename: 9A4DEE3C-E045-4A61-AE80-9D0E7BE2FE75.png -> r15b-plum-sheet-dark.png
+rename: 401DA581-6852-47C7-B23B-0DB4F46DE5CC.png -> r15a-typed-cream-dark.png
+rename: DD559B95-98F6-4DE6-9A1E-2B3D26FFBDFD.png -> r15d-typed-tomato-directions.png
+rename: 7A1C7B1B-5199-4055-A902-94C98209B4A1.png -> r15c-typed-tomato.png
+rename: C389E21E-EC4D-4530-A7A8-22FE0AF59E0C.png -> r15b-tomato-sheet.png
+rename: B1845720-03FC-4911-A7BB-E6C98397EF1D.png -> r15a-typed-cream.png
+rename: 2B8DB413-5679-4ABF-8F74-2A1961EB254F.png -> r19d-pale-to-plum.png
+rename: 3DC73587-41EA-459D-83E5-B0A7FB4FD2FE.png -> r19c-pale-timing.png
+rename: 26E68B5C-EBCA-47DB-8704-88E351F79D12.png -> r19b-pale-directions.png
+rename: 5B8336D8-9A10-4A62-898B-56B25FE65205.png -> r19a-pale-page.png
+rename: 13931E42-2737-4B54-A7B2-26AE957863AB.png -> r20d-after-delete.png
+rename: A7225300-3AFE-46A6-A7DA-AA5A3A11CC86.png -> r20c-delete-alert.png
+rename: 25E0007F-C330-44EF-BF8E-1AF7D87C1BBF.png -> r20b2-recipe-notes.png
+rename: FE6D62D6-0CB9-406B-80AE-0FE718CF7E2B.png -> r20b-edit-recipe.png
+rename: A2D42D1B-60D3-4389-A7CB-DDEF9F91427B.png -> r20a-swipe-actions.png
+rename: 8247063B-7CB0-4EEA-BB9A-785D042B0952.png -> r21b-warning-after-check.png
+rename: BD06BDE4-DC09-4415-BDD5-169629D275D0.png -> r21a-warning-on-timing.png
+rename: FFACBE33-6497-4854-99AE-E17AE9390FC0.png -> r22c-start-action-revealed-pastel.png
+rename: B617C07F-DB94-47DF-AD52-38D451625B78.png -> r22b-cooking-initial-pastel.png
+rename: 4424CF32-A8EF-472B-8AFD-843DC2D61A2F.png -> r22a-tonight-cover-pastel.png
+rename: BD85741E-E99A-4CF8-8EB0-DB5777AADC98.png -> r22c-start-action-revealed-landscape-ax3.png
+rename: BF808442-03BB-4C91-B260-B1DF510D4584.png -> r22b-cooking-initial-landscape-ax3.png
+rename: CFEC34A4-EE4E-4C4C-80B3-7128C217AFC2.png -> r22a-tonight-cover-landscape-ax3.png
+rename: 3C648C83-F5D2-41E0-8839-29F4A8FD98B8.png -> r24d-tonight-first-launch-solid.png
+rename: DA36565C-42AA-4A56-B1A2-C69E6A8A540C.png -> r24d-tonight-first-launch-dark.png
+rename: 4D5B9B3E-3AD0-432C-A3DF-E54C25319DA4.png -> r24c-b-without-photo.png
+rename: 385D0DEA-0EE1-4EE6-B395-55777FFDDA9F.png -> r24b-a-with-photo.png
+rename: 131C5E71-2750-4F39-91BA-EFF15DDE509C.png -> r24a-imported-not-chosen.png
+rename: 5F1892B8-1CD7-4B5F-B21F-909EE6A74322.png -> r26a-single-page.png
+rename: 68F50441-902A-432A-95AA-9CE0D68639D4.txt -> r26-0-recipe-page-hierarchy.txt
+rename: CFFA723E-6E4B-4033-8A7C-E36A9615B785.png -> r26-0-recipe-page.png
+rename: 2FB6DB85-AAE9-4A97-A93A-0A1CA1EF9D5B.txt -> r26-0-first-screen-hierarchy.txt
+rename: F340A660-AF4B-450A-ACF3-11A3F5A73304.png -> r26-0-first-screen.png
+rename: D5431BA1-CE71-47E1-BE29-CC755DDB4E5D.png -> r28a-day-sheet-three-checked.png
+rename: D06150F3-0F4B-4354-9B58-CFE83B7125C0.png -> r28c-added-from-recipe.png
+rename: 119EBCB0-75DA-46A6-A798-7A8F85CCC40E.txt -> r29c-tonight-sideways-after-done-capture-provenance.txt
+rename: B4B91160-7CED-430C-8E53-033A54F1654B.png -> r29c-tonight-sideways-after-done-raw-app-comparison.png
+rename: 7F5905DE-206B-4F0C-9DCB-6B3FED6F3037.png -> r29c-tonight-sideways-after-done-raw-screen-comparison.png
+rename: 00643A54-A41B-4E41-AB7A-68C7B41051B1.png -> r29c-tonight-sideways-after-done.png
+rename: 44650360-7693-442D-9153-631B643DBA56.txt -> r29b-week-showcase-open-day-capture-provenance.txt
+rename: 8AE5B6EE-04DE-42A8-AD78-3C564C5A218D.png -> r29b-week-showcase-open-day-raw-app-comparison.png
+rename: 14AD53E7-7841-432C-950B-8B8C9325B073.png -> r29b-week-showcase-open-day-raw-screen-comparison.png
+rename: 4F8E1D8A-B662-4C48-B39B-8B6FAC696C19.png -> r29b-week-showcase-open-day.png
+rename: 89A7A12E-F673-4E39-99BC-9741198F6F36.txt -> r29a-week-showcase-tonight-capture-provenance.txt
+rename: 05394FDD-8EF0-46A7-9AF1-8DD266ECF0BB.png -> r29a-week-showcase-tonight-raw-app-comparison.png
+rename: 740310E9-C6F9-4293-A8C1-ED05EC67DA7B.png -> r29a-week-showcase-tonight-raw-screen-comparison.png
+rename: 8904C680-F802-4B15-BD85-747A851854F3.png -> r29a-week-showcase-tonight.png
+rename: E42B8358-CEE2-42D4-9610-5CBBCD383D3D.png -> r31a-fullscreen-by-hand.png
+rename: 352C73BD-667C-40AA-9BE0-F50BDF1F2BF9.png -> r31c-cooking-after-done.png
+rename: 8300470F-C3DC-4874-95DE-D6C3B48F2B03.txt -> r31b-nightstand-landscape-capture-provenance.txt
+rename: 9D2B81B1-375D-4D59-8A5C-6FA3E7C9BBBD.png -> r31b-nightstand-landscape-raw-app-comparison.png
+rename: DC6D2D0F-DBF4-471A-8DE2-7060536E8CB5.png -> r31b-nightstand-landscape-raw-screen-comparison.png
+rename: 846BBCE1-1200-4757-9951-A645F8B31C03.png -> r31b-nightstand-landscape.png
+rename: 4B4C902C-86E6-43D8-BB48-C495C41406A8.txt -> r31-nightstand-geometry.txt
+rename: 3C453F1A-4DD9-49DF-9AF4-A91DC5FB7735.png -> r31a-fullscreen-by-hand-2.png

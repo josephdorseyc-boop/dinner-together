@@ -1,0 +1,8 @@
+primaryRoute=XCUIScreen.main.screenshot; primaryPNG=orientation-baked; rawScreenPNG=unmodified
+screenCapture: points=(874.0, 402.0) pixels=1206x2622 scale=3.0 imageOrientation=2 pngBytes=2507687
+appComparison: points=(402.0, 874.0) pixels=2622x1206 scale=3.0 imageOrientation=2 pngBytes=1372049
+applicationFrame=(0.0, 0.0, 874.0, 402.0)
+windowFrame=(0.0, 0.0, 874.0, 402.0)
+runnerDeviceOrientation=0
+Captures are consecutive, not atomic. Geometry is layout evidence;
+this diagnostic does not certify pixel fit or device behavior.
