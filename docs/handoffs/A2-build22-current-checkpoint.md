@@ -1,72 +1,71 @@
 # Build 22 — current A2 handoff checkpoint
 
-Observed **2026-10-17 00:34:06 UTC / October 16, 18:34:06 Denver**. Refresh GitHub before acting. Supersedes historical status in the [backup runbook](A2-build22-contingency-2026-10-16.md). [Detailed immutable evidence](https://github.com/josephdorseyc-boop/dinner-together/blob/f8ecb55cdc19cf11c49b2137e554a6e4ae4e7495/docs/handoffs/A2-build22-current-checkpoint.md) retains full per-job provenance, source changes and historical results.
+Observed **2026-10-17 01:24 UTC / October 16, 19:24 Denver**. Refresh GitHub before acting. Supersedes historical state in the [backup runbook](A2-build22-contingency-2026-10-16.md). [Previous checkpoint](https://github.com/josephdorseyc-boop/dinner-together/blob/ee755cf5b9d752c163652900ff0c081b3decce94/docs/handoffs/A2-build22-current-checkpoint.md) and [detailed earlier evidence](https://github.com/josephdorseyc-boop/dinner-together/blob/f8ecb55cdc19cf11c49b2137e554a6e4ae4e7495/docs/handoffs/A2-build22-current-checkpoint.md) preserve older findings and source/run provenance.
 
 ## Ownership and boundaries
 
-- A3 explicitly handed implementation/integration to A2 at Joe's request ([#24/6221940209](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6221940209), [#15/6221940484](https://github.com/josephdorseyc-boop/dinner-together/issues/15#issuecomment-6221940484)); this is not inferred unavailability.
-- A2's temporary window ends **October 17, 22:00 Denver / October 18, 04:00 UTC**, then A3 resumes ([6222060301](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222060301)). A1 owns independent testing; active lead owns integration/dispatch/upload.
-- Latest read: **78 comments in #24 / 56 in #15**, unchanged. [6226607086](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6226607086) freezes the candidate except for confirmed blockers and assigns A1 result/packaging review.
-- **Watch remains docs-only:** no active-branch push, patch, CI dispatch/rerun/cancellation, release-setting change, takeover or release.
+- A3 explicitly handed implementation/integration to A2 at Joe's request ([#24/6221940209](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6221940209), [#15/6221940484](https://github.com/josephdorseyc-boop/dinner-together/issues/15#issuecomment-6221940484)). This is an explicit recorded handoff, not inferred absence.
+- A2's temporary lead window ends **October 17, 22:00 Denver / October 18, 04:00 UTC**, then A3 resumes ([6222060301](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222060301)). A1 owns independent assigned testing. A2's interactive lead session owns harness/integration/dispatch/upload; this watch does not exercise those powers.
+- Latest read: **94 comments in #24 / 56 in #15**. Latest #24 [6227902953](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227902953); #15 unchanged since handoff.
+- **This watch remains docs-only:** no active implementation branch edits, duplicate patches, CI dispatch/rerun/cancellation, release-setting changes, takeover or release.
 
-## Source and implemented scope
+## Current source and implementation
 
 | Ref | Exact SHA | State |
 | --- | --- | --- |
-| `a2/build22-lead-20261016` | **79aecbad03f7d47055d100ca7c28e3f24f43a332** | Announced successor; unchanged; validation BLOCKED. |
-| `wip/build22` | **4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667** | A3 handoff baseline; unchanged. |
-| `main` | **cb0e3973fca5a03fd5faa5e0487bfd45cd11f3f3** | Build 21; unchanged. |
+| `a2/build22-lead-20261016` | **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd** | Explicitly announced successor; current candidate, native/27.1 verdicts pending. |
+| `wip/build22` | **4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667** | A3 handoff baseline, unchanged. |
+| `main` | **cb0e3973fca5a03fd5faa5e0487bfd45cd11f3f3** | Build 21, unchanged. |
 
-[772f8be → 79aecba](https://github.com/josephdorseyc-boop/dinner-together/compare/772f8be14924154ac3084f28c67ed249d324288c...79aecbad03f7d47055d100ca7c28e3f24f43a332): three commits ahead, zero behind:
+[Ancestry comparison](https://github.com/josephdorseyc-boop/dinner-together/compare/4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667...d6aaaaabd22a6674dc90d018b47c0018d62d9fdd): current candidate is **nine commits ahead, zero behind A3's handoff**.
 
-- **6b320f4cb1ff6c5c1fe25dd98d99a12f4df672ff:** finalization 120 → 300 seconds; manual timer test55, dark test56, strict automatic-nightstand test57. Exact closed/default-hinge Duo excludes rotation-only tests 53/57 after sharding and explicitly reports missing coverage UNVERIFIED. Ordinary iPhone retains strict automatic coverage. Unknown orientation earns no credit; no runtime workaround.
-- **886dac38105221f4f86a4d136c0e29c88373d66b:** shared primary/retry finalization policy and retry completion markers; default 300.
-- **79aecbad03f7d47055d100ca7c28e3f24f43a332:** app-local UserDefaults / CA92.1 privacy declaration for production AppStorage. Source/plist/resource membership checked; actual archive packaging/signing NOT verified.
+**New, implemented but not native-verified:** [d6aaaaa](https://github.com/josephdorseyc-boop/dinner-together/commit/d6aaaaabd22a6674dc90d018b47c0018d62d9fdd) adds six lines in `native-validation/run-native-pass.sh`: `-collect-test-diagnostics never` on primary AND flaky-retry UI commands, with explanatory notes. Parent is **79aecbad03f7d47055d100ca7c28e3f24f43a332**. Production Swift, UI assertions, test selection, release workflow, process/count/skip/readable-result/export gates are unchanged. This tests an optional-diagnostic-collection hypothesis; it is **not yet a demonstrated fix**.
 
-Earlier scope remains integrated: full-screen tent/nightstand; approved Timing/Cooking styling; alarms/fallbacks, Live Activities and reliability fixes; normalized capture provenance; fail-closed test selection; caption import correction. Import fixture: 10 ingredients/six directions. Live extraction unverified; saved imports need re-import. Broader overhaul remains Build 23 / #25.
+**Local checks, reported by implementation owner only:** 25 harness scenarios + 31 focused checks passed; reported checked/published tree **bc9027904f9da37722ada721a0152979cbf4b7ae** ([6227816139](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227816139)). This watch independently inspected the source diff and ancestry, not a local/native re-execution.
 
-## New material blocker — five-minute remedy insufficient
+Earlier implemented scope remains: full-screen tent/nightstand; boards 02/03 Timing/Cooking styling; alarms/fallbacks, Live Activities and reliability work; normalized capture provenance; fail-closed selection; caption import (10 ingredients/six directions fixture; live extraction unverified; old imports need re-import). **6b320f4** separates manual test55, night test56 and strict automatic test57; verified closed/default-hinge Duo excludes rotation-only tests53/57 and explicitly records missing hardware coverage. **886dac3** shares 300-second primary/retry finalization policy. **79aecba** adds app-local UserDefaults CA92.1 privacy declaration; resource/source checks are not archive/signing proof. Broader overhaul remains Build 23 / #25.
 
-[Duo run **38981592831**](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38981592831), **ios27 iPhone 2**, job **117243473211**, completed FAILED **00:19:35 UTC / 18:19:35 Denver October 16**, exact source **79aecba**:
+## Exact-current-SHA verification — no green verdict yet
 
-- Build succeeded; **28/28 tests passed, zero failed/skipped**, including night appearance. Suite passed at **00:12:41.413 UTC**.
-- Summary confirms **300-second allowance**. Raw log records **no-output deadline after tests finished**, exit **124**. Result lacks `Info.plist`; attachment export exits **64**; `REQUIRED_FAILURES=2`. **81 direct captures** survive but do not replace strict process/result/export gates.
-- Immutable evidence **0e5a635255b0864f3ab8a54e820667cfe616ce48**: [RUN.txt](https://github.com/josephdorseyc-boop/dinner-together/blob/0e5a635255b0864f3ab8a54e820667cfe616ce48/RUN.txt), [summary](https://github.com/josephdorseyc-boop/dinner-together/blob/0e5a635255b0864f3ab8a54e820667cfe616ce48/SUMMARY.md), [raw log](https://github.com/josephdorseyc-boop/dinner-together/blob/0e5a635255b0864f3ab8a54e820667cfe616ce48/25-ui-test-iphone.log), [export log](https://github.com/josephdorseyc-boop/dinner-together/blob/0e5a635255b0864f3ab8a54e820667cfe616ce48/25-ui-test-iphone-attachments.log).
-- **132** SDK `invalidDigitCount(94232)` diagnostics occur; first **23:34:57.926 UTC**, well before suite completion, with some after. Their causal role remains unproven. Do not adopt “zero app bugs” or a proven toolchain diagnosis.
+Both required runs below bind **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd**. Job state, not a stale workflow banner, is authoritative.
 
-## Current exact-SHA verification
-
-Both workflows bind **79aecbad03f7d47055d100ca7c28e3f24f43a332**. Job records override stale workflow-level labels (Duo still says queued). **Neither workflow is a complete green verdict.**
-
-| Run / part | Job | Scoped status |
+| Run / toolchain | Part / job | Current status |
 | --- | --- | --- |
-| Native **38981468135**, Xcode 26.2 — iPhone 1 | 117243067532 | PASS **29/29**, zero failures/skips, readable xcresult; selection includes strict test57 automatic nightstand. |
-| Native — iPhone 2 | 117243067679 | PASS **28/28**, zero failures/skips, readable xcresult. |
-| Native — iPad | 117243067449 | PASS **26/26**, zero failures/skips, readable xcresult. |
-| Native — core | 117243067572 | IN PROGRESS, seeded screenshots; final core/merged verdict pending. |
-| Native — Linux / JS-harness-release-dry-run | 117243067564 / 117243067246 | PASS; Linux **236** scoped tests. Dry run is not signing proof. |
-| Duo — ios27 core | 117243473403 | PASS **247/247 XCTest**, **236** harness tests, **32** captures; Debug + simulator Release builds. |
-| Duo — ios27 iPhone 2 | 117243473211 | FAILED finalization/export, as above. |
-| Duo — ios27 iPhone 1 / iPad | 117243473459 / 117243473606 | IN PROGRESS. |
-| Duo — closed-Duo parts 1 / 3 | 117243473518 / 117243473447 | IN PROGRESS. |
-| Duo — closed-Duo part 2 | 117243473673 | QUEUED. |
+| Native **38989926720**, Xcode 26.2 | JS/harness **117269822501**; Linux **117269822674** | PASS (scoped harness evidence only). |
+| Native | core **117269822617** | IN PROGRESS. |
+| Native | iPhone 1 **117269822733**; iPhone 2 **117269822803**; iPad **117269822780** | IN PROGRESS; no completed exact-current UI verdict. |
+| Duo **38990012070**, Xcode 27.1 | ios27 core **117270091706**; iPhone 1 **117270091562**; iPhone 2 **117270091445**; iPad **117270091602** | All QUEUED. |
+| Duo | closed-Duo parts 1/2/3 **117270091649 / 117270091571 / 117270091538** | All QUEUED. |
 
-[Native run](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38981468135); native UI counts verified from completed job logs. No current merged-results verdict yet. Duo core immutable **4995ad6fe527975128af2a9d34f8b01345c86b3d**: [RUN.txt](https://github.com/josephdorseyc-boop/dinner-together/blob/4995ad6fe527975128af2a9d34f8b01345c86b3d/RUN.txt), [summary](https://github.com/josephdorseyc-boop/dinner-together/blob/4995ad6fe527975128af2a9d34f8b01345c86b3d/SUMMARY.md). Capture counts/gates do not prove visual pixel-fit review.
+[Native run](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38989926720); [all-seven-part required 27.1/Duo run](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38990012070). No optional window-only substitution. Neither run supplies complete current-candidate release credit.
 
-**Local-only, implementation reports:** 25 fake-toolchain scenarios; 10 parser, seven screenshot-process, 10 selection, four real-process deadline checks; three targeted retry scenarios. No native/device credit from these.
+### Parent evidence — retained, not current-SHA credit
 
-**Historical, not current credit:** native **38953971764** passed on **772f8be**; Duo **38966260203** failed finalization plus iPad test04/closed-Duo test55. Superseded 6b320f4 runs **38979495541 / 38979504518** CANCELLED. Full evidence retained in the linked detailed checkpoint.
+- **79aecba native 38981468135 completed SUCCESS at 00:44:46 UTC / October 16, 18:44:46 Denver.** All seven jobs including merged publication passed. **247/247 XCTest**, **236** macOS harness tests; iPhone **29/29 + 28/28**, iPad **26/26**, zero UI failures/skips, readable results/export; core captures **32**. Test57 automatic nightstand is included on ordinary iPhone. Immutable merged evidence **ed812494e971388ba6392b7f2d63f0385ffcb4fa**: [RUN.txt](https://github.com/josephdorseyc-boop/dinner-together/blob/ed812494e971388ba6392b7f2d63f0385ffcb4fa/RUN.txt), [SUMMARY.md](https://github.com/josephdorseyc-boop/dinner-together/blob/ed812494e971388ba6392b7f2d63f0385ffcb4fa/SUMMARY.md).
+- **79aecba Duo 38981592831 is now CANCELLED**, not green. Three completed UI failures survive cancellation:
+  - ios27 iPhone 2 **117243473211**: **28/28 passed**, then 300-second finalization deadline exit124, unreadable result/export64. Immutable **0e5a635255b0864f3ab8a54e820667cfe616ce48** retained in previous checkpoint.
+  - ios27 iPhone 1 **117243473459**: **29 executed, 28 passed, one failed, zero skipped**. `test22_coverCropHappyPath` failed waiting for stubbed screenshots at UITestSupport.swift:1542, separately followed by exit124/export64. **85** direct captures. Immutable **acde4a08e71cccd45591ece5be85cfd383ce42ed**: [RUN.txt](https://github.com/josephdorseyc-boop/dinner-together/blob/acde4a08e71cccd45591ece5be85cfd383ce42ed/RUN.txt), [summary](https://github.com/josephdorseyc-boop/dinner-together/blob/acde4a08e71cccd45591ece5be85cfd383ce42ed/SUMMARY.md).
+  - closed-Duo part3 **117243473447**: **18 executed, 17 passed, one failed, zero skipped**. `test35_palePhotoPageAX3` timed out waiting for Page color sheet closure at UITestSupport.swift:1731, separately exit124/export64; **46** direct captures. Immutable **5e8298cb57632d392a2bf752b919e67cb9ac968c**: [RUN.txt](https://github.com/josephdorseyc-boop/dinner-together/blob/5e8298cb57632d392a2bf752b919e67cb9ac968c/RUN.txt), [summary](https://github.com/josephdorseyc-boop/dinner-together/blob/5e8298cb57632d392a2bf752b919e67cb9ac968c/SUMMARY.md).
+- Remaining parent Duo iPad/parts1/2 were cancelled and earn no credit. Earlier native/Duo source results remain in prior checkpoints; never transfer them to d6aaaaa.
 
-## Pending findings, approvals and hardware
+## Investigations and pending owners
 
-- **A1:** investigate the new failed 300-second result without relaxing gates; existing [6226587035](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6226587035) calls for timing/stack/minimal-result-writing comparison. Review remaining exact-SHA results, counts/skips, iOS27 test04, ordinary-iPhone test57, closed-Duo manual/night timers, privacy packaging and capture fit. Native iPad pass does not close iOS27 test04; contention/flake remains a hypothesis.
-- Preserve targeted review of edit refusal/remaining-plan updates, Live Activity retry, alarm replacement/retry/revocation, navigation/unsaved drafts, selected-timer labels/deadlines. Missing fresh evidence is not a claim of missing implementation.
-- Boards **02/03 approved** in [6215903573](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6215903573), design commit **3db56d9810d0e1fc9ff032e81f648f5d39f1d279**, superseding the README's stale pending wording. Full-screen **tent AND nightstand** remain mandatory, not inset Live Activity substitutes. Preserve native navigation/accessibility, cream fallback, glass card/timer continuity and save/readiness safeguards. No Add a step/global Timing Save.
-- **Real-device verification absent.** Duo arrives **December**, not October 23 ([6222487023](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222487023)). Physical tent/cover pose, charging/unplug/locked StandBy, silent/Focus alarms, Lock Screen Stop and continuity remain open. Simulator splitting does not verify hardware posture.
+- **A1:** independently review diagnostic flag, test22 interaction/hierarchy/frame/chooser scrolling, test35 Page color dismissal, and 27.1 release-source preflight (effective app/share/timers bundle IDs/versions, App Groups/AlarmKit entitlements and export readiness). No secret values or archive dispatch. Assignment/review: [6227839500](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227839500), [6227878196](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227878196).
+- A1's proposed test22 retry patch [6227856000](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227856000) is **not integrated**. The failed parent already performed a retry tap; removing an isSelected condition does not by itself explain that failure. Toolchain/viewport/timing causes remain hypotheses, not a demonstrated app or iOS root cause.
+- Separate **diagnostic** branch/source **wip/a2-build22-finalization-probe-20261016 @ e8be24868dc5649f569fdbbb5aafa646145449f1**, run **38989191428**. Completed 27.1/keep job **117267516555** and 27.0/keep **117267516824** both failed with **test_exit124 / summary_exit64**; optional discard-success job **117267516677** was still cleaning up. No release credit.
+- The 27.1 keep diagnostic passed test10/test22 **2/2** with the original helper, per A2's artifact examination ([6227902953](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227902953)), then runner exit0 preceded a pending asynchronous-diagnostics finish message. This supports, but does not prove, the d6 hypothesis. No claim that a source patch fixed test22.
+- A1's log-verdict promotion [6227771017](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227771017) was **rejected/not integrated** ([6227786414](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227786414)): suite-log marker/counts alone do not establish exact selected-case completeness or result/export integrity. Strict gates remain. `invalidDigitCount` diagnostics are observed; causal responsibility for the hang is unproven.
+- Preserve follow-up review of edit refusal/remaining-plan updates, Live Activity retry, alarm replacement/retry/revocation, navigation/drafts, selected timer identity/deadlines, capture fit and privacy packaging. Missing fresh evidence is not a claim of missing implementation.
 
-## Release / notification
+## Design approval and real-device boundary
 
-- **No Build 22 release/upload started or established.** Main unchanged; exact-SHA Actions contains only the two validation runs. Latest 100 runs still show latest release **38845842034**, source **cb0e397**, Build 21. No Build22 archive/export signing, Apple processing or tester availability established.
-- Keep `require_green=true` and exact-SHA process/export/count/skip gates. No toolchain switch or gate waiver from this watch. Active lead must resolve required failure before release.
-- **Notify Joe once:** five minutes did not resolve one required finalization failure despite 28/28 passing tests. Prior conditional 19:15–19:45 Denver estimate does not establish readiness; no new estimate. Other checks continue; no upload begun.
-- Continue watch; task ongoing. No new ownership transfer/unavailability inferred.
+- Boards **02/03 approved** in [6215903573](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6215903573), design commit **3db56d9810d0e1fc9ff032e81f648f5d39f1d279**. README's pending wording is superseded. Full-screen **tent AND nightstand** remain mandatory, not inset Live Activity substitutes.
+- Preserve native navigation/accessibility, cream fallback, glass/timer continuity, safe saves/readiness and reader state. No Add a step/global Timing Save; no new timer-store cap from four visible timers.
+- **Real-device verification absent.** Duo arrival is **December**, not October23 ([6222487023](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222487023)). Physical tent/cover pose, charging/unplug/locked StandBy, silent/Focus alarms, Lock Screen Stop and continuity remain open. Simulator rotation accommodations are not hardware passes. Capture counts are not pixel-fit/VoiceOver review.
+
+## Release and notification
+
+- Joe confirmed **Xcode 27.1 remains the shipment target** ([6227769413](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227769413)); this supersedes the immediately preceding 26.2 contingency. **No 26.2 release/upload started.**
+- **No Build22 release/upload established.** Current main unchanged. Latest 100 Actions runs contain no new release; latest release is **38845842034**, source **cb0e397**, Build21. No Build22 archive/export signing, Apple processing or tester availability proven.
+- Keep `require_green=true` and exact-SHA process/result/count/skip/export gates. No release ETA from queued checks, no log-verdict waiver or toolchain switch from this watch.
+- **No new user notification this check:** candidate/diagnostic progress and existing failures are already communicated in the active discussion; required successor 27.1 results remain pending. Continue watching for a material new blocker, explicit ownership change, release milestone or decision.
