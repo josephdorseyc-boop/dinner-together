@@ -1,6 +1,14 @@
 # Build 22 — current A2 handoff checkpoint
 
-Observed **2026-10-17 04:01 UTC / October 16, 22:01 Denver**. Refresh GitHub before acting. Supersedes the historical [backup runbook](A2-build22-contingency-2026-10-16.md); [previous checkpoint](https://github.com/josephdorseyc-boop/dinner-together/blob/2d042bdd1c7f54ea50c3f73395e17c09f0b121d4/docs/handoffs/A2-build22-current-checkpoint.md) retains detailed source, earlier failures and rejected proposals.
+Observed **2026-10-17 08:37 UTC / October 17, 02:37 Denver**. Release evidence below was checked at the prior 04:01 UTC observation. Refresh GitHub before acting. Supersedes the historical [backup runbook](A2-build22-contingency-2026-10-16.md); [previous checkpoint](https://github.com/josephdorseyc-boop/dinner-together/blob/2d042bdd1c7f54ea50c3f73395e17c09f0b121d4/docs/handoffs/A2-build22-current-checkpoint.md) retains detailed source, earlier failures and rejected proposals.
+
+## Post-release timer correction and Joe's approval
+
+- **October 17, 02:37 Denver:** Joe approved the revised three-view cream timer concept board shown in conversation: Lock Screen card, full-screen single timer, and full-screen multiple timers. Palette: solid cream #FAF6ED, olive rings, dark text, restrained terracotta leaf. The revised Lock Screen mockup raises the card closer to the clock. Exact system-owned Lock Screen placement remains a visual target requiring platform verification, not a verified app-controlled change.
+- **Current continuation head: 2668151e48820ded84454797acadfc40e082d9a8**, directly atop released d6aaaaa. [Correction commit](https://github.com/josephdorseyc-boop/dinner-together/commit/2668151e48820ded84454797acadfc40e082d9a8) adds an explicit opaque cream background to LockScreenTimers in DinnerTimers/DinnerTimersWidget.swift. Existing system background tint and olive/dark palette remain. Only this file changed; source reread and diff verified.
+- **Implemented, not native-verified yet:** [native-validation39017692737](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/39017692737) is IN PROGRESS on exact 2668151. No Xcode27.1/Duo result, Lock Screen pixel verification or physical-device verification is established for this successor. The screenshot Joe supplied is real-device evidence that released Build22's card appears yellow; no corrected on-device capture exists yet.
+- The correction is assigned to **Build23**, per Joe's follow-up; no Build23 archive/upload is established. Build22 remains released source d6aaaaa. Do not transfer its green results to 2668151.
+- Mockups express approved visual direction; ring animation, timer controls and system placement still require implementation/evidence reconciliation. No additional runtime changes, CI dispatch or release were performed while recording this approval.
 
 ## Ownership and watch boundaries
 
@@ -13,7 +21,8 @@ Observed **2026-10-17 04:01 UTC / October 16, 22:01 Denver**. Refresh GitHub bef
 
 | Ref | Exact SHA | State |
 | --- | --- | --- |
-| `a2/build22-lead-20261016` | **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd** | Announced successor; validated and uploaded as 1.0 (22). |
+| `a2/build22-lead-20261016` | **2668151e48820ded84454797acadfc40e082d9a8** | Post-release cream correction for Build23; native validation pending. |
+| Released Build22 source | **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd** | Validated and uploaded as 1.0 (22). |
 | `wip/build22` | **4ae4f31c851ae9b496aea0ec915a7c8c1c7c6667** | A3 handoff baseline, unchanged. |
 | `main` | **cb0e3973fca5a03fd5faa5e0487bfd45cd11f3f3** | Still Build 21; not the Build 22 release source. |
 
@@ -23,9 +32,9 @@ Observed **2026-10-17 04:01 UTC / October 16, 22:01 Denver**. Refresh GitHub bef
 
 **Locally checked (owner-reported):** latest one-file d6 change passed 25 harness scenarios + 31 focused checks ([6227816139](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6227816139)); published tree bc9027904f9da37722ada721a0152979cbf4b7ae. This watch independently inspected d6's diff: `-collect-test-diagnostics never` added to both primary/retry UI commands; no production Swift, assertion, selection or release-gate changes in that commit. No local/native re-execution by this watch.
 
-## Exact-SHA native verification — complete
+## Released-SHA native verification — complete
 
-Both workflows bind **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd**. [27.1/Duo 38990012070](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38990012070) completed **SUCCESS 03:15:48 UTC**, all seven required jobs green. [Standard native 38989926720](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38989926720), attempt 2, completed **SUCCESS 03:19:22 UTC**, including merged publication. No validation remains running at this observation.
+Both workflows bind **d6aaaaabd22a6674dc90d018b47c0018d62d9fdd**. [27.1/Duo 38990012070](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38990012070) completed **SUCCESS 03:15:48 UTC**, all seven required jobs green. [Standard native 38989926720](https://github.com/josephdorseyc-boop/dinner-together/actions/runs/38989926720), attempt 2, completed **SUCCESS 03:19:22 UTC**, including merged publication. No validation remained running at the release observation; the successor run is tracked above.
 
 | Xcode 27.1 part / job | Verdict | Immutable evidence commit |
 | --- | --- | --- |
@@ -60,4 +69,4 @@ The diagnostics workaround now has complete required-matrix evidence, not a clai
 - **Visual boundary:** owner reports readable, fitting full-screen dark Duo capture and landscape review ([6228576967](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6228576967)); this watch did not independently perform pixel/VoiceOver review. Counts alone do not prove complete visual fit.
 - **Real-device verified: NONE recorded.** Physical Duo arrives **December**, not October23 ([6222487023](https://github.com/josephdorseyc-boop/dinner-together/issues/24#issuecomment-6222487023)). Exact closed/default-hinge Duo excludes unsupported rotation-only53/57; automatic/landscape/dismissal-reentry remain UNVERIFIED there. Ordinary-iPhone57 passed in simulator. Physical tent/cover posture, charging/unplug/locked StandBy, silent/Focus alerts, Lock Screen Stop and timer continuity remain open.
 
-**Next observation:** new findings, source movement or explicit handback; no new release blocker or user decision at this check. Watch remains active for handback/unfinished evidence; upload was not the only watch objective.
+**Next observation:** exact-2668151 validation, approved-design reconciliation or explicit handback; no new user decision at this check. Watch remains active for handback/unfinished evidence; upload was not the only watch objective.
