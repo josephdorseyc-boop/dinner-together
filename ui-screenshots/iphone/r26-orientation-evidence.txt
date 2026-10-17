@@ -1,0 +1,1 @@
+requested=landscapeLeft; device=3; appFrame=(0.0, 0.0, 466.0, 678.0); scene=probe absent
