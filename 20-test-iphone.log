@@ -1,0 +1,687 @@
+Command line invocation:
+    /Applications/Xcode_27.1_Release_Candidate.app/Contents/Developer/usr/bin/xcodebuild test-without-building -project DinnerTogether.xcodeproj -scheme DinnerTogether -configuration Debug -derivedDataPath /Users/runner/work/dinner-together/dinner-together/native-validation/results/build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY= -destination id=B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7 "-only-testing:DinnerTogetherTests" -resultBundlePath /Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone.xcresult
+
+Build settings from command line:
+    CODE_SIGN_IDENTITY = 
+    CODE_SIGNING_ALLOWED = NO
+    CODE_SIGNING_REQUIRED = NO
+
+Writing result bundle at path:
+	/Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone.xcresult
+
+2026-10-17 09:37:32.923 xcodebuild[7340:24806] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:40:03.424 xcodebuild[7340:27999]  iOSSimulator: 📱<DVTiPhoneSimulator (0x7b4ffd2800), iPhone 17, unknown class, 27.0 (24A434), B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7> unable to connect to "com.apple.instruments.deviceservice.lockdown" (Error Domain=DVTiPhoneSimulatorErrorDomain Code=-1 "DTServiceHubClient failed to bless service hub for simulator iPhone 17 (B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7)" UserInfo={NSLocalizedDescription=DTServiceHubClient failed to bless service hub for simulator iPhone 17 (B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7), NSUnderlyingError=0x7b50161860 {Error Domain=DTServiceHubClient Code=2 "Connection to Simulator service hub (7885) interrupted. Simulator service hub IS still alive." UserInfo={NSLocalizedDescription=Connection to Simulator service hub (7885) interrupted. Simulator service hub IS still alive.}}})
+2026-10-17 09:40:38.517715+0000 DinnerTogether[7875:28098] [XPCErrors] non-launching port is incompatible with service identifier "com.apple.PointerUI.pointeruid.default-service"
+2026-10-17 09:40:38.520808+0000 DinnerTogether[7875:28098] [API] cannot add handler to 0 from 0 - dropping
+2026-10-17 09:40:38.530356+0000 DinnerTogether[7875:28098] [API] cannot add handler to 0 from 0 - dropping
+2026-10-17 09:40:38.533081+0000 DinnerTogether[7875:28098] [API] cannot add handler to 0 from 0 - dropping
+2026-10-17 09:40:38.533402+0000 DinnerTogether[7875:28098] [API] cannot add handler to 0 from 0 - dropping
+2026-10-17 09:40:39.166695+0000 DinnerTogether[7875:28098] [unspecified] container_create_or_lookup_app_group_path_by_app_group_identifier: client is not entitled
+Test Suite 'All tests' started at 2026-10-17 09:40:42.147.
+Test Suite 'DinnerTogetherTests.xctest' started at 2026-10-17 09:40:42.148.
+Test Suite 'A2RecipeFixtureTests' started at 2026-10-17 09:40:42.148.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture1]' started.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture1]' passed (0.061 seconds).
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture2]' started.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture2]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture3]' started.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture3]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture4]' started.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture4]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture5]' started.
+Test Case '-[DinnerTogetherTests.A2RecipeFixtureTests testFixture5]' passed (0.009 seconds).
+Test Suite 'A2RecipeFixtureTests' passed at 2026-10-17 09:40:42.246.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.082 (0.098) seconds
+Test Suite 'AppleNewsLinkTests' started at 2026-10-17 09:40:42.246.
+Test Case '-[DinnerTogetherTests.AppleNewsLinkTests testImportingTheLinkExplainsWhatToDo]' started.
+Test Case '-[DinnerTogetherTests.AppleNewsLinkTests testImportingTheLinkExplainsWhatToDo]' passed (0.018 seconds).
+Test Case '-[DinnerTogetherTests.AppleNewsLinkTests testPlaceholderIsRecognizedWithItsTitle]' started.
+Test Case '-[DinnerTogetherTests.AppleNewsLinkTests testPlaceholderIsRecognizedWithItsTitle]' passed (0.001 seconds).
+Test Suite 'AppleNewsLinkTests' passed at 2026-10-17 09:40:42.411.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.019 (0.165) seconds
+Test Suite 'AttentionTests' started at 2026-10-17 09:40:42.411.
+Test Case '-[DinnerTogetherTests.AttentionTests testDoThisNowHandsOnFirst]' started.
+Test Case '-[DinnerTogetherTests.AttentionTests testDoThisNowHandsOnFirst]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.AttentionTests testNoWarningWithoutOverlap]' started.
+Test Case '-[DinnerTogetherTests.AttentionTests testNoWarningWithoutOverlap]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.AttentionTests testOverlappingHandsOnStepsWarn]' started.
+Test Case '-[DinnerTogetherTests.AttentionTests testOverlappingHandsOnStepsWarn]' passed (0.002 seconds).
+Test Suite 'AttentionTests' passed at 2026-10-17 09:40:42.420.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.006 (0.009) seconds
+Test Suite 'CatalogTests' started at 2026-10-17 09:40:43.596.
+Test Case '-[DinnerTogetherTests.CatalogTests testCatalogIdentifiersAreGloballyUnique]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testCatalogIdentifiersAreGloballyUnique]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testChickpeaCurryPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testChickpeaCurryPlansTwoHoursOut]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testGnocchiGreensPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testGnocchiGreensPlansTwoHoursOut]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testLemonChickenPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testLemonChickenPlansTwoHoursOut]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testNewDinnerWorkflowBounds]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testNewDinnerWorkflowBounds]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testPorkSupperPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testPorkSupperPlansTwoHoursOut]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testTofuBowlsPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testTofuBowlsPlansTwoHoursOut]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.CatalogTests testTurkeyTacosPlansTwoHoursOut]' started.
+Test Case '-[DinnerTogetherTests.CatalogTests testTurkeyTacosPlansTwoHoursOut]' passed (0.001 seconds).
+Test Suite 'CatalogTests' passed at 2026-10-17 09:40:45.139.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.008 (1.543) seconds
+Test Suite 'CookModeScreenshotTests' started at 2026-10-17 09:40:45.301.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testCoverWithoutTimeLabelsIsACover]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testCoverWithoutTimeLabelsIsACover]' passed (0.015 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testHyphensAfterNumbersSurviveTheWrap]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testHyphensAfterNumbersSurviveTheWrap]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testJoesMeringueCookModeScreenshotsImportCleanly]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testJoesMeringueCookModeScreenshotsImportCleanly]' passed (0.091 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testMissingPagesAreToldNotRenumbered]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testMissingPagesAreToldNotRenumbered]' passed (0.017 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testOneCookModePageStillNamesTheRecipe]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testOneCookModePageStillNamesTheRecipe]' passed (0.010 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testSelectionOrderDoesNotMatter]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testSelectionOrderDoesNotMatter]' passed (0.068 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testShortStepBesideItsHeaderSurvives]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testShortStepBesideItsHeaderSurvives]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testSplitNewsTabRowIsChromeButASentenceIsNot]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testSplitNewsTabRowIsChromeButASentenceIsNot]' passed (0.009 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testStepSharingAWordWithTheTitleSurvives]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testStepSharingAWordWithTheTitleSurvives]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testTallMarksWithoutLettersAreNotATitle]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testTallMarksWithoutLettersAreNotATitle]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testUnreadableLinesAreCounted]' started.
+Test Case '-[DinnerTogetherTests.CookModeScreenshotTests testUnreadableLinesAreCounted]' passed (0.020 seconds).
+Test Suite 'CookModeScreenshotTests' passed at 2026-10-17 09:40:46.566.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.244 (1.265) seconds
+Test Suite 'CoverPhotoTests' started at 2026-10-17 09:40:46.567.
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testAPostsCoverIsMarkedUntilTheCookKeepsOrReplacesIt]' started.
+2026-10-17 09:40:46.609060+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 180, height 320, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testAPostsCoverIsMarkedUntilTheCookKeepsOrReplacesIt]' passed (0.075 seconds).
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testMissingOrCorruptPhotoFallsBackAndKeepsTheRecipe]' started.
+2026-10-17 09:40:46.663584+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 30, height 50, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:47.071601+0000 DinnerTogether[7875:28098] [DinnerTogether] createImageAtIndex:2127: *** ERROR: createImageAtIndex 3 could not find plugin for image source [13 bytes] 6E 6F 74 20 61 20 70 69... 'not a pi'
+2026-10-17 09:40:47.071742+0000 DinnerTogether[7875:28098] [DinnerTogether] createImageAtIndex:2268: *** ERROR: createImageAtIndex[0] - 'n/a ' - failed to create image [-62]
+2026-10-17 09:40:47.071827+0000 DinnerTogether[7875:28098] [DinnerTogether] *** ERROR: CGImageSourceCreateImageAtIndexEx:5380: create image at index failed
+2026-10-17 09:40:47.071886+0000 DinnerTogether[7875:28098] [DinnerTogether] CGImageSourceCreateImageAtIndexEx:5414: *** ERROR: CGImageSourceCreateImageAtIndex[0] - 'n/a ' - failed to create image [1]
+2026-10-17 09:40:47.073649+0000 DinnerTogether[7875:28098] [DinnerTogether] createImageAtIndex:2127: *** ERROR: createImageAtIndex 3 could not find plugin for image source [19 bytes] 6E 6F 74 20 61 20 63 6F... 'not a co'
+2026-10-17 09:40:47.394339+0000 DinnerTogether[7875:28098] [DinnerTogether] createImageAtIndex:2268: *** ERROR: createImageAtIndex[0] - 'n/a ' - failed to create image [-62]
+2026-10-17 09:40:47.394549+0000 DinnerTogether[7875:28098] [DinnerTogether] *** ERROR: CGImageSourceCreateImageAtIndexEx:5380: create image at index failed
+2026-10-17 09:40:47.394655+0000 DinnerTogether[7875:28098] [DinnerTogether] CGImageSourceCreateImageAtIndexEx:5414: *** ERROR: CGImageSourceCreateImageAtIndex[0] - 'n/a ' - failed to create image [1]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testMissingOrCorruptPhotoFallsBackAndKeepsTheRecipe]' passed (0.756 seconds).
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testOrdinaryPhotosAreNeverCropped]' started.
+2026-10-17 09:40:47.405295+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 30, height 50, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:47.754378+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 30, height 50, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testOrdinaryPhotosAreNeverCropped]' passed (0.368 seconds).
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPhotosPersistWithTheRecipe]' started.
+2026-10-17 09:40:47.774990+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 30, height 50, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPhotosPersistWithTheRecipe]' passed (0.019 seconds).
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPlateThenCoverThenNothing]' started.
+2026-10-17 09:40:47.992088+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 30, height 50, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPlateThenCoverThenNothing]' passed (0.223 seconds).
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPlayButtonIsCroppedOnceTheOriginalKeptAndRestorable]' started.
+2026-10-17 09:40:48.020276+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 180, height 320, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.074094+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 45, height 35, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.074462+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 45, height 35, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.416814+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 180, height 140, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.416998+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 180, height 140, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.423696+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 46, height 80, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:48.424034+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 46, height 80, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:49.001267+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 46, height 80, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:49.001585+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 46, height 80, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:49.010742+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 180, height 320, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:49.023844+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 45, height 35, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+2026-10-17 09:40:49.024008+0000 DinnerTogether[7875:28098] [] CVPixelBufferCreate returned err -6680. width 45, height 35, pixel format RGBA, options [ExtendedPixelsRight = 0, ExtendedPixelsBottom = 0, BytesPerRowAlignment = 64]
+Test Case '-[DinnerTogetherTests.CoverPhotoTests testPlayButtonIsCroppedOnceTheOriginalKeptAndRestorable]' passed (1.141 seconds).
+Test Suite 'CoverPhotoTests' passed at 2026-10-17 09:40:49.152.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 2.582 (2.585) seconds
+Test Suite 'DelayTests' started at 2026-10-17 09:40:49.152.
+Test Case '-[DinnerTogetherTests.DelayTests testDelayPreservesRunningStep]' started.
+Test Case '-[DinnerTogetherTests.DelayTests testDelayPreservesRunningStep]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.DelayTests testRepeatedDelaysAccumulate]' started.
+Test Case '-[DinnerTogetherTests.DelayTests testRepeatedDelaysAccumulate]' passed (0.002 seconds).
+Test Suite 'DelayTests' passed at 2026-10-17 09:40:49.390.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.238) seconds
+Test Suite 'DeviceOCRRegressionTests' started at 2026-10-17 09:40:49.390.
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testBlurredCyrillicTailIsDroppedNotScheduled]' started.
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testBlurredCyrillicTailIsDroppedNotScheduled]' passed (0.019 seconds).
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testCyrillicRecipeIsNotFlagged]' started.
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testCyrillicRecipeIsNotFlagged]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testTimerIconBulletBeforeANumberIsRemoved]' started.
+Test Case '-[DinnerTogetherTests.DeviceOCRRegressionTests testTimerIconBulletBeforeANumberIsRemoved]' passed (0.007 seconds).
+Test Suite 'DeviceOCRRegressionTests' passed at 2026-10-17 09:40:49.854.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.027 (0.464) seconds
+Test Suite 'DirectionTimerTests' started at 2026-10-17 09:40:49.854.
+Test Case '-[DinnerTogetherTests.DirectionTimerTests testEachDurationInAStepBecomesATimer]' started.
+Test Case '-[DinnerTogetherTests.DirectionTimerTests testEachDurationInAStepBecomesATimer]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.DirectionTimerTests testTimerSecondsFollowTheDirection]' started.
+Test Case '-[DinnerTogetherTests.DirectionTimerTests testTimerSecondsFollowTheDirection]' passed (0.002 seconds).
+Test Suite 'DirectionTimerTests' passed at 2026-10-17 09:40:49.860.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds
+Test Suite 'DurationPersistenceTests' started at 2026-10-17 09:40:49.860.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testCookNotesSaveWithTheRecipe]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testCookNotesSaveWithTheRecipe]' passed (0.012 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testDurationEditPersistsAcrossRelaunch]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testDurationEditPersistsAcrossRelaunch]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testEditingAStepsWordingKeepsDirectionsAndPlanTogether]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testEditingAStepsWordingKeepsDirectionsAndPlanTogether]' passed (0.086 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFailedConfirmationRollsBack]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFailedConfirmationRollsBack]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFailedDeletePreservesRecipeAndPhoto]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFailedDeletePreservesRecipeAndPhoto]' passed (0.016 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFavoritesStarFirstAndPersist]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testFavoritesStarFirstAndPersist]' passed (0.066 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testImportWarningsSurviveARelaunch]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testImportWarningsSurviveARelaunch]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRecipeTimeEntryPersistsAndRollsBack]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRecipeTimeEntryPersistsAndRollsBack]' passed (0.020 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingAStepLeavesDirectionsAndPlanTogether]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingAStepLeavesDirectionsAndPlanTogether]' passed (0.013 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingDuplicateFromParallelDishKeepsSourceOccurrence]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingDuplicateFromParallelDishKeepsSourceOccurrence]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingLaterDuplicatePreservesSourceDirectionOrder]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRemovingLaterDuplicatePreservesSourceDirectionOrder]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRenamingARecipe]' started.
+Test Case '-[DinnerTogetherTests.DurationPersistenceTests testRenamingARecipe]' passed (0.445 seconds).
+Test Suite 'DurationPersistenceTests' passed at 2026-10-17 09:40:52.116.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.683 (2.255) seconds
+Test Suite 'HolidayCatalogTests' started at 2026-10-17 09:40:52.116.
+Test Case '-[DinnerTogetherTests.HolidayCatalogTests testThanksgivingFourHourPlanAndPinnedRoast]' started.
+Test Case '-[DinnerTogetherTests.HolidayCatalogTests testThanksgivingFourHourPlanAndPinnedRoast]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.HolidayCatalogTests testThanksgivingHasExplicitHolidayBounds]' started.
+Test Case '-[DinnerTogetherTests.HolidayCatalogTests testThanksgivingHasExplicitHolidayBounds]' passed (0.001 seconds).
+Test Suite 'HolidayCatalogTests' passed at 2026-10-17 09:40:52.119.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds
+Test Suite 'InstagramCaptionLayoutTests' started at 2026-10-17 09:40:52.662.
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testCallsToActionAndHeaders]' started.
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testCallsToActionAndHeaders]' passed (0.013 seconds).
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testFoodStorageStepsStayAndPromotionsGo]' started.
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testFoodStorageStepsStayAndPromotionsGo]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testJoesAuPoivreCaptionReadsAsTheRecipe]' started.
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testJoesAuPoivreCaptionReadsAsTheRecipe]' passed (0.014 seconds).
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testLeadingTitle]' started.
+Test Case '-[DinnerTogetherTests.InstagramCaptionLayoutTests testLeadingTitle]' passed (0.002 seconds).
+Test Suite 'InstagramCaptionLayoutTests' passed at 2026-10-17 09:40:52.999.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.035 (0.337) seconds
+Test Suite 'LateCompletionTests' started at 2026-10-17 09:40:52.999.
+Test Case '-[DinnerTogetherTests.LateCompletionTests testCompletionProposalAcceptanceDoesNotDoubleApply]' started.
+Test Case '-[DinnerTogetherTests.LateCompletionTests testCompletionProposalAcceptanceDoesNotDoubleApply]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.LateCompletionTests testLateCompletionMovesDependents]' started.
+Test Case '-[DinnerTogetherTests.LateCompletionTests testLateCompletionMovesDependents]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.LateCompletionTests testOnTimeCompletionChangesNothing]' started.
+Test Case '-[DinnerTogetherTests.LateCompletionTests testOnTimeCompletionChangesNothing]' passed (0.002 seconds).
+Test Suite 'LateCompletionTests' passed at 2026-10-17 09:40:53.431.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.004 (0.432) seconds
+Test Suite 'LongDurationCopyTests' started at 2026-10-17 09:40:53.431.
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testDisplayKeepsLowerBoundAndMoveRoundingDifferent]' started.
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testDisplayKeepsLowerBoundAndMoveRoundingDifferent]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testMinutesKeepTheirWholeMinuteValue]' started.
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testMinutesKeepTheirWholeMinuteValue]' passed (0.000 seconds).
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testNextDayAndPastDayTimesCarryDates]' started.
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testNextDayAndPastDayTimesCarryDates]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testOverdueCountdownUsesHoursWithoutLosingSeconds]' started.
+Test Case '-[DinnerTogetherTests.LongDurationCopyTests testOverdueCountdownUsesHoursWithoutLosingSeconds]' passed (0.002 seconds).
+Test Suite 'LongDurationCopyTests' passed at 2026-10-17 09:40:53.939.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.007 (0.508) seconds
+Test Suite 'LongRecipeServingTimeTests' started at 2026-10-17 09:40:53.939.
+Test Case '-[DinnerTogetherTests.LongRecipeServingTimeTests testChoosingALongRecipeStartsAtItsEarliestTime]' started.
+Test Case '-[DinnerTogetherTests.LongRecipeServingTimeTests testChoosingALongRecipeStartsAtItsEarliestTime]' passed (0.016 seconds).
+Test Case '-[DinnerTogetherTests.LongRecipeServingTimeTests testRoundUpToFiveMinutes]' started.
+Test Case '-[DinnerTogetherTests.LongRecipeServingTimeTests testRoundUpToFiveMinutes]' passed (0.104 seconds).
+Test Suite 'LongRecipeServingTimeTests' passed at 2026-10-17 09:40:55.208.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.120 (1.268) seconds
+Test Suite 'OutOfOrderReadinessTests' started at 2026-10-17 09:40:55.208.
+Test Case '-[DinnerTogetherTests.OutOfOrderReadinessTests testEarlyFinalCompletionDoesNotHidePendingMiddleStep]' started.
+Test Case '-[DinnerTogetherTests.OutOfOrderReadinessTests testEarlyFinalCompletionDoesNotHidePendingMiddleStep]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.OutOfOrderReadinessTests testEarlyFinalCompletionDoesNotHideRunningMiddleStep]' started.
+Test Case '-[DinnerTogetherTests.OutOfOrderReadinessTests testEarlyFinalCompletionDoesNotHideRunningMiddleStep]' passed (0.397 seconds).
+Test Suite 'OutOfOrderReadinessTests' passed at 2026-10-17 09:40:55.607.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.398 (0.399) seconds
+Test Suite 'PlanningEditRegressionTests' started at 2026-10-17 09:40:55.607.
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testResetAndMenuChangeClearOldServingProposal]' started.
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testResetAndMenuChangeClearOldServingProposal]' passed (0.016 seconds).
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testSavedEstimateIsOneReversibleAction]' started.
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testSavedEstimateIsOneReversibleAction]' passed (0.036 seconds).
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testUnchangedEstimateDoesNotCreateUndoOrHistory]' started.
+Test Case '-[DinnerTogetherTests.PlanningEditRegressionTests testUnchangedEstimateDoesNotCreateUndoOrHistory]' passed (0.002 seconds).
+Test Suite 'PlanningEditRegressionTests' passed at 2026-10-17 09:40:56.122.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.054 (0.515) seconds
+Test Suite 'PlanningTests' started at 2026-10-17 09:40:56.122.
+Test Case '-[DinnerTogetherTests.PlanningTests testBackwardPlanConverges]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testBackwardPlanConverges]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.PlanningTests testBlockedInfo]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testBlockedInfo]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.PlanningTests testDateRollover]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testDateRollover]' passed (0.413 seconds).
+Test Case '-[DinnerTogetherTests.PlanningTests testFeasibilityFlagsPastStart]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testFeasibilityFlagsPastStart]' passed (0.000 seconds).
+Test Case '-[DinnerTogetherTests.PlanningTests testPlanRespectsDurationOverrides]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testPlanRespectsDurationOverrides]' passed (0.000 seconds).
+Test Case '-[DinnerTogetherTests.PlanningTests testRunningPredecessorPushesDependent]' started.
+Test Case '-[DinnerTogetherTests.PlanningTests testRunningPredecessorPushesDependent]' passed (0.000 seconds).
+Test Suite 'PlanningTests' passed at 2026-10-17 09:40:56.543.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.419 (0.421) seconds
+Test Suite 'PlayOverlayTests' started at 2026-10-17 09:40:57.371.
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testFindsThePlayButtonAtTheCentre]' started.
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testFindsThePlayButtonAtTheCentre]' passed (0.015 seconds).
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testKeepsTheTallerCleanBand]' started.
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testKeepsTheTallerCleanBand]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testLeavesOtherPicturesAlone]' started.
+Test Case '-[DinnerTogetherTests.PlayOverlayTests testLeavesOtherPicturesAlone]' passed (0.031 seconds).
+Test Suite 'PlayOverlayTests' passed at 2026-10-17 09:40:57.419.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.046 (0.048) seconds
+Test Suite 'QuickTimerReminderTests' started at 2026-10-17 09:40:57.419.
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testRelaunchSchedulesRunningTimersAgainAtTheirDeadlines]' started.
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testRelaunchSchedulesRunningTimersAgainAtTheirDeadlines]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testStartSchedulesAReminderInTheTimersOwnNamespace]' started.
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testStartSchedulesAReminderInTheTimersOwnNamespace]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testSystemAlarmIDsAreStablePerReminder]' started.
+Test Case '-[DinnerTogetherTests.QuickTimerReminderTests testSystemAlarmIDsAreStablePerReminder]' passed (0.002 seconds).
+Test Suite 'QuickTimerReminderTests' passed at 2026-10-17 09:40:57.554.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.014 (0.134) seconds
+Test Suite 'ReadinessRegressionTests' started at 2026-10-17 09:40:57.876.
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testCompletedMiddleStepDoesNotEraseEarlierPrerequisite]' started.
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testCompletedMiddleStepDoesNotEraseEarlierPrerequisite]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testFinalCompletionUsesActualEnd]' started.
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testFinalCompletionUsesActualEnd]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testUnchangedDependentIsNotClaimedAsShifted]' started.
+Test Case '-[DinnerTogetherTests.ReadinessRegressionTests testUnchangedDependentIsNotClaimedAsShifted]' passed (0.002 seconds).
+Test Suite 'ReadinessRegressionTests' passed at 2026-10-17 09:40:57.883.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.005 (0.007) seconds
+Test Suite 'RecipeBuildTests' started at 2026-10-17 09:40:58.775.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testBuildKeepsStatedTimesAndMarksGuesses]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testBuildKeepsStatedTimesAndMarksGuesses]' passed (0.016 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testEstimatesScaleUpToStatedTotal]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testEstimatesScaleUpToStatedTotal]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testLongFirstLineIsStillTheTitle]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testLongFirstLineIsStillTheTitle]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testMeanwhileServedSeparatelyRunsInParallel]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testMeanwhileServedSeparatelyRunsInParallel]' passed (0.486 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testMeanwhileThatIsCombinedBackStaysInOrder]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testMeanwhileThatIsCombinedBackStaysInOrder]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testOlderStepsWithoutEstimatedFlagDecode]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testOlderStepsWithoutEstimatedFlagDecode]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testRecipeMenuPlansWithTheEngine]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testRecipeMenuPlansWithTheEngine]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testRecipeRoundTripsThroughJSON]' started.
+Test Case '-[DinnerTogetherTests.RecipeBuildTests testRecipeRoundTripsThroughJSON]' passed (0.273 seconds).
+Test Suite 'RecipeBuildTests' passed at 2026-10-17 09:40:59.573.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.793 (0.798) seconds
+Test Suite 'RecipeCoverCropTests' started at 2026-10-17 09:40:59.573.
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testCropRejectsInvalidImagesAndClampsControls]' started.
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testCropRejectsInvalidImagesAndClampsControls]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testPortraitAndLandscapeCropsStayWithinTheSource]' started.
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testPortraitAndLandscapeCropsStayWithinTheSource]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testRoomToMoveTheCropAtEachZoom]' started.
+Test Case '-[DinnerTogetherTests.RecipeCoverCropTests testRoomToMoveTheCropAtEachZoom]' passed (0.386 seconds).
+Test Suite 'RecipeCoverCropTests' passed at 2026-10-17 09:40:59.969.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.393 (0.396) seconds
+Test Suite 'RecipeFixtureTests' started at 2026-10-17 09:40:59.970.
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testMicrodataWithoutInstructionsThrows]' started.
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testMicrodataWithoutInstructionsThrows]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testPageWithoutRecipeThrows]' started.
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testPageWithoutRecipeThrows]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testRealPages]' started.
+Test Case '-[DinnerTogetherTests.RecipeFixtureTests testRealPages]' passed (0.123 seconds).
+Test Suite 'RecipeFixtureTests' passed at 2026-10-17 09:41:00.355.
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.134 (0.385) seconds
+Test Suite 'RecipeImporterPageTests' started at 2026-10-17 09:41:00.356.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testEatingWellShapeParses]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testEatingWellShapeParses]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testGraphAndSectionsParse]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testGraphAndSectionsParse]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testISODurations]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testISODurations]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testMicrodataFallback]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testMicrodataFallback]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testNoRecipeDataThrows]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testNoRecipeDataThrows]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testRedirectTargetFromWrapperPage]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testRedirectTargetFromWrapperPage]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testStringInstructionsSplitOnNumbers]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterPageTests testStringInstructionsSplitOnNumbers]' passed (0.004 seconds).
+Test Suite 'RecipeImporterPageTests' passed at 2026-10-17 09:41:00.393.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.018 (0.037) seconds
+Test Suite 'RecipeImporterTextTests' started at 2026-10-17 09:41:00.600.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testEmptyTextThrows]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testEmptyTextThrows]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testHandsOffClassification]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testHandsOffClassification]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testMinutesExtraction]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testMinutesExtraction]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testPastedTextWithHeaders]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testPastedTextWithHeaders]' passed (0.113 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testPastedTextWithoutHeaders]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testPastedTextWithoutHeaders]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testStepTitles]' started.
+Test Case '-[DinnerTogetherTests.RecipeImporterTextTests testStepTitles]' passed (0.002 seconds).
+Test Suite 'RecipeImporterTextTests' passed at 2026-10-17 09:41:00.727.
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.123 (0.127) seconds
+Test Suite 'RecipeLibraryTests' started at 2026-10-17 09:41:00.727.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testAddPersistsAndReloads]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testAddPersistsAndReloads]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testCoverReplacementPreservesOldBytesWhenMetadataSaveFails]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testCoverReplacementPreservesOldBytesWhenMetadataSaveFails]' passed (0.067 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFailedSaveRollsBackTheAdd]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFailedSaveRollsBackTheAdd]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFailedUpdateAndRemoveRollBack]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFailedUpdateAndRemoveRollBack]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFirstCoverFailureLeavesNoImageReferenceOrFile]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testFirstCoverFailureLeavesNoImageReferenceOrFile]' passed (0.012 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImagesAreStoredBesideTheLibrary]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImagesAreStoredBesideTheLibrary]' passed (0.013 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImportServiceFollowsWrapperAndFetchesImage]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImportServiceFollowsWrapperAndFetchesImage]' passed (0.015 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImportServiceReportsPagesWithoutRecipeData]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testImportServiceReportsPagesWithoutRecipeData]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testStoreResolvesRecipeMenusAndFallsBackWhenDeleted]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testStoreResolvesRecipeMenusAndFallsBackWhenDeleted]' passed (0.081 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testStoreWithoutProviderIsCatalogOnly]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testStoreWithoutProviderIsCatalogOnly]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testTimingEditsAndReview]' started.
+Test Case '-[DinnerTogetherTests.RecipeLibraryTests testTimingEditsAndReview]' passed (0.014 seconds).
+Test Suite 'RecipeLibraryTests' passed at 2026-10-17 09:41:01.321.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.236 (0.594) seconds
+Test Suite 'RecipeNotesTests' started at 2026-10-17 09:41:01.322.
+Test Case '-[DinnerTogetherTests.RecipeNotesTests testDoAheadAndEditorNotesAreNotSteps]' started.
+Test Case '-[DinnerTogetherTests.RecipeNotesTests testDoAheadAndEditorNotesAreNotSteps]' passed (0.124 seconds).
+Test Case '-[DinnerTogetherTests.RecipeNotesTests testPastedNotesAfterDirections]' started.
+Test Case '-[DinnerTogetherTests.RecipeNotesTests testPastedNotesAfterDirections]' passed (0.004 seconds).
+Test Suite 'RecipeNotesTests' passed at 2026-10-17 09:41:01.451.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.128 (0.129) seconds
+Test Suite 'RecipePaletteTests' started at 2026-10-17 09:41:01.451.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testCiderPhotoGivesAWarmPage]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testCiderPhotoGivesAWarmPage]' passed (0.009 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testColorMath]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testColorMath]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testEveryPresetIsReadable]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testEveryPresetIsReadable]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testExtremePhotosStayReadable]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testExtremePhotosStayReadable]' passed (0.021 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testPageStyleRoundTripsAndOldRecipesDecode]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testPageStyleRoundTripsAndOldRecipesDecode]' passed (0.012 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testPastelPhotoGivesAPaleBluePage]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testPastelPhotoGivesAPaleBluePage]' passed (0.008 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testSamePhotoSamePage]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testSamePhotoSamePage]' passed (0.009 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testThemeLightValuesComeFromPaleText]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testThemeLightValuesComeFromPaleText]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testTomatoIsTooDimForColoredPages]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testTomatoIsTooDimForColoredPages]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testWhichPaletteAPagePaintsWith]' started.
+Test Case '-[DinnerTogetherTests.RecipePaletteTests testWhichPaletteAPagePaintsWith]' passed (0.001 seconds).
+Test Suite 'RecipePaletteTests' passed at 2026-10-17 09:41:01.901.
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.065 (0.450) seconds
+Test Suite 'RecipeScreenshotTests' started at 2026-10-17 09:41:01.903.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testCleanOCRAndOverlapMerge]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testCleanOCRAndOverlapMerge]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testCookbookPhotoWithoutLabels]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testCookbookPhotoWithoutLabels]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testJoesFiveAppleNewsScreenshots]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testJoesFiveAppleNewsScreenshots]' passed (0.039 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testNoTextThrows]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testNoTextThrows]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testOnlySomeScreenshots]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testOnlySomeScreenshots]' passed (0.009 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testOrderOfScreenshotsDoesNotMatter]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testOrderOfScreenshotsDoesNotMatter]' passed (0.079 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testScreenshotRecipePlansLikeTheLinkVersion]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testScreenshotRecipePlansLikeTheLinkVersion]' passed (0.029 seconds).
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testTitleFromTallestTextWhenNoRepeatedHeader]' started.
+Test Case '-[DinnerTogetherTests.RecipeScreenshotTests testTitleFromTallestTextWhenNoRepeatedHeader]' passed (0.006 seconds).
+Test Suite 'RecipeScreenshotTests' passed at 2026-10-17 09:41:02.079.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.171 (0.176) seconds
+Test Suite 'RecipesViewScreenshotTests' started at 2026-10-17 09:41:02.079.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testCookbookPageWithServesLineIsNotACover]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testCookbookPageWithServesLineIsNotACover]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testCoverPageAloneStillGivesTheSummary]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testCoverPageAloneStillGivesTheSummary]' passed (0.030 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testDurationUnderYieldIsTheTime]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testDurationUnderYieldIsTheTime]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testJoesRecipesViewScreenshotsImportCleanly]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testJoesRecipesViewScreenshotsImportCleanly]' passed (0.026 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testMergedStatusBarAndShiftedLabels]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testMergedStatusBarAndShiftedLabels]' passed (0.027 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testOverlapTrimAndChromeRows]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testOverlapTrimAndChromeRows]' passed (0.023 seconds).
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testStatusBarRules]' started.
+Test Case '-[DinnerTogetherTests.RecipesViewScreenshotTests testStatusBarRules]' passed (0.001 seconds).
+Test Suite 'RecipesViewScreenshotTests' passed at 2026-10-17 09:41:02.191.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.110 (0.112) seconds
+Test Suite 'RecoveryNoticeTests' started at 2026-10-17 09:41:02.191.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testEarlyFinalCompletionStillCountsPendingPrerequisite]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testEarlyFinalCompletionStillCountsPendingPrerequisite]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testEarlyFinalCompletionStillCountsRunningMiddleStep]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testEarlyFinalCompletionStillCountsRunningMiddleStep]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testExpiredTimerStaysCookingAndFloorsAtNow]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testExpiredTimerStaysCookingAndFloorsAtNow]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testFinishedDinnerReportsNothingEvenIfLate]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testFinishedDinnerReportsNothingEvenIfLate]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testLateCompletionReportsDriftWithoutMovingDinner]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testLateCompletionReportsDriftWithoutMovingDinner]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testLowerBoundMinutesRoundDown]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testLowerBoundMinutesRoundDown]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testMoveMinutesRoundUpWhileDriftDisplaysNearest]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testMoveMinutesRoundUpWhileDriftDisplaysNearest]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testOnTimePlanReportsNothing]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testOnTimePlanReportsNothing]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testOutOfOrderCompletionKeepsDependencyCarry]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testOutOfOrderCompletionKeepsDependencyCarry]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testPendingWorkLateToStartProjectsForward]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testPendingWorkLateToStartProjectsForward]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testPlanCarriesRunningPredecessorPastOutOfOrderCompletion]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testPlanCarriesRunningPredecessorPastOutOfOrderCompletion]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testRunningDeadlinePushesEstimate]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testRunningDeadlinePushesEstimate]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testRunningFirstStepCarriesPastCompletedMiddleStep]' started.
+Test Case '-[DinnerTogetherTests.RecoveryNoticeTests testRunningFirstStepCarriesPastCompletedMiddleStep]' passed (0.036 seconds).
+Test Suite 'RecoveryNoticeTests' passed at 2026-10-17 09:41:02.547.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.065 (0.356) seconds
+Test Suite 'RecoveryStoreTests' started at 2026-10-17 09:41:02.548.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testCompletionRecordsDriftWithoutChangingServeAt]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testCompletionRecordsDriftWithoutChangingServeAt]' passed (0.033 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testDelayConfirmationRecomputesDrift]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testDelayConfirmationRecomputesDrift]' passed (0.050 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testDriftNeverOutlivesItsSession]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testDriftNeverOutlivesItsSession]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testFinishedDinnerCannotBeMoved]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testFinishedDinnerCannotBeMoved]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testMoveDinnerAppliesOnceAndUndoRestores]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testMoveDinnerAppliesOnceAndUndoRestores]' passed (0.038 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testPreviewAndMoveAgreeAndNeverUndershootEstimate]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testPreviewAndMoveAgreeAndNeverUndershootEstimate]' passed (0.008 seconds).
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testReportAndMoveUseCurrentReadinessNotPriorEstimate]' started.
+Test Case '-[DinnerTogetherTests.RecoveryStoreTests testReportAndMoveUseCurrentReadinessNotPriorEstimate]' passed (0.014 seconds).
+Test Suite 'RecoveryStoreTests' passed at 2026-10-17 09:41:02.724.
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.155 (0.176) seconds
+Test Suite 'ReminderAndEarlyStartRegressionTests' started at 2026-10-17 09:41:02.725.
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testActiveSessionCannotUseFullMenuServingTimeEdit]' started.
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testActiveSessionCannotUseFullMenuServingTimeEdit]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testDelayDuringAuthorizationKeepsRunningReminder]' started.
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testDelayDuringAuthorizationKeepsRunningReminder]' passed (0.536 seconds).
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testEarlyStartRequiresPrerequisiteConfirmation]' started.
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testEarlyStartRequiresPrerequisiteConfirmation]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testIndependentStartsKeepBothReminders]' started.
+Test Case '-[DinnerTogetherTests.ReminderAndEarlyStartRegressionTests testIndependentStartsKeepBothReminders]' passed (0.107 seconds).
+Test Suite 'ReminderAndEarlyStartRegressionTests' passed at 2026-10-17 09:41:03.375.
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.648 (0.651) seconds
+Test Suite 'ScreenshotOrderTests' started at 2026-10-17 09:41:03.376.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyFirstNumberedHeadingKeepsLaterText]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyFirstNumberedHeadingKeepsLaterText]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyLastNumberedHeadingKeepsEarlierText]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyLastNumberedHeadingKeepsEarlierText]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyMiddleNumberedHeadingKeepsLaterText]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testEmptyMiddleNumberedHeadingKeepsLaterText]' passed (0.067 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testMixedNumberedAndUnnumberedKeepsVisibleOrder]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testMixedNumberedAndUnnumberedKeepsVisibleOrder]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testNumberedStepContinuationJoinsItsStep]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testNumberedStepContinuationJoinsItsStep]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testNumberedStepsSurviveAnySelectionOrder]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testNumberedStepsSurviveAnySelectionOrder]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testOnlyEmptyNumberedHeadingsHaveNoRecipeData]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testOnlyEmptyNumberedHeadingsHaveNoRecipeData]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testOverlappingUnnumberedTextDuplicates]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testOverlappingUnnumberedTextDuplicates]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedBeforeAnyNumberedStepComesFirst]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedBeforeAnyNumberedStepComesFirst]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedDirectionsFollowSelectionOrder]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedDirectionsFollowSelectionOrder]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedDirectionsInRecipeOrder]' started.
+Test Case '-[DinnerTogetherTests.ScreenshotOrderTests testUnnumberedDirectionsInRecipeOrder]' passed (0.001 seconds).
+Test Suite 'ScreenshotOrderTests' passed at 2026-10-17 09:41:03.545.
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.093 (0.169) seconds
+Test Suite 'ScrollGeometryTests' started at 2026-10-17 09:41:03.545.
+Test Case '-[DinnerTogetherTests.ScrollGeometryTests testIsSmallWindowTrigger]' started.
+Test Case '-[DinnerTogetherTests.ScrollGeometryTests testIsSmallWindowTrigger]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.ScrollGeometryTests testIsTopInZone]' started.
+Test Case '-[DinnerTogetherTests.ScrollGeometryTests testIsTopInZone]' passed (0.002 seconds).
+Test Suite 'ScrollGeometryTests' passed at 2026-10-17 09:41:03.561.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.016) seconds
+Test Suite 'SessionPolicyRegressionTests' started at 2026-10-17 09:41:03.562.
+Test Case '-[DinnerTogetherTests.SessionPolicyRegressionTests testDurationEditIsRejectedDuringCooking]' started.
+Test Case '-[DinnerTogetherTests.SessionPolicyRegressionTests testDurationEditIsRejectedDuringCooking]' passed (0.004 seconds).
+Test Case '-[DinnerTogetherTests.SessionPolicyRegressionTests testStaleResolutionClearsOldServingProposal]' started.
+Test Case '-[DinnerTogetherTests.SessionPolicyRegressionTests testStaleResolutionClearsOldServingProposal]' passed (0.003 seconds).
+Test Suite 'SessionPolicyRegressionTests' passed at 2026-10-17 09:41:03.598.
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.036) seconds
+Test Suite 'SharedInboxTests' started at 2026-10-17 09:41:03.598.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testFirstURLInSharedText]' started.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testFirstURLInSharedText]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SharedInboxTests testGroupIdentifierIsTheAppsForBothTargets]' started.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testGroupIdentifierIsTheAppsForBothTargets]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SharedInboxTests testImagesRoundTripInOrder]' started.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testImagesRoundTripInOrder]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.SharedInboxTests testLinkRoundTripAndTakeClears]' started.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testLinkRoundTripAndTakeClears]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.SharedInboxTests testStaleItemIsDropped]' started.
+Test Case '-[DinnerTogetherTests.SharedInboxTests testStaleItemIsDropped]' passed (0.003 seconds).
+Test Suite 'SharedInboxTests' passed at 2026-10-17 09:41:03.624.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.023 (0.026) seconds
+Test Suite 'SocialCaptionSeparatorTests' started at 2026-10-17 09:41:03.625.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testAmbiguousNumbersAndOrdinarySentencesAreNotSplit]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testAmbiguousNumbersAndOrdinarySentencesAreNotSplit]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testFoodSavingInstructionsArePreserved]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testFoodSavingInstructionsArePreserved]' passed (0.010 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testFractionsDecimalsCommasAndRangesStayIntact]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testFractionsDecimalsCommasAndRangesStayIntact]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testGreenBeanScreenshotBecomesTenIngredientsAndSixSteps]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testGreenBeanScreenshotBecomesTenIngredientsAndSixSteps]' passed (0.012 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testHeaderlessCaptionAndTikTokUseSameCleanup]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testHeaderlessCaptionAndTikTokUseSameCleanup]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testInlineHeadingsAndTrailingPromotionOnSameLine]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testInlineHeadingsAndTrailingPromotionOnSameLine]' passed (0.013 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testNumberedStepsOnSeparateLinesStillWork]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testNumberedStepsOnSeparateLinesStillWork]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testParenthesizedAndKeycapNumberedLists]' started.
+Test Case '-[DinnerTogetherTests.SocialCaptionSeparatorTests testParenthesizedAndKeycapNumberedLists]' passed (0.006 seconds).
+Test Suite 'SocialCaptionSeparatorTests' passed at 2026-10-17 09:41:03.772.
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.059 (0.148) seconds
+Test Suite 'SocialImportTests' started at 2026-10-17 09:41:03.772.
+Test Case '-[DinnerTogetherTests.SocialImportTests testCaptionCleaning]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testCaptionCleaning]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testCaptionThatLinksToTheRecipePageFollowsIt]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testCaptionThatLinksToTheRecipePageFollowsIt]' passed (0.077 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramLoginWallSaysSo]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramLoginWallSaysSo]' passed (0.332 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramMetaParsing]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramMetaParsing]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramPublicPostCaption]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testInstagramPublicPostCaption]' passed (0.013 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testLinkDetection]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testLinkDetection]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testRecipeLinkInCaption]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testRecipeLinkInCaption]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testShortTikTokLinkIsFollowedFirst]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testShortTikTokLinkIsFollowedFirst]' passed (0.052 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokCaptionBecomesARecipeWithItsCover]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokCaptionBecomesARecipeWithItsCover]' passed (0.020 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokCaptionWithoutRecipeSaysSo]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokCaptionWithoutRecipeSaysSo]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokPrivateOrRemovedSaysSo]' started.
+Test Case '-[DinnerTogetherTests.SocialImportTests testTikTokPrivateOrRemovedSaysSo]' passed (0.003 seconds).
+Test Suite 'SocialImportTests' passed at 2026-10-17 09:41:04.812.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.512 (1.040) seconds
+Test Suite 'SpreadTests' started at 2026-10-17 09:41:04.812.
+Test Case '-[DinnerTogetherTests.SpreadTests testAddingAndRemovingDishesKeepsTheMainFirst]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testAddingAndRemovingDishesKeepsTheMainFirst]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testChangingDishesKeepsTheDinnerTimeAndADeletedSideLeavesTheRest]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testChangingDishesKeepsTheDinnerTimeAndADeletedSideLeavesTheRest]' passed (0.024 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testDuoUprightIsOneCookbookPage]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testDuoUprightIsOneCookbookPage]' passed (0.001 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testFourRecipeDinnerIsReadyTogether]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testFourRecipeDinnerIsReadyTogether]' passed (0.018 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testLeftPageSettlesToTheCoverWhenItsRecipeIsGone]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testLeftPageSettlesToTheCoverWhenItsRecipeIsGone]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testOnlyAWideTallPhoneWindowIsASpread]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testOnlyAWideTallPhoneWindowIsASpread]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testPairedDinnerCooksBothRecipesReadyTogether]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testPairedDinnerCooksBothRecipesReadyTogether]' passed (0.010 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testPairedMenuIDRoundTrips]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testPairedMenuIDRoundTrips]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testQuickTimerCountsDownFromItsDeadlineAndNamesItsDishAndStep]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testQuickTimerCountsDownFromItsDeadlineAndNamesItsDishAndStep]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testSearchMatchesTitleOrIngredientWhateverTheCase]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testSearchMatchesTitleOrIngredientWhateverTheCase]' passed (0.005 seconds).
+Test Case '-[DinnerTogetherTests.SpreadTests testWholeMealIDsRoundTripAndKeepBuild20Pairs]' started.
+Test Case '-[DinnerTogetherTests.SpreadTests testWholeMealIDsRoundTripAndKeepBuild20Pairs]' passed (0.001 seconds).
+Test Suite 'SpreadTests' passed at 2026-10-17 09:41:05.066.
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.069 (0.253) seconds
+Test Suite 'StoreTests' started at 2026-10-17 09:41:05.066.
+Test Case '-[DinnerTogetherTests.StoreTests testChooseMenuIsUndoable]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testChooseMenuIsUndoable]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testCompleteUnstartedNeedsConfirmationAndPreservesUnknown]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testCompleteUnstartedNeedsConfirmationAndPreservesUnknown]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testDeniedAuthorizationSchedulesNothing]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testDeniedAuthorizationSchedulesNothing]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testNoStaleReminderAfterResetDuringPendingAuth]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testNoStaleReminderAfterResetDuringPendingAuth]' passed (0.309 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testNoStaleReminderAfterUndoDuringPendingAuth]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testNoStaleReminderAfterUndoDuringPendingAuth]' passed (0.316 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testPersistenceRoundTrip]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testPersistenceRoundTrip]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testReminderScheduledWhenUndisturbed]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testReminderScheduledWhenUndisturbed]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testStaleDetection]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testStaleDetection]' passed (0.007 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testStaleNoProgressReanchors]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testStaleNoProgressReanchors]' passed (0.011 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testStartBlockedWithoutForce]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testStartBlockedWithoutForce]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testStoreCompletionProposalAcceptanceFlow]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testStoreCompletionProposalAcceptanceFlow]' passed (0.016 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testUndoRestoresDelay]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testUndoRestoresDelay]' passed (0.008 seconds).
+Test Case '-[DinnerTogetherTests.StoreTests testUndoRestoresExactSession]' started.
+Test Case '-[DinnerTogetherTests.StoreTests testUndoRestoresExactSession]' passed (0.004 seconds).
+Test Suite 'StoreTests' passed at 2026-10-17 09:41:05.792.
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.696 (0.726) seconds
+Test Suite 'WeekPlanTests' started at 2026-10-17 09:41:05.792.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testAPlannedDayBecomesTonightOnlyWhenNothingElseSaysSo]' started.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testAPlannedDayBecomesTonightOnlyWhenNothingElseSaysSo]' passed (0.003 seconds).
+Test Case '-[DinnerTogetherTests.WeekPlanTests testDaysAreOpenExceptThanksgiving]' started.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testDaysAreOpenExceptThanksgiving]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.WeekPlanTests testPruneForgetsOldDays]' started.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testPruneForgetsOldDays]' passed (0.002 seconds).
+Test Case '-[DinnerTogetherTests.WeekPlanTests testStorePersistsAndRollsBack]' started.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testStorePersistsAndRollsBack]' passed (0.006 seconds).
+Test Case '-[DinnerTogetherTests.WeekPlanTests testTheCooksChoiceWinsAndFallsBackWhenItsRecipeIsGone]' started.
+Test Case '-[DinnerTogetherTests.WeekPlanTests testTheCooksChoiceWinsAndFallsBackWhenItsRecipeIsGone]' passed (0.001 seconds).
+Test Suite 'WeekPlanTests' passed at 2026-10-17 09:41:05.811.
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.013 (0.019) seconds
+Test Suite 'DinnerTogetherTests.xctest' passed at 2026-10-17 09:41:05.811.
+	 Executed 247 tests, with 0 failures (0 unexpected) in 9.276 (23.664) seconds
+Test Suite 'All tests' passed at 2026-10-17 09:41:05.904.
+	 Executed 247 tests, with 0 failures (0 unexpected) in 9.276 (23.757) seconds
+2026-10-17 09:41:06.139 xcodebuild[7340:24806] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:41:06.276 xcodebuild[7340:24806] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:41:06.399 xcodebuild[7340:24806] [MT] IDESchemeActionSDKRecord: operatingSystemBuild = <DVTBuildVersion 24A94232>, error = invalidDigitCount(94232).
+2026-10-17 09:41:07.850 xcodebuild[7340:24806] [MT] IDETestOperationsObserverDebug: 266.904 elapsed -- Testing started completed.
+2026-10-17 09:41:07.850 xcodebuild[7340:24806] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-10-17 09:41:07.850 xcodebuild[7340:24806] [MT] IDETestOperationsObserverDebug: 266.904 sec, +266.904 sec -- end
+
+Test session results, code coverage, and logs:
+	/Users/runner/work/dinner-together/dinner-together/native-validation/results/iphone.xcresult
+
+** TEST EXECUTE SUCCEEDED **
+
+Testing started

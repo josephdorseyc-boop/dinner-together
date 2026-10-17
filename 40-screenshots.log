@@ -1,0 +1,207 @@
+== iphone (B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7)
+Monitoring boot status for iPhone 17 (B8D3DB6B-98FB-4E92-9ACE-9BC307F7FDE7).
+Device already booted, nothing to do.
+
+com.example.dinnertogether: 11973
+com.example.dinnertogether: 12026
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/late-prep-light.png
+shot iphone/late-prep-light.png
+com.example.dinnertogether: 12097
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/late-to-start-light.png
+shot iphone/late-to-start-light.png
+com.example.dinnertogether: 12161
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/expired-timer-light.png
+shot iphone/expired-timer-light.png
+com.example.dinnertogether: 12219
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/way-behind-light.png
+shot iphone/way-behind-light.png
+com.example.dinnertogether: 12469
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/all-done-late-light.png
+shot iphone/all-done-late-light.png
+com.example.dinnertogether: 12526
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/on-schedule-light.png
+shot iphone/on-schedule-light.png
+com.example.dinnertogether: 12622
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/tonight-steak-light.png
+shot iphone/tonight-steak-light.png
+com.example.dinnertogether: 12690
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/late-prep-dark.png
+shot iphone/late-prep-dark.png
+com.example.dinnertogether: 13294
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/late-to-start-dark.png
+shot iphone/late-to-start-dark.png
+com.example.dinnertogether: 13348
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/expired-timer-dark.png
+shot iphone/expired-timer-dark.png
+com.example.dinnertogether: 13793
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/way-behind-dark.png
+shot iphone/way-behind-dark.png
+com.example.dinnertogether: 14753
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/all-done-late-dark.png
+shot iphone/all-done-late-dark.png
+com.example.dinnertogether: 14962
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/on-schedule-dark.png
+shot iphone/on-schedule-dark.png
+com.example.dinnertogether: 15332
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/tonight-steak-dark.png
+shot iphone/tonight-steak-dark.png
+com.example.dinnertogether: 15718
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/late-prep-ax-large-text.png
+shot iphone/late-prep-ax-large-text.png
+com.example.dinnertogether: 15998
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: AAE74871-667D-46B1-9771-1265E7F6B90E (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/iphone/expired-timer-ax-large-text.png
+shot iphone/expired-timer-ax-large-text.png
+== ipad (B4561F2D-D37F-4175-8F1E-CE1F9C239D75)
+Monitoring boot status for iPad (A16) (B4561F2D-D37F-4175-8F1E-CE1F9C239D75).
+[2026-10-17 09:50:25 +0000] Status=2, isTerminal=NO, Elapsed=00:36.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)
+		Migration Elapsed:00:19 seconds
+
+[2026-10-17 09:50:26 +0000] Status=2, isTerminal=NO, Elapsed=00:37.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)
+		Migration Elapsed:00:20 seconds
+
+[2026-10-17 09:50:27 +0000] Status=2, isTerminal=NO, Elapsed=00:38.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)
+		Migration Elapsed:00:21 seconds
+
+[2026-10-17 09:50:28 +0000] Status=2, isTerminal=NO, Elapsed=00:39.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.managedconfiguration.migrator (MCProfile.migrator, user-agnostic)
+		Migration Elapsed:00:22 seconds
+
+[2026-10-17 09:50:29 +0000] Status=2, isTerminal=NO, Elapsed=00:40.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.WebBookmarks.migrator (WebBookmarks.migrator)
+		Migration Elapsed:00:23 seconds
+
+[2026-10-17 09:50:30 +0000] Status=2, isTerminal=NO, Elapsed=00:41.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:24 seconds
+
+[2026-10-17 09:50:32 +0000] Status=2, isTerminal=NO, Elapsed=00:42.
+	Waiting on Data Migration
+		Reason:Running plugin com.apple.MobileSafari.migrator (MobileSafari.migrator)
+		Migration Elapsed:00:25 seconds
+
+[2026-10-17 09:50:36 +0000] Status=4294967295, isTerminal=YES, Elapsed=00:47.
+	Finished
+
+com.example.dinnertogether: 17692
+com.example.dinnertogether: 18278
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/late-prep-light.png
+shot ipad/late-prep-light.png
+com.example.dinnertogether: 18559
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/late-to-start-light.png
+shot ipad/late-to-start-light.png
+com.example.dinnertogether: 18995
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/expired-timer-light.png
+shot ipad/expired-timer-light.png
+com.example.dinnertogether: 19052
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/way-behind-light.png
+shot ipad/way-behind-light.png
+com.example.dinnertogether: 19725
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/all-done-late-light.png
+shot ipad/all-done-late-light.png
+com.example.dinnertogether: 19925
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/on-schedule-light.png
+shot ipad/on-schedule-light.png
+com.example.dinnertogether: 20445
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/tonight-steak-light.png
+shot ipad/tonight-steak-light.png
+com.example.dinnertogether: 20946
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/late-prep-dark.png
+shot ipad/late-prep-dark.png
+com.example.dinnertogether: 21388
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/late-to-start-dark.png
+shot ipad/late-to-start-dark.png
+com.example.dinnertogether: 21442
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/expired-timer-dark.png
+shot ipad/expired-timer-dark.png
+com.example.dinnertogether: 22120
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/way-behind-dark.png
+shot ipad/way-behind-dark.png
+com.example.dinnertogether: 22192
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/all-done-late-dark.png
+shot ipad/all-done-late-dark.png
+com.example.dinnertogether: 22860
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/on-schedule-dark.png
+shot ipad/on-schedule-dark.png
+com.example.dinnertogether: 23024
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/tonight-steak-dark.png
+shot ipad/tonight-steak-dark.png
+com.example.dinnertogether: 23810
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/late-prep-ax-large-text.png
+shot ipad/late-prep-ax-large-text.png
+com.example.dinnertogether: 23870
+Detected file type from extension: PNG
+Note: No display specified. Defaulting to display: 5A8A48B9-1B4E-40E6-A006-E90688D48F6B (screenID: 1, name: LCD)
+Wrote screenshot to: /Users/runner/work/dinner-together/dinner-together/native-validation/results/screenshots/ipad/expired-timer-ax-large-text.png
+shot ipad/expired-timer-ax-large-text.png
+done: 32 screenshots, 0 failures
