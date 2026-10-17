@@ -152,6 +152,9 @@ private struct LockScreenTimers: View {
             }
         }
         .padding(16)
+        // Paint the content surface as well as the system tint: the Lock
+        // Screen card must retain the cookbook's cream, not a tinted material.
+        .background(Palette.cream)
         .overlay(alignment: .topTrailing) {
             Image(systemName: "leaf").font(.caption).rotationEffect(.degrees(-35))
                 .foregroundStyle(Palette.tomato.opacity(0.85))
