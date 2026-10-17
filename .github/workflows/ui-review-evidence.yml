@@ -12,12 +12,25 @@ name: ui-review-evidence
         required: true
         default: ci-results
         type: string
+      testflight_status:
+        description: "Read-only: verify Apple processing for the requested build instead of packaging UI evidence"
+        type: boolean
+        default: false
+      app_version:
+        description: "Marketing version to verify in App Store Connect"
+        type: string
+        default: "1.0"
+      build_number:
+        description: "Build number to verify (no archive or upload is performed)"
+        type: string
+        default: "22"
 
 permissions:
   contents: read
 
 jobs:
   package:
+    if: ${{ !inputs.testflight_status }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -84,4 +97,38 @@ jobs:
           path: review-evidence/
           if-no-files-found: error
           compression-level: 0
+          retention-days: 14
+
+  verify-testflight:
+    if: ${{ inputs.testflight_status }}
+    name: Read-only TestFlight processing check
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Read build status from Apple (no mutations)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DT_BUNDLE_ID: ${{ secrets.DT_BUNDLE_ID }}
+          DT_APP_VERSION: ${{ inputs.app_version }}
+          DT_BUILD: ${{ inputs.build_number }}
+          DT_STATUS_WAIT_SECONDS: 1800
+        run: node release/check-testflight.cjs release/testflight-status
+      - name: Publish status summary
+        if: always()
+        run: cat release/testflight-status/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep build-status evidence (no credentials)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testflight-status-${{ inputs.app_version }}-${{ inputs.build_number }}-${{ github.run_id }}
+          path: release/testflight-status/
+          if-no-files-found: warn
           retention-days: 14
