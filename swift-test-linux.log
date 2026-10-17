@@ -1,0 +1,783 @@
+warning: 'dinner-together': found 8 file(s) which are unhandled; explicitly declare them as resources or exclude from the target
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/negative-wikipedia-banana-bread.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/smittenkitchen-double-chocolate-banana-bread.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/bbcgoodfood-classic-lasagne.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/bonappetit-bas-best-chocolate-chip-cookies.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/manifest.json
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/nyt-no-knead-bread.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/pinchofyum-pastina-soup.html
+    /__w/dinner-together/dinner-together/DinnerTogetherTests/Fixtures/recipetineats-hollandaise-sauce.html
+warning: 'dinner-together': found 27 file(s) which are unhandled; explicitly declare them as resources or exclude from the target
+    /__w/dinner-together/dinner-together/DinnerTogether/DinnerTimersActivity.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/WeekShowcaseView.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/TimerCenter.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/Theme.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/SpreadViews.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/CookingView.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/WeekPlanViews.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/UITestSceneGeometry.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/DinnerTogether.entitlements
+    /__w/dinner-together/dinner-together/DinnerTogether/Notifications.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/QuickTimers.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/KitchenTimerViews.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/RecipeViews.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/Assets.xcassets
+    /__w/dinner-together/dinner-together/DinnerTogether/FullScreenTimers.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/SystemAlarms.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/ScreenshotReader.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/TimerAlarm.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/PlanView.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/LiveDinnerTimers.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/Info.plist
+    /__w/dinner-together/dinner-together/DinnerTogether/RecipePageStyle.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/timer-chime.wav
+    /__w/dinner-together/dinner-together/DinnerTogether/ContentView.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/DinnerTogetherApp.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/Sheets.swift
+    /__w/dinner-together/dinner-together/DinnerTogether/PrivacyInfo.xcprivacy
+Building for debugging...
+[0/15] Write sources
+[3/15] Write swift-version-24593BA9C3E375BF.txt
+[5/17] Emitting module SwiftUI
+[6/17] Compiling SwiftUI SwiftUI.swift
+[7/18] Wrapping AST for SwiftUI for debugging
+[9/31] Compiling DinnerTogether DebugSampleMenus.swift
+[10/31] Compiling DinnerTogether DinnerCatalog.swift
+[11/31] Compiling DinnerTogether EngineTestSupport.swift
+[12/31] Compiling DinnerTogether Models.swift
+[13/34] Emitting module DinnerTogether
+[14/34] Compiling DinnerTogether Scheduling.swift
+[15/34] Compiling DinnerTogether ScrollGeometry.swift
+[16/34] Compiling DinnerTogether SessionStore.swift
+[17/34] Compiling DinnerTogether SharedInbox.swift
+[18/34] Compiling DinnerTogether PlayOverlay.swift
+[19/34] Compiling DinnerTogether RecipeImporter.swift
+[20/34] Compiling DinnerTogether RecipeLibrary.swift
+[21/34] Compiling DinnerTogether RecipePalette.swift
+[22/34] Compiling DinnerTogether SocialImport.swift
+[23/34] Compiling DinnerTogether Spread.swift
+[24/34] Compiling DinnerTogether WeekPlan.swift
+[25/35] Wrapping AST for DinnerTogether for debugging
+[27/47] Emitting module DinnerTogetherTests
+[28/50] Compiling DinnerTogetherTests SampleMenus.swift
+[29/50] Compiling DinnerTogetherTests ScreenshotOrderTests.swift
+[30/50] Compiling DinnerTogetherTests ScrollGeometryTests.swift
+[31/50] Compiling DinnerTogetherTests SocialImportTests.swift
+[32/50] Compiling DinnerTogetherTests SpreadTests.swift
+[33/50] Compiling DinnerTogetherTests WeekPlanTests.swift
+[34/50] Compiling DinnerTogetherTests RecipeFixtureTests.swift
+[35/50] Compiling DinnerTogetherTests RecipePaletteTests.swift
+[36/50] Compiling DinnerTogetherTests RecipeScreenshotTests.swift
+[37/50] Compiling DinnerTogetherTests RecipeTests.swift
+[38/50] Compiling DinnerTogetherTests CookModeScreenshotTests.swift
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:20:22: warning: no calls to throwing functions occur within 'try' expression
+ 18 |     /// A saved recipe whose first step is exactly 180 minutes.
+ 19 |     private func recipeAt180(in library: RecipeLibrary) throws -> Recipe {
+ 20 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+ 21 |             try RecipeImporter.parse(text: "Frozen Berry Drink\n\nIngredients\n- berries\n\nDirections\nFreeze the mixture.\nServe cold."),
+ 22 |             method: .text, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:117:22: warning: no calls to throwing functions occur within 'try' expression
+115 |         let dir = tempDir()
+116 |         let library = RecipeLibrary(directory: dir)
+117 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+118 |             try RecipeImporter.parse(text: "Meringue Twists\n\nIngredients\n- 4 egg whites\n\nDirections\nSTEP 1\nMeringue Twists Meringue Twists\nSTEP 2\nToday News+ Audio Following Search\nSTEP 3\nPreheat the oven to 200°F.\nSTEP 4\nSet aside."),
+119 |             method: .photo, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:149:22: warning: no calls to throwing functions occur within 'try' expression
+147 |         let dir = tempDir()
+148 |         let library = RecipeLibrary(directory: dir)
+149 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+150 |             try RecipeImporter.parse(text: "Creamy pasta\n\nDirections\n1. Boil the pasta for 10 minutes.\n2. Meanwhile, steep the cream with garlic for 20 minutes.\n3. Toss and serve."),
+151 |             method: .text, now: Date())
+[39/50] Compiling DinnerTogetherTests CoverPhotoTests.swift
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:20:22: warning: no calls to throwing functions occur within 'try' expression
+ 18 |     /// A saved recipe whose first step is exactly 180 minutes.
+ 19 |     private func recipeAt180(in library: RecipeLibrary) throws -> Recipe {
+ 20 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+ 21 |             try RecipeImporter.parse(text: "Frozen Berry Drink\n\nIngredients\n- berries\n\nDirections\nFreeze the mixture.\nServe cold."),
+ 22 |             method: .text, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:117:22: warning: no calls to throwing functions occur within 'try' expression
+115 |         let dir = tempDir()
+116 |         let library = RecipeLibrary(directory: dir)
+117 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+118 |             try RecipeImporter.parse(text: "Meringue Twists\n\nIngredients\n- 4 egg whites\n\nDirections\nSTEP 1\nMeringue Twists Meringue Twists\nSTEP 2\nToday News+ Audio Following Search\nSTEP 3\nPreheat the oven to 200°F.\nSTEP 4\nSet aside."),
+119 |             method: .photo, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:149:22: warning: no calls to throwing functions occur within 'try' expression
+147 |         let dir = tempDir()
+148 |         let library = RecipeLibrary(directory: dir)
+149 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+150 |             try RecipeImporter.parse(text: "Creamy pasta\n\nDirections\n1. Boil the pasta for 10 minutes.\n2. Meanwhile, steep the cream with garlic for 20 minutes.\n3. Toss and serve."),
+151 |             method: .text, now: Date())
+[40/50] Compiling DinnerTogetherTests DinnerTogetherTests.swift
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:20:22: warning: no calls to throwing functions occur within 'try' expression
+ 18 |     /// A saved recipe whose first step is exactly 180 minutes.
+ 19 |     private func recipeAt180(in library: RecipeLibrary) throws -> Recipe {
+ 20 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+ 21 |             try RecipeImporter.parse(text: "Frozen Berry Drink\n\nIngredients\n- berries\n\nDirections\nFreeze the mixture.\nServe cold."),
+ 22 |             method: .text, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:117:22: warning: no calls to throwing functions occur within 'try' expression
+115 |         let dir = tempDir()
+116 |         let library = RecipeLibrary(directory: dir)
+117 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+118 |             try RecipeImporter.parse(text: "Meringue Twists\n\nIngredients\n- 4 egg whites\n\nDirections\nSTEP 1\nMeringue Twists Meringue Twists\nSTEP 2\nToday News+ Audio Following Search\nSTEP 3\nPreheat the oven to 200°F.\nSTEP 4\nSet aside."),
+119 |             method: .photo, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:149:22: warning: no calls to throwing functions occur within 'try' expression
+147 |         let dir = tempDir()
+148 |         let library = RecipeLibrary(directory: dir)
+149 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+150 |             try RecipeImporter.parse(text: "Creamy pasta\n\nDirections\n1. Boil the pasta for 10 minutes.\n2. Meanwhile, steep the cream with garlic for 20 minutes.\n3. Toss and serve."),
+151 |             method: .text, now: Date())
+[41/50] Compiling DinnerTogetherTests DurationPersistenceTests.swift
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:20:22: warning: no calls to throwing functions occur within 'try' expression
+ 18 |     /// A saved recipe whose first step is exactly 180 minutes.
+ 19 |     private func recipeAt180(in library: RecipeLibrary) throws -> Recipe {
+ 20 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+ 21 |             try RecipeImporter.parse(text: "Frozen Berry Drink\n\nIngredients\n- berries\n\nDirections\nFreeze the mixture.\nServe cold."),
+ 22 |             method: .text, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:117:22: warning: no calls to throwing functions occur within 'try' expression
+115 |         let dir = tempDir()
+116 |         let library = RecipeLibrary(directory: dir)
+117 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+118 |             try RecipeImporter.parse(text: "Meringue Twists\n\nIngredients\n- 4 egg whites\n\nDirections\nSTEP 1\nMeringue Twists Meringue Twists\nSTEP 2\nToday News+ Audio Following Search\nSTEP 3\nPreheat the oven to 200°F.\nSTEP 4\nSet aside."),
+119 |             method: .photo, now: Date())
+
+/__w/dinner-together/dinner-together/DinnerTogetherTests/DurationPersistenceTests.swift:149:22: warning: no calls to throwing functions occur within 'try' expression
+147 |         let dir = tempDir()
+148 |         let library = RecipeLibrary(directory: dir)
+149 |         let recipe = try RecipeImporter.build(
+    |                      `- warning: no calls to throwing functions occur within 'try' expression
+150 |             try RecipeImporter.parse(text: "Creamy pasta\n\nDirections\n1. Boil the pasta for 10 minutes.\n2. Meanwhile, steep the cream with garlic for 20 minutes.\n3. Toss and serve."),
+151 |             method: .text, now: Date())
+[42/51] /__w/dinner-together/dinner-together/.build/x86_64-unknown-linux-gnu/debug/DinnerTogetherEnginePackageDiscoveredTests.derived/all-discovered-tests.swift
+[43/51] Write sources
+[44/51] Wrapping AST for DinnerTogetherTests for debugging
+[46/54] Compiling DinnerTogetherEnginePackageDiscoveredTests all-discovered-tests.swift
+[47/54] Emitting module DinnerTogetherEnginePackageDiscoveredTests
+[48/54] Compiling DinnerTogetherEnginePackageDiscoveredTests DinnerTogetherTests.swift
+[49/55] /__w/dinner-together/dinner-together/.build/x86_64-unknown-linux-gnu/debug/DinnerTogetherEnginePackageTests.derived/runner.swift
+[50/55] Write sources
+[51/55] Wrapping AST for DinnerTogetherEnginePackageDiscoveredTests for debugging
+[53/57] Emitting module DinnerTogetherEnginePackageTests
+[54/57] Compiling DinnerTogetherEnginePackageTests runner.swift
+[55/58] Wrapping AST for DinnerTogetherEnginePackageTests for debugging
+[56/58] Write Objects.LinkFileList
+[57/58] Linking DinnerTogetherEnginePackageTests.xctest
+Build complete! (12.01s)
+Test Suite 'All tests' started at 2026-10-17 08:32:27.426
+Test Suite 'debug.xctest' started at 2026-10-17 08:32:27.427
+Test Suite 'A2RecipeFixtureTests' started at 2026-10-17 08:32:27.427
+Test Case 'A2RecipeFixtureTests.testFixture1' started at 2026-10-17 08:32:27.427
+Test Case 'A2RecipeFixtureTests.testFixture1' passed (0.005 seconds)
+Test Case 'A2RecipeFixtureTests.testFixture2' started at 2026-10-17 08:32:27.432
+Test Case 'A2RecipeFixtureTests.testFixture2' passed (0.002 seconds)
+Test Case 'A2RecipeFixtureTests.testFixture3' started at 2026-10-17 08:32:27.435
+Test Case 'A2RecipeFixtureTests.testFixture3' passed (0.002 seconds)
+Test Case 'A2RecipeFixtureTests.testFixture4' started at 2026-10-17 08:32:27.437
+Test Case 'A2RecipeFixtureTests.testFixture4' passed (0.004 seconds)
+Test Case 'A2RecipeFixtureTests.testFixture5' started at 2026-10-17 08:32:27.441
+Test Case 'A2RecipeFixtureTests.testFixture5' passed (0.002 seconds)
+Test Suite 'A2RecipeFixtureTests' passed at 2026-10-17 08:32:27.443
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.016 (0.016) seconds
+Test Suite 'AppleNewsLinkTests' started at 2026-10-17 08:32:27.443
+Test Case 'AppleNewsLinkTests.testImportingTheLinkExplainsWhatToDo' started at 2026-10-17 08:32:27.443
+Test Case 'AppleNewsLinkTests.testImportingTheLinkExplainsWhatToDo' passed (0.001 seconds)
+Test Case 'AppleNewsLinkTests.testPlaceholderIsRecognizedWithItsTitle' started at 2026-10-17 08:32:27.444
+Test Case 'AppleNewsLinkTests.testPlaceholderIsRecognizedWithItsTitle' passed (0.0 seconds)
+Test Suite 'AppleNewsLinkTests' passed at 2026-10-17 08:32:27.445
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'AttentionTests' started at 2026-10-17 08:32:27.445
+Test Case 'AttentionTests.testDoThisNowHandsOnFirst' started at 2026-10-17 08:32:27.445
+Test Case 'AttentionTests.testDoThisNowHandsOnFirst' passed (0.0 seconds)
+Test Case 'AttentionTests.testNoWarningWithoutOverlap' started at 2026-10-17 08:32:27.445
+Test Case 'AttentionTests.testNoWarningWithoutOverlap' passed (0.0 seconds)
+Test Case 'AttentionTests.testOverlappingHandsOnStepsWarn' started at 2026-10-17 08:32:27.445
+Test Case 'AttentionTests.testOverlappingHandsOnStepsWarn' passed (0.0 seconds)
+Test Suite 'AttentionTests' passed at 2026-10-17 08:32:27.446
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'CatalogTests' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testCatalogIdentifiersAreGloballyUnique' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testCatalogIdentifiersAreGloballyUnique' passed (0.0 seconds)
+Test Case 'CatalogTests.testChickpeaCurryPlansTwoHoursOut' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testChickpeaCurryPlansTwoHoursOut' passed (0.0 seconds)
+Test Case 'CatalogTests.testGnocchiGreensPlansTwoHoursOut' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testGnocchiGreensPlansTwoHoursOut' passed (0.0 seconds)
+Test Case 'CatalogTests.testLemonChickenPlansTwoHoursOut' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testLemonChickenPlansTwoHoursOut' passed (0.0 seconds)
+Test Case 'CatalogTests.testNewDinnerWorkflowBounds' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testNewDinnerWorkflowBounds' passed (0.0 seconds)
+Test Case 'CatalogTests.testPorkSupperPlansTwoHoursOut' started at 2026-10-17 08:32:27.446
+Test Case 'CatalogTests.testPorkSupperPlansTwoHoursOut' passed (0.0 seconds)
+Test Case 'CatalogTests.testTofuBowlsPlansTwoHoursOut' started at 2026-10-17 08:32:27.447
+Test Case 'CatalogTests.testTofuBowlsPlansTwoHoursOut' passed (0.0 seconds)
+Test Case 'CatalogTests.testTurkeyTacosPlansTwoHoursOut' started at 2026-10-17 08:32:27.447
+Test Case 'CatalogTests.testTurkeyTacosPlansTwoHoursOut' passed (0.0 seconds)
+Test Suite 'CatalogTests' passed at 2026-10-17 08:32:27.447
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'CookModeScreenshotTests' started at 2026-10-17 08:32:27.447
+Test Case 'CookModeScreenshotTests.testCoverWithoutTimeLabelsIsACover' started at 2026-10-17 08:32:27.447
+Test Case 'CookModeScreenshotTests.testCoverWithoutTimeLabelsIsACover' passed (0.06 seconds)
+Test Case 'CookModeScreenshotTests.testHyphensAfterNumbersSurviveTheWrap' started at 2026-10-17 08:32:27.507
+Test Case 'CookModeScreenshotTests.testHyphensAfterNumbersSurviveTheWrap' passed (0.0 seconds)
+Test Case 'CookModeScreenshotTests.testJoesMeringueCookModeScreenshotsImportCleanly' started at 2026-10-17 08:32:27.507
+Test Case 'CookModeScreenshotTests.testJoesMeringueCookModeScreenshotsImportCleanly' passed (0.685 seconds)
+Test Case 'CookModeScreenshotTests.testMissingPagesAreToldNotRenumbered' started at 2026-10-17 08:32:28.192
+Test Case 'CookModeScreenshotTests.testMissingPagesAreToldNotRenumbered' passed (0.118 seconds)
+Test Case 'CookModeScreenshotTests.testOneCookModePageStillNamesTheRecipe' started at 2026-10-17 08:32:28.310
+Test Case 'CookModeScreenshotTests.testOneCookModePageStillNamesTheRecipe' passed (0.091 seconds)
+Test Case 'CookModeScreenshotTests.testSelectionOrderDoesNotMatter' started at 2026-10-17 08:32:28.402
+Test Case 'CookModeScreenshotTests.testSelectionOrderDoesNotMatter' passed (0.702 seconds)
+Test Case 'CookModeScreenshotTests.testShortStepBesideItsHeaderSurvives' started at 2026-10-17 08:32:29.104
+Test Case 'CookModeScreenshotTests.testShortStepBesideItsHeaderSurvives' passed (0.044 seconds)
+Test Case 'CookModeScreenshotTests.testSplitNewsTabRowIsChromeButASentenceIsNot' started at 2026-10-17 08:32:29.148
+Test Case 'CookModeScreenshotTests.testSplitNewsTabRowIsChromeButASentenceIsNot' passed (0.068 seconds)
+Test Case 'CookModeScreenshotTests.testStepSharingAWordWithTheTitleSurvives' started at 2026-10-17 08:32:29.216
+Test Case 'CookModeScreenshotTests.testStepSharingAWordWithTheTitleSurvives' passed (0.029 seconds)
+Test Case 'CookModeScreenshotTests.testTallMarksWithoutLettersAreNotATitle' started at 2026-10-17 08:32:29.245
+Test Case 'CookModeScreenshotTests.testTallMarksWithoutLettersAreNotATitle' passed (0.018 seconds)
+Test Case 'CookModeScreenshotTests.testUnreadableLinesAreCounted' started at 2026-10-17 08:32:29.263
+Test Case 'CookModeScreenshotTests.testUnreadableLinesAreCounted' passed (0.147 seconds)
+Test Suite 'CookModeScreenshotTests' passed at 2026-10-17 08:32:29.410
+	 Executed 11 tests, with 0 failures (0 unexpected) in 1.963 (1.963) seconds
+Test Suite 'DelayTests' started at 2026-10-17 08:32:29.410
+Test Case 'DelayTests.testDelayPreservesRunningStep' started at 2026-10-17 08:32:29.410
+Test Case 'DelayTests.testDelayPreservesRunningStep' passed (0.102 seconds)
+Test Case 'DelayTests.testRepeatedDelaysAccumulate' started at 2026-10-17 08:32:29.512
+Test Case 'DelayTests.testRepeatedDelaysAccumulate' passed (0.001 seconds)
+Test Suite 'DelayTests' passed at 2026-10-17 08:32:29.514
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.103 (0.103) seconds
+Test Suite 'DeviceOCRRegressionTests' started at 2026-10-17 08:32:29.514
+Test Case 'DeviceOCRRegressionTests.testBlurredCyrillicTailIsDroppedNotScheduled' started at 2026-10-17 08:32:29.514
+Test Case 'DeviceOCRRegressionTests.testBlurredCyrillicTailIsDroppedNotScheduled' passed (0.083 seconds)
+Test Case 'DeviceOCRRegressionTests.testCyrillicRecipeIsNotFlagged' started at 2026-10-17 08:32:29.596
+Test Case 'DeviceOCRRegressionTests.testCyrillicRecipeIsNotFlagged' passed (0.0 seconds)
+Test Case 'DeviceOCRRegressionTests.testTimerIconBulletBeforeANumberIsRemoved' started at 2026-10-17 08:32:29.597
+Test Case 'DeviceOCRRegressionTests.testTimerIconBulletBeforeANumberIsRemoved' passed (0.082 seconds)
+Test Suite 'DeviceOCRRegressionTests' passed at 2026-10-17 08:32:29.679
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.165 (0.165) seconds
+Test Suite 'DurationPersistenceTests' started at 2026-10-17 08:32:29.679
+Test Case 'DurationPersistenceTests.testCookNotesSaveWithTheRecipe' started at 2026-10-17 08:32:29.679
+Test Case 'DurationPersistenceTests.testCookNotesSaveWithTheRecipe' passed (0.007 seconds)
+Test Case 'DurationPersistenceTests.testDurationEditPersistsAcrossRelaunch' started at 2026-10-17 08:32:29.686
+Test Case 'DurationPersistenceTests.testDurationEditPersistsAcrossRelaunch' passed (0.005 seconds)
+Test Case 'DurationPersistenceTests.testEditingAStepsWordingKeepsDirectionsAndPlanTogether' started at 2026-10-17 08:32:29.691
+Test Case 'DurationPersistenceTests.testEditingAStepsWordingKeepsDirectionsAndPlanTogether' passed (0.004 seconds)
+Test Case 'DurationPersistenceTests.testFailedConfirmationRollsBack' started at 2026-10-17 08:32:29.695
+Test Case 'DurationPersistenceTests.testFailedConfirmationRollsBack' passed (0.003 seconds)
+Test Case 'DurationPersistenceTests.testFailedDeletePreservesRecipeAndPhoto' started at 2026-10-17 08:32:29.698
+Test Case 'DurationPersistenceTests.testFailedDeletePreservesRecipeAndPhoto' passed (0.006 seconds)
+Test Case 'DurationPersistenceTests.testFavoritesStarFirstAndPersist' started at 2026-10-17 08:32:29.705
+Test Case 'DurationPersistenceTests.testFavoritesStarFirstAndPersist' passed (0.008 seconds)
+Test Case 'DurationPersistenceTests.testImportWarningsSurviveARelaunch' started at 2026-10-17 08:32:29.712
+Test Case 'DurationPersistenceTests.testImportWarningsSurviveARelaunch' passed (0.105 seconds)
+Test Case 'DurationPersistenceTests.testRecipeTimeEntryPersistsAndRollsBack' started at 2026-10-17 08:32:29.817
+Test Case 'DurationPersistenceTests.testRecipeTimeEntryPersistsAndRollsBack' passed (0.007 seconds)
+Test Case 'DurationPersistenceTests.testRemovingAStepLeavesDirectionsAndPlanTogether' started at 2026-10-17 08:32:29.824
+Test Case 'DurationPersistenceTests.testRemovingAStepLeavesDirectionsAndPlanTogether' passed (0.011 seconds)
+Test Case 'DurationPersistenceTests.testRemovingDuplicateFromParallelDishKeepsSourceOccurrence' started at 2026-10-17 08:32:29.835
+Test Case 'DurationPersistenceTests.testRemovingDuplicateFromParallelDishKeepsSourceOccurrence' passed (0.004 seconds)
+Test Case 'DurationPersistenceTests.testRemovingLaterDuplicatePreservesSourceDirectionOrder' started at 2026-10-17 08:32:29.839
+Test Case 'DurationPersistenceTests.testRemovingLaterDuplicatePreservesSourceDirectionOrder' passed (0.003 seconds)
+Test Case 'DurationPersistenceTests.testRenamingARecipe' started at 2026-10-17 08:32:29.842
+Test Case 'DurationPersistenceTests.testRenamingARecipe' passed (0.004 seconds)
+Test Suite 'DurationPersistenceTests' passed at 2026-10-17 08:32:29.845
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.166 (0.166) seconds
+Test Suite 'HolidayCatalogTests' started at 2026-10-17 08:32:29.845
+Test Case 'HolidayCatalogTests.testThanksgivingFourHourPlanAndPinnedRoast' started at 2026-10-17 08:32:29.845
+Test Case 'HolidayCatalogTests.testThanksgivingFourHourPlanAndPinnedRoast' passed (0.0 seconds)
+Test Case 'HolidayCatalogTests.testThanksgivingHasExplicitHolidayBounds' started at 2026-10-17 08:32:29.846
+Test Case 'HolidayCatalogTests.testThanksgivingHasExplicitHolidayBounds' passed (0.0 seconds)
+Test Suite 'HolidayCatalogTests' passed at 2026-10-17 08:32:29.846
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'InstagramCaptionLayoutTests' started at 2026-10-17 08:32:29.846
+Test Case 'InstagramCaptionLayoutTests.testCallsToActionAndHeaders' started at 2026-10-17 08:32:29.846
+Test Case 'InstagramCaptionLayoutTests.testCallsToActionAndHeaders' passed (0.11 seconds)
+Test Case 'InstagramCaptionLayoutTests.testFoodStorageStepsStayAndPromotionsGo' started at 2026-10-17 08:32:29.956
+Test Case 'InstagramCaptionLayoutTests.testFoodStorageStepsStayAndPromotionsGo' passed (0.012 seconds)
+Test Case 'InstagramCaptionLayoutTests.testJoesAuPoivreCaptionReadsAsTheRecipe' started at 2026-10-17 08:32:29.968
+Test Case 'InstagramCaptionLayoutTests.testJoesAuPoivreCaptionReadsAsTheRecipe' passed (0.034 seconds)
+Test Case 'InstagramCaptionLayoutTests.testLeadingTitle' started at 2026-10-17 08:32:30.001
+Test Case 'InstagramCaptionLayoutTests.testLeadingTitle' passed (0.0 seconds)
+Test Suite 'InstagramCaptionLayoutTests' passed at 2026-10-17 08:32:30.002
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.156 (0.156) seconds
+Test Suite 'LateCompletionTests' started at 2026-10-17 08:32:30.002
+Test Case 'LateCompletionTests.testCompletionProposalAcceptanceDoesNotDoubleApply' started at 2026-10-17 08:32:30.002
+Test Case 'LateCompletionTests.testCompletionProposalAcceptanceDoesNotDoubleApply' passed (0.001 seconds)
+Test Case 'LateCompletionTests.testLateCompletionMovesDependents' started at 2026-10-17 08:32:30.002
+Test Case 'LateCompletionTests.testLateCompletionMovesDependents' passed (0.0 seconds)
+Test Case 'LateCompletionTests.testOnTimeCompletionChangesNothing' started at 2026-10-17 08:32:30.003
+Test Case 'LateCompletionTests.testOnTimeCompletionChangesNothing' passed (0.0 seconds)
+Test Suite 'LateCompletionTests' passed at 2026-10-17 08:32:30.003
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'LongDurationCopyTests' started at 2026-10-17 08:32:30.003
+Test Case 'LongDurationCopyTests.testDisplayKeepsLowerBoundAndMoveRoundingDifferent' started at 2026-10-17 08:32:30.003
+Test Case 'LongDurationCopyTests.testDisplayKeepsLowerBoundAndMoveRoundingDifferent' passed (0.0 seconds)
+Test Case 'LongDurationCopyTests.testMinutesKeepTheirWholeMinuteValue' started at 2026-10-17 08:32:30.003
+Test Case 'LongDurationCopyTests.testMinutesKeepTheirWholeMinuteValue' passed (0.0 seconds)
+Test Case 'LongDurationCopyTests.testNextDayAndPastDayTimesCarryDates' started at 2026-10-17 08:32:30.003
+Test Case 'LongDurationCopyTests.testNextDayAndPastDayTimesCarryDates' passed (0.001 seconds)
+Test Case 'LongDurationCopyTests.testOverdueCountdownUsesHoursWithoutLosingSeconds' started at 2026-10-17 08:32:30.004
+Test Case 'LongDurationCopyTests.testOverdueCountdownUsesHoursWithoutLosingSeconds' passed (0.0 seconds)
+Test Suite 'LongDurationCopyTests' passed at 2026-10-17 08:32:30.005
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds
+Test Suite 'LongRecipeServingTimeTests' started at 2026-10-17 08:32:30.005
+Test Case 'LongRecipeServingTimeTests.testChoosingALongRecipeStartsAtItsEarliestTime' started at 2026-10-17 08:32:30.005
+Test Case 'LongRecipeServingTimeTests.testChoosingALongRecipeStartsAtItsEarliestTime' passed (0.006 seconds)
+Test Case 'LongRecipeServingTimeTests.testRoundUpToFiveMinutes' started at 2026-10-17 08:32:30.011
+Test Case 'LongRecipeServingTimeTests.testRoundUpToFiveMinutes' passed (0.0 seconds)
+Test Suite 'LongRecipeServingTimeTests' passed at 2026-10-17 08:32:30.011
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'OutOfOrderReadinessTests' started at 2026-10-17 08:32:30.011
+Test Case 'OutOfOrderReadinessTests.testEarlyFinalCompletionDoesNotHidePendingMiddleStep' started at 2026-10-17 08:32:30.011
+Test Case 'OutOfOrderReadinessTests.testEarlyFinalCompletionDoesNotHidePendingMiddleStep' passed (0.0 seconds)
+Test Case 'OutOfOrderReadinessTests.testEarlyFinalCompletionDoesNotHideRunningMiddleStep' started at 2026-10-17 08:32:30.011
+Test Case 'OutOfOrderReadinessTests.testEarlyFinalCompletionDoesNotHideRunningMiddleStep' passed (0.0 seconds)
+Test Suite 'OutOfOrderReadinessTests' passed at 2026-10-17 08:32:30.011
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.0 (0.0) seconds
+Test Suite 'PlanningEditRegressionTests' started at 2026-10-17 08:32:30.011
+Test Case 'PlanningEditRegressionTests.testResetAndMenuChangeClearOldServingProposal' started at 2026-10-17 08:32:30.011
+Test Case 'PlanningEditRegressionTests.testResetAndMenuChangeClearOldServingProposal' passed (0.006 seconds)
+Test Case 'PlanningEditRegressionTests.testSavedEstimateIsOneReversibleAction' started at 2026-10-17 08:32:30.017
+Test Case 'PlanningEditRegressionTests.testSavedEstimateIsOneReversibleAction' passed (0.002 seconds)
+Test Case 'PlanningEditRegressionTests.testUnchangedEstimateDoesNotCreateUndoOrHistory' started at 2026-10-17 08:32:30.019
+Test Case 'PlanningEditRegressionTests.testUnchangedEstimateDoesNotCreateUndoOrHistory' passed (0.0 seconds)
+Test Suite 'PlanningEditRegressionTests' passed at 2026-10-17 08:32:30.019
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.008 (0.008) seconds
+Test Suite 'PlanningTests' started at 2026-10-17 08:32:30.019
+Test Case 'PlanningTests.testBackwardPlanConverges' started at 2026-10-17 08:32:30.019
+Test Case 'PlanningTests.testBackwardPlanConverges' passed (0.0 seconds)
+Test Case 'PlanningTests.testBlockedInfo' started at 2026-10-17 08:32:30.019
+Test Case 'PlanningTests.testBlockedInfo' passed (0.0 seconds)
+Test Case 'PlanningTests.testDateRollover' started at 2026-10-17 08:32:30.020
+Test Case 'PlanningTests.testDateRollover' passed (0.0 seconds)
+Test Case 'PlanningTests.testFeasibilityFlagsPastStart' started at 2026-10-17 08:32:30.020
+Test Case 'PlanningTests.testFeasibilityFlagsPastStart' passed (0.0 seconds)
+Test Case 'PlanningTests.testPlanRespectsDurationOverrides' started at 2026-10-17 08:32:30.020
+Test Case 'PlanningTests.testPlanRespectsDurationOverrides' passed (0.0 seconds)
+Test Case 'PlanningTests.testRunningPredecessorPushesDependent' started at 2026-10-17 08:32:30.020
+Test Case 'PlanningTests.testRunningPredecessorPushesDependent' passed (0.0 seconds)
+Test Suite 'PlanningTests' passed at 2026-10-17 08:32:30.020
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'PlayOverlayTests' started at 2026-10-17 08:32:30.020
+Test Case 'PlayOverlayTests.testFindsThePlayButtonAtTheCentre' started at 2026-10-17 08:32:30.020
+Test Case 'PlayOverlayTests.testFindsThePlayButtonAtTheCentre' passed (0.004 seconds)
+Test Case 'PlayOverlayTests.testKeepsTheTallerCleanBand' started at 2026-10-17 08:32:30.024
+Test Case 'PlayOverlayTests.testKeepsTheTallerCleanBand' passed (0.0 seconds)
+Test Case 'PlayOverlayTests.testLeavesOtherPicturesAlone' started at 2026-10-17 08:32:30.024
+Test Case 'PlayOverlayTests.testLeavesOtherPicturesAlone' passed (0.012 seconds)
+Test Suite 'PlayOverlayTests' passed at 2026-10-17 08:32:30.037
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.016 (0.016) seconds
+Test Suite 'ReadinessRegressionTests' started at 2026-10-17 08:32:30.037
+Test Case 'ReadinessRegressionTests.testCompletedMiddleStepDoesNotEraseEarlierPrerequisite' started at 2026-10-17 08:32:30.037
+Test Case 'ReadinessRegressionTests.testCompletedMiddleStepDoesNotEraseEarlierPrerequisite' passed (0.0 seconds)
+Test Case 'ReadinessRegressionTests.testFinalCompletionUsesActualEnd' started at 2026-10-17 08:32:30.037
+Test Case 'ReadinessRegressionTests.testFinalCompletionUsesActualEnd' passed (0.0 seconds)
+Test Case 'ReadinessRegressionTests.testUnchangedDependentIsNotClaimedAsShifted' started at 2026-10-17 08:32:30.037
+Test Case 'ReadinessRegressionTests.testUnchangedDependentIsNotClaimedAsShifted' passed (0.0 seconds)
+Test Suite 'ReadinessRegressionTests' passed at 2026-10-17 08:32:30.037
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.0 (0.0) seconds
+Test Suite 'RecipeBuildTests' started at 2026-10-17 08:32:30.037
+Test Case 'RecipeBuildTests.testBuildKeepsStatedTimesAndMarksGuesses' started at 2026-10-17 08:32:30.037
+Test Case 'RecipeBuildTests.testBuildKeepsStatedTimesAndMarksGuesses' passed (0.007 seconds)
+Test Case 'RecipeBuildTests.testEstimatesScaleUpToStatedTotal' started at 2026-10-17 08:32:30.044
+Test Case 'RecipeBuildTests.testEstimatesScaleUpToStatedTotal' passed (0.0 seconds)
+Test Case 'RecipeBuildTests.testLongFirstLineIsStillTheTitle' started at 2026-10-17 08:32:30.044
+Test Case 'RecipeBuildTests.testLongFirstLineIsStillTheTitle' passed (0.001 seconds)
+Test Case 'RecipeBuildTests.testMeanwhileServedSeparatelyRunsInParallel' started at 2026-10-17 08:32:30.045
+Test Case 'RecipeBuildTests.testMeanwhileServedSeparatelyRunsInParallel' passed (0.002 seconds)
+Test Case 'RecipeBuildTests.testMeanwhileThatIsCombinedBackStaysInOrder' started at 2026-10-17 08:32:30.048
+Test Case 'RecipeBuildTests.testMeanwhileThatIsCombinedBackStaysInOrder' passed (0.104 seconds)
+Test Case 'RecipeBuildTests.testOlderStepsWithoutEstimatedFlagDecode' started at 2026-10-17 08:32:30.151
+Test Case 'RecipeBuildTests.testOlderStepsWithoutEstimatedFlagDecode' passed (0.101 seconds)
+Test Case 'RecipeBuildTests.testRecipeMenuPlansWithTheEngine' started at 2026-10-17 08:32:30.252
+Test Case 'RecipeBuildTests.testRecipeMenuPlansWithTheEngine' passed (0.007 seconds)
+Test Case 'RecipeBuildTests.testRecipeRoundTripsThroughJSON' started at 2026-10-17 08:32:30.258
+Test Case 'RecipeBuildTests.testRecipeRoundTripsThroughJSON' passed (0.004 seconds)
+Test Suite 'RecipeBuildTests' passed at 2026-10-17 08:32:30.262
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.225 (0.225) seconds
+Test Suite 'RecipeCoverCropTests' started at 2026-10-17 08:32:30.262
+Test Case 'RecipeCoverCropTests.testCropRejectsInvalidImagesAndClampsControls' started at 2026-10-17 08:32:30.262
+Test Case 'RecipeCoverCropTests.testCropRejectsInvalidImagesAndClampsControls' passed (0.0 seconds)
+Test Case 'RecipeCoverCropTests.testPortraitAndLandscapeCropsStayWithinTheSource' started at 2026-10-17 08:32:30.263
+Test Case 'RecipeCoverCropTests.testPortraitAndLandscapeCropsStayWithinTheSource' passed (0.0 seconds)
+Test Case 'RecipeCoverCropTests.testRoomToMoveTheCropAtEachZoom' started at 2026-10-17 08:32:30.263
+Test Case 'RecipeCoverCropTests.testRoomToMoveTheCropAtEachZoom' passed (0.0 seconds)
+Test Suite 'RecipeCoverCropTests' passed at 2026-10-17 08:32:30.263
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.001 (0.001) seconds
+Test Suite 'RecipeFixtureTests' started at 2026-10-17 08:32:30.263
+Test Case 'RecipeFixtureTests.testMicrodataWithoutInstructionsThrows' started at 2026-10-17 08:32:30.263
+Test Case 'RecipeFixtureTests.testMicrodataWithoutInstructionsThrows' passed (0.002 seconds)
+Test Case 'RecipeFixtureTests.testPageWithoutRecipeThrows' started at 2026-10-17 08:32:30.265
+Test Case 'RecipeFixtureTests.testPageWithoutRecipeThrows' passed (0.102 seconds)
+Test Case 'RecipeFixtureTests.testRealPages' started at 2026-10-17 08:32:30.366
+Test Case 'RecipeFixtureTests.testRealPages' passed (0.048 seconds)
+Test Suite 'RecipeFixtureTests' passed at 2026-10-17 08:32:30.415
+	 Executed 3 tests, with 0 failures (0 unexpected) in 0.152 (0.152) seconds
+Test Suite 'RecipeImporterPageTests' started at 2026-10-17 08:32:30.415
+Test Case 'RecipeImporterPageTests.testEatingWellShapeParses' started at 2026-10-17 08:32:30.415
+Test Case 'RecipeImporterPageTests.testEatingWellShapeParses' passed (0.005 seconds)
+Test Case 'RecipeImporterPageTests.testGraphAndSectionsParse' started at 2026-10-17 08:32:30.419
+Test Case 'RecipeImporterPageTests.testGraphAndSectionsParse' passed (0.003 seconds)
+Test Case 'RecipeImporterPageTests.testISODurations' started at 2026-10-17 08:32:30.422
+Test Case 'RecipeImporterPageTests.testISODurations' passed (0.001 seconds)
+Test Case 'RecipeImporterPageTests.testMicrodataFallback' started at 2026-10-17 08:32:30.423
+Test Case 'RecipeImporterPageTests.testMicrodataFallback' passed (0.001 seconds)
+Test Case 'RecipeImporterPageTests.testNoRecipeDataThrows' started at 2026-10-17 08:32:30.424
+Test Case 'RecipeImporterPageTests.testNoRecipeDataThrows' passed (0.001 seconds)
+Test Case 'RecipeImporterPageTests.testRedirectTargetFromWrapperPage' started at 2026-10-17 08:32:30.425
+Test Case 'RecipeImporterPageTests.testRedirectTargetFromWrapperPage' passed (0.0 seconds)
+Test Case 'RecipeImporterPageTests.testStringInstructionsSplitOnNumbers' started at 2026-10-17 08:32:30.425
+Test Case 'RecipeImporterPageTests.testStringInstructionsSplitOnNumbers' passed (0.001 seconds)
+Test Suite 'RecipeImporterPageTests' passed at 2026-10-17 08:32:30.427
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.012 (0.012) seconds
+Test Suite 'RecipeImporterTextTests' started at 2026-10-17 08:32:30.427
+Test Case 'RecipeImporterTextTests.testEmptyTextThrows' started at 2026-10-17 08:32:30.427
+Test Case 'RecipeImporterTextTests.testEmptyTextThrows' passed (0.0 seconds)
+Test Case 'RecipeImporterTextTests.testHandsOffClassification' started at 2026-10-17 08:32:30.427
+Test Case 'RecipeImporterTextTests.testHandsOffClassification' passed (0.0 seconds)
+Test Case 'RecipeImporterTextTests.testMinutesExtraction' started at 2026-10-17 08:32:30.427
+Test Case 'RecipeImporterTextTests.testMinutesExtraction' passed (0.002 seconds)
+Test Case 'RecipeImporterTextTests.testPastedTextWithHeaders' started at 2026-10-17 08:32:30.429
+Test Case 'RecipeImporterTextTests.testPastedTextWithHeaders' passed (0.002 seconds)
+Test Case 'RecipeImporterTextTests.testPastedTextWithoutHeaders' started at 2026-10-17 08:32:30.432
+Test Case 'RecipeImporterTextTests.testPastedTextWithoutHeaders' passed (0.001 seconds)
+Test Case 'RecipeImporterTextTests.testStepTitles' started at 2026-10-17 08:32:30.432
+Test Case 'RecipeImporterTextTests.testStepTitles' passed (0.0 seconds)
+Test Suite 'RecipeImporterTextTests' passed at 2026-10-17 08:32:30.433
+	 Executed 6 tests, with 0 failures (0 unexpected) in 0.006 (0.006) seconds
+Test Suite 'RecipeLibraryTests' started at 2026-10-17 08:32:30.433
+Test Case 'RecipeLibraryTests.testAddPersistsAndReloads' started at 2026-10-17 08:32:30.433
+Test Case 'RecipeLibraryTests.testAddPersistsAndReloads' passed (0.005 seconds)
+Test Case 'RecipeLibraryTests.testCoverReplacementPreservesOldBytesWhenMetadataSaveFails' started at 2026-10-17 08:32:30.437
+Test Case 'RecipeLibraryTests.testCoverReplacementPreservesOldBytesWhenMetadataSaveFails' passed (0.009 seconds)
+Test Case 'RecipeLibraryTests.testFailedSaveRollsBackTheAdd' started at 2026-10-17 08:32:30.446
+Test Case 'RecipeLibraryTests.testFailedSaveRollsBackTheAdd' passed (0.003 seconds)
+Test Case 'RecipeLibraryTests.testFailedUpdateAndRemoveRollBack' started at 2026-10-17 08:32:30.449
+Test Case 'RecipeLibraryTests.testFailedUpdateAndRemoveRollBack' passed (0.006 seconds)
+Test Case 'RecipeLibraryTests.testFirstCoverFailureLeavesNoImageReferenceOrFile' started at 2026-10-17 08:32:30.455
+Test Case 'RecipeLibraryTests.testFirstCoverFailureLeavesNoImageReferenceOrFile' passed (0.005 seconds)
+Test Case 'RecipeLibraryTests.testImagesAreStoredBesideTheLibrary' started at 2026-10-17 08:32:30.460
+Test Case 'RecipeLibraryTests.testImagesAreStoredBesideTheLibrary' passed (0.006 seconds)
+Test Case 'RecipeLibraryTests.testImportServiceFollowsWrapperAndFetchesImage' started at 2026-10-17 08:32:30.467
+Test Case 'RecipeLibraryTests.testImportServiceFollowsWrapperAndFetchesImage' passed (0.007 seconds)
+Test Case 'RecipeLibraryTests.testImportServiceReportsPagesWithoutRecipeData' started at 2026-10-17 08:32:30.474
+Test Case 'RecipeLibraryTests.testImportServiceReportsPagesWithoutRecipeData' passed (0.101 seconds)
+Test Case 'RecipeLibraryTests.testStoreResolvesRecipeMenusAndFallsBackWhenDeleted' started at 2026-10-17 08:32:30.575
+Test Case 'RecipeLibraryTests.testStoreResolvesRecipeMenusAndFallsBackWhenDeleted' passed (0.008 seconds)
+Test Case 'RecipeLibraryTests.testStoreWithoutProviderIsCatalogOnly' started at 2026-10-17 08:32:30.583
+Test Case 'RecipeLibraryTests.testStoreWithoutProviderIsCatalogOnly' passed (0.003 seconds)
+Test Case 'RecipeLibraryTests.testTimingEditsAndReview' started at 2026-10-17 08:32:30.585
+Test Case 'RecipeLibraryTests.testTimingEditsAndReview' passed (0.007 seconds)
+Test Suite 'RecipeLibraryTests' passed at 2026-10-17 08:32:30.593
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.16 (0.16) seconds
+Test Suite 'RecipeNotesTests' started at 2026-10-17 08:32:30.593
+Test Case 'RecipeNotesTests.testDoAheadAndEditorNotesAreNotSteps' started at 2026-10-17 08:32:30.593
+Test Case 'RecipeNotesTests.testDoAheadAndEditorNotesAreNotSteps' passed (0.002 seconds)
+Test Case 'RecipeNotesTests.testPastedNotesAfterDirections' started at 2026-10-17 08:32:30.595
+Test Case 'RecipeNotesTests.testPastedNotesAfterDirections' passed (0.001 seconds)
+Test Suite 'RecipeNotesTests' passed at 2026-10-17 08:32:30.596
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'RecipePaletteTests' started at 2026-10-17 08:32:30.596
+Test Case 'RecipePaletteTests.testCiderPhotoGivesAWarmPage' started at 2026-10-17 08:32:30.596
+Test Case 'RecipePaletteTests.testCiderPhotoGivesAWarmPage' passed (0.006 seconds)
+Test Case 'RecipePaletteTests.testColorMath' started at 2026-10-17 08:32:30.601
+Test Case 'RecipePaletteTests.testColorMath' passed (0.0 seconds)
+Test Case 'RecipePaletteTests.testEveryPresetIsReadable' started at 2026-10-17 08:32:30.602
+Test Case 'RecipePaletteTests.testEveryPresetIsReadable' passed (0.0 seconds)
+Test Case 'RecipePaletteTests.testExtremePhotosStayReadable' started at 2026-10-17 08:32:30.602
+Test Case 'RecipePaletteTests.testExtremePhotosStayReadable' passed (0.014 seconds)
+Test Case 'RecipePaletteTests.testPageStyleRoundTripsAndOldRecipesDecode' started at 2026-10-17 08:32:30.616
+Test Case 'RecipePaletteTests.testPageStyleRoundTripsAndOldRecipesDecode' passed (0.001 seconds)
+Test Case 'RecipePaletteTests.testPastelPhotoGivesAPaleBluePage' started at 2026-10-17 08:32:30.617
+Test Case 'RecipePaletteTests.testPastelPhotoGivesAPaleBluePage' passed (0.105 seconds)
+Test Case 'RecipePaletteTests.testSamePhotoSamePage' started at 2026-10-17 08:32:30.722
+Test Case 'RecipePaletteTests.testSamePhotoSamePage' passed (0.106 seconds)
+Test Case 'RecipePaletteTests.testThemeLightValuesComeFromPaleText' started at 2026-10-17 08:32:30.828
+Test Case 'RecipePaletteTests.testThemeLightValuesComeFromPaleText' passed (0.0 seconds)
+Test Case 'RecipePaletteTests.testTomatoIsTooDimForColoredPages' started at 2026-10-17 08:32:30.828
+Test Case 'RecipePaletteTests.testTomatoIsTooDimForColoredPages' passed (0.0 seconds)
+Test Case 'RecipePaletteTests.testWhichPaletteAPagePaintsWith' started at 2026-10-17 08:32:30.828
+Test Case 'RecipePaletteTests.testWhichPaletteAPagePaintsWith' passed (0.0 seconds)
+Test Suite 'RecipePaletteTests' passed at 2026-10-17 08:32:30.828
+	 Executed 10 tests, with 0 failures (0 unexpected) in 0.232 (0.232) seconds
+Test Suite 'RecipeScreenshotTests' started at 2026-10-17 08:32:30.828
+Test Case 'RecipeScreenshotTests.testCleanOCRAndOverlapMerge' started at 2026-10-17 08:32:30.828
+Test Case 'RecipeScreenshotTests.testCleanOCRAndOverlapMerge' passed (0.104 seconds)
+Test Case 'RecipeScreenshotTests.testCookbookPhotoWithoutLabels' started at 2026-10-17 08:32:30.932
+Test Case 'RecipeScreenshotTests.testCookbookPhotoWithoutLabels' passed (0.115 seconds)
+Test Case 'RecipeScreenshotTests.testJoesFiveAppleNewsScreenshots' started at 2026-10-17 08:32:31.047
+Test Case 'RecipeScreenshotTests.testJoesFiveAppleNewsScreenshots' passed (0.211 seconds)
+Test Case 'RecipeScreenshotTests.testNoTextThrows' started at 2026-10-17 08:32:31.259
+Test Case 'RecipeScreenshotTests.testNoTextThrows' passed (0.0 seconds)
+Test Case 'RecipeScreenshotTests.testOnlySomeScreenshots' started at 2026-10-17 08:32:31.259
+Test Case 'RecipeScreenshotTests.testOnlySomeScreenshots' passed (0.039 seconds)
+Test Case 'RecipeScreenshotTests.testOrderOfScreenshotsDoesNotMatter' started at 2026-10-17 08:32:31.298
+Test Case 'RecipeScreenshotTests.testOrderOfScreenshotsDoesNotMatter' passed (0.521 seconds)
+Test Case 'RecipeScreenshotTests.testScreenshotRecipePlansLikeTheLinkVersion' started at 2026-10-17 08:32:31.818
+Test Case 'RecipeScreenshotTests.testScreenshotRecipePlansLikeTheLinkVersion' passed (0.213 seconds)
+Test Case 'RecipeScreenshotTests.testTitleFromTallestTextWhenNoRepeatedHeader' started at 2026-10-17 08:32:32.032
+Test Case 'RecipeScreenshotTests.testTitleFromTallestTextWhenNoRepeatedHeader' passed (0.047 seconds)
+Test Suite 'RecipeScreenshotTests' passed at 2026-10-17 08:32:32.078
+	 Executed 8 tests, with 0 failures (0 unexpected) in 1.25 (1.25) seconds
+Test Suite 'RecipesViewScreenshotTests' started at 2026-10-17 08:32:32.078
+Test Case 'RecipesViewScreenshotTests.testCookbookPageWithServesLineIsNotACover' started at 2026-10-17 08:32:32.078
+Test Case 'RecipesViewScreenshotTests.testCookbookPageWithServesLineIsNotACover' passed (0.008 seconds)
+Test Case 'RecipesViewScreenshotTests.testCoverPageAloneStillGivesTheSummary' started at 2026-10-17 08:32:32.086
+Test Case 'RecipesViewScreenshotTests.testCoverPageAloneStillGivesTheSummary' passed (0.08 seconds)
+Test Case 'RecipesViewScreenshotTests.testDurationUnderYieldIsTheTime' started at 2026-10-17 08:32:32.166
+Test Case 'RecipesViewScreenshotTests.testDurationUnderYieldIsTheTime' passed (0.108 seconds)
+Test Case 'RecipesViewScreenshotTests.testJoesRecipesViewScreenshotsImportCleanly' started at 2026-10-17 08:32:32.274
+Test Case 'RecipesViewScreenshotTests.testJoesRecipesViewScreenshotsImportCleanly' passed (0.189 seconds)
+Test Case 'RecipesViewScreenshotTests.testMergedStatusBarAndShiftedLabels' started at 2026-10-17 08:32:32.464
+Test Case 'RecipesViewScreenshotTests.testMergedStatusBarAndShiftedLabels' passed (0.194 seconds)
+Test Case 'RecipesViewScreenshotTests.testOverlapTrimAndChromeRows' started at 2026-10-17 08:32:32.658
+Test Case 'RecipesViewScreenshotTests.testOverlapTrimAndChromeRows' passed (0.109 seconds)
+Test Case 'RecipesViewScreenshotTests.testStatusBarRules' started at 2026-10-17 08:32:32.767
+Test Case 'RecipesViewScreenshotTests.testStatusBarRules' passed (0.0 seconds)
+Test Suite 'RecipesViewScreenshotTests' passed at 2026-10-17 08:32:32.767
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.689 (0.689) seconds
+Test Suite 'RecoveryNoticeTests' started at 2026-10-17 08:32:32.767
+Test Case 'RecoveryNoticeTests.testEarlyFinalCompletionStillCountsPendingPrerequisite' started at 2026-10-17 08:32:32.767
+Test Case 'RecoveryNoticeTests.testEarlyFinalCompletionStillCountsPendingPrerequisite' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testEarlyFinalCompletionStillCountsRunningMiddleStep' started at 2026-10-17 08:32:32.767
+Test Case 'RecoveryNoticeTests.testEarlyFinalCompletionStillCountsRunningMiddleStep' passed (0.001 seconds)
+Test Case 'RecoveryNoticeTests.testExpiredTimerStaysCookingAndFloorsAtNow' started at 2026-10-17 08:32:32.768
+Test Case 'RecoveryNoticeTests.testExpiredTimerStaysCookingAndFloorsAtNow' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testFinishedDinnerReportsNothingEvenIfLate' started at 2026-10-17 08:32:32.768
+Test Case 'RecoveryNoticeTests.testFinishedDinnerReportsNothingEvenIfLate' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testLateCompletionReportsDriftWithoutMovingDinner' started at 2026-10-17 08:32:32.769
+Test Case 'RecoveryNoticeTests.testLateCompletionReportsDriftWithoutMovingDinner' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testLowerBoundMinutesRoundDown' started at 2026-10-17 08:32:32.769
+Test Case 'RecoveryNoticeTests.testLowerBoundMinutesRoundDown' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testMoveMinutesRoundUpWhileDriftDisplaysNearest' started at 2026-10-17 08:32:32.769
+Test Case 'RecoveryNoticeTests.testMoveMinutesRoundUpWhileDriftDisplaysNearest' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testOnTimePlanReportsNothing' started at 2026-10-17 08:32:32.769
+Test Case 'RecoveryNoticeTests.testOnTimePlanReportsNothing' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testOutOfOrderCompletionKeepsDependencyCarry' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryNoticeTests.testOutOfOrderCompletionKeepsDependencyCarry' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testPendingWorkLateToStartProjectsForward' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryNoticeTests.testPendingWorkLateToStartProjectsForward' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testPlanCarriesRunningPredecessorPastOutOfOrderCompletion' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryNoticeTests.testPlanCarriesRunningPredecessorPastOutOfOrderCompletion' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testRunningDeadlinePushesEstimate' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryNoticeTests.testRunningDeadlinePushesEstimate' passed (0.0 seconds)
+Test Case 'RecoveryNoticeTests.testRunningFirstStepCarriesPastCompletedMiddleStep' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryNoticeTests.testRunningFirstStepCarriesPastCompletedMiddleStep' passed (0.0 seconds)
+Test Suite 'RecoveryNoticeTests' passed at 2026-10-17 08:32:32.770
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'RecoveryStoreTests' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryStoreTests.testCompletionRecordsDriftWithoutChangingServeAt' started at 2026-10-17 08:32:32.770
+Test Case 'RecoveryStoreTests.testCompletionRecordsDriftWithoutChangingServeAt' passed (0.006 seconds)
+Test Case 'RecoveryStoreTests.testDelayConfirmationRecomputesDrift' started at 2026-10-17 08:32:32.777
+Test Case 'RecoveryStoreTests.testDelayConfirmationRecomputesDrift' passed (0.007 seconds)
+Test Case 'RecoveryStoreTests.testDriftNeverOutlivesItsSession' started at 2026-10-17 08:32:32.783
+Test Case 'RecoveryStoreTests.testDriftNeverOutlivesItsSession' passed (0.025 seconds)
+Test Case 'RecoveryStoreTests.testFinishedDinnerCannotBeMoved' started at 2026-10-17 08:32:32.809
+Test Case 'RecoveryStoreTests.testFinishedDinnerCannotBeMoved' passed (0.0 seconds)
+Test Case 'RecoveryStoreTests.testMoveDinnerAppliesOnceAndUndoRestores' started at 2026-10-17 08:32:32.809
+Test Case 'RecoveryStoreTests.testMoveDinnerAppliesOnceAndUndoRestores' passed (0.007 seconds)
+Test Case 'RecoveryStoreTests.testPreviewAndMoveAgreeAndNeverUndershootEstimate' started at 2026-10-17 08:32:32.816
+Test Case 'RecoveryStoreTests.testPreviewAndMoveAgreeAndNeverUndershootEstimate' passed (0.007 seconds)
+Test Case 'RecoveryStoreTests.testReportAndMoveUseCurrentReadinessNotPriorEstimate' started at 2026-10-17 08:32:32.823
+Test Case 'RecoveryStoreTests.testReportAndMoveUseCurrentReadinessNotPriorEstimate' passed (0.008 seconds)
+Test Suite 'RecoveryStoreTests' passed at 2026-10-17 08:32:32.831
+	 Executed 7 tests, with 0 failures (0 unexpected) in 0.061 (0.061) seconds
+Test Suite 'ReminderAndEarlyStartRegressionTests' started at 2026-10-17 08:32:32.831
+Test Case 'ReminderAndEarlyStartRegressionTests.testActiveSessionCannotUseFullMenuServingTimeEdit' started at 2026-10-17 08:32:32.831
+Test Case 'ReminderAndEarlyStartRegressionTests.testActiveSessionCannotUseFullMenuServingTimeEdit' passed (0.001 seconds)
+Test Case 'ReminderAndEarlyStartRegressionTests.testDelayDuringAuthorizationKeepsRunningReminder' started at 2026-10-17 08:32:32.832
+Test Case 'ReminderAndEarlyStartRegressionTests.testDelayDuringAuthorizationKeepsRunningReminder' passed (0.102 seconds)
+Test Case 'ReminderAndEarlyStartRegressionTests.testEarlyStartRequiresPrerequisiteConfirmation' started at 2026-10-17 08:32:32.935
+Test Case 'ReminderAndEarlyStartRegressionTests.testEarlyStartRequiresPrerequisiteConfirmation' passed (0.001 seconds)
+Test Case 'ReminderAndEarlyStartRegressionTests.testIndependentStartsKeepBothReminders' started at 2026-10-17 08:32:32.936
+Test Case 'ReminderAndEarlyStartRegressionTests.testIndependentStartsKeepBothReminders' passed (0.103 seconds)
+Test Suite 'ReminderAndEarlyStartRegressionTests' passed at 2026-10-17 08:32:33.039
+	 Executed 4 tests, with 0 failures (0 unexpected) in 0.207 (0.207) seconds
+Test Suite 'ScreenshotOrderTests' started at 2026-10-17 08:32:33.039
+Test Case 'ScreenshotOrderTests.testEmptyFirstNumberedHeadingKeepsLaterText' started at 2026-10-17 08:32:33.039
+Test Case 'ScreenshotOrderTests.testEmptyFirstNumberedHeadingKeepsLaterText' passed (0.006 seconds)
+Test Case 'ScreenshotOrderTests.testEmptyLastNumberedHeadingKeepsEarlierText' started at 2026-10-17 08:32:33.045
+Test Case 'ScreenshotOrderTests.testEmptyLastNumberedHeadingKeepsEarlierText' passed (0.006 seconds)
+Test Case 'ScreenshotOrderTests.testEmptyMiddleNumberedHeadingKeepsLaterText' started at 2026-10-17 08:32:33.051
+Test Case 'ScreenshotOrderTests.testEmptyMiddleNumberedHeadingKeepsLaterText' passed (0.009 seconds)
+Test Case 'ScreenshotOrderTests.testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor' started at 2026-10-17 08:32:33.060
+Test Case 'ScreenshotOrderTests.testLooseDirectionsAfterEmptyHeadingKeepTheirAnchor' passed (0.011 seconds)
+Test Case 'ScreenshotOrderTests.testMixedNumberedAndUnnumberedKeepsVisibleOrder' started at 2026-10-17 08:32:33.071
+Test Case 'ScreenshotOrderTests.testMixedNumberedAndUnnumberedKeepsVisibleOrder' passed (0.01 seconds)
+Test Case 'ScreenshotOrderTests.testNumberedStepContinuationJoinsItsStep' started at 2026-10-17 08:32:33.080
+Test Case 'ScreenshotOrderTests.testNumberedStepContinuationJoinsItsStep' passed (0.011 seconds)
+Test Case 'ScreenshotOrderTests.testNumberedStepsSurviveAnySelectionOrder' started at 2026-10-17 08:32:33.091
+Test Case 'ScreenshotOrderTests.testNumberedStepsSurviveAnySelectionOrder' passed (0.108 seconds)
+Test Case 'ScreenshotOrderTests.testOnlyEmptyNumberedHeadingsHaveNoRecipeData' started at 2026-10-17 08:32:33.199
+Test Case 'ScreenshotOrderTests.testOnlyEmptyNumberedHeadingsHaveNoRecipeData' passed (0.006 seconds)
+Test Case 'ScreenshotOrderTests.testOverlappingUnnumberedTextDuplicates' started at 2026-10-17 08:32:33.205
+Test Case 'ScreenshotOrderTests.testOverlappingUnnumberedTextDuplicates' passed (0.007 seconds)
+Test Case 'ScreenshotOrderTests.testUnnumberedBeforeAnyNumberedStepComesFirst' started at 2026-10-17 08:32:33.211
+Test Case 'ScreenshotOrderTests.testUnnumberedBeforeAnyNumberedStepComesFirst' passed (0.01 seconds)
+Test Case 'ScreenshotOrderTests.testUnnumberedDirectionsFollowSelectionOrder' started at 2026-10-17 08:32:33.221
+Test Case 'ScreenshotOrderTests.testUnnumberedDirectionsFollowSelectionOrder' passed (0.004 seconds)
+Test Case 'ScreenshotOrderTests.testUnnumberedDirectionsInRecipeOrder' started at 2026-10-17 08:32:33.225
+Test Case 'ScreenshotOrderTests.testUnnumberedDirectionsInRecipeOrder' passed (0.004 seconds)
+Test Suite 'ScreenshotOrderTests' passed at 2026-10-17 08:32:33.229
+	 Executed 12 tests, with 0 failures (0 unexpected) in 0.19 (0.19) seconds
+Test Suite 'ScrollGeometryTests' started at 2026-10-17 08:32:33.229
+Test Case 'ScrollGeometryTests.testIsSmallWindowTrigger' started at 2026-10-17 08:32:33.229
+Test Case 'ScrollGeometryTests.testIsSmallWindowTrigger' passed (0.0 seconds)
+Test Case 'ScrollGeometryTests.testIsTopInZone' started at 2026-10-17 08:32:33.229
+Test Case 'ScrollGeometryTests.testIsTopInZone' passed (0.0 seconds)
+Test Suite 'ScrollGeometryTests' passed at 2026-10-17 08:32:33.229
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.0 (0.0) seconds
+Test Suite 'SessionPolicyRegressionTests' started at 2026-10-17 08:32:33.229
+Test Case 'SessionPolicyRegressionTests.testDurationEditIsRejectedDuringCooking' started at 2026-10-17 08:32:33.229
+Test Case 'SessionPolicyRegressionTests.testDurationEditIsRejectedDuringCooking' passed (0.001 seconds)
+Test Case 'SessionPolicyRegressionTests.testStaleResolutionClearsOldServingProposal' started at 2026-10-17 08:32:33.231
+Test Case 'SessionPolicyRegressionTests.testStaleResolutionClearsOldServingProposal' passed (0.002 seconds)
+Test Suite 'SessionPolicyRegressionTests' passed at 2026-10-17 08:32:33.232
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'SharedInboxTests' started at 2026-10-17 08:32:33.232
+Test Case 'SharedInboxTests.testFirstURLInSharedText' started at 2026-10-17 08:32:33.232
+Test Case 'SharedInboxTests.testFirstURLInSharedText' passed (0.0 seconds)
+Test Case 'SharedInboxTests.testGroupIdentifierIsTheAppsForBothTargets' started at 2026-10-17 08:32:33.233
+Test Case 'SharedInboxTests.testGroupIdentifierIsTheAppsForBothTargets' passed (0.0 seconds)
+Test Case 'SharedInboxTests.testImagesRoundTripInOrder' started at 2026-10-17 08:32:33.233
+Test Case 'SharedInboxTests.testImagesRoundTripInOrder' passed (0.003 seconds)
+Test Case 'SharedInboxTests.testLinkRoundTripAndTakeClears' started at 2026-10-17 08:32:33.236
+Test Case 'SharedInboxTests.testLinkRoundTripAndTakeClears' passed (0.102 seconds)
+Test Case 'SharedInboxTests.testStaleItemIsDropped' started at 2026-10-17 08:32:33.338
+Test Case 'SharedInboxTests.testStaleItemIsDropped' passed (0.004 seconds)
+Test Suite 'SharedInboxTests' passed at 2026-10-17 08:32:33.342
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.109 (0.109) seconds
+Test Suite 'SocialCaptionSeparatorTests' started at 2026-10-17 08:32:33.342
+Test Case 'SocialCaptionSeparatorTests.testAmbiguousNumbersAndOrdinarySentencesAreNotSplit' started at 2026-10-17 08:32:33.342
+Test Case 'SocialCaptionSeparatorTests.testAmbiguousNumbersAndOrdinarySentencesAreNotSplit' passed (0.001 seconds)
+Test Case 'SocialCaptionSeparatorTests.testFoodSavingInstructionsArePreserved' started at 2026-10-17 08:32:33.343
+Test Case 'SocialCaptionSeparatorTests.testFoodSavingInstructionsArePreserved' passed (0.009 seconds)
+Test Case 'SocialCaptionSeparatorTests.testFractionsDecimalsCommasAndRangesStayIntact' started at 2026-10-17 08:32:33.352
+Test Case 'SocialCaptionSeparatorTests.testFractionsDecimalsCommasAndRangesStayIntact' passed (0.013 seconds)
+Test Case 'SocialCaptionSeparatorTests.testGreenBeanScreenshotBecomesTenIngredientsAndSixSteps' started at 2026-10-17 08:32:33.365
+Test Case 'SocialCaptionSeparatorTests.testGreenBeanScreenshotBecomesTenIngredientsAndSixSteps' passed (0.02 seconds)
+Test Case 'SocialCaptionSeparatorTests.testHeaderlessCaptionAndTikTokUseSameCleanup' started at 2026-10-17 08:32:33.385
+Test Case 'SocialCaptionSeparatorTests.testHeaderlessCaptionAndTikTokUseSameCleanup' passed (0.017 seconds)
+Test Case 'SocialCaptionSeparatorTests.testInlineHeadingsAndTrailingPromotionOnSameLine' started at 2026-10-17 08:32:33.403
+Test Case 'SocialCaptionSeparatorTests.testInlineHeadingsAndTrailingPromotionOnSameLine' passed (0.019 seconds)
+Test Case 'SocialCaptionSeparatorTests.testNumberedStepsOnSeparateLinesStillWork' started at 2026-10-17 08:32:33.422
+Test Case 'SocialCaptionSeparatorTests.testNumberedStepsOnSeparateLinesStillWork' passed (0.013 seconds)
+Test Case 'SocialCaptionSeparatorTests.testParenthesizedAndKeycapNumberedLists' started at 2026-10-17 08:32:33.435
+Test Case 'SocialCaptionSeparatorTests.testParenthesizedAndKeycapNumberedLists' passed (0.013 seconds)
+Test Suite 'SocialCaptionSeparatorTests' passed at 2026-10-17 08:32:33.448
+	 Executed 8 tests, with 0 failures (0 unexpected) in 0.106 (0.106) seconds
+Test Suite 'SocialImportTests' started at 2026-10-17 08:32:33.448
+Test Case 'SocialImportTests.testCaptionCleaning' started at 2026-10-17 08:32:33.448
+Test Case 'SocialImportTests.testCaptionCleaning' passed (0.002 seconds)
+Test Case 'SocialImportTests.testCaptionThatLinksToTheRecipePageFollowsIt' started at 2026-10-17 08:32:33.450
+Test Case 'SocialImportTests.testCaptionThatLinksToTheRecipePageFollowsIt' passed (0.005 seconds)
+Test Case 'SocialImportTests.testInstagramLoginWallSaysSo' started at 2026-10-17 08:32:33.455
+Test Case 'SocialImportTests.testInstagramLoginWallSaysSo' passed (0.0 seconds)
+Test Case 'SocialImportTests.testInstagramMetaParsing' started at 2026-10-17 08:32:33.455
+Test Case 'SocialImportTests.testInstagramMetaParsing' passed (0.012 seconds)
+Test Case 'SocialImportTests.testInstagramPublicPostCaption' started at 2026-10-17 08:32:33.468
+Test Case 'SocialImportTests.testInstagramPublicPostCaption' passed (0.02 seconds)
+Test Case 'SocialImportTests.testLinkDetection' started at 2026-10-17 08:32:33.487
+Test Case 'SocialImportTests.testLinkDetection' passed (0.0 seconds)
+Test Case 'SocialImportTests.testRecipeLinkInCaption' started at 2026-10-17 08:32:33.488
+Test Case 'SocialImportTests.testRecipeLinkInCaption' passed (0.0 seconds)
+Test Case 'SocialImportTests.testShortTikTokLinkIsFollowedFirst' started at 2026-10-17 08:32:33.488
+Test Case 'SocialImportTests.testShortTikTokLinkIsFollowedFirst' passed (0.019 seconds)
+Test Case 'SocialImportTests.testTikTokCaptionBecomesARecipeWithItsCover' started at 2026-10-17 08:32:33.507
+Test Case 'SocialImportTests.testTikTokCaptionBecomesARecipeWithItsCover' passed (0.019 seconds)
+Test Case 'SocialImportTests.testTikTokCaptionWithoutRecipeSaysSo' started at 2026-10-17 08:32:33.525
+Test Case 'SocialImportTests.testTikTokCaptionWithoutRecipeSaysSo' passed (0.002 seconds)
+Test Case 'SocialImportTests.testTikTokPrivateOrRemovedSaysSo' started at 2026-10-17 08:32:33.527
+Test Case 'SocialImportTests.testTikTokPrivateOrRemovedSaysSo' passed (0.0 seconds)
+Test Suite 'SocialImportTests' passed at 2026-10-17 08:32:33.527
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.079 (0.079) seconds
+Test Suite 'SpreadTests' started at 2026-10-17 08:32:33.527
+Test Case 'SpreadTests.testAddingAndRemovingDishesKeepsTheMainFirst' started at 2026-10-17 08:32:33.527
+Test Case 'SpreadTests.testAddingAndRemovingDishesKeepsTheMainFirst' passed (0.001 seconds)
+Test Case 'SpreadTests.testChangingDishesKeepsTheDinnerTimeAndADeletedSideLeavesTheRest' started at 2026-10-17 08:32:33.528
+Test Case 'SpreadTests.testChangingDishesKeepsTheDinnerTimeAndADeletedSideLeavesTheRest' passed (0.02 seconds)
+Test Case 'SpreadTests.testDuoUprightIsOneCookbookPage' started at 2026-10-17 08:32:33.548
+Test Case 'SpreadTests.testDuoUprightIsOneCookbookPage' passed (0.0 seconds)
+Test Case 'SpreadTests.testFourRecipeDinnerIsReadyTogether' started at 2026-10-17 08:32:33.548
+Test Case 'SpreadTests.testFourRecipeDinnerIsReadyTogether' passed (0.011 seconds)
+Test Case 'SpreadTests.testLeftPageSettlesToTheCoverWhenItsRecipeIsGone' started at 2026-10-17 08:32:33.559
+Test Case 'SpreadTests.testLeftPageSettlesToTheCoverWhenItsRecipeIsGone' passed (0.0 seconds)
+Test Case 'SpreadTests.testOnlyAWideTallPhoneWindowIsASpread' started at 2026-10-17 08:32:33.560
+Test Case 'SpreadTests.testOnlyAWideTallPhoneWindowIsASpread' passed (0.0 seconds)
+Test Case 'SpreadTests.testPairedDinnerCooksBothRecipesReadyTogether' started at 2026-10-17 08:32:33.560
+Test Case 'SpreadTests.testPairedDinnerCooksBothRecipesReadyTogether' passed (0.005 seconds)
+Test Case 'SpreadTests.testPairedMenuIDRoundTrips' started at 2026-10-17 08:32:33.565
+Test Case 'SpreadTests.testPairedMenuIDRoundTrips' passed (0.0 seconds)
+Test Case 'SpreadTests.testQuickTimerCountsDownFromItsDeadlineAndNamesItsDishAndStep' started at 2026-10-17 08:32:33.565
+Test Case 'SpreadTests.testQuickTimerCountsDownFromItsDeadlineAndNamesItsDishAndStep' passed (0.0 seconds)
+Test Case 'SpreadTests.testSearchMatchesTitleOrIngredientWhateverTheCase' started at 2026-10-17 08:32:33.566
+Test Case 'SpreadTests.testSearchMatchesTitleOrIngredientWhateverTheCase' passed (0.0 seconds)
+Test Case 'SpreadTests.testWholeMealIDsRoundTripAndKeepBuild20Pairs' started at 2026-10-17 08:32:33.566
+Test Case 'SpreadTests.testWholeMealIDsRoundTripAndKeepBuild20Pairs' passed (0.0 seconds)
+Test Suite 'SpreadTests' passed at 2026-10-17 08:32:33.566
+	 Executed 11 tests, with 0 failures (0 unexpected) in 0.039 (0.039) seconds
+Test Suite 'StoreTests' started at 2026-10-17 08:32:33.566
+Test Case 'StoreTests.testChooseMenuIsUndoable' started at 2026-10-17 08:32:33.566
+Test Case 'StoreTests.testChooseMenuIsUndoable' passed (0.002 seconds)
+Test Case 'StoreTests.testCompleteUnstartedNeedsConfirmationAndPreservesUnknown' started at 2026-10-17 08:32:33.568
+Test Case 'StoreTests.testCompleteUnstartedNeedsConfirmationAndPreservesUnknown' passed (0.001 seconds)
+Test Case 'StoreTests.testDeniedAuthorizationSchedulesNothing' started at 2026-10-17 08:32:33.569
+Test Case 'StoreTests.testDeniedAuthorizationSchedulesNothing' passed (0.101 seconds)
+Test Case 'StoreTests.testNoStaleReminderAfterResetDuringPendingAuth' started at 2026-10-17 08:32:33.670
+Test Case 'StoreTests.testNoStaleReminderAfterResetDuringPendingAuth' passed (0.303 seconds)
+Test Case 'StoreTests.testNoStaleReminderAfterUndoDuringPendingAuth' started at 2026-10-17 08:32:33.974
+Test Case 'StoreTests.testNoStaleReminderAfterUndoDuringPendingAuth' passed (0.303 seconds)
+Test Case 'StoreTests.testPersistenceRoundTrip' started at 2026-10-17 08:32:34.277
+Test Case 'StoreTests.testPersistenceRoundTrip' passed (0.004 seconds)
+Test Case 'StoreTests.testReminderScheduledWhenUndisturbed' started at 2026-10-17 08:32:34.281
+Test Case 'StoreTests.testReminderScheduledWhenUndisturbed' passed (0.002 seconds)
+Test Case 'StoreTests.testStaleDetection' started at 2026-10-17 08:32:34.283
+Test Case 'StoreTests.testStaleDetection' passed (0.002 seconds)
+Test Case 'StoreTests.testStaleNoProgressReanchors' started at 2026-10-17 08:32:34.285
+Test Case 'StoreTests.testStaleNoProgressReanchors' passed (0.001 seconds)
+Test Case 'StoreTests.testStartBlockedWithoutForce' started at 2026-10-17 08:32:34.286
+Test Case 'StoreTests.testStartBlockedWithoutForce' passed (0.001 seconds)
+Test Case 'StoreTests.testStoreCompletionProposalAcceptanceFlow' started at 2026-10-17 08:32:34.286
+Test Case 'StoreTests.testStoreCompletionProposalAcceptanceFlow' passed (0.006 seconds)
+Test Case 'StoreTests.testUndoRestoresDelay' started at 2026-10-17 08:32:34.293
+Test Case 'StoreTests.testUndoRestoresDelay' passed (0.002 seconds)
+Test Case 'StoreTests.testUndoRestoresExactSession' started at 2026-10-17 08:32:34.295
+Test Case 'StoreTests.testUndoRestoresExactSession' passed (0.002 seconds)
+Test Suite 'StoreTests' passed at 2026-10-17 08:32:34.296
+	 Executed 13 tests, with 0 failures (0 unexpected) in 0.73 (0.73) seconds
+Test Suite 'WeekPlanTests' started at 2026-10-17 08:32:34.296
+Test Case 'WeekPlanTests.testAPlannedDayBecomesTonightOnlyWhenNothingElseSaysSo' started at 2026-10-17 08:32:34.296
+Test Case 'WeekPlanTests.testAPlannedDayBecomesTonightOnlyWhenNothingElseSaysSo' passed (0.0 seconds)
+Test Case 'WeekPlanTests.testDaysAreOpenExceptThanksgiving' started at 2026-10-17 08:32:34.297
+Test Case 'WeekPlanTests.testDaysAreOpenExceptThanksgiving' passed (0.0 seconds)
+Test Case 'WeekPlanTests.testPruneForgetsOldDays' started at 2026-10-17 08:32:34.297
+Test Case 'WeekPlanTests.testPruneForgetsOldDays' passed (0.0 seconds)
+Test Case 'WeekPlanTests.testStorePersistsAndRollsBack' started at 2026-10-17 08:32:34.297
+Test Case 'WeekPlanTests.testStorePersistsAndRollsBack' passed (0.002 seconds)
+Test Case 'WeekPlanTests.testTheCooksChoiceWinsAndFallsBackWhenItsRecipeIsGone' started at 2026-10-17 08:32:34.299
+Test Case 'WeekPlanTests.testTheCooksChoiceWinsAndFallsBackWhenItsRecipeIsGone' passed (0.0 seconds)
+Test Suite 'WeekPlanTests' passed at 2026-10-17 08:32:34.300
+	 Executed 5 tests, with 0 failures (0 unexpected) in 0.003 (0.003) seconds
+Test Suite 'debug.xctest' passed at 2026-10-17 08:32:34.300
+	 Executed 236 tests, with 0 failures (0 unexpected) in 6.868 (6.868) seconds
+Test Suite 'All tests' passed at 2026-10-17 08:32:34.300
+	 Executed 236 tests, with 0 failures (0 unexpected) in 6.868 (6.868) seconds
+◇ Test run started.
+↳ Testing Library Version: 6.0.3 (18c42c19cac3faf)
+✔ Test run with 0 tests passed after 0.001 seconds.
