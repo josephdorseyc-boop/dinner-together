@@ -1,0 +1,5 @@
+run 39019047696
+sha 2668151e48820ded84454797acadfc40e082d9a8
+pass ios27
+part ui-iphone-2-of-2
+xcode 27.1
